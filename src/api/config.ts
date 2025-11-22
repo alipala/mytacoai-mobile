@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Set your backend URL
 export const API_BASE_URL = __DEV__ 
   ? 'http://localhost:8000'
-  : 'https://your-app.railway.app';
+  : 'https://mytacoai.com';
 
 // Configure OpenAPI client
 OpenAPI.BASE = API_BASE_URL;
