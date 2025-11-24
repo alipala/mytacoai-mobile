@@ -16,7 +16,15 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.MyTacoAIMobile",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.anonymous.MyTacoAIMobile",
+              "com.googleusercontent.apps.41687548204-2gm0vhfjqub78lm5pqd7qh5drj6vmmrb"
+            ]
+          }
+        ]
       }
     },
     "android": {
