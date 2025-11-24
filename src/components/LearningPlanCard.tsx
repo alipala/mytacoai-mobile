@@ -26,6 +26,7 @@ interface LearningPlanCardProps {
     sessions_this_week: number;
     sessions_this_month: number;
   } | null;
+  onViewDetails?: (plan: LearningPlan) => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -33,6 +34,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
   plan,
   progressStats,
+  onViewDetails,
 }) => {
   const navigation = useNavigation();
 
@@ -78,8 +80,12 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
   };
 
   const handleViewDetails = () => {
-    // Navigate to plan details
-    navigation.navigate('LearningPlanDetails' as never, { plan } as never);
+    // Use onViewDetails prop if provided, otherwise fallback to navigation
+    if (onViewDetails) {
+      onViewDetails(plan);
+    } else {
+      navigation.navigate('LearningPlanDetails' as never, { plan } as never);
+    }
   };
 
   return (

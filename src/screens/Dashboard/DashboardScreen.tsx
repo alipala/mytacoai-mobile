@@ -31,6 +31,7 @@ import { ProgressService, LearningService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
 import { Ionicons } from '@expo/vector-icons';
 import { LearningPlanCard } from '../../components/LearningPlanCard';
+import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 
 interface DashboardScreenProps {
   navigation: any;
@@ -134,6 +135,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSessionModal, setShowSessionModal] = useState(false);
+  // Modal state
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
 
   // Fetch dashboard data
   const fetchDashboardData = useCallback(async () => {
@@ -225,6 +229,20 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         },
       },
     ]);
+  };
+
+  // Handle view details (opens modal)
+  const handleViewDetails = (plan: LearningPlan) => {
+    setSelectedPlan(plan);
+    setShowDetailsModal(true);
+  };
+
+  // Handle continue learning from modal
+  const handleModalContinueLearning = () => {
+    if (selectedPlan) {
+      setShowDetailsModal(false);
+      navigation.navigate('Conversation', { planId: selectedPlan.id });
+    }
   };
 
   // Loading state
@@ -328,7 +346,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         >
           {learningPlans.map((plan, index) => (
             <View key={plan.id} style={styles.cardWrapper}>
-              <LearningPlanCard plan={plan} progressStats={progressStats} />
+              <LearningPlanCard
+                plan={plan}
+                progressStats={progressStats}
+                onViewDetails={handleViewDetails}
+              />
             </View>
           ))}
         </ScrollView>
@@ -425,6 +447,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onClose={() => setShowSessionModal(false)}
         onSelect={handleSessionModeSelect}
       />
+
+      {/* Learning Plan Details Modal */}
+      {selectedPlan && (
+        <LearningPlanDetailsModal
+          visible={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          plan={selectedPlan}
+          progressStats={progressStats}
+          onContinueLearning={handleModalContinueLearning}
+        />
+      )}
     </SafeAreaView>
   );
 };
