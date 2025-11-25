@@ -223,7 +223,8 @@ const ProfileScreen: React.FC = () => {
 
   const fetchNotifications = async () => {
     try {
-      const data = await fetchWithAuth('/api/notifications');
+      // Note: The notifications endpoint is literally /api/ (base path)
+      const data = await fetchWithAuth('/api/');
       setNotifications(data.notifications || []);
       setUnreadCount(data.unread_count || 0);
     } catch (error) {
