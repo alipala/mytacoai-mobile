@@ -433,9 +433,11 @@ const ProfileScreen: React.FC = () => {
                     <Ionicons name="chatbubbles" size={20} color="#14B8A6" />
                   </View>
                   <View style={styles.activityInfo}>
-                    <Text style={styles.activityTitle}>{session.topic}</Text>
+                    <Text style={styles.activityTitle}>
+                      {session.topic.charAt(0).toUpperCase() + session.topic.slice(1)}
+                    </Text>
                     <Text style={styles.activitySubtitle}>
-                      {session.language} • {session.level}
+                      {session.language.charAt(0).toUpperCase() + session.language.slice(1)} • {session.level}
                     </Text>
                   </View>
                   <Text style={styles.activityDate}>{formatDate(session.created_at)}</Text>
@@ -509,30 +511,48 @@ const ProfileScreen: React.FC = () => {
               {/* Expanded Content */}
               {isExpanded && (
                 <View style={styles.progressPlanContent}>
-                  {/* Skills Grid - 2 Columns */}
+                  {/* Skills Grid - TRUE HORIZONTAL 2 COLUMNS */}
                   {plan.assessment_data && (
                     <View style={styles.skillsSection}>
                       <Text style={styles.skillsSectionTitle}>Skills Assessment</Text>
                       <View style={styles.skillsGridHorizontal}>
-                        {[
-                          { key: 'pronunciation', label: 'Pronunciation', icon: 'mic', score: plan.assessment_data.pronunciation.score },
-                          { key: 'grammar', label: 'Grammar', icon: 'book', score: plan.assessment_data.grammar.score },
-                          { key: 'vocabulary', label: 'Vocabulary', icon: 'text', score: plan.assessment_data.vocabulary.score },
-                          { key: 'fluency', label: 'Fluency', icon: 'chatbubbles', score: plan.assessment_data.fluency.score },
-                          { key: 'coherence', label: 'Coherence', icon: 'git-merge', score: plan.assessment_data.coherence.score },
-                        ].map((skill) => (
-                          <View key={skill.key} style={styles.skillCardHorizontal}>
-                            <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
-                              <Ionicons name={skill.icon as any} size={18} color={getScoreColor(skill.score)} />
+                        <View style={styles.skillColumn}>
+                          {[
+                            { key: 'pronunciation', label: 'Pronunciation', icon: 'mic', score: plan.assessment_data.pronunciation.score },
+                            { key: 'grammar', label: 'Grammar', icon: 'book', score: plan.assessment_data.grammar.score },
+                            { key: 'vocabulary', label: 'Vocabulary', icon: 'text', score: plan.assessment_data.vocabulary.score },
+                          ].map((skill) => (
+                            <View key={skill.key} style={styles.skillCardHorizontal}>
+                              <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
+                                <Ionicons name={skill.icon as any} size={18} color={getScoreColor(skill.score)} />
+                              </View>
+                              <View style={styles.skillInfo}>
+                                <Text style={styles.skillLabelHorizontal}>{skill.label}</Text>
+                                <Text style={[styles.skillScoreHorizontal, { color: getScoreColor(skill.score) }]}>
+                                  {skill.score}
+                                </Text>
+                              </View>
                             </View>
-                            <View style={styles.skillInfo}>
-                              <Text style={styles.skillLabelHorizontal}>{skill.label}</Text>
-                              <Text style={[styles.skillScoreHorizontal, { color: getScoreColor(skill.score) }]}>
-                                {skill.score}
-                              </Text>
+                          ))}
+                        </View>
+                        <View style={styles.skillColumn}>
+                          {[
+                            { key: 'fluency', label: 'Fluency', icon: 'chatbubbles', score: plan.assessment_data.fluency.score },
+                            { key: 'coherence', label: 'Coherence', icon: 'git-merge', score: plan.assessment_data.coherence.score },
+                          ].map((skill) => (
+                            <View key={skill.key} style={styles.skillCardHorizontal}>
+                              <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
+                                <Ionicons name={skill.icon as any} size={18} color={getScoreColor(skill.score)} />
+                              </View>
+                              <View style={styles.skillInfo}>
+                                <Text style={styles.skillLabelHorizontal}>{skill.label}</Text>
+                                <Text style={[styles.skillScoreHorizontal, { color: getScoreColor(skill.score) }]}>
+                                  {skill.score}
+                                </Text>
+                              </View>
                             </View>
-                          </View>
-                        ))}
+                          ))}
+                        </View>
                       </View>
                     </View>
                   )}
@@ -931,14 +951,16 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   
-  // Skills Grid - HORIZONTAL
+  // Skills Grid - TRUE HORIZONTAL 2 COLUMNS
   skillsGridHorizontal: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    gap: 10,
+  },
+  skillColumn: {
+    flex: 1,
     gap: 8,
   },
   skillCardHorizontal: {
-    width: (width - 64) / 2,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
