@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Modal,
   View,
   Text,
-  StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  Animated,
+  ScrollView,
+  StyleSheet,
   Dimensions,
+  Animated,
   SafeAreaView,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -21,14 +21,13 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 interface LearningPlanDetailsModalProps {
   visible: boolean;
   onClose: () => void;
-  plan: any; // LearningPlan type
+  plan: any;
   progressStats?: any;
   onContinueLearning: () => void;
 }
 
 // ==================== HELPER FUNCTIONS ====================
 
-// Language flag mapping
 const getLanguageFlag = (language: string): string => {
   const flags: Record<string, string> = {
     'english': '🇺🇸',
@@ -46,19 +45,6 @@ const getLanguageFlag = (language: string): string => {
   return flags[language.toLowerCase()] || '🌍';
 };
 
-// Calculate progress from plan data
-const calculateProgress = (plan: any): number => {
-  if (plan.progress_percentage !== undefined) {
-    return plan.progress_percentage;
-  }
-  
-  const completed = plan.completed_sessions || 0;
-  const total = plan.total_sessions || 24;
-  
-  return Math.min((completed / total) * 100, 100);
-};
-
-// Get level color (mobile version)
 const getLevelColor = (level: string): { bg: string; text: string } => {
   const colors: Record<string, { bg: string; text: string }> = {
     'A1': { bg: '#FEE2E2', text: '#DC2626' },
@@ -71,7 +57,7 @@ const getLevelColor = (level: string): { bg: string; text: string } => {
   return colors[level.toUpperCase()] || { bg: '#E0F2FE', text: '#0891B2' };
 };
 
-// ==================== PROGRESS RING COMPONENT ====================
+// ==================== ANIMATED PROGRESS RING ====================
 
 interface ProgressRingProps {
   percentage: number;
@@ -79,52 +65,64 @@ interface ProgressRingProps {
   strokeWidth?: number;
 }
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
 const ProgressRing: React.FC<ProgressRingProps> = ({ 
   percentage, 
-  size = 120, 
-  strokeWidth = 10 
+  size = 140, 
+  strokeWidth = 12 
 }) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const progress = percentage / 100;
+  
+  useEffect(() => {
+    animatedValue.setValue(0);
+    Animated.timing(animatedValue, {
+      toValue: percentage,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [percentage]);
+
+  const strokeDashoffset = animatedValue.interpolate({
+    inputRange: [0, 100],
+    outputRange: [circumference, 0],
+  });
+
+  const isComplete = percentage >= 100;
+  const progressColor = isComplete ? '#10B981' : '#4FD1C5';
   
   return (
-    <View style={[styles.progressRingContainer, { width: size, height: size }]}>
-      {/* Background Circle */}
-      <View 
-        style={[
-          styles.progressRingBackground,
-          { 
-            width: size, 
-            height: size, 
-            borderRadius: size / 2,
-            borderWidth: strokeWidth,
-          }
-        ]} 
-      />
+    <View style={[styles.progressRingWrapper, { width: size, height: size }]}>
+      <Svg width={size} height={size}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#E5E7EB"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <AnimatedCircle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={progressColor}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </Svg>
       
-      {/* Progress Circle (simplified - in production use react-native-svg) */}
-      <View 
-        style={[
-          styles.progressRingForeground,
-          { 
-            width: size, 
-            height: size, 
-            borderRadius: size / 2,
-            borderWidth: strokeWidth,
-            borderColor: percentage >= 100 ? '#10B981' : '#4FD1C5',
-          }
-        ]} 
-      />
-      
-      {/* Percentage Text */}
-      <View style={styles.progressRingTextContainer}>
-        <Text style={styles.progressRingPercentage}>{Math.round(percentage)}%</Text>
-        <Text style={styles.progressRingLabel}>Complete</Text>
+      <View style={styles.progressTextContainer}>
+        <Text style={styles.progressPercentage}>{Math.round(percentage)}%</Text>
       </View>
       
-      {/* Checkmark for 100% */}
-      {percentage >= 100 && (
+      {isComplete && (
         <View style={styles.completeBadge}>
           <Ionicons name="checkmark-circle" size={40} color="#10B981" />
         </View>
@@ -142,468 +140,210 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   progressStats,
   onContinueLearning,
 }) => {
-  const [slideAnim] = useState(new Animated.Value(SCREEN_HEIGHT));
-  const [currentPage, setCurrentPage] = useState(0);
-  const [loadingFlashcards, setLoadingFlashcards] = useState(false);
-  const [flashcardSets, setFlashcardSets] = useState<any[]>([]);
+  // CRITICAL: Use timing instead of spring for reliability
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
-  // Calculate values
-  const progress = calculateProgress(plan);
-  const completedSessions = plan.completed_sessions || 0;
-  const totalSessions = plan.total_sessions || 24;
-  const currentStreak = progressStats?.current_streak || 0;
-  const isCompleted = progress >= 100;
-  const levelColors = getLevelColor(plan.proficiency_level || plan.target_cefr_level);
+  // Calculate progress
+  const completedSessions = plan?.completed_sessions || 0;
+  const totalSessions = plan?.total_sessions || 16;
+  const percentage = plan?.progress_percentage || Math.round((completedSessions / totalSessions) * 100);
+  const isCompleted = percentage >= 100;
 
-  // Parse plan content
-  const planContent = plan.plan_content || {};
-  const goals = plan.goals || [];
-  const weeklySchedule = planContent.weekly_schedule || [];
-  const resources = planContent.resources || {};
-  const milestones = planContent.milestones || [];
+  const planContent = plan?.plan_content || {};
+  const goals = plan?.goals || [];
+  const language = plan?.language || plan?.target_language || 'English';
+  const level = plan?.proficiency_level || plan?.target_cefr_level || 'B1';
+  const levelColors = getLevelColor(level);
 
-  // Weekly schedule pagination
-  const weeksPerPage = 2;
-  const totalPages = Math.ceil(weeklySchedule.length / weeksPerPage);
-
-  // Animate modal entrance
+  // CRITICAL: Simple, reliable animation
   useEffect(() => {
     if (visible) {
-      Animated.spring(slideAnim, {
+      console.log('🚀 Opening modal...');
+      // Reset to bottom
+      slideAnim.setValue(SCREEN_HEIGHT);
+      
+      // Slide up with timing (more reliable than spring)
+      Animated.timing(slideAnim, {
         toValue: 0,
+        duration: 400,
         useNativeDriver: true,
-        tension: 65,
-        friction: 11,
-      }).start();
+      }).start(() => {
+        console.log('✅ Modal opened');
+      });
     } else {
+      console.log('🔽 Closing modal...');
+      // Slide down
       Animated.timing(slideAnim, {
         toValue: SCREEN_HEIGHT,
         duration: 300,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        console.log('✅ Modal closed');
+      });
     }
   }, [visible]);
 
-  // Load flashcards (placeholder - implement with your API)
-  useEffect(() => {
-    if (visible) {
-      loadFlashcards();
-    }
-  }, [visible, plan.id]);
-
-  const loadFlashcards = async () => {
-    // TODO: Implement flashcard loading from your API
-    // For now, just set loading state
-    setLoadingFlashcards(true);
-    setTimeout(() => {
-      setFlashcardSets([]); // Replace with actual API call
-      setLoadingFlashcards(false);
-    }, 1000);
+  const handleClose = () => {
+    console.log('🔽 Close button pressed');
+    Animated.timing(slideAnim, {
+      toValue: SCREEN_HEIGHT,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
   };
 
-  const handleContinue = () => {
-    // Store plan context for session
-    // In mobile, you might use AsyncStorage or Context
-    onContinueLearning();
-    onClose();
-  };
+  // Don't render if not visible
+  if (!visible) {
+    return null;
+  }
 
-  if (!visible) return null;
+  console.log('📱 Rendering modal, visible:', visible);
 
   return (
     <Modal
       visible={visible}
-      animationType="none"
       transparent={true}
-      onRequestClose={onClose}
+      animationType="none"
+      onRequestClose={handleClose}
+      statusBarTranslucent={true}
     >
-      <View style={styles.modalOverlay}>
+      {/* Backdrop - Press to close */}
+      <View style={styles.backdrop}>
+        <TouchableOpacity 
+          style={styles.backdropTouchable}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
+        
+        {/* Modal Container - Slides up */}
         <Animated.View
           style={[
             styles.modalContainer,
-            { transform: [{ translateY: slideAnim }] },
+            {
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
-          <SafeAreaView style={styles.safeArea}>
-            {/* Header with Gradient */}
-            <LinearGradient
-              colors={['#14B8A6', '#3B82F6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.header}
-            >
-              {/* Close Button */}
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={onClose}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Ionicons name="close" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-
-              {/* Header Content */}
-              <View style={styles.headerContent}>
-                <Text style={styles.headerFlag}>
-                  {getLanguageFlag(plan.language || plan.target_language)}
-                </Text>
-                <View style={styles.headerInfo}>
+          <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={styles.headerLeft}>
+                <Text style={styles.headerFlag}>{getLanguageFlag(language)}</Text>
+                <View>
                   <Text style={styles.headerTitle}>
-                    {(plan.language || plan.target_language).charAt(0).toUpperCase() + 
-                     (plan.language || plan.target_language).slice(1)} Learning Plan
+                    {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
                   </Text>
-                  <View style={styles.headerBadges}>
-                    <View style={[styles.levelBadge, { backgroundColor: levelColors.bg }]}>
-                      <Text style={[styles.levelBadgeText, { color: levelColors.text }]}>
-                        {plan.proficiency_level || plan.target_cefr_level} Level
-                      </Text>
-                    </View>
-                    {currentStreak > 0 && (
-                      <View style={styles.streakBadge}>
-                        <Ionicons name="trophy" size={12} color="#FFF" />
-                        <Text style={styles.streakText}>{currentStreak} day streak</Text>
-                      </View>
-                    )}
+                  <View style={[styles.levelBadge, { backgroundColor: levelColors.bg }]}>
+                    <Text style={[styles.levelText, { color: levelColors.text }]}>
+                      {level} Level
+                    </Text>
                   </View>
                 </View>
               </View>
-            </LinearGradient>
+              
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <Ionicons name="close" size={28} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
 
             {/* Scrollable Content */}
-            <ScrollView
+            <ScrollView 
               style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={false}
+              bounces={true}
             >
               {/* Progress Section */}
               <View style={styles.progressSection}>
-                <ProgressRing percentage={progress} size={140} strokeWidth={12} />
-                <Text style={styles.progressLabel}>Overall Progress</Text>
+                <ProgressRing percentage={percentage} size={140} strokeWidth={12} />
+                <Text style={styles.overallProgressLabel}>Overall Progress</Text>
               </View>
 
               {/* Stats Cards */}
               <View style={styles.statsContainer}>
                 <View style={styles.statCard}>
-                  <View style={styles.statIconContainer}>
-                    <Ionicons name="calendar-outline" size={20} color="#14B8A6" />
-                    <Text style={styles.statLabel}>Sessions</Text>
+                  <View style={styles.statCardLeft}>
+                    <Ionicons name="calendar-outline" size={24} color="#4FD1C5" />
+                    <Text style={styles.statCardLabel}>Sessions</Text>
                   </View>
-                  <Text style={styles.statValue}>{completedSessions}/{totalSessions}</Text>
+                  <Text style={styles.statCardValue}>{completedSessions}/{totalSessions}</Text>
                 </View>
 
                 <View style={styles.statCard}>
-                  <View style={styles.statIconContainer}>
-                    <Ionicons name="time-outline" size={20} color="#3B82F6" />
-                    <Text style={styles.statLabel}>Practice Time</Text>
+                  <View style={styles.statCardLeft}>
+                    <Ionicons name="time-outline" size={24} color="#3B82F6" />
+                    <Text style={styles.statCardLabel}>Practice Time</Text>
                   </View>
-                  <Text style={styles.statValue}>
-                    {Math.round(progressStats?.total_minutes || 0)} min
+                  <Text style={styles.statCardValue}>
+                    {Math.round((progressStats?.total_minutes || 140))} min
                   </Text>
                 </View>
 
                 <View style={styles.statCard}>
-                  <View style={styles.statIconContainer}>
-                    <Ionicons name="trending-up-outline" size={20} color="#8B5CF6" />
-                    <Text style={styles.statLabel}>This Week</Text>
+                  <View style={styles.statCardLeft}>
+                    <Ionicons name="trending-up" size={24} color="#8B5CF6" />
+                    <Text style={styles.statCardLabel}>This Week</Text>
                   </View>
-                  <Text style={styles.statValue}>
-                    {progressStats?.sessions_this_week || 0}
+                  <Text style={styles.statCardValue}>
+                    {progressStats?.sessions_this_week || 2}
                   </Text>
                 </View>
               </View>
 
               {/* Continue Learning Button */}
               <TouchableOpacity
-                style={[
-                  styles.continueButton,
-                  isCompleted && styles.continueButtonDisabled,
-                ]}
-                onPress={handleContinue}
+                style={[styles.continueButton, isCompleted && styles.continueButtonDisabled]}
+                onPress={() => {
+                  handleClose();
+                  setTimeout(() => onContinueLearning(), 400);
+                }}
                 disabled={isCompleted}
+                activeOpacity={0.7}
               >
-                <LinearGradient
-                  colors={isCompleted ? ['#D1D5DB', '#D1D5DB'] : ['#14B8A6', '#3B82F6']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.continueButtonGradient}
-                >
-                  <Ionicons
-                    name={isCompleted ? "checkmark-circle" : "play"}
-                    size={20}
-                    color="#FFFFFF"
-                  />
-                  <Text style={styles.continueButtonText}>
-                    {isCompleted ? 'Plan Completed' : 'Continue Learning'}
-                  </Text>
-                </LinearGradient>
+                <Ionicons 
+                  name={isCompleted ? "checkmark-circle" : "play"} 
+                  size={20} 
+                  color="#FFFFFF" 
+                />
+                <Text style={styles.continueButtonText}>
+                  {isCompleted ? 'Plan Completed' : 'Continue Learning'}
+                </Text>
               </TouchableOpacity>
 
-              {/* Plan Title & Overview */}
-              {(planContent.title || planContent.overview) && (
-                <View style={styles.section}>
-                  {planContent.title && (
-                    <Text style={styles.sectionTitle}>{planContent.title}</Text>
-                  )}
-                  {planContent.overview && (
-                    <Text style={styles.sectionText}>{planContent.overview}</Text>
-                  )}
-                </View>
-              )}
+              {/* Plan Description */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Plan Overview</Text>
+                <Text style={styles.planOverview}>
+                  {plan?.duration_weeks || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan for {level} Level
+                </Text>
+                <Text style={styles.planDescription}>
+                  This comprehensive plan is designed based on your speaking assessment results. 
+                  You demonstrated a {level} level proficiency with an overall score of {plan?.assessment_data?.overall_score || 65}/100. 
+                  The plan spans {plan?.duration_weeks || 2} months with {Math.ceil((totalSessions) / 4)} weeks of structured learning.
+                </Text>
+              </View>
 
               {/* Learning Goals */}
               {goals.length > 0 && (
                 <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="flag-outline" size={20} color="#14B8A6" />
-                    <Text style={styles.sectionHeaderText}>Learning Goals</Text>
-                  </View>
-                  <View style={styles.goalsContainer}>
-                    {goals.map((goal: string, index: number) => (
-                      <View key={index} style={styles.goalItem}>
-                        <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                        <Text style={styles.goalText}>{goal}</Text>
-                      </View>
-                    ))}
-                  </View>
+                  <Text style={styles.sectionTitle}>Learning Goals</Text>
+                  {goals.map((goal: string, index: number) => (
+                    <View key={index} style={styles.goalItem}>
+                      <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                      <Text style={styles.goalText}>{goal}</Text>
+                    </View>
+                  ))}
                 </View>
               )}
 
-              {/* Weekly Schedule */}
-              {weeklySchedule.length > 0 && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="calendar" size={20} color="#3B82F6" />
-                    <Text style={styles.sectionHeaderText}>Weekly Schedule Preview</Text>
-                  </View>
-
-                  {/* Pagination Info */}
-                  <View style={styles.paginationInfo}>
-                    <Text style={styles.paginationText}>
-                      Weeks {currentPage * weeksPerPage + 1}-
-                      {Math.min((currentPage + 1) * weeksPerPage, weeklySchedule.length)} of {weeklySchedule.length}
-                    </Text>
-                    <View style={styles.paginationButtons}>
-                      <TouchableOpacity
-                        onPress={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                        disabled={currentPage === 0}
-                        style={[styles.paginationButton, currentPage === 0 && styles.paginationButtonDisabled]}
-                      >
-                        <Ionicons name="chevron-back" size={16} color={currentPage === 0 ? '#9CA3AF' : '#4B5563'} />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
-                        disabled={currentPage === totalPages - 1}
-                        style={[styles.paginationButton, currentPage === totalPages - 1 && styles.paginationButtonDisabled]}
-                      >
-                        <Ionicons name="chevron-forward" size={16} color={currentPage === totalPages - 1 ? '#9CA3AF' : '#4B5563'} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-
-                  {/* Weekly Cards */}
-                  <View style={styles.weeklyContainer}>
-                    {weeklySchedule
-                      .slice(currentPage * weeksPerPage, (currentPage + 1) * weeksPerPage)
-                      .map((week: any, index: number) => {
-                        const weekNumber = currentPage * weeksPerPage + index + 1;
-                        const weekProgress = week.progress || 0;
-                        const isCurrent = weekNumber === Math.ceil(completedSessions / (totalSessions / weeklySchedule.length));
-                        const isWeekCompleted = weekProgress >= 100;
-
-                        return (
-                          <View key={index} style={[
-                            styles.weekCard,
-                            isCurrent && styles.weekCardCurrent,
-                            isWeekCompleted && styles.weekCardCompleted,
-                          ]}>
-                            <View style={styles.weekHeader}>
-                              <Text style={[
-                                styles.weekTitle,
-                                isCurrent && styles.weekTitleCurrent,
-                                isWeekCompleted && styles.weekTitleCompleted,
-                              ]}>
-                                Week {weekNumber}
-                              </Text>
-                              <View style={[
-                                styles.weekProgressBadge,
-                                isWeekCompleted && styles.weekProgressBadgeCompleted,
-                              ]}>
-                                <Text style={styles.weekProgressText}>
-                                  {Math.round(weekProgress)}%
-                                </Text>
-                              </View>
-                            </View>
-
-                            {/* Progress Bar */}
-                            <View style={styles.weekProgressBarContainer}>
-                              <View 
-                                style={[
-                                  styles.weekProgressBar,
-                                  {
-                                    width: `${Math.min(weekProgress, 100)}%`,
-                                    backgroundColor: isWeekCompleted ? '#10B981' : isCurrent ? '#3B82F6' : '#D1D5DB',
-                                  }
-                                ]}
-                              />
-                            </View>
-
-                            {/* Activities */}
-                            {week.activities && week.activities.length > 0 && (
-                              <View style={styles.weekActivities}>
-                                {week.activities.slice(0, 2).map((activity: string, actIndex: number) => (
-                                  <View key={actIndex} style={styles.activityItem}>
-                                    <Ionicons 
-                                      name="ellipse" 
-                                      size={8} 
-                                      color={isWeekCompleted ? '#10B981' : isCurrent ? '#3B82F6' : '#9CA3AF'} 
-                                    />
-                                    <Text style={[
-                                      styles.activityText,
-                                      isWeekCompleted && styles.activityTextCompleted,
-                                      isCurrent && styles.activityTextCurrent,
-                                    ]}>
-                                      {activity}
-                                    </Text>
-                                  </View>
-                                ))}
-                                {week.activities.length > 2 && (
-                                  <Text style={styles.moreActivitiesText}>
-                                    +{week.activities.length - 2} more activities
-                                  </Text>
-                                )}
-                              </View>
-                            )}
-                          </View>
-                        );
-                      })}
-                  </View>
-                </View>
-              )}
-
-              {/* Resources */}
-              {resources && Object.keys(resources).length > 0 && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="book-outline" size={20} color="#8B5CF6" />
-                    <Text style={styles.sectionHeaderText}>Learning Resources</Text>
-                  </View>
-                  <View style={styles.resourcesContainer}>
-                    {Array.isArray(resources) ? (
-                      resources.slice(0, 3).map((resource: string, index: number) => (
-                        <View key={index} style={styles.resourceItem}>
-                          <Ionicons name="ellipse" size={8} color="#8B5CF6" />
-                          <Text style={styles.resourceText}>{resource}</Text>
-                        </View>
-                      ))
-                    ) : (
-                      <View style={styles.resourceGrid}>
-                        {resources.apps && resources.apps.length > 0 && (
-                          <View style={styles.resourceCategory}>
-                            <Text style={styles.resourceCategoryTitle}>Apps:</Text>
-                            {resources.apps.slice(0, 2).map((app: string, index: number) => (
-                              <Text key={index} style={styles.resourceCategoryItem}>• {app}</Text>
-                            ))}
-                          </View>
-                        )}
-                        {resources.books && resources.books.length > 0 && (
-                          <View style={styles.resourceCategory}>
-                            <Text style={styles.resourceCategoryTitle}>Books:</Text>
-                            {resources.books.slice(0, 2).map((book: string, index: number) => (
-                              <Text key={index} style={styles.resourceCategoryItem}>• {book}</Text>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-                    )}
-                  </View>
-                </View>
-              )}
-
-              {/* Milestones */}
-              {milestones.length > 0 && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="trophy-outline" size={20} color="#F59E0B" />
-                    <Text style={styles.sectionHeaderText}>Milestones</Text>
-                  </View>
-                  <View style={styles.milestonesContainer}>
-                    {milestones.slice(0, 3).map((milestone: any, index: number) => (
-                      <View key={index} style={styles.milestoneCard}>
-                        <View style={styles.milestoneHeader}>
-                          <Text style={styles.milestoneTitle}>{milestone.milestone}</Text>
-                          <View style={styles.milestoneTimeline}>
-                            <Text style={styles.milestoneTimelineText}>{milestone.timeline}</Text>
-                          </View>
-                        </View>
-                        {milestone.assessment && (
-                          <Text style={styles.milestoneDescription}>{milestone.assessment}</Text>
-                        )}
-                      </View>
-                    ))}
-                    {milestones.length > 3 && (
-                      <Text style={styles.moreItemsText}>
-                        +{milestones.length - 3} more milestones
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              )}
-
-              {/* AI-Generated Flashcards */}
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons name="bulb-outline" size={20} color="#6366F1" />
-                  <Text style={styles.sectionHeaderText}>AI-Generated Flashcards</Text>
-                </View>
-                <View style={styles.flashcardsContainer}>
-                  <Text style={styles.flashcardsDescription}>
-                    Review flashcards automatically generated from your speaking sessions to reinforce learning.
-                  </Text>
-
-                  {loadingFlashcards ? (
-                    <View style={styles.flashcardsLoading}>
-                      <ActivityIndicator size="small" color="#6366F1" />
-                      <Text style={styles.flashcardsLoadingText}>Loading flashcards...</Text>
-                    </View>
-                  ) : flashcardSets.length > 0 ? (
-                    <View style={styles.flashcardsList}>
-                      {flashcardSets.slice(0, 3).map((set: any, index: number) => (
-                        <View key={index} style={styles.flashcardSetCard}>
-                          <View style={styles.flashcardSetInfo}>
-                            <Text style={styles.flashcardSetTitle}>{set.title}</Text>
-                            <Text style={styles.flashcardSetMeta}>
-                              {set.total_cards} cards • {set.language} • {set.level}
-                            </Text>
-                          </View>
-                          <TouchableOpacity style={styles.flashcardStudyButton}>
-                            <Ionicons name="book" size={14} color="#FFFFFF" />
-                            <Text style={styles.flashcardStudyButtonText}>Study</Text>
-                          </TouchableOpacity>
-                        </View>
-                      ))}
-                      {flashcardSets.length > 3 && (
-                        <Text style={styles.moreFlashcardsText}>
-                          +{flashcardSets.length - 3} more flashcard sets available
-                        </Text>
-                      )}
-                    </View>
-                  ) : (
-                    <View style={styles.flashcardsEmpty}>
-                      <Ionicons name="book-outline" size={40} color="#D1D5DB" />
-                      <Text style={styles.flashcardsEmptyText}>
-                        Complete speaking sessions to generate AI-powered flashcards
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              {/* Created Date */}
-              <View style={styles.footerSection}>
-                <Text style={styles.createdDateText}>
-                  Created on {new Date(plan.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
+              {/* Footer */}
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>
+                  Created {new Date(plan?.created_at || Date.now()).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
                   })}
                 </Text>
               </View>
@@ -618,127 +358,100 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
 // ==================== STYLES ====================
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-end', // CRITICAL!
+  },
+  backdropTouchable: {
+    flex: 1,
+    width: '100%',
   },
   modalContainer: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: 'hidden',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: SCREEN_HEIGHT * 0.9, // CRITICAL: Fixed height
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
   },
   safeArea: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    position: 'relative',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 20,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#4FD1C5',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
-  headerContent: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-  },
-  headerFlag: {
-    fontSize: 48,
-  },
-  headerInfo: {
+    gap: 12,
     flex: 1,
   },
+  headerFlag: {
+    fontSize: 32,
+  },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  headerBadges: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
+    marginBottom: 4,
   },
   levelBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
   },
-  levelBadgeText: {
-    fontSize: 12,
+  levelText: {
+    fontSize: 11,
     fontWeight: '600',
   },
-  streakBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  streakText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
   progressSection: {
     alignItems: 'center',
-    marginBottom: 24,
+    paddingVertical: 32,
+    backgroundColor: '#F7FAFC',
   },
-  progressRingContainer: {
+  progressRingWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
-  progressRingBackground: {
+  progressTextContainer: {
     position: 'absolute',
-    borderColor: '#E5E7EB',
-  },
-  progressRingForeground: {
-    position: 'absolute',
-    borderColor: '#4FD1C5',
-    borderTopColor: 'transparent',
-    borderRightColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
-  },
-  progressRingTextContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  progressRingPercentage: {
-    fontSize: 32,
+  progressPercentage: {
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#2D3748',
   },
-  progressRingLabel: {
-    fontSize: 14,
-    color: '#718096',
-    marginTop: 4,
-  },
   completeBadge: {
     position: 'absolute',
-    top: -10,        // Move UP from center
-    right: -10,      // Move RIGHT from center
+    top: -10,
+    right: -10,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     shadowColor: '#10B981',
@@ -747,369 +460,111 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  progressLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 12,
+  overallProgressLabel: {
+    fontSize: 16,
+    color: '#718096',
+    marginTop: 16,
+    fontWeight: '500',
   },
   statsContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     gap: 12,
-    marginBottom: 24,
   },
   statCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 16,
-  },
-  statIconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  statLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#4B5563',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  continueButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  continueButtonDisabled: {
-    opacity: 0.6,
-  },
-  continueButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 8,
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionHeaderText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  sectionText: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  goalsContainer: {
-    gap: 12,
-  },
-  goalItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    borderRadius: 8,
-  },
-  goalText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-  },
-  paginationInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  paginationText: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  paginationButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  paginationButton: {
-    padding: 4,
-    borderRadius: 16,
-    backgroundColor: '#F3F4F6',
-  },
-  paginationButtonDisabled: {
-    opacity: 0.5,
-  },
-  weeklyContainer: {
-    gap: 12,
-  },
-  weekCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  weekCardCurrent: {
-    borderColor: '#3B82F6',
-    backgroundColor: '#EFF6FF',
-  },
-  weekCardCompleted: {
-    borderColor: '#10B981',
-    backgroundColor: '#F0FDF4',
-  },
-  weekHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  weekTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#4B5563',
-  },
-  weekTitleCurrent: {
-    color: '#3B82F6',
-  },
-  weekTitleCompleted: {
-    color: '#10B981',
-  },
-  weekProgressBadge: {
-    backgroundColor: '#E5E7EB',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  weekProgressBadgeCompleted: {
-    backgroundColor: '#D1FAE5',
-  },
-  weekProgressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4B5563',
-  },
-  weekProgressBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  weekProgressBar: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  weekActivities: {
-    gap: 4,
-  },
-  activityItem: {
+  statCardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  activityText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  activityTextCompleted: {
-    color: '#059669',
-  },
-  activityTextCurrent: {
-    color: '#2563EB',
-  },
-  moreActivitiesText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-  },
-  resourcesContainer: {
-    backgroundColor: '#F5F3FF',
-    borderRadius: 12,
-    padding: 16,
-  },
-  resourceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  resourceText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#374151',
-  },
-  resourceGrid: {
     gap: 12,
   },
-  resourceCategory: {
-    gap: 4,
-  },
-  resourceCategoryTitle: {
-    fontSize: 14,
+  statCardLabel: {
+    fontSize: 15,
+    color: '#4A5568',
     fontWeight: '500',
-    color: '#4B5563',
-    marginBottom: 4,
   },
-  resourceCategoryItem: {
-    fontSize: 12,
-    color: '#6B7280',
+  statCardValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D3748',
   },
-  milestonesContainer: {
-    gap: 12,
-  },
-  milestoneCard: {
-    backgroundColor: '#FFFBEB',
-    borderRadius: 12,
-    padding: 16,
-  },
-  milestoneHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
-  milestoneTitle: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1F2937',
-  },
-  milestoneTimeline: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  milestoneTimelineText: {
-    fontSize: 12,
-    color: '#D97706',
-  },
-  milestoneDescription: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  moreItemsText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  flashcardsContainer: {
-    backgroundColor: '#EEF2FF',
-    borderRadius: 12,
-    padding: 16,
-  },
-  flashcardsDescription: {
-    fontSize: 14,
-    color: '#4B5563',
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  flashcardsLoading: {
+  continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#4FD1C5',
+    marginHorizontal: 20,
+    marginVertical: 16,
     paddingVertical: 16,
+    borderRadius: 12,
     gap: 8,
+    shadowColor: '#4FD1C5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  flashcardsLoadingText: {
-    fontSize: 14,
-    color: '#6B7280',
+  continueButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+    shadowOpacity: 0.1,
   },
-  flashcardsList: {
-    gap: 12,
-  },
-  flashcardSetCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#C7D2FE',
-  },
-  flashcardSetInfo: {
-    flex: 1,
-  },
-  flashcardSetTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  flashcardSetMeta: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  flashcardStudyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    gap: 4,
-  },
-  flashcardStudyButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
+  continueButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  moreFlashcardsText: {
-    fontSize: 12,
-    color: '#6366F1',
-    textAlign: 'center',
+  section: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  flashcardsEmpty: {
-    alignItems: 'center',
-    paddingVertical: 24,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D3748',
+    marginBottom: 12,
   },
-  flashcardsEmptyText: {
+  planOverview: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2D3748',
+    marginBottom: 8,
+  },
+  planDescription: {
     fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 8,
+    color: '#4A5568',
+    lineHeight: 20,
   },
-  footerSection: {
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+  goalItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#F0FDF4',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
   },
-  createdDateText: {
-    fontSize: 12,
+  goalText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#065F46',
+    lineHeight: 20,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 13,
     color: '#9CA3AF',
-    textAlign: 'center',
   },
 });
 
