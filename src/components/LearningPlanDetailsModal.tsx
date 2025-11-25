@@ -1,21 +1,3 @@
-/**
- * LearningPlanDetailsModal.tsx
- * 
- * Full-screen modal showing detailed information about a learning plan
- * Mobile-optimized version of the web app modal
- * 
- * Features:
- * - Animated modal entrance
- * - Progress visualization with circular progress
- * - Stats cards (Sessions, Practice Time, Weekly)
- * - Learning goals
- * - Weekly schedule with pagination
- * - Resources section
- * - Milestones
- * - AI-Generated Flashcards
- * - Continue Learning button
- */
-
 import React, { useState, useEffect } from 'react';
 import {
   Modal,
@@ -423,19 +405,9 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                       .slice(currentPage * weeksPerPage, (currentPage + 1) * weeksPerPage)
                       .map((week: any, index: number) => {
                         const weekNumber = currentPage * weeksPerPage + index + 1;
-                        const weekSessionsCompleted = Math.min(week.sessions_completed || 0, week.total_sessions || 2);
-                        const weekTotalSessions = week.total_sessions || 2;
-
-                        // Determine week status based on session completion
-                        const isWeekCompleted = weekSessionsCompleted >= weekTotalSessions;
-                        const isWeekInProgress = weekSessionsCompleted > 0 && weekSessionsCompleted < weekTotalSessions;
-                        const isWeekNotStarted = weekSessionsCompleted === 0;
-
-                        // Find the current week (first week with incomplete sessions)
-                        const currentWeekIndex = weeklySchedule.findIndex((w: any) =>
-                          (w.sessions_completed || 0) < (w.total_sessions || 2)
-                        );
-                        const isCurrent = currentWeekIndex !== -1 && (currentPage * weeksPerPage + index) === currentWeekIndex;
+                        const weekProgress = week.progress || 0;
+                        const isCurrent = weekNumber === Math.ceil(completedSessions / (totalSessions / weeklySchedule.length));
+                        const isWeekCompleted = weekProgress >= 100;
 
                         return (
                           <View key={index} style={[
@@ -456,18 +428,18 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                                 isWeekCompleted && styles.weekProgressBadgeCompleted,
                               ]}>
                                 <Text style={styles.weekProgressText}>
-                                  {weekSessionsCompleted}/{weekTotalSessions} sessions
+                                  {Math.round(weekProgress)}%
                                 </Text>
                               </View>
                             </View>
 
                             {/* Progress Bar */}
                             <View style={styles.weekProgressBarContainer}>
-                              <View
+                              <View 
                                 style={[
                                   styles.weekProgressBar,
                                   {
-                                    width: `${(weekSessionsCompleted / weekTotalSessions) * 100}%`,
+                                    width: `${Math.min(weekProgress, 100)}%`,
                                     backgroundColor: isWeekCompleted ? '#10B981' : isCurrent ? '#3B82F6' : '#D1D5DB',
                                   }
                                 ]}
@@ -479,10 +451,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                               <View style={styles.weekActivities}>
                                 {week.activities.slice(0, 2).map((activity: string, actIndex: number) => (
                                   <View key={actIndex} style={styles.activityItem}>
-                                    <Ionicons
-                                      name="ellipse"
-                                      size={8}
-                                      color={isWeekCompleted ? '#10B981' : isCurrent ? '#3B82F6' : '#9CA3AF'}
+                                    <Ionicons 
+                                      name="ellipse" 
+                                      size={8} 
+                                      color={isWeekCompleted ? '#10B981' : isCurrent ? '#3B82F6' : '#9CA3AF'} 
                                     />
                                     <Text style={[
                                       styles.activityText,
@@ -765,6 +737,15 @@ const styles = StyleSheet.create({
   },
   completeBadge: {
     position: 'absolute',
+    top: -10,        // Move UP from center
+    right: -10,      // Move RIGHT from center
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   progressLabel: {
     fontSize: 14,
