@@ -55,7 +55,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       if (userJson) {
         const user = JSON.parse(userJson);
         
-        // ✅ FIX: Use name and surname, NOT email
+        // Use name and surname
         const displayName = [user.first_name, user.last_name]
           .filter(Boolean)
           .join(' ') || user.name || user.email?.split('@')[0] || 'User';
@@ -211,18 +211,22 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   if (learningPlans.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        {/* Header - NO SESSIONS BADGE */}
+        {/* iOS-Native Header */}
         <View style={styles.header}>
           <Image
             source={require('../../assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <TouchableOpacity style={styles.profileButton} onPress={handleLogout}>
-            <View style={styles.profilePill}>
-              <Ionicons name="person-circle" size={20} color="#FFFFFF" />
-              <Text style={styles.profileText}>{userName}</Text>
-            </View>
+          
+          {/* iOS-Standard Text Button */}
+          <TouchableOpacity 
+            style={styles.profileButton} 
+            onPress={handleLogout}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.profileText}>{userName}</Text>
           </TouchableOpacity>
         </View>
 
@@ -251,7 +255,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - ✅ NO SESSIONS BADGE, ✅ SHOWS NAME */}
+      {/* iOS-Native Header - Clean Design */}
       <View style={styles.header}>
         <Image
           source={require('../../assets/logo.png')}
@@ -259,11 +263,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           resizeMode="contain"
         />
 
-        <TouchableOpacity style={styles.profileButton} onPress={handleLogout}>
-          <View style={styles.profilePill}>
-            <Ionicons name="person-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.profileText}>{userName}</Text>
-          </View>
+        {/* iOS-Standard Text Button (not rounded pill) */}
+        <TouchableOpacity 
+          style={styles.profileButton} 
+          onPress={handleLogout}
+          activeOpacity={0.6}
+        >
+          <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
+          <Text style={styles.profileText}>{userName}</Text>
         </TouchableOpacity>
       </View>
 
@@ -275,7 +282,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Title Section */}
+        {/* Title Section - Compact */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>Your Learning Journey</Text>
           <Text style={styles.subtitle}>
@@ -283,7 +290,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </Text>
         </View>
 
-        {/* Learning Plans Carousel */}
+        {/* Learning Plans Carousel - Compact Cards */}
         <View style={styles.carouselContainer}>
           <ScrollView
             horizontal
@@ -326,14 +333,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           )}
         </View>
 
-        {/* Divider */}
+        {/* Divider - Compact */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>OR</Text>
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Start New Session Button */}
+        {/* Start New Session Button - NOW VISIBLE! */}
         <TouchableOpacity
           style={styles.newSessionButton}
           onPress={handleStartNewSession}
@@ -371,40 +378,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F7F9FA',
   },
+  // iOS-Native Header - Clean, Professional
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#4FD1C5',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    height: 56, // iOS standard header height
   },
   logo: {
-    width: 100,
-    height: 32,
+    width: 90,
+    height: 28,
   },
+  // iOS-Standard Text Button (NOT rounded pill!)
   profileButton: {
-    padding: 4,
-  },
-  profilePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F59E0B',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
     gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    // NO backgroundColor, NO borderRadius
+    // Clean iOS-native style
   },
   profileText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: 20, // Reduced from 30
   },
   loadingContainer: {
     flex: 1,
@@ -484,17 +491,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // Compact Title Section
   titleSection: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingTop: 12, // Reduced from 16
+    paddingBottom: 8,  // Reduced from 12
   },
   title: {
-    fontSize: 26,
+    fontSize: 24, // Reduced from 26
     fontWeight: 'bold',
     color: '#2D3748',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 4, // Reduced from 6
   },
   subtitle: {
     fontSize: 13,
@@ -502,7 +510,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   carouselContainer: {
-    marginVertical: 16,
+    marginVertical: 12, // Reduced from 16
   },
   carouselContent: {
     paddingHorizontal: 0,
@@ -516,7 +524,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 12, // Reduced from 16
     gap: 6,
   },
   dot: {
@@ -529,11 +537,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#4FD1C5',
     width: 20,
   },
+  // Compact Divider
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginVertical: 20,
+    marginVertical: 16, // Reduced from 20
   },
   dividerLine: {
     flex: 1,
@@ -552,7 +561,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
-    marginBottom: 16,
+    marginBottom: 20, // Extra space at bottom
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

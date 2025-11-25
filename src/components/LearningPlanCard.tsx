@@ -14,7 +14,7 @@ import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40;
-const CARD_HEIGHT = 480; // Increased from 420 to prevent cropping
+const CARD_HEIGHT = 400; // OPTIMIZED: 400px (was 480px)
 
 // ==================== TYPES ====================
 
@@ -56,7 +56,7 @@ const getLevelColor = (level: string): { bg: string; text: string } => {
   return colors[level.toUpperCase()] || { bg: '#E0F2FE', text: '#0891B2' };
 };
 
-// ==================== IMPROVED PROGRESS CIRCLE ====================
+// ==================== ANIMATED PROGRESS CIRCLE ====================
 
 interface AnimatedProgressCircleProps {
   percentage: number;
@@ -64,10 +64,12 @@ interface AnimatedProgressCircleProps {
   strokeWidth?: number;
 }
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
 const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
   percentage,
-  size = 120, // Larger size
-  strokeWidth = 10,
+  size = 110, // OPTIMIZED: 110px (was 120px)
+  strokeWidth = 10, // OPTIMIZED: 10px (was 12px)
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const radius = (size - strokeWidth) / 2;
@@ -118,15 +120,15 @@ const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
           />
         </Svg>
         
-        {/* Percentage Text - CENTERED, NO OVERLAP */}
+        {/* Percentage Text - CENTERED */}
         <View style={styles.progressTextContainer}>
           <Text style={styles.progressPercentage}>{Math.round(percentage)}%</Text>
         </View>
         
-        {/* Checkmark Badge - OUTSIDE circle, top-right */}
+        {/* Checkmark Badge - OUTSIDE circle */}
         {isComplete && (
           <View style={styles.completeBadge}>
-            <Ionicons name="checkmark-circle" size={32} color="#10B981" />
+            <Ionicons name="checkmark-circle" size={30} color="#10B981" />
           </View>
         )}
       </View>
@@ -138,8 +140,6 @@ const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
     </View>
   );
 };
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // ==================== MAIN CARD COMPONENT ====================
 
@@ -173,7 +173,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 
   return (
     <View style={styles.card}>
-      {/* Header Section */}
+      {/* Header Section - Compact */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.flagEmoji}>{getLanguageFlag(language)}</Text>
@@ -190,12 +190,12 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         </View>
       </View>
 
-      {/* Progress Section - WITH BETTER DESIGN */}
+      {/* Progress Section - Compact */}
       <View style={styles.progressSection}>
-        <AnimatedProgressCircle percentage={percentage} size={120} strokeWidth={10} />
+        <AnimatedProgressCircle percentage={percentage} size={110} strokeWidth={10} />
       </View>
 
-      {/* Stats Row */}
+      {/* Stats Row - Compact */}
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{completedSessions}</Text>
@@ -217,12 +217,12 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         </View>
       </View>
 
-      {/* Plan Description */}
+      {/* Plan Description - Compact */}
       <Text style={styles.planDescription} numberOfLines={1}>
         {plan.duration_weeks || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
       </Text>
 
-      {/* Action Buttons - PROPER SPACING, NO CROPPING */}
+      {/* Action Buttons - Compact */}
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={[styles.continueButton, isCompleted && styles.continueButtonDisabled]}
@@ -232,7 +232,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         >
           <Ionicons 
             name={isCompleted ? "checkmark-circle" : "play"} 
-            size={18} 
+            size={16} 
             color="#FFFFFF" 
           />
           <Text style={styles.continueButtonText}>
@@ -245,7 +245,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
           onPress={handleViewDetailsPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="eye-outline" size={18} color="#4A5568" />
+          <Ionicons name="eye-outline" size={16} color="#4A5568" />
           <Text style={styles.detailsButtonText}>Details</Text>
         </TouchableOpacity>
       </View>
@@ -258,10 +258,10 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    height: CARD_HEIGHT, // 480px - prevents button cropping
+    height: CARD_HEIGHT, // OPTIMIZED: 400px
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
+    padding: 18, // OPTIMIZED: 18px (was 20px)
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 18, // OPTIMIZED: 18px (was 24px)
   },
   headerLeft: {
     flexDirection: 'row',
@@ -280,27 +280,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   flagEmoji: {
-    fontSize: 40,
+    fontSize: 36, // OPTIMIZED: 36px (was 40px)
   },
   languageName: {
-    fontSize: 22,
+    fontSize: 20, // OPTIMIZED: 20px (was 22px)
     fontWeight: 'bold',
     color: '#2D3748',
     marginBottom: 4,
   },
   levelBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
     alignSelf: 'flex-start',
   },
   levelText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   progressSection: {
     alignItems: 'center',
-    marginVertical: 24, // More space
+    marginVertical: 16, // OPTIMIZED: 16px (was 24px)
   },
   progressRingWrapper: {
     alignItems: 'center',
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressPercentage: {
-    fontSize: 32, // Larger text
+    fontSize: 28, // OPTIMIZED: 28px (was 32px)
     fontWeight: 'bold',
     color: '#2D3748',
   },
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     top: -8,
     right: -8,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 15,
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -333,26 +333,26 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   progressLabel: {
-    fontSize: 14,
+    fontSize: 13, // OPTIMIZED: 13px (was 14px)
     color: '#718096',
-    marginTop: 12, // Space between circle and label
+    marginTop: 10, // OPTIMIZED: 10px (was 12px)
     fontWeight: '500',
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12, // OPTIMIZED: 12px (was 16px)
     backgroundColor: '#F7FAFC',
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 12, // OPTIMIZED: 12px (was 16px)
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#2D3748',
   },
@@ -363,19 +363,19 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: 30,
+    height: 28,
     backgroundColor: '#E2E8F0',
   },
   planDescription: {
-    fontSize: 13,
+    fontSize: 12, // OPTIMIZED: 12px (was 13px)
     color: '#4A5568',
     textAlign: 'center',
-    marginBottom: 20, // More space before buttons
+    marginBottom: 14, // OPTIMIZED: 14px (was 20px)
   },
   buttonsContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 8, // Space from bottom edge
+    gap: 10,
+    marginBottom: 4, // Minimal bottom margin
   },
   continueButton: {
     flex: 1,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#4FD1C5',
     borderRadius: 10,
-    paddingVertical: 14,
+    paddingVertical: 12, // OPTIMIZED: 12px (was 14px)
     gap: 6,
     shadowColor: '#4FD1C5',
     shadowOffset: { width: 0, height: 2 },
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14, // OPTIMIZED: 14px (was 15px)
     fontWeight: '600',
   },
   detailsButton: {
@@ -410,12 +410,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
     borderRadius: 10,
-    paddingVertical: 14,
+    paddingVertical: 12, // OPTIMIZED: 12px (was 14px)
     gap: 6,
   },
   detailsButtonText: {
     color: '#4A5568',
-    fontSize: 15,
+    fontSize: 14, // OPTIMIZED: 14px (was 15px)
     fontWeight: '600',
   },
 });
