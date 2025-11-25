@@ -72,8 +72,8 @@ export const LoginScreen = ({ navigation }: any) => {
       // Success - navigate to main app
       Alert.alert('Success', `Welcome back, ${user.email}!`);
       
-      // Navigate to main app (Dashboard)
-      navigation.replace('Dashboard'); // Update this to match your navigation
+      // Navigate to main app (Main)
+      navigation.replace('Main'); // Update this to match your navigation
       
     } catch (error: any) {
       console.error('❌ Login error:', error);
@@ -195,7 +195,7 @@ export const LoginScreen = ({ navigation }: any) => {
         console.log('✅ Google Sign-In successful:', user.email);
 
         // Navigate to Dashboard
-        navigation.replace('Dashboard');
+        navigation.replace('Main');
 
     } catch (error: any) {
         console.error('Google Sign-In error:', error);
