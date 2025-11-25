@@ -211,7 +211,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   if (learningPlans.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        {/* iOS-Native Header */}
+        {/* iOS-Native Header WITH USER BUTTON */}
         <View style={styles.header}>
           <Image
             source={require('../../assets/logo.png')}
@@ -255,7 +255,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* iOS-Native Header - Clean Design */}
+      {/* iOS-Native Header WITH USER BUTTON - THIS IS WHAT YOU WANT! */}
       <View style={styles.header}>
         <Image
           source={require('../../assets/logo.png')}

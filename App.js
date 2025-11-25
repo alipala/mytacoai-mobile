@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,9 +12,6 @@ import ForgotPasswordScreen from './src/screens/Auth/ForgotPasswordScreen.tsx';
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
 import ProfileScreen from './src/screens/Profile/ProfileScreen.tsx';
 
-// Components
-import { UserMenu } from './src/components/UserMenu';
-
 import './src/api/config'; // Initialize API config
 
 const Stack = createStackNavigator();
@@ -23,15 +19,6 @@ const Tab = createBottomTabNavigator();
 
 // Main App Tabs (after login)
 function MainTabs() {
-  // TODO: Get user from your auth context
-  const userName = 'User'; // Replace with: user?.name || 'User'
-  const userEmail = 'user@email.com'; // Replace with: user?.email
-  
-  const handleLogout = () => {
-    // TODO: Add your logout logic here
-    console.log('Logout pressed');
-  };
-
   return (
     <Tab.Navigator
       screenOptions={{
@@ -56,16 +43,7 @@ function MainTabs() {
             <Ionicons name="home-outline" size={size} color={color} />
           ),
           tabBarLabel: 'Home',
-          headerShown: true,
-          headerRight: () => (
-            <View style={{ marginRight: 16 }}>
-              <UserMenu 
-                userName={userName}
-                userEmail={userEmail}
-                onLogout={handleLogout}
-              />
-            </View>
-          ),
+          headerShown: false, // ✅ Hide navigation header - Dashboard has its own
         }}
       />
 

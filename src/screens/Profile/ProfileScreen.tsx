@@ -188,7 +188,7 @@ const ProfileScreen: React.FC = () => {
 
   const fetchUserData = async () => {
     try {
-      const userData = await fetchWithAuth('/auth/me');
+      const userData = await fetchWithAuth('/api/auth/me');
       setUser(userData);
     } catch (error) {
       console.error('Error fetching user data:', error);
