@@ -1,50 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSequence,
-  withTiming,
-  withSpring,
-} from 'react-native-reanimated';
 import { socialProofStyles, COLORS } from '../styles/OnboardingScreen.styles';
-
-interface StatCardProps {
-  number: string;
-  label: string;
-  index: number;
-}
-
-function StatCard({ number, label, index }: StatCardProps) {
-  const bounceAnim = useSharedValue(0);
-
-  useEffect(() => {
-    // Stagger bounce animation for each stat card
-    const delay = index * 100;
-
-    setTimeout(() => {
-      bounceAnim.value = withSequence(
-        withTiming(1, { duration: 300 }),
-        withSpring(1, { damping: 8 })
-      );
-    }, delay);
-  }, [index]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: bounceAnim.value,
-    transform: [{ scale: bounceAnim.value }],
-  }));
-
-  return (
-    <Animated.View style={[socialProofStyles.statCard, animatedStyle]}>
-      <Text style={socialProofStyles.statNumber}>{number}</Text>
-      <Text style={socialProofStyles.statLabel}>{label}</Text>
-    </Animated.View>
-  );
-}
 
 interface SocialProofSlideProps {
   onGetStarted: () => void;
@@ -62,12 +21,6 @@ export default function SocialProofSlide({ onGetStarted, onSignIn }: SocialProof
     onSignIn();
   };
 
-  const stats = [
-    { number: '95%', label: 'Confidence Increase' },
-    { number: '15 min', label: 'Daily Average' },
-    { number: '4.8★', label: 'User Rating' },
-  ];
-
   return (
     <View style={socialProofStyles.container}>
       {/* Lottie Animation */}
@@ -83,58 +36,55 @@ export default function SocialProofSlide({ onGetStarted, onSignIn }: SocialProof
 
       {/* Headline */}
       <Text style={socialProofStyles.headline}>
-        Join Professionals{'\n'}Mastering Languages
+        Join Thousands of{'\n'}Language Learners
       </Text>
 
       {/* Subheadline */}
       <Text style={socialProofStyles.subheadline}>
-        Trusted by learners in 40+ countries
+        Trusted by professionals in 40+ countries
       </Text>
 
-      {/* Stats Cards */}
-      <View style={socialProofStyles.statsContainer}>
-        {stats.map((stat, index) => (
-          <StatCard
-            key={index}
-            number={stat.number}
-            label={stat.label}
-            index={index}
-          />
-        ))}
+      {/* Stats Row - Cleaner Design */}
+      <View style={socialProofStyles.statsRow}>
+        <View style={socialProofStyles.stat}>
+          <Text style={socialProofStyles.statNumber}>10K+</Text>
+          <Text style={socialProofStyles.statLabel}>Active Users</Text>
+        </View>
+        <View style={socialProofStyles.statDivider} />
+        <View style={socialProofStyles.stat}>
+          <Text style={socialProofStyles.statNumber}>4.8★</Text>
+          <Text style={socialProofStyles.statLabel}>App Rating</Text>
+        </View>
+        <View style={socialProofStyles.statDivider} />
+        <View style={socialProofStyles.stat}>
+          <Text style={socialProofStyles.statNumber}>15min</Text>
+          <Text style={socialProofStyles.statLabel}>Daily Avg</Text>
+        </View>
       </View>
 
-      {/* CTA Button */}
-      <TouchableOpacity onPress={handleGetStartedPress} activeOpacity={0.8}>
-        <LinearGradient
-          colors={[COLORS.primary, COLORS.primaryDark]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={socialProofStyles.ctaButton}
-        >
-          <Text style={socialProofStyles.ctaButtonText}>Get Started Free</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-
-      {/* Secondary Link */}
-      <TouchableOpacity
-        style={socialProofStyles.secondaryLink}
-        onPress={handleSignInPress}
-        activeOpacity={0.7}
-      >
-        <Text style={socialProofStyles.secondaryLinkText}>
-          Already have an account?{' '}
-          <Text style={socialProofStyles.linkText}>Sign In</Text>
-        </Text>
-      </TouchableOpacity>
-
-      {/* Footer Links */}
-      <View style={socialProofStyles.footer}>
-        <TouchableOpacity>
-          <Text style={socialProofStyles.footerText}>Privacy</Text>
+      {/* CTA Buttons Container */}
+      <View style={socialProofStyles.buttonsContainer}>
+        {/* Primary CTA - Get Started */}
+        <TouchableOpacity onPress={handleGetStartedPress} activeOpacity={0.8}>
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.primaryDark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={socialProofStyles.primaryButton}
+          >
+            <Text style={socialProofStyles.primaryButtonText}>Get Started Free</Text>
+          </LinearGradient>
         </TouchableOpacity>
-        <Text style={socialProofStyles.footerSeparator}>•</Text>
-        <TouchableOpacity>
-          <Text style={socialProofStyles.footerText}>Terms</Text>
+
+        {/* Secondary CTA - Sign In */}
+        <TouchableOpacity
+          style={socialProofStyles.secondaryButton}
+          onPress={handleSignInPress}
+          activeOpacity={0.8}
+        >
+          <Text style={socialProofStyles.secondaryButtonText}>
+            Already have an account? <Text style={socialProofStyles.secondaryButtonLink}>Sign In</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

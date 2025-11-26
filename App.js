@@ -7,7 +7,6 @@ import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 
 // Onboarding Screens
 import OnboardingScreen from './src/screens/Onboarding/OnboardingScreen.tsx';
-import AuthChoiceScreen from './src/screens/Auth/AuthChoiceScreen.tsx';
 
 // Auth Screens
 import { LoginScreen } from './src/screens/Auth/LoginScreen.tsx';
@@ -125,7 +124,7 @@ export default function App() {
   // Determine initial route based on status
   const getInitialRoute = () => {
     if (isAuthenticated) return "Main";
-    if (hasSeenOnboarding) return "AuthChoice";
+    if (hasSeenOnboarding) return "Login";
     return "Onboarding";
   };
 
@@ -139,9 +138,6 @@ export default function App() {
       >
         {/* Onboarding */}
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-
-        {/* Auth Choice */}
-        <Stack.Screen name="AuthChoice" component={AuthChoiceScreen} />
 
         {/* Auth Screens */}
         <Stack.Screen name="Login" component={LoginScreen} />

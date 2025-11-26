@@ -56,25 +56,25 @@ export default function OnboardingScreen() {
 
   const handleSkip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    handleComplete();
+    handleComplete('signup'); // Skip goes to signup by default
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (mode: 'signup' | 'signin' = 'signup') => {
     try {
       await onboardingStorage.completeOnboarding();
-      // @ts-ignore - Navigate to AuthChoice screen
-      navigation.replace('AuthChoice');
+      // @ts-ignore - Navigate directly to Login screen
+      navigation.replace('Login', { mode });
     } catch (error) {
       console.error('Error completing onboarding:', error);
     }
   };
 
   const handleGetStarted = () => {
-    handleComplete();
+    handleComplete('signup'); // Navigate to signup mode
   };
 
   const handleSignIn = () => {
-    handleComplete();
+    handleComplete('signin'); // Navigate to signin mode
   };
 
   const onViewableItemsChanged = useRef(

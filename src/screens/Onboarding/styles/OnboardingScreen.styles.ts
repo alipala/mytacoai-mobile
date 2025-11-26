@@ -115,150 +115,151 @@ export const styles = StyleSheet.create({
   },
 });
 
-// WelcomeSlide Styles
+// WelcomeSlide Styles - Professional & Clean
 export const welcomeStyles = StyleSheet.create({
   container: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
     paddingHorizontal: SPACING.screenPadding,
-    paddingTop: 120,
-    paddingBottom: 100,
-    justifyContent: 'flex-start',
+    paddingTop: 100,
+    paddingBottom: 120,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  headlineContainer: {
-    marginBottom: SPACING.elementSpacing,
+  animationContainer: {
+    width: LOTTIE_SIZE * 1.2,
+    height: LOTTIE_SIZE * 1.2,
+    marginBottom: 40,
   },
   headline: {
-    ...FONTS.headline,
+    fontSize: isSmallDevice ? 28 : 32,
+    fontWeight: '700',
     color: COLORS.textDark,
     textAlign: 'center',
-    lineHeight: isSmallDevice ? 32 : 36,
-  },
-  gradientText: {
-    width: '100%',
-    height: isSmallDevice ? 80 : 100,
+    lineHeight: isSmallDevice ? 36 : 42,
+    marginBottom: 16,
+    letterSpacing: -0.5,
   },
   subheadline: {
-    ...FONTS.subheadline,
+    fontSize: isSmallDevice ? 16 : 18,
+    fontWeight: '400',
     color: COLORS.textMedium,
     textAlign: 'center',
-    marginBottom: SPACING.verticalPadding,
-    lineHeight: 24,
-  },
-  animationContainer: {
-    width: LOTTIE_SIZE,
-    height: LOTTIE_SIZE,
-    marginVertical: SPACING.verticalPadding,
+    lineHeight: 26,
+    paddingHorizontal: 20,
   },
 });
 
-// FeaturesSlide Styles
+// FeaturesSlide Styles - Modern & Immersive
 export const featuresStyles = StyleSheet.create({
   container: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
     paddingHorizontal: SPACING.screenPadding,
-    paddingTop: 120,
-    paddingBottom: 100,
-    justifyContent: 'flex-start',
+    paddingTop: 80,
+    paddingBottom: 120,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  icon: {
-    fontSize: 40,
-    marginBottom: SPACING.elementSpacing,
   },
   headline: {
-    ...FONTS.headline,
-    color: COLORS.textDark,
-    textAlign: 'center',
-    marginBottom: SPACING.elementSpacing,
-  },
-  animationContainer: {
-    width: LOTTIE_SIZE * 0.8,
-    height: LOTTIE_SIZE * 0.8,
-    marginBottom: SPACING.elementSpacing,
-  },
-  cardsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.verticalPadding,
-  },
-  card: {
-    width: (SCREEN_WIDTH - SPACING.screenPadding * 2 - 16) / 2,
-    backgroundColor: COLORS.background,
-    borderRadius: SPACING.cardRadius,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-    alignItems: 'center',
-  },
-  cardEmoji: {
-    fontSize: 40,
-    marginBottom: 12,
-  },
-  cardTitle: {
-    ...FONTS.body,
+    fontSize: isSmallDevice ? 26 : 30,
     fontWeight: '700',
     color: COLORS.textDark,
     textAlign: 'center',
-    marginBottom: 8,
+    lineHeight: isSmallDevice ? 34 : 38,
+    marginBottom: 32,
+    letterSpacing: -0.5,
   },
-  cardText: {
-    ...FONTS.caption,
+  animationContainer: {
+    width: LOTTIE_SIZE,
+    height: LOTTIE_SIZE,
+    marginBottom: 40,
+  },
+  featuresContainer: {
+    width: '100%',
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(78, 207, 191, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  featureIcon: {
+    fontSize: 28,
+  },
+  featureContent: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: isSmallDevice ? 16 : 17,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  featureDescription: {
+    fontSize: isSmallDevice ? 14 : 15,
+    fontWeight: '400',
     color: COLORS.textMedium,
-    textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 20,
   },
 });
 
-// SocialProofSlide Styles
+// SocialProofSlide Styles - Professional & Clean
 export const socialProofStyles = StyleSheet.create({
   container: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
     paddingHorizontal: SPACING.screenPadding,
-    paddingTop: 120,
-    paddingBottom: 100,
-    justifyContent: 'flex-start',
+    paddingTop: 80,
+    paddingBottom: 140,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   animationContainer: {
-    width: LOTTIE_SIZE * 0.6,
-    height: LOTTIE_SIZE * 0.6,
-    marginBottom: SPACING.elementSpacing,
-  },
-  stars: {
-    fontSize: 24,
-    marginBottom: SPACING.elementSpacing,
+    width: LOTTIE_SIZE,
+    height: LOTTIE_SIZE,
+    marginBottom: 32,
   },
   headline: {
-    ...FONTS.headline,
+    fontSize: isSmallDevice ? 26 : 30,
+    fontWeight: '700',
     color: COLORS.textDark,
     textAlign: 'center',
+    lineHeight: isSmallDevice ? 34 : 38,
     marginBottom: 12,
+    letterSpacing: -0.5,
   },
   subheadline: {
-    ...FONTS.body,
+    fontSize: isSmallDevice ? 15 : 16,
+    fontWeight: '400',
     color: COLORS.textMedium,
     textAlign: 'center',
-    marginBottom: SPACING.verticalPadding,
+    marginBottom: 36,
   },
-  statsContainer: {
+  // Stats Row - Horizontal Layout with Dividers
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.verticalPadding,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(78, 207, 191, 0.05)',
+    borderRadius: 16,
+    marginBottom: 40,
   },
-  statCard: {
-    width: (SCREEN_WIDTH - SPACING.screenPadding * 2 - 32) / 3,
-    backgroundColor: 'rgba(78, 207, 191, 0.1)',
-    borderRadius: SPACING.borderRadius,
-    padding: 16,
+  stat: {
+    flex: 1,
     alignItems: 'center',
   },
   statNumber: {
@@ -268,52 +269,54 @@ export const socialProofStyles = StyleSheet.create({
     marginBottom: 4,
   },
   statLabel: {
-    ...FONTS.caption,
-    color: COLORS.textDark,
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.textMedium,
     textAlign: 'center',
-    lineHeight: 16,
   },
-  ctaButton: {
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(107, 114, 128, 0.2)',
+    marginHorizontal: 8,
+  },
+  // Buttons Container
+  buttonsContainer: {
     width: '100%',
-    height: SPACING.buttonHeight,
-    borderRadius: SPACING.borderRadius,
+  },
+  // Primary CTA Button
+  primaryButton: {
+    width: '100%',
+    height: 56,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 5,
   },
-  ctaButtonText: {
-    ...FONTS.body,
+  primaryButtonText: {
+    fontSize: 18,
     fontWeight: '700',
     color: COLORS.background,
-    fontSize: 18,
+    letterSpacing: -0.3,
   },
-  secondaryLink: {
-    marginBottom: 24,
-  },
-  secondaryLinkText: {
-    ...FONTS.body,
-    color: COLORS.textMedium,
-  },
-  linkText: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  footer: {
-    flexDirection: 'row',
+  // Secondary Button (Sign In)
+  secondaryButton: {
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  footerText: {
-    ...FONTS.caption,
+  secondaryButtonText: {
+    fontSize: 15,
+    fontWeight: '400',
     color: COLORS.textMedium,
-    marginHorizontal: 8,
   },
-  footerSeparator: {
-    color: COLORS.textMedium,
+  secondaryButtonLink: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
 });
 
