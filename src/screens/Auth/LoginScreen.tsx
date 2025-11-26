@@ -77,11 +77,35 @@ export const LoginScreen = ({ navigation }: any) => {
       
     } catch (error: any) {
       console.error('❌ Login error:', error);
-      
-      const errorMessage = error.response?.data?.detail 
-        || error.message 
+
+      // Check if the error is due to unverified email (403 Forbidden)
+      if (error.status === 403 || error.response?.status === 403) {
+        Alert.alert(
+          'Email Not Verified',
+          'Please verify your email address before logging in. Check your inbox for the verification link.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Resend Email',
+              onPress: () => {
+                // Navigate to verify email screen
+                navigation.navigate('VerifyEmail', {
+                  email: email.toLowerCase().trim(),
+                });
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      const errorMessage = error.response?.data?.detail
+        || error.message
         || 'Please check your credentials and try again';
-      
+
       Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
