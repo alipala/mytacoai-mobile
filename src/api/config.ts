@@ -1,18 +1,31 @@
 import { OpenAPI } from './generated/core/OpenAPI';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isTokenExpired } from '../utils/jwtUtils';
 
 // Set your backend URL
-export const API_BASE_URL = __DEV__ 
+export const API_BASE_URL = __DEV__
   ? 'http://localhost:8000'
   : 'https://mytacoai.com';
 
 // Configure OpenAPI client
 OpenAPI.BASE = API_BASE_URL;
 
-// Configure auth token
+// Configure auth token with expiration validation
 OpenAPI.TOKEN = async () => {
   const token = await AsyncStorage.getItem('auth_token');
-  return token || '';
+
+  if (!token) {
+    return '';
+  }
+
+  // Check if token is expired before using it
+  if (isTokenExpired(token)) {
+    console.warn('⚠️ Attempting to use expired token - clearing session');
+    await AsyncStorage.removeItem('auth_token');
+    return '';
+  }
+
+  return token;
 };
 
 // For debugging in dev mode
