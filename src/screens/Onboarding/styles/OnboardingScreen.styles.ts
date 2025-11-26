@@ -172,7 +172,12 @@ export const featuresStyles = StyleSheet.create({
     ...FONTS.headline,
     color: COLORS.textDark,
     textAlign: 'center',
-    marginBottom: SPACING.verticalPadding,
+    marginBottom: SPACING.elementSpacing,
+  },
+  animationContainer: {
+    width: LOTTIE_SIZE * 0.8,
+    height: LOTTIE_SIZE * 0.8,
+    marginBottom: SPACING.elementSpacing,
   },
   cardsContainer: {
     flexDirection: 'row',
@@ -222,6 +227,11 @@ export const socialProofStyles = StyleSheet.create({
     paddingBottom: 100,
     justifyContent: 'flex-start',
     alignItems: 'center',
+  },
+  animationContainer: {
+    width: LOTTIE_SIZE * 0.6,
+    height: LOTTIE_SIZE * 0.6,
+    marginBottom: SPACING.elementSpacing,
   },
   stars: {
     fontSize: 24,

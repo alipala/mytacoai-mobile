@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -69,8 +70,16 @@ export default function SocialProofSlide({ onGetStarted, onSignIn }: SocialProof
 
   return (
     <View style={socialProofStyles.container}>
-      {/* Stars */}
-      <Text style={socialProofStyles.stars}>⭐⭐⭐⭐⭐</Text>
+      {/* Lottie Animation */}
+      <View style={socialProofStyles.animationContainer}>
+        <LottieView
+          source={require('../../../assets/animations/success.json')}
+          autoPlay
+          loop
+          style={{ width: '100%', height: '100%' }}
+          speed={1.0}
+        />
+      </View>
 
       {/* Headline */}
       <Text style={socialProofStyles.headline}>

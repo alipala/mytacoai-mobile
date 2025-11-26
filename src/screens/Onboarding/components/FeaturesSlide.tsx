@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
+import LottieView from 'lottie-react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -74,6 +75,17 @@ export default function FeaturesSlide() {
 
       {/* Headline */}
       <Text style={featuresStyles.headline}>Real-Time Voice Conversations</Text>
+
+      {/* Lottie Animation */}
+      <View style={featuresStyles.animationContainer}>
+        <LottieView
+          source={require('../../../assets/animations/microphone.json')}
+          autoPlay
+          loop
+          style={{ width: '100%', height: '100%' }}
+          speed={1.0}
+        />
+      </View>
 
       {/* Feature Cards Grid */}
       <View style={featuresStyles.cardsContainer}>
