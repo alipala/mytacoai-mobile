@@ -283,6 +283,7 @@ const styles = StyleSheet.create({
   emoji: {
     fontSize: 80,
   },
+
   textContainer: {
     alignItems: 'center',
     paddingHorizontal: 32,
@@ -345,12 +346,14 @@ const styles = StyleSheet.create({
     width: 60,
   },
   nextButton: {
-    backgroundColor: COLORS.darkNavy,
+    backgroundColor: COLORS.white,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
     minWidth: 160,
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.turquoise,
   },
   getStartedButton: {
     backgroundColor: COLORS.turquoise,
@@ -359,6 +362,6 @@ const styles = StyleSheet.create({
   nextButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.darkNavy,
   },
 });

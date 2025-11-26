@@ -5,13 +5,14 @@
  * Provides options to login or create a new account.
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
@@ -21,18 +22,32 @@ interface WelcomeScreenProps {
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   /**
-   * Navigate to Login screen
+   * Navigate to Login screen with smooth transition
    */
   const handleLogin = () => {
-    navigation.replace('Login');
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      navigation.replace('Login');
+    });
   };
 
   /**
-   * Navigate to Signup (Login screen with signup tab active)
+   * Navigate to Signup (Login screen with signup tab active) with smooth transition
    */
   const handleCreateAccount = () => {
-    navigation.replace('Login');
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      navigation.replace('Login');
+    });
   };
 
   /**
@@ -44,13 +59,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <Ionicons name="chevron-back" size={24} color={COLORS.textDark} />
-      </TouchableOpacity>
+      <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <Ionicons name="chevron-back" size={24} color={COLORS.textDark} />
+        </TouchableOpacity>
 
-      {/* Content */}
-      <View style={styles.content}>
+        {/* Content */}
+        <View style={styles.content}>
         {/* Title */}
         <Text style={styles.title}>Welcome to MyTaco AI</Text>
 
@@ -78,6 +94,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -86,6 +103,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   backButton: {
     position: 'absolute',
@@ -128,7 +148,7 @@ const styles = StyleSheet.create({
   loginButton: {
     width: '100%',
     height: 56,
-    backgroundColor: COLORS.darkNavy,
+    backgroundColor: COLORS.turquoise,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -144,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: COLORS.darkNavy,
+    borderColor: COLORS.turquoise,
     justifyContent: 'center',
     alignItems: 'center',
   },

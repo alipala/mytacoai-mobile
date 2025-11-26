@@ -10,7 +10,7 @@
  * - Improved styling to match website
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import {
   Platform,
   ScrollView,
   SafeAreaView,
+  Animated,
 } from 'react-native';
 import { authService } from '../../api/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,6 +32,10 @@ import { styles } from './LoginScreen.styles';
 
 
 export const LoginScreen = ({ navigation }: any) => {
+  // Animation state
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
   // Tab state
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
@@ -45,6 +50,24 @@ export const LoginScreen = ({ navigation }: any) => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
+
+  /**
+   * Entrance animation on mount
+   */
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   /**
    * Handle Email/Password Login
@@ -246,14 +269,21 @@ export const LoginScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <Animated.View 
+        style={{
+          flex: 1,
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView 
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
           {/* Logo/Title */}
           <View style={styles.logoContainer}>
             <Text style={styles.title}>MyTaco AI</Text>
@@ -436,8 +466,9 @@ export const LoginScreen = ({ navigation }: any) => {
               </View>
             )}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Animated.View>
     </SafeAreaView>
   );
 };

@@ -7,7 +7,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { COLORS } from '../../constants/colors';
 
 interface SplashScreenProps {
@@ -39,7 +39,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         {/* Logo Container */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoEmoji}>🌮</Text>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
 
         {/* App Name */}
@@ -78,8 +82,9 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  logoEmoji: {
-    fontSize: 80,
+  logoImage: {
+    width: 120,
+    height: 120,
   },
   appName: {
     fontSize: 32,
