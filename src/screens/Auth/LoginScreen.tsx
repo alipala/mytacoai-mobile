@@ -117,32 +117,26 @@ export const LoginScreen = ({ navigation }: any) => {
 
     try {
       // Register user
-        await AuthenticationService.registerApiAuthRegisterPost({
+      await AuthenticationService.registerApiAuthRegisterPost({
         requestBody: {
-            email: signupEmail.toLowerCase().trim(),
-            password: signupPassword,
-            name: fullName.trim(), // ✅ Use 'name' instead of 'full_name'
+          email: signupEmail.toLowerCase().trim(),
+          password: signupPassword,
+          name: fullName.trim(),
         },
-        });
+      });
 
-      Alert.alert(
-        'Success',
-        'Account created successfully! Please sign in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setActiveTab('signin');
-              setEmail(signupEmail);
-              // Clear signup form
-              setFullName('');
-              setSignupEmail('');
-              setSignupPassword('');
-              setConfirmPassword('');
-            },
-          },
-        ]
-      );
+      console.log('✅ Registration successful:', signupEmail);
+
+      // Clear signup form
+      setFullName('');
+      setSignupEmail('');
+      setSignupPassword('');
+      setConfirmPassword('');
+
+      // Navigate to email verification screen
+      navigation.navigate('VerifyEmail', {
+        email: signupEmail.toLowerCase().trim(),
+      });
 
     } catch (error: any) {
       console.error('Signup error:', error);

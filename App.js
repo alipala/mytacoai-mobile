@@ -8,6 +8,7 @@ import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 // Auth Screens
 import { LoginScreen } from './src/screens/Auth/LoginScreen.tsx';
 import ForgotPasswordScreen from './src/screens/Auth/ForgotPasswordScreen.tsx';
+import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen.tsx';
 
 // Main Screens
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
@@ -118,6 +119,7 @@ export default function App() {
         {/* Auth Screens */}
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
 
         {/* Main App (with tabs) */}
         <Stack.Screen name="Main" component={MainTabs} />
