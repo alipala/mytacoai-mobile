@@ -76,12 +76,48 @@ export const LoginScreen = ({ navigation }: any) => {
       navigation.replace('Main'); // Update this to match your navigation
       
     } catch (error: any) {
-      console.error('❌ Login error:', error);
-      
-      const errorMessage = error.response?.data?.detail 
-        || error.message 
-        || 'Please check your credentials and try again';
-      
+      // Get status code from error
+      const statusCode = error.status || error.response?.status;
+      const errorDetail = error.response?.data?.detail || error.body?.detail || error.message;
+
+      // 403 Forbidden = Email not verified (correct credentials but blocked)
+      if (statusCode === 403) {
+        console.log('ℹ️ Login attempt with unverified email:', email);
+        Alert.alert(
+          'Email Not Verified',
+          'Please verify your email address before logging in. Check your inbox for the verification link.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Resend Email',
+              onPress: () => {
+                // Navigate to verify email screen
+                navigation.navigate('VerifyEmail', {
+                  email: email.toLowerCase().trim(),
+                });
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      // 401 Unauthorized = Wrong credentials
+      if (statusCode === 401) {
+        console.log('ℹ️ Login attempt with invalid credentials');
+        Alert.alert(
+          'Invalid Credentials',
+          'The email or password you entered is incorrect. Please try again.'
+        );
+        return;
+      }
+
+      // Other errors - these are unexpected, so log them
+      console.error('❌ Unexpected login error:', error);
+      const errorMessage = errorDetail || 'An error occurred. Please try again.';
       Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
@@ -117,32 +153,26 @@ export const LoginScreen = ({ navigation }: any) => {
 
     try {
       // Register user
-        await AuthenticationService.registerApiAuthRegisterPost({
+      await AuthenticationService.registerApiAuthRegisterPost({
         requestBody: {
-            email: signupEmail.toLowerCase().trim(),
-            password: signupPassword,
-            name: fullName.trim(), // ✅ Use 'name' instead of 'full_name'
+          email: signupEmail.toLowerCase().trim(),
+          password: signupPassword,
+          name: fullName.trim(),
         },
-        });
+      });
 
-      Alert.alert(
-        'Success',
-        'Account created successfully! Please sign in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setActiveTab('signin');
-              setEmail(signupEmail);
-              // Clear signup form
-              setFullName('');
-              setSignupEmail('');
-              setSignupPassword('');
-              setConfirmPassword('');
-            },
-          },
-        ]
-      );
+      console.log('✅ Registration successful:', signupEmail);
+
+      // Clear signup form
+      setFullName('');
+      setSignupEmail('');
+      setSignupPassword('');
+      setConfirmPassword('');
+
+      // Navigate to email verification screen
+      navigation.navigate('VerifyEmail', {
+        email: signupEmail.toLowerCase().trim(),
+      });
 
     } catch (error: any) {
       console.error('Signup error:', error);
