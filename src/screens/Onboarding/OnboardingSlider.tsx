@@ -70,15 +70,22 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
    * Handle Skip - Jump to last slide
    */
   const handleSkip = () => {
-    sliderRef.current?.goToSlide(slides.length - 1);
+    console.log('⏭️ Skip pressed - jumping to last slide');
+    const lastIndex = slides.length - 1;
+    setCurrentIndex(lastIndex); // Update state immediately
+    sliderRef.current?.goToSlide(lastIndex);
   };
 
   /**
    * Handle Back - Go to previous slide
    */
   const handleBack = () => {
+    console.log('⬅️ Back pressed - current index:', currentIndex);
     if (currentIndex > 0) {
-      sliderRef.current?.goToSlide(currentIndex - 1);
+      const prevIndex = currentIndex - 1;
+      setCurrentIndex(prevIndex); // Update state immediately
+      sliderRef.current?.goToSlide(prevIndex);
+      console.log('✅ Moving to index:', prevIndex);
     }
   };
 
@@ -86,8 +93,12 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
    * Handle Next - Go to next slide
    */
   const handleNext = () => {
+    console.log('➡️ Next pressed - current index:', currentIndex);
     if (currentIndex < slides.length - 1) {
-      sliderRef.current?.goToSlide(currentIndex + 1);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex); // Update state immediately
+      sliderRef.current?.goToSlide(nextIndex);
+      console.log('✅ Moving to index:', nextIndex);
     }
   };
 
@@ -168,6 +179,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
           <TouchableOpacity
             style={styles.backButton}
             onPress={handleBack}
+            activeOpacity={0.7}
           >
             <Text style={styles.backButtonText}>BACK</Text>
           </TouchableOpacity>
@@ -183,6 +195,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
             isLastSlide && styles.getStartedButton,
           ]}
           onPress={isLastSlide ? handleDone : handleNext}
+          activeOpacity={0.8}
         >
           <Text style={styles.nextButtonText}>
             {isLastSlide ? 'GET STARTED' : 'NEXT'}
@@ -196,7 +209,11 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Skip Button (hidden on last slide) */}
       {currentIndex < slides.length - 1 && (
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={handleSkip}
+          activeOpacity={0.7}
+        >
           <Text style={styles.skipButtonText}>SKIP</Text>
         </TouchableOpacity>
       )}
@@ -247,7 +264,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
     paddingTop: 60,
-    paddingBottom: 120,
+    paddingBottom: 220,
   },
   illustrationContainer: {
     width: '100%',
@@ -289,7 +306,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 100,
+    bottom: 150,
     left: 0,
     right: 0,
   },
@@ -308,7 +325,7 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 60,
     left: 20,
     right: 20,
     flexDirection: 'row',
