@@ -5,6 +5,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 
+// Onboarding Screens
+import OnboardingScreen from './src/screens/Onboarding/OnboardingScreen.tsx';
+import AuthChoiceScreen from './src/screens/Auth/AuthChoiceScreen.tsx';
+
 // Auth Screens
 import { LoginScreen } from './src/screens/Auth/LoginScreen.tsx';
 import ForgotPasswordScreen from './src/screens/Auth/ForgotPasswordScreen.tsx';
@@ -14,8 +18,9 @@ import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen.tsx';
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
 import ProfileScreen from './src/screens/Profile/ProfileScreen.tsx';
 
-// Auth Service
+// Services & Utils
 import { authService } from './src/api/services/auth';
+import { onboardingStorage } from './src/screens/Onboarding/utils/onboardingStorage';
 
 import './src/api/config'; // Initialize API config
 
@@ -79,28 +84,37 @@ function LoadingScreen() {
   );
 }
 
-// Root Navigation (Auth + Main)
+// Root Navigation (Onboarding + Auth + Main)
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
-  // Check authentication status on app startup
+  // Check authentication and onboarding status on app startup
   useEffect(() => {
-    const checkAuthStatus = async () => {
+    const checkAppStatus = async () => {
       try {
-        console.log('🔍 Checking authentication status...');
+        console.log('🔍 Checking app status...');
+
+        // Check if user has seen onboarding
+        const seenOnboarding = await onboardingStorage.hasSeenOnboarding();
+        console.log('📱 Has seen onboarding:', seenOnboarding);
+        setHasSeenOnboarding(seenOnboarding);
+
+        // Check authentication status
         const authenticated = await authService.isAuthenticated();
         console.log('✅ Auth status:', authenticated);
         setIsAuthenticated(authenticated);
       } catch (error) {
-        console.error('❌ Error checking auth status:', error);
+        console.error('❌ Error checking app status:', error);
         setIsAuthenticated(false);
+        setHasSeenOnboarding(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuthStatus();
+    checkAppStatus();
   }, []);
 
   // Show loading screen while checking authentication
@@ -108,14 +122,27 @@ export default function App() {
     return <LoadingScreen />;
   }
 
+  // Determine initial route based on status
+  const getInitialRoute = () => {
+    if (isAuthenticated) return "Main";
+    if (hasSeenOnboarding) return "AuthChoice";
+    return "Onboarding";
+  };
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={isAuthenticated ? "Main" : "Login"}
+        initialRouteName={getInitialRoute()}
         screenOptions={{
           headerShown: false,
         }}
       >
+        {/* Onboarding */}
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+
+        {/* Auth Choice */}
+        <Stack.Screen name="AuthChoice" component={AuthChoiceScreen} />
+
         {/* Auth Screens */}
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
