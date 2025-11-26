@@ -78,8 +78,12 @@ export const LoginScreen = ({ navigation }: any) => {
     } catch (error: any) {
       console.error('❌ Login error:', error);
 
-      // Check if the error is due to unverified email (403 Forbidden)
-      if (error.status === 403 || error.response?.status === 403) {
+      // Get status code from error
+      const statusCode = error.status || error.response?.status;
+      const errorDetail = error.response?.data?.detail || error.body?.detail || error.message;
+
+      // 403 Forbidden = Email not verified (correct credentials but blocked)
+      if (statusCode === 403) {
         Alert.alert(
           'Email Not Verified',
           'Please verify your email address before logging in. Check your inbox for the verification link.',
@@ -102,10 +106,17 @@ export const LoginScreen = ({ navigation }: any) => {
         return;
       }
 
-      const errorMessage = error.response?.data?.detail
-        || error.message
-        || 'Please check your credentials and try again';
+      // 401 Unauthorized = Wrong credentials
+      if (statusCode === 401) {
+        Alert.alert(
+          'Invalid Credentials',
+          'The email or password you entered is incorrect. Please try again.'
+        );
+        return;
+      }
 
+      // Other errors - show generic or specific message
+      const errorMessage = errorDetail || 'An error occurred. Please try again.';
       Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
