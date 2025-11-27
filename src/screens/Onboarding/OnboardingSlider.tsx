@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   Dimensions,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { COLORS } from '../../constants/colors';
 import { setOnboardingCompleted } from '../../utils/storage';
@@ -40,7 +41,7 @@ const slides: OnboardingSlide[] = [
     description:
       'Practice real conversations with AI tutors designed to help you overcome speaking anxiety',
     backgroundColor: COLORS.turquoiseLight,
-    iconEmoji: '🗣️',
+    iconEmoji: 'animation',
   },
   {
     key: '2',
@@ -48,7 +49,7 @@ const slides: OnboardingSlide[] = [
     description:
       'Build confidence through natural conversations with AI tutors who adapt to your learning pace and goals',
     backgroundColor: COLORS.coralLight,
-    iconEmoji: '⚡',
+    iconEmoji: 'chat-animation',
   },
   {
     key: '3',
@@ -56,7 +57,7 @@ const slides: OnboardingSlide[] = [
     description:
       'Watch your confidence grow with personalized feedback, progress reports, and achievement milestones',
     backgroundColor: COLORS.yellowLight,
-    iconEmoji: '🎓',
+    iconEmoji: 'goal-animation',
   },
 ];
 
@@ -133,7 +134,30 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
               { backgroundColor: item.backgroundColor },
             ]}
           >
-            <Text style={styles.emoji}>{item.iconEmoji}</Text>
+            {item.iconEmoji === 'animation' ? (
+              <LottieView
+                source={require('../../assets/LargeMicrophone.json')}
+                autoPlay
+                loop
+                style={styles.lottieAnimation}
+              />
+            ) : item.iconEmoji === 'chat-animation' ? (
+              <LottieView
+                source={require('../../assets/Chat.json')}
+                autoPlay
+                loop
+                style={styles.lottieAnimation}
+              />
+            ) : item.iconEmoji === 'goal-animation' ? (
+              <LottieView
+                source={require('../../assets/GoalAchieved.json')}
+                autoPlay
+                loop
+                style={styles.lottieAnimation}
+              />
+            ) : (
+              <Text style={styles.emoji}>{item.iconEmoji}</Text>
+            )}
           </View>
         </View>
 
@@ -197,7 +221,13 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
           onPress={isLastSlide ? handleDone : handleNext}
           activeOpacity={0.8}
         >
-          <Text style={styles.nextButtonText}>
+          <Text
+            style={
+              isLastSlide
+                ? styles.getStartedButtonText
+                : styles.nextButtonText
+            }
+          >
             {isLastSlide ? 'GET STARTED' : 'NEXT'}
           </Text>
         </TouchableOpacity>
@@ -283,17 +313,22 @@ const styles = StyleSheet.create({
   emoji: {
     fontSize: 80,
   },
+  lottieAnimation: {
+    width: 200,
+    height: 200,
+  },
 
   textContainer: {
     alignItems: 'center',
     paddingHorizontal: 32,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '600',
     color: COLORS.textDark,
     textAlign: 'center',
     marginBottom: 16,
+    letterSpacing: -0.5,
   },
   description: {
     fontSize: 16,
@@ -301,6 +336,7 @@ const styles = StyleSheet.create({
     color: COLORS.textGray,
     textAlign: 'center',
     lineHeight: 24,
+    letterSpacing: 0.2,
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -363,5 +399,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.darkNavy,
+  },
+  getStartedButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
   },
 });
