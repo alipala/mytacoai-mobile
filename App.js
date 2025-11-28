@@ -17,6 +17,9 @@ import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen.tsx';
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
 import ProfileScreen from './src/screens/Profile/ProfileScreen.tsx';
 
+// Subscription Screens
+import { CheckoutScreen, CheckoutSuccessScreen } from './src/screens/Subscription';
+
 // Services & Utils
 import { authService } from './src/api/services/auth';
 import { hasCompletedOnboarding } from './src/utils/storage';
@@ -154,6 +157,10 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+
+        {/* Subscription Screens */}
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
+        <Stack.Screen name="CheckoutSuccess" component={CheckoutSuccessScreen} />
 
         {/* Main App (with tabs) */}
         <Stack.Screen name="Main" component={MainTabs} />
