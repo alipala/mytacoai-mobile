@@ -580,37 +580,6 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     });
   };
 
-  // Back handler
-  const handleBack = () => {
-    // If session already completed naturally, navigate to dashboard
-    if (sessionCompletedNaturally) {
-      console.log('[CONVERSATION] Session already completed - navigating to dashboard');
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
-      });
-      return;
-    }
-
-    // If conversation started, confirm before ending
-    if (messages.length > 0) {
-      Alert.alert(
-        'End Session?',
-        'Are you sure you want to end this practice session?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'End Session',
-            style: 'destructive',
-            onPress: () => handleEndSession(),
-          },
-        ]
-      );
-    } else {
-      navigation.goBack();
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
