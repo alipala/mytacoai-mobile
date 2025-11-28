@@ -140,8 +140,24 @@ export default function App() {
     return 'Splash';
   };
 
+  // Deep linking configuration
+  const linking = {
+    prefixes: ['mytacoai://', 'com.anonymous.MyTacoAIMobile://'],
+    config: {
+      screens: {
+        CheckoutSuccess: 'checkout-success',
+        Main: {
+          screens: {
+            Dashboard: 'dashboard',
+            Profile: 'profile',
+          },
+        },
+      },
+    },
+  };
+
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking} fallback={<LoadingScreen />}>
       <Stack.Navigator
         initialRouteName={getInitialRouteName()}
         screenOptions={{
