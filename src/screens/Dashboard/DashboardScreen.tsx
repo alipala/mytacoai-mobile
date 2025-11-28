@@ -265,16 +265,30 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             style={styles.logo}
             resizeMode="contain"
           />
-          
-          {/* iOS-Standard Text Button */}
-          <TouchableOpacity 
-            style={styles.profileButton} 
-            onPress={handleLogout}
-            activeOpacity={0.6}
-          >
-            <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-            <Text style={styles.profileText}>{userName}</Text>
-          </TouchableOpacity>
+
+          <View style={styles.headerActions}>
+            {/* Upgrade Button - only show for free users */}
+            {subscriptionStatus?.plan === 'free' && (
+              <TouchableOpacity
+                style={styles.upgradeButton}
+                onPress={handleUpgradePress}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+                <Text style={styles.upgradeButtonText}>Upgrade</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* iOS-Standard Text Button */}
+            <TouchableOpacity
+              style={styles.profileButton}
+              onPress={handleLogout}
+              activeOpacity={0.6}
+            >
+              <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
+              <Text style={styles.profileText}>{userName}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -329,15 +343,29 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           resizeMode="contain"
         />
 
-        {/* iOS-Standard Text Button (not rounded pill) */}
-        <TouchableOpacity 
-          style={styles.profileButton} 
-          onPress={handleLogout}
-          activeOpacity={0.6}
-        >
-          <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-          <Text style={styles.profileText}>{userName}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {/* Upgrade Button - only show for free users */}
+          {subscriptionStatus?.plan === 'free' && (
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={handleUpgradePress}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+              <Text style={styles.upgradeButtonText}>Upgrade</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* iOS-Standard Text Button (not rounded pill) */}
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={handleLogout}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.profileText}>{userName}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView

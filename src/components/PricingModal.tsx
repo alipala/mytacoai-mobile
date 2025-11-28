@@ -125,17 +125,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>Choose Your Plan</Text>
-            <Text style={styles.headerSubtitle}>Swipe to compare plans</Text>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>Unlock Premium Features</Text>
+            <Text style={styles.headerSubtitle}>Choose the plan that fits your goals</Text>
           </View>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={handleClose}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="close-circle" size={32} color="#9CA3AF" />
-          </TouchableOpacity>
         </View>
 
         {/* Billing Toggle - Prominent */}
@@ -253,11 +246,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       <View style={styles.featureIconContainer}>
                         <Ionicons
                           name={feature.icon as any}
-                          size={20}
+                          size={18}
                           color="#4ECFBF"
                         />
                       </View>
-                      <Text style={styles.featureText}>{feature.text}</Text>
+                      <Text style={styles.featureText} numberOfLines={1}>{feature.text}</Text>
                     </View>
                   ))}
                 </View>
@@ -315,6 +308,15 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             <Ionicons name="lock-closed" size={16} color="#10B981" />
             <Text style={styles.footerText}>Secure payment with Stripe</Text>
           </View>
+
+          {/* Maybe Later Option */}
+          <TouchableOpacity
+            style={styles.maybeLaterButton}
+            onPress={handleClose}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.maybeLaterText}>Maybe Later</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -327,28 +329,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 60 : 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  headerContent: {
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
     color: '#111827',
+    textAlign: 'center',
   },
   headerSubtitle: {
     fontSize: 13,
     color: '#6B7280',
-    marginTop: 2,
-  },
-  closeButton: {
-    padding: 4,
+    marginTop: 4,
+    textAlign: 'center',
   },
   toggleSection: {
     backgroundColor: '#FFFFFF',
@@ -404,13 +407,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   carouselContent: {
-    paddingVertical: 24,
+    paddingVertical: 20,
   },
   planCard: {
     width: CARD_WIDTH,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 24,
+    padding: 20,
     marginHorizontal: CARD_SPACING / 2,
     borderWidth: 2,
     borderColor: '#E5E7EB',
@@ -419,6 +422,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
+    minHeight: SCREEN_HEIGHT * 0.65,
+    maxHeight: SCREEN_HEIGHT * 0.65,
   },
   planCardPopular: {
     borderColor: '#4ECFBF',
@@ -449,96 +454,95 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   planHeader: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   planName: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '800',
     color: '#111827',
     marginBottom: 4,
   },
   planDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
   },
   highlightContainer: {
     backgroundColor: '#FEF3C7',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    marginBottom: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    marginBottom: 12,
     alignSelf: 'flex-start',
   },
   highlightText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#D97706',
   },
   pricingContainer: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 16,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: '#F3F4F6',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   price: {
-    fontSize: 48,
+    fontSize: 42,
     fontWeight: '900',
     color: '#111827',
     letterSpacing: -1,
   },
   pricePeriod: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#6B7280',
     marginLeft: 4,
     fontWeight: '600',
   },
   monthlyEquivalent: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#10B981',
     fontWeight: '700',
     marginTop: 4,
   },
   savingsTag: {
     backgroundColor: '#D1FAE5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginTop: 6,
   },
   savingsText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
     color: '#059669',
   },
   featuresGrid: {
-    marginBottom: 24,
+    marginBottom: 16,
+    gap: 12,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
   },
   featureIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#F0FDFA',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   featureText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#374151',
-    flexWrap: 'wrap',
   },
   ctaButton: {
     flexDirection: 'row',
@@ -547,8 +551,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#4ECFBF',
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
     shadowColor: '#4ECFBF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -560,7 +564,7 @@ const styles = StyleSheet.create({
     borderColor: '#4ECFBF',
   },
   ctaButtonText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: '#4ECFBF',
     marginRight: 8,
@@ -604,5 +608,15 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 8,
     fontWeight: '500',
+  },
+  maybeLaterButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  maybeLaterText: {
+    fontSize: 15,
+    color: '#9CA3AF',
+    fontWeight: '600',
   },
 });

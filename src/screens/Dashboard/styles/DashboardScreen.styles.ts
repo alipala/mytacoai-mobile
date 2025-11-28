@@ -21,6 +21,25 @@ export const styles = StyleSheet.create({
     width: 90,
     height: 28,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  upgradeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+  },
+  upgradeButtonText: {
+    color: '#4FD1C5',
+    fontSize: 15,
+    fontWeight: '700',
+  },
   // iOS-Standard Text Button (NOT rounded pill!)
   profileButton: {
     flexDirection: 'row',
