@@ -77,7 +77,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   onClose,
   onSelectPlan,
 }) => {
-  const [isAnnual, setIsAnnual] = useState(true); // Default to annual for savings
+  const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -168,11 +168,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               >
                 Annual
               </Text>
-              {isAnnual && (
-                <View style={styles.savingsBadge}>
-                  <Text style={styles.savingsBadgeText}>Save 17%</Text>
-                </View>
-              )}
+              <View style={styles.savingsBadge}>
+                <Text style={styles.savingsBadgeText}>Save 17%</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -540,6 +538,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#374151',
+    flexWrap: 'wrap',
   },
   ctaButton: {
     flexDirection: 'row',
