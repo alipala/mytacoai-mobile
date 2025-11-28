@@ -36,6 +36,76 @@ interface Message {
   timestamp: string;
 }
 
+// Animated Message Component with fade-in effect
+interface AnimatedMessageProps {
+  message: Message;
+}
+
+const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        styles.messageRow,
+        message.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
+      {/* Role indicator badge */}
+      <View style={[
+        styles.roleBadge,
+        message.role === 'user' ? styles.roleBadgeUser : styles.roleBadgeAssistant,
+      ]}>
+        <Ionicons
+          name={message.role === 'user' ? 'person' : 'sparkles'}
+          size={12}
+          color={message.role === 'user' ? '#14B8A6' : '#8B5CF6'}
+        />
+        <Text style={[
+          styles.roleText,
+          message.role === 'user' ? styles.roleTextUser : styles.roleTextAssistant,
+        ]}>
+          {message.role === 'user' ? 'You' : 'AI Tutor'}
+        </Text>
+      </View>
+
+      <View
+        style={[
+          styles.messageBubble,
+          message.role === 'user' ? styles.messageBubbleUser : styles.messageBubbleAssistant,
+        ]}
+      >
+        <Text style={[
+          styles.messageText,
+          message.role === 'user' ? styles.messageTextUser : styles.messageTextAssistant,
+        ]}>
+          {message.content}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+};
+
 const ConversationScreen: React.FC<ConversationScreenProps> = ({
   navigation,
   route,
@@ -602,6 +672,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* Timer Badge - Clean design below header */}
+      {sessionStartTime && (
+        <View style={styles.timerBadgeContainer}>
+          <View style={styles.timerBadge}>
+            <Ionicons name="time-outline" size={16} color="#14B8A6" />
+            <Text style={styles.timerText}>{formatDuration(sessionDuration)}</Text>
+            <Text style={styles.timerLabel}>/ 5:00</Text>
+          </View>
+        </View>
+      )}
+
       {/* Floating Countdown Overlay (appears in last 10 seconds) */}
       {sessionStartTime && (
         <AnimatedCountdownTimer
@@ -640,27 +721,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : (
           messages.map((message) => (
-            <View
-              key={message.id}
-              style={[
-                styles.messageRow,
-                message.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant,
-              ]}
-            >
-              <View
-                style={[
-                  styles.messageBubble,
-                  message.role === 'user' ? styles.messageBubbleUser : styles.messageBubbleAssistant,
-                ]}
-              >
-                <Text style={[
-                  styles.messageText,
-                  message.role === 'user' ? styles.messageTextUser : styles.messageTextAssistant,
-                ]}>
-                  {message.content}
-                </Text>
-              </View>
-            </View>
+            <AnimatedMessage key={message.id} message={message} />
           ))
         )}
       </ScrollView>
@@ -938,6 +999,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#EF4444',
   },
+  // Timer Badge Styles
+  timerBadgeContainer: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#F0FDFA',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 184, 166, 0.1)',
+  },
+  timerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+  },
+  timerText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#14B8A6',
+    letterSpacing: 0.5,
+  },
+  timerLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
   // Modern End Button Styles
   modernEndButton: {
     flexDirection: 'row',
@@ -1010,7 +1107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   messageRow: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   messageRowUser: {
     alignItems: 'flex-end',
@@ -1018,31 +1115,73 @@ const styles = StyleSheet.create({
   messageRowAssistant: {
     alignItems: 'flex-start',
   },
+  // Role Badge Styles
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 6,
+    alignSelf: 'flex-start',
+  },
+  roleBadgeUser: {
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
+  },
+  roleBadgeAssistant: {
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+  },
+  roleText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  roleTextUser: {
+    color: '#14B8A6',
+  },
+  roleTextAssistant: {
+    color: '#8B5CF6',
+  },
+  // Modern Message Bubble Styles
   messageBubble: {
     maxWidth: '80%',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     borderRadius: 20,
   },
   messageBubbleUser: {
     backgroundColor: '#14B8A6',
-    borderBottomRightRadius: 4,
+    borderBottomRightRadius: 6,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
   },
   messageBubbleAssistant: {
     backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderBottomLeftRadius: 6,
+    borderWidth: 1.5,
+    borderColor: 'rgba(139, 92, 246, 0.15)',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   messageText: {
     fontSize: 15,
-    lineHeight: 21,
+    lineHeight: 22,
+    letterSpacing: 0.2,
   },
   messageTextUser: {
     color: '#FFFFFF',
+    fontWeight: '500',
   },
   messageTextAssistant: {
     color: '#1F2937',
+    fontWeight: '400',
   },
   footer: {
     paddingHorizontal: 20,
