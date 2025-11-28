@@ -219,6 +219,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <ActivityIndicator size="large" color="#4FD1C5" />
           <Text style={styles.loadingText}>Loading your learning journey...</Text>
         </View>
+
+        {/* Pricing Modal */}
+        <PricingModal
+          visible={showPricingModal}
+          onClose={() => setShowPricingModal(false)}
+          onSelectPlan={handleSelectPlan}
+        />
       </SafeAreaView>
     );
   }
@@ -236,6 +243,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Pricing Modal */}
+        <PricingModal
+          visible={showPricingModal}
+          onClose={() => setShowPricingModal(false)}
+          onSelectPlan={handleSelectPlan}
+        />
       </SafeAreaView>
     );
   }
@@ -294,6 +308,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <Text style={styles.createPlanButtonText}>Create Your First Plan</Text>
           </TouchableOpacity>
         </ScrollView>
+
+        {/* Pricing Modal */}
+        <PricingModal
+          visible={showPricingModal}
+          onClose={() => setShowPricingModal(false)}
+          onSelectPlan={handleSelectPlan}
+        />
       </SafeAreaView>
     );
   }
