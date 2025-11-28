@@ -53,7 +53,14 @@ export class RealtimeService {
   private isConnected: boolean = false;
   private isMuted: boolean = false;
   private isAISpeaking: boolean = false;
-  private userRequestedMute: boolean = false;
+  private userManuallyMuted: boolean = false; // Track user-initiated mute
+  private fallbackMuteTimeout: NodeJS.Timeout | null = null;
+  private emergencyMuteTimeout: NodeJS.Timeout | null = null;
+
+  // Timing constants (from web implementation)
+  private readonly PREEMPTIVE_MUTE_DELAY = 100; // Reduced delay before muting
+  private readonly MOBILE_SAFETY_BUFFER = 0; // Reduced mobile buffer
+  private readonly EMERGENCY_MUTE_THRESHOLD = 50;
 
   constructor(config: RealtimeServiceConfig) {
     this.config = config;
@@ -257,23 +264,27 @@ export class RealtimeService {
         break;
 
       case 'response.audio.delta':
-      case 'output_audio_buffer.started':
-        // AI started speaking - mute microphone to prevent echo
+        // Ensure we stay muted during AI speech chunks
         if (!this.isAISpeaking) {
-          this.isAISpeaking = true;
-          this.muteMicrophoneForAI();
-          console.log('[RealtimeService] AI started speaking - muted mic');
+          console.log('[RealtimeService] AI audio delta - ensuring muted');
+          this.executeImmediateMute('AI audio delta received');
         }
         break;
 
       case 'response.audio.done':
-      case 'output_audio_buffer.cleared':
-        // AI stopped speaking - unmute microphone if user hasn't manually muted
-        if (this.isAISpeaking) {
-          this.isAISpeaking = false;
-          this.unmuteMicrophoneAfterAI();
-          console.log('[RealtimeService] AI stopped speaking - unmuted mic');
-        }
+        console.log('[RealtimeService] AI audio done - scheduling delayed unmute');
+        this.scheduleDelayedUnmute('AI audio response completed');
+        break;
+
+      case 'response.done':
+        console.log('[RealtimeService] Response done - scheduling delayed unmute');
+        this.scheduleDelayedUnmute('AI response completed');
+        break;
+
+      case 'input_audio_buffer.speech_started':
+        // User speech detected - immediate unmute
+        console.log('[RealtimeService] User speech started - immediate unmute');
+        this.executeImmediateUnmute('User speech detected');
         break;
 
       case 'error':
@@ -349,44 +360,164 @@ export class RealtimeService {
   }
 
   /**
-   * Mute/unmute the microphone (user-initiated)
+   * Execute immediate muting (AI speech detected)
    */
-  public setMuted(muted: boolean): void {
-    this.userRequestedMute = muted;
+  private executeImmediateMute(reason: string): void {
+    console.log(`[RealtimeService] IMMEDIATE MUTE: ${reason}`);
+    this.isAISpeaking = true;
+    this.clearAllDelayedOperations();
+
+    // Hardware-level track muting
+    this.muteViaTrackEnabled(true);
+
+    // Set emergency timeout as safety net
+    this.setEmergencyMuteTimeout();
+  }
+
+  /**
+   * Execute immediate unmuting (user speech detected)
+   */
+  private executeImmediateUnmute(reason: string): void {
+    console.log(`[RealtimeService] IMMEDIATE UNMUTE: ${reason}`);
+    this.isAISpeaking = false;
+    this.clearAllDelayedOperations();
+
+    // Check if user manually muted
+    if (this.userManuallyMuted) {
+      console.log('[RealtimeService] SKIPPING UNMUTE - user manually muted');
+      return;
+    }
+
+    this.muteViaTrackEnabled(false);
+  }
+
+  /**
+   * Schedule delayed unmuting with safety buffer
+   */
+  private scheduleDelayedUnmute(reason: string): void {
+    console.log(`[RealtimeService] SCHEDULING DELAYED UNMUTE: ${reason}`);
+    this.isAISpeaking = false;
+    this.clearAllDelayedOperations();
+
+    const semanticDelay = 100; // Reduced from 300ms
+    const tailProtection = 100; // Reduced from 500ms
+    const totalDelay = semanticDelay + tailProtection + this.MOBILE_SAFETY_BUFFER;
+
+    console.log(`[RealtimeService] Unmuting in ${totalDelay}ms`);
+
+    this.fallbackMuteTimeout = setTimeout(() => {
+      console.log(`[RealtimeService] EXECUTING DELAYED UNMUTE: ${reason}`);
+
+      if (this.userManuallyMuted) {
+        console.log('[RealtimeService] SKIPPING UNMUTE - user manually muted');
+        return;
+      }
+
+      if (!this.isAISpeaking) {
+        this.muteViaTrackEnabled(false);
+      }
+
+      this.fallbackMuteTimeout = null;
+    }, totalDelay);
+  }
+
+  /**
+   * Hardware-level track muting/unmuting
+   */
+  private muteViaTrackEnabled(mute: boolean): void {
+    if (!this.localStream) return;
+
+    const audioTracks = this.localStream.getAudioTracks();
+    const action = mute ? 'MUTING' : 'UNMUTING';
+    console.log(`[RealtimeService] ${action} ${audioTracks.length} audio track(s)`);
+
+    audioTracks.forEach((track, index) => {
+      if (track.enabled !== undefined) {
+        track.enabled = !mute;
+        console.log(`[RealtimeService] Track ${index} enabled: ${!mute}`);
+      }
+    });
+  }
+
+  /**
+   * Set emergency mute timeout as safety net
+   */
+  private setEmergencyMuteTimeout(): void {
+    if (this.emergencyMuteTimeout) {
+      clearTimeout(this.emergencyMuteTimeout);
+    }
+
+    this.emergencyMuteTimeout = setTimeout(() => {
+      console.log('[RealtimeService] EMERGENCY MUTE TIMEOUT');
+      this.muteViaTrackEnabled(true);
+      this.emergencyMuteTimeout = null;
+    }, this.EMERGENCY_MUTE_THRESHOLD);
+  }
+
+  /**
+   * Clear all delayed operations
+   */
+  private clearAllDelayedOperations(): void {
+    if (this.fallbackMuteTimeout) {
+      clearTimeout(this.fallbackMuteTimeout);
+      this.fallbackMuteTimeout = null;
+    }
+
+    if (this.emergencyMuteTimeout) {
+      clearTimeout(this.emergencyMuteTimeout);
+      this.emergencyMuteTimeout = null;
+    }
+  }
+
+  /**
+   * User-initiated mute (separate from AI-prevention muting)
+   */
+  public muteUserMicrophone(): void {
+    console.log('[RealtimeService] User manually muting microphone');
+    this.userManuallyMuted = true;
 
     if (!this.localStream) return;
 
-    const audioTrack = this.localStream.getAudioTracks()[0];
-    if (audioTrack) {
-      audioTrack.enabled = !muted;
-      this.isMuted = muted;
-      console.log('[RealtimeService] Microphone', muted ? 'muted' : 'unmuted');
-    }
+    const audioTracks = this.localStream.getAudioTracks();
+    audioTracks.forEach((track) => {
+      if (track.enabled !== undefined) {
+        track.enabled = false;
+      }
+    });
   }
 
   /**
-   * Mute microphone when AI is speaking (automatic echo prevention)
+   * User-initiated unmute
    */
-  private muteMicrophoneForAI(): void {
-    if (!this.localStream || this.userRequestedMute) return;
+  public unmuteUserMicrophone(): void {
+    console.log('[RealtimeService] User manually unmuting microphone');
+    this.userManuallyMuted = false;
 
-    const audioTrack = this.localStream.getAudioTracks()[0];
-    if (audioTrack) {
-      audioTrack.enabled = false;
-      this.isMuted = true;
-    }
+    if (!this.localStream) return;
+
+    const audioTracks = this.localStream.getAudioTracks();
+    audioTracks.forEach((track) => {
+      if (track.enabled !== undefined) {
+        track.enabled = true;
+      }
+    });
   }
 
   /**
-   * Unmute microphone after AI finishes speaking (if user hasn't manually muted)
+   * Check if user manually muted
    */
-  private unmuteMicrophoneAfterAI(): void {
-    if (!this.localStream || this.userRequestedMute) return;
+  public isUserMicrophoneMuted(): boolean {
+    return this.userManuallyMuted;
+  }
 
-    const audioTrack = this.localStream.getAudioTracks()[0];
-    if (audioTrack) {
-      audioTrack.enabled = true;
-      this.isMuted = false;
+  /**
+   * Legacy setMuted for backwards compatibility (maps to user mute)
+   */
+  public setMuted(muted: boolean): void {
+    if (muted) {
+      this.muteUserMicrophone();
+    } else {
+      this.unmuteUserMicrophone();
     }
   }
 
@@ -429,6 +560,9 @@ export class RealtimeService {
   public async disconnect(): Promise<void> {
     console.log('[RealtimeService] Disconnecting...');
 
+    // Clear all timeouts
+    this.clearAllDelayedOperations();
+
     // Close data channel
     if (this.dataChannel) {
       this.dataChannel.close();
@@ -447,7 +581,11 @@ export class RealtimeService {
       this.localStream = null;
     }
 
+    // Reset state
     this.isConnected = false;
+    this.isAISpeaking = false;
+    this.userManuallyMuted = false;
+
     this.config.onConnectionStateChange?.('disconnected');
     console.log('[RealtimeService] Disconnected');
   }
