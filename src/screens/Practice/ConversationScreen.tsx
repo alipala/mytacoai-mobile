@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DefaultService, ProgressService, BackgroundAnalysisResponse } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
@@ -69,6 +70,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Animation for recording button
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Countdown animation refs
+  const timerPulseAnim = useRef(new Animated.Value(1)).current;
+  const timerColorAnim = useRef(new Animated.Value(0)).current;
+  const timerScaleAnim = useRef(new Animated.Value(1)).current;
+  const lastBeepSecondRef = useRef(-1);
+
   // Ref to track if auto-save was triggered
   const autoSaveTriggeredRef = useRef(false);
 
@@ -76,9 +83,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   useEffect(() => {
     if (!sessionStartTime) return;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
       setSessionDuration(duration);
+
+      // Calculate seconds remaining
+      const secondsRemaining = 300 - duration;
+
+      // Trigger countdown effects for last 10 seconds
+      if (secondsRemaining <= 10 && secondsRemaining >= 0) {
+        await triggerCountdownEffects(secondsRemaining);
+      }
 
       // Check if 5 minutes (300 seconds) completed
       if (duration >= 300 && !autoSaveTriggeredRef.current) {
@@ -141,6 +156,87 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Play countdown beep sound
+  const playBeep = async (isLastSecond = false) => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDWK0/DciycGKH3L79KHKwUQar3o6qFSEAg+m3DTLA==' },
+        { shouldPlay: true, volume: isLastSecond ? 1.0 : 0.7 }
+      );
+      // Unload sound after playing
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch (error) {
+      console.error('[COUNTDOWN] Error playing beep:', error);
+    }
+  };
+
+  // Trigger countdown effects (haptics + audio + animations)
+  const triggerCountdownEffects = async (secondsRemaining: number) => {
+    // Prevent duplicate triggers for same second
+    if (lastBeepSecondRef.current === secondsRemaining) return;
+    lastBeepSecondRef.current = secondsRemaining;
+
+    console.log(`[COUNTDOWN] ⏰ ${secondsRemaining} seconds remaining`);
+
+    // Haptic feedback (iOS)
+    if (Platform.OS === 'ios') {
+      if (secondsRemaining === 0) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else if (secondsRemaining <= 3) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+    }
+
+    // Play beep sound
+    await playBeep(secondsRemaining === 0);
+
+    // Visual animations
+    if (secondsRemaining <= 10) {
+      // Pulse animation
+      Animated.sequence([
+        Animated.timing(timerPulseAnim, {
+          toValue: 1.1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(timerPulseAnim, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Scale animation (more intense in final 3 seconds)
+      const scaleIntensity = secondsRemaining <= 3 ? 1.3 : 1.15;
+      Animated.spring(timerScaleAnim, {
+        toValue: scaleIntensity,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: true,
+      }).start(() => {
+        Animated.spring(timerScaleAnim, {
+          toValue: 1,
+          friction: 3,
+          tension: 40,
+          useNativeDriver: true,
+        }).start();
+      });
+
+      // Color animation (interpolate from teal → yellow → red)
+      Animated.timing(timerColorAnim, {
+        toValue: 10 - secondsRemaining,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
   };
 
   // Initialize conversation when modal is dismissed
@@ -507,9 +603,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             {language.charAt(0).toUpperCase() + language.slice(1)} Practice
           </Text>
           {sessionStartTime && (
-            <Text style={styles.headerSubtitle}>
-              {formatDuration(sessionDuration)}
-            </Text>
+            <AnimatedCountdownTimer
+              duration={sessionDuration}
+              pulseAnim={timerPulseAnim}
+              colorAnim={timerColorAnim}
+              scaleAnim={timerScaleAnim}
+              formatDuration={formatDuration}
+            />
           )}
         </View>
 
@@ -734,6 +834,81 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         onGoDashboard={handleGoDashboard}
       />
     </SafeAreaView>
+  );
+};
+
+// Animated Countdown Timer Component
+interface AnimatedCountdownTimerProps {
+  duration: number;
+  pulseAnim: Animated.Value;
+  colorAnim: Animated.Value;
+  scaleAnim: Animated.Value;
+  formatDuration: (seconds: number) => string;
+}
+
+const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
+  duration,
+  pulseAnim,
+  colorAnim,
+  scaleAnim,
+  formatDuration,
+}) => {
+  const secondsRemaining = 300 - duration;
+  const isCountingDown = secondsRemaining <= 10 && secondsRemaining >= 0;
+
+  // Color interpolation: teal → yellow → red
+  const backgroundColor = colorAnim.interpolate({
+    inputRange: [0, 5, 10],
+    outputRange: ['#14B8A6', '#F59E0B', '#EF4444'], // teal → yellow → red
+  });
+
+  const borderColor = colorAnim.interpolate({
+    inputRange: [0, 5, 10],
+    outputRange: ['#14B8A6', '#F59E0B', '#EF4444'],
+  });
+
+  if (!isCountingDown) {
+    // Normal timer display
+    return (
+      <Text style={styles.headerSubtitle}>
+        {formatDuration(duration)}
+      </Text>
+    );
+  }
+
+  // Countdown mode with animations
+  return (
+    <Animated.View
+      style={{
+        transform: [{ scale: scaleAnim }, { scale: pulseAnim }],
+      }}
+    >
+      <Animated.View
+        style={[
+          styles.timerContainer,
+          {
+            backgroundColor,
+            borderColor,
+            borderWidth: 2,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 5,
+          },
+        ]}
+      >
+        {/* Countdown Badge */}
+        <View style={styles.countdownBadge}>
+          <Text style={styles.countdownText}>{secondsRemaining}s</Text>
+        </View>
+
+        {/* Timer Text */}
+        <Text style={[styles.headerSubtitle, styles.countdownTimerText]}>
+          {formatDuration(duration)}
+        </Text>
+      </Animated.View>
+    </Animated.View>
   );
 };
 
@@ -1038,6 +1213,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  // Countdown Timer Styles
+  timerContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countdownBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  countdownText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#EF4444',
+  },
+  countdownTimerText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 16,
   },
 });
 
