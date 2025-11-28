@@ -16,8 +16,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DefaultService, ProgressService } from '../../api/generated';
+import { DefaultService, ProgressService, BackgroundAnalysisResponse } from '../../api/generated';
+import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
+import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -50,6 +52,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
+
+  // Session saving states
+  const [collectedSentences, setCollectedSentences] = useState<SentenceForAnalysis[]>([]);
+  const [showSavingModal, setShowSavingModal] = useState(false);
+  const [savingStage, setSavingStage] = useState<SavingStage>('saving');
+  const [backgroundAnalyses, setBackgroundAnalyses] = useState<BackgroundAnalysisResponse[]>([]);
+  const [sessionSummary, setSessionSummary] = useState<string>('');
 
   // Realtime service ref
   const realtimeServiceRef = useRef<RealtimeService | null>(null);
@@ -198,12 +207,58 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => {
+      const updated = [...prev, newMessage];
+
+      // Collect user sentences for analysis (max 5)
+      if (role === 'user' && content.trim().length > 5 && collectedSentences.length < 5) {
+        const qualityScore = calculateQualityScore(content);
+
+        // Only collect if quality score is high enough (> 30)
+        if (qualityScore > 30) {
+          const sentenceForAnalysis: SentenceForAnalysis = {
+            text: content,
+            timestamp: newMessage.timestamp,
+            messageIndex: updated.filter(m => m.role === 'user').length - 1,
+            qualityScore,
+          };
+
+          setCollectedSentences(prevSentences => {
+            const newSentences = [...prevSentences, sentenceForAnalysis];
+
+            // Keep only top 5 by quality score
+            if (newSentences.length > 5) {
+              return newSentences.sort((a, b) => (b.qualityScore || 0) - (a.qualityScore || 0)).slice(0, 5);
+            }
+
+            return newSentences;
+          });
+        }
+      }
+
+      return updated;
+    });
 
     // Scroll to bottom after adding message
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
+  };
+
+  // Calculate quality score for a sentence
+  const calculateQualityScore = (text: string): number => {
+    let score = 50; // Base score
+
+    // Length bonus (prefer longer, more complete sentences)
+    if (text.length > 20) score += 15;
+    if (text.length > 50) score += 15;
+
+    // Word count (prefer multi-word sentences)
+    const wordCount = text.split(/\s+/).length;
+    if (wordCount >= 5) score += 10;
+    if (wordCount >= 10) score += 10;
+
+    return score;
   };
 
   // Toggle recording state (mute/unmute microphone)
@@ -238,8 +293,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const handleConfirmEndSession = async () => {
     try {
-      // Close modal first for better UX
+      // Close end session modal and show saving modal
       setShowEndSessionModal(false);
+      setShowSavingModal(true);
+      setSavingStage('saving');
 
       // Disconnect realtime service first
       if (realtimeServiceRef.current) {
@@ -248,9 +305,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         realtimeServiceRef.current = null;
       }
 
+      console.log('[SESSION_SAVE] Saving conversation with', collectedSentences.length, 'sentences for analysis');
+
       // Save conversation progress
       if (messages.length > 0) {
-        await ProgressService.saveConversationApiProgressSaveConversationPost({
+        // Transition to analyzing stage
+        await new Promise(resolve => setTimeout(resolve, 600));
+        setSavingStage('analyzing');
+
+        const result = await ProgressService.saveConversationApiProgressSaveConversationPost({
           requestBody: {
             language,
             level,
@@ -263,19 +326,41 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             duration_minutes: sessionDuration / 60,
             learning_plan_id: null,
             conversation_type: 'practice',
+            sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : null,
           },
         });
 
-        console.log('[CONVERSATION] Session saved successfully');
-      }
+        console.log('[SESSION_SAVE] Session saved successfully:', result);
 
-      // Navigate back to dashboard - use reset to clear the stack
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
-      });
+        // Store the results
+        if (result.background_analyses && result.background_analyses.length > 0) {
+          console.log('[SESSION_SAVE] Received', result.background_analyses.length, 'analyses');
+          setBackgroundAnalyses(result.background_analyses);
+        }
+
+        if (result.summary) {
+          setSessionSummary(result.summary);
+        }
+
+        // Transition to finalizing stage
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setSavingStage('finalizing');
+
+        // Transition to success stage
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setSavingStage('success');
+      } else {
+        // No messages, just navigate back
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+        });
+      }
     } catch (error) {
-      console.error('[CONVERSATION] Error saving session:', error);
+      console.error('[SESSION_SAVE] Error saving session:', error);
+
+      // Close saving modal
+      setShowSavingModal(false);
 
       // Disconnect service even on error
       if (realtimeServiceRef.current) {
@@ -304,6 +389,30 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         ]
       );
     }
+  };
+
+  // Handle viewing analysis after session save
+  const handleViewAnalysis = () => {
+    setShowSavingModal(false);
+
+    // Navigate to Sentence Analysis screen
+    navigation.navigate('SentenceAnalysis', {
+      analyses: backgroundAnalyses,
+      sessionSummary: sessionSummary,
+      duration: formatDuration(sessionDuration),
+      messageCount: messages.filter(m => m.role === 'user').length,
+    });
+  };
+
+  // Handle go to dashboard after session save
+  const handleGoDashboard = () => {
+    setShowSavingModal(false);
+
+    // Navigate back to dashboard
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+    });
   };
 
   // Back handler
@@ -552,6 +661,22 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Session Saving Modal */}
+      <SessionSummaryModal
+        visible={showSavingModal}
+        stage={savingStage}
+        sentenceCount={collectedSentences.length}
+        conversationHighlights={messages
+          .filter(m => m.role === 'user')
+          .slice(-3)
+          .map(m => m.content.substring(0, 100))}
+        duration={formatDuration(sessionDuration)}
+        messageCount={messages.filter(m => m.role === 'user').length}
+        onComplete={() => setShowSavingModal(false)}
+        onViewAnalysis={handleViewAnalysis}
+        onGoDashboard={handleGoDashboard}
+      />
     </SafeAreaView>
   );
 };

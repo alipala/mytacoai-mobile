@@ -25,6 +25,7 @@ import {
   ConversationLoadingScreen,
   ConversationScreen,
 } from './src/screens/Practice';
+import SentenceAnalysisScreen from './src/screens/Practice/SentenceAnalysisScreen';
 
 // Subscription Screens
 import { CheckoutScreen, CheckoutSuccessScreen } from './src/screens/Subscription';
@@ -193,6 +194,7 @@ export default function App() {
         <Stack.Screen name="LevelSelection" component={LevelSelectionScreen} />
         <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
         <Stack.Screen name="Conversation" component={ConversationScreen} />
+        <Stack.Screen name="SentenceAnalysis" component={SentenceAnalysisScreen} />
 
         {/* Main App (with tabs) */}
         <Stack.Screen name="Main" component={MainTabs} />
