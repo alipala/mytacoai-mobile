@@ -124,18 +124,35 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  createPlanButton: {
+  quickPracticeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4FD1C5',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
     marginTop: 16,
   },
-  createPlanButtonText: {
+  quickPracticeButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  createPlanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#4FD1C5',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 12,
+  },
+  createPlanButtonText: {
+    color: '#4FD1C5',
     fontSize: 16,
     fontWeight: '600',
   },
