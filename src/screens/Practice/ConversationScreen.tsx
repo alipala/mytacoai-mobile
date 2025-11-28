@@ -591,20 +591,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           <Text style={styles.headerTitle}>
             {language.charAt(0).toUpperCase() + language.slice(1)} Practice
           </Text>
-          {sessionStartTime && (
-            <Text style={styles.headerSubtitle}>
-              {formatDuration(sessionDuration)}
-            </Text>
-          )}
         </View>
 
         <TouchableOpacity
           onPress={handleEndSession}
-          style={styles.modernEndButton}
-          activeOpacity={0.8}
+          style={styles.endButton}
+          activeOpacity={0.7}
         >
-          <Ionicons name="stop-circle" size={20} color="#FFFFFF" />
-          <Text style={styles.modernEndButtonText}>End</Text>
+          <Text style={styles.endButtonText}>End</Text>
         </TouchableOpacity>
       </View>
 
@@ -865,12 +859,8 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
   });
 
   if (!isCountingDown) {
-    // Normal timer display
-    return (
-      <Text style={styles.headerSubtitle}>
-        {formatDuration(duration)}
-      </Text>
-    );
+    // Don't show timer when not in countdown mode
+    return null;
   }
 
   // Countdown mode with modern floating design
@@ -940,13 +930,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   endButton: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#FEE2E2',
   },
   endButtonText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     color: '#EF4444',
   },
