@@ -1,0 +1,327 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+  Platform,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+interface LanguageSelectionScreenProps {
+  navigation: any;
+  route: any;
+}
+
+interface Language {
+  id: string;
+  name: string;
+  nativeName: string;
+  icon: string;
+  color: string;
+}
+
+const LANGUAGES: Language[] = [
+  {
+    id: 'english',
+    name: 'English',
+    nativeName: 'English',
+    icon: '🇬🇧',
+    color: '#3B82F6',
+  },
+  {
+    id: 'spanish',
+    name: 'Spanish',
+    nativeName: 'Español',
+    icon: '🇪🇸',
+    color: '#EF4444',
+  },
+  {
+    id: 'french',
+    name: 'French',
+    nativeName: 'Français',
+    icon: '🇫🇷',
+    color: '#8B5CF6',
+  },
+  {
+    id: 'german',
+    name: 'German',
+    nativeName: 'Deutsch',
+    icon: '🇩🇪',
+    color: '#F59E0B',
+  },
+  {
+    id: 'dutch',
+    name: 'Dutch',
+    nativeName: 'Nederlands',
+    icon: '🇳🇱',
+    color: '#10B981',
+  },
+  {
+    id: 'portuguese',
+    name: 'Portuguese',
+    nativeName: 'Português',
+    icon: '🇵🇹',
+    color: '#06B6D4',
+  },
+];
+
+const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
+  navigation,
+  route,
+}) => {
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+  const mode = route.params?.mode || 'practice';
+
+  const handleLanguageSelect = (languageId: string) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setSelectedLanguage(languageId);
+  };
+
+  const handleContinue = () => {
+    if (!selectedLanguage) return;
+
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    // Navigate to Topic Selection
+    navigation.navigate('TopicSelection', {
+      mode,
+      language: selectedLanguage,
+    });
+  };
+
+  const handleBack = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    navigation.goBack();
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={handleBack}
+          style={styles.backButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Select Language</Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      {/* Progress Indicator */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBarBackground}>
+          <View style={[styles.progressBarFill, { width: '25%' }]} />
+        </View>
+        <Text style={styles.progressText}>Step 1 of 4</Text>
+      </View>
+
+      {/* Content */}
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Which language would you like to practice?</Text>
+        <Text style={styles.subtitle}>
+          Select the language you want to improve your conversation skills in
+        </Text>
+
+        {/* Language Grid */}
+        <View style={styles.languageGrid}>
+          {LANGUAGES.map((language) => (
+            <TouchableOpacity
+              key={language.id}
+              style={[
+                styles.languageCard,
+                selectedLanguage === language.id && styles.languageCardSelected,
+              ]}
+              onPress={() => handleLanguageSelect(language.id)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.languageCardContent}>
+                <Text style={styles.languageIcon}>{language.icon}</Text>
+                <View style={styles.languageInfo}>
+                  <Text style={styles.languageName}>{language.name}</Text>
+                  <Text style={styles.languageNativeName}>
+                    {language.nativeName}
+                  </Text>
+                </View>
+                {selectedLanguage === language.id && (
+                  <View style={styles.checkmark}>
+                    <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Continue Button */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[
+            styles.continueButton,
+            !selectedLanguage && styles.continueButtonDisabled,
+          ]}
+          onPress={handleContinue}
+          disabled={!selectedLanguage}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.continueButtonText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  placeholder: {
+    width: 40,
+  },
+  progressContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  progressBarBackground: {
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#14B8A6',
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  languageGrid: {
+    gap: 12,
+  },
+  languageCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  languageCardSelected: {
+    borderColor: '#14B8A6',
+    backgroundColor: '#F0FDFA',
+  },
+  languageCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageIcon: {
+    fontSize: 40,
+    marginRight: 16,
+  },
+  languageInfo: {
+    flex: 1,
+  },
+  languageName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  languageNativeName: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  checkmark: {
+    marginLeft: 12,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  continueButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#14B8A6',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  continueButtonDisabled: {
+    backgroundColor: '#D1D5DB',
+  },
+  continueButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+});
+
+export default LanguageSelectionScreen;

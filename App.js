@@ -17,6 +17,15 @@ import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen.tsx';
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
 import ProfileScreen from './src/screens/Profile/ProfileScreen.tsx';
 
+// Practice Flow Screens
+import {
+  LanguageSelectionScreen,
+  TopicSelectionScreen,
+  LevelSelectionScreen,
+  ConversationLoadingScreen,
+  ConversationScreen,
+} from './src/screens/Practice';
+
 // Subscription Screens
 import { CheckoutScreen, CheckoutSuccessScreen } from './src/screens/Subscription';
 
@@ -177,6 +186,13 @@ export default function App() {
         {/* Subscription Screens */}
         <Stack.Screen name="Checkout" component={CheckoutScreen} />
         <Stack.Screen name="CheckoutSuccess" component={CheckoutSuccessScreen} />
+
+        {/* Practice Flow Screens */}
+        <Stack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
+        <Stack.Screen name="TopicSelection" component={TopicSelectionScreen} />
+        <Stack.Screen name="LevelSelection" component={LevelSelectionScreen} />
+        <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
+        <Stack.Screen name="Conversation" component={ConversationScreen} />
 
         {/* Main App (with tabs) */}
         <Stack.Screen name="Main" component={MainTabs} />

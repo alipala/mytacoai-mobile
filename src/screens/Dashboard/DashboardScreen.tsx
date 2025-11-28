@@ -126,15 +126,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {
           title: 'Choose Session Type',
           message: 'Select how you want to practice',
-          options: ['Cancel', 'Practice Session', 'Assessment'],
+          options: ['Cancel', 'Quick Practice', 'Assessment (Coming Soon)'],
           cancelButtonIndex: 0,
           userInterfaceStyle: 'light',
         },
         (buttonIndex) => {
           if (buttonIndex === 1) {
-            navigation.navigate('VoiceSelection', { mode: 'practice' });
+            // Navigate to practice flow
+            navigation.navigate('LanguageSelection', { mode: 'practice' });
           } else if (buttonIndex === 2) {
-            navigation.navigate('Assessment', { mode: 'assessment' });
+            // Assessment coming soon
+            Alert.alert(
+              'Coming Soon',
+              'Assessment feature will be available soon!',
+              [{ text: 'OK' }]
+            );
           }
         }
       );
@@ -146,12 +152,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         [
           { text: 'Cancel', style: 'cancel' },
           {
-            text: 'Practice Session',
-            onPress: () => navigation.navigate('VoiceSelection', { mode: 'practice' }),
+            text: 'Quick Practice',
+            onPress: () => navigation.navigate('LanguageSelection', { mode: 'practice' }),
           },
           {
-            text: 'Assessment',
-            onPress: () => navigation.navigate('Assessment', { mode: 'assessment' }),
+            text: 'Assessment (Coming Soon)',
+            onPress: () => Alert.alert('Coming Soon', 'Assessment feature will be available soon!', [{ text: 'OK' }]),
           },
         ]
       );
@@ -312,14 +318,25 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <Ionicons name="book-outline" size={80} color="#D1D5DB" />
           <Text style={styles.emptyTitle}>No Learning Plans Yet</Text>
           <Text style={styles.emptyMessage}>
-            Create your first learning plan to start your language journey!
+            Start practicing right away or create a personalized learning plan!
           </Text>
+
+          {/* Quick Practice Button */}
+          <TouchableOpacity
+            style={styles.quickPracticeButton}
+            onPress={() => navigation.navigate('LanguageSelection', { mode: 'practice' })}
+          >
+            <Ionicons name="chatbubbles" size={20} color="#FFFFFF" />
+            <Text style={styles.quickPracticeButtonText}>Start Quick Practice</Text>
+          </TouchableOpacity>
+
+          {/* Create Plan Button */}
           <TouchableOpacity
             style={styles.createPlanButton}
             onPress={() => navigation.navigate('CreatePlan')}
           >
-            <Ionicons name="add-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.createPlanButtonText}>Create Your First Plan</Text>
+            <Ionicons name="add-circle" size={20} color="#4FD1C5" />
+            <Text style={styles.createPlanButtonText}>Create Learning Plan</Text>
           </TouchableOpacity>
         </ScrollView>
 
