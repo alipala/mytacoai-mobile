@@ -615,13 +615,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        {/* Empty spacer for header balance */}
+        <View style={styles.backButton} />
 
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
