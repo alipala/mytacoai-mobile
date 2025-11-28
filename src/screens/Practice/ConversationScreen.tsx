@@ -238,38 +238,54 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const handleConfirmEndSession = async () => {
     try {
+      // Close modal first for better UX
+      setShowEndSessionModal(false);
+
       // Disconnect realtime service first
       if (realtimeServiceRef.current) {
         console.log('[CONVERSATION] Disconnecting realtime service');
         await realtimeServiceRef.current.disconnect();
+        realtimeServiceRef.current = null;
       }
 
       // Save conversation progress
-      await ProgressService.saveConversationApiProgressSaveConversationPost({
-        requestBody: {
-          language,
-          level,
-          topic: topic || null,
-          messages: messages.map(msg => ({
-            role: msg.role,
-            content: msg.content,
-            timestamp: msg.timestamp,
-          })),
-          duration_minutes: sessionDuration / 60,
-          learning_plan_id: null,
-          conversation_type: 'practice',
-        },
+      if (messages.length > 0) {
+        await ProgressService.saveConversationApiProgressSaveConversationPost({
+          requestBody: {
+            language,
+            level,
+            topic: topic || null,
+            messages: messages.map(msg => ({
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp,
+            })),
+            duration_minutes: sessionDuration / 60,
+            learning_plan_id: null,
+            conversation_type: 'practice',
+          },
+        });
+
+        console.log('[CONVERSATION] Session saved successfully');
+      }
+
+      // Navigate back to dashboard - use reset to clear the stack
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
       });
-
-      console.log('[CONVERSATION] Session saved successfully');
-
-      // Navigate back to dashboard
-      navigation.navigate('Main', { screen: 'Dashboard' });
     } catch (error) {
       console.error('[CONVERSATION] Error saving session:', error);
+
+      // Disconnect service even on error
+      if (realtimeServiceRef.current) {
+        realtimeServiceRef.current.disconnect();
+        realtimeServiceRef.current = null;
+      }
+
       Alert.alert(
         'Save Error',
-        'Failed to save your session. Do you want to try again?',
+        'Failed to save your session. Do you want to try again or exit anyway?',
         [
           {
             text: 'Try Again',
@@ -279,11 +295,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             text: 'Exit Anyway',
             style: 'destructive',
             onPress: () => {
-              // Ensure service is disconnected even if save fails
-              if (realtimeServiceRef.current) {
-                realtimeServiceRef.current.disconnect();
-              }
-              navigation.navigate('Main', { screen: 'Dashboard' });
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+              });
             },
           },
         ]

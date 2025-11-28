@@ -52,6 +52,8 @@ export class RealtimeService {
   private ephemeralKey: string | null = null;
   private isConnected: boolean = false;
   private isMuted: boolean = false;
+  private isAISpeaking: boolean = false;
+  private userRequestedMute: boolean = false;
 
   constructor(config: RealtimeServiceConfig) {
     this.config = config;
@@ -254,6 +256,26 @@ export class RealtimeService {
         console.log('[RealtimeService] User stopped speaking');
         break;
 
+      case 'response.audio.delta':
+      case 'output_audio_buffer.started':
+        // AI started speaking - mute microphone to prevent echo
+        if (!this.isAISpeaking) {
+          this.isAISpeaking = true;
+          this.muteMicrophoneForAI();
+          console.log('[RealtimeService] AI started speaking - muted mic');
+        }
+        break;
+
+      case 'response.audio.done':
+      case 'output_audio_buffer.cleared':
+        // AI stopped speaking - unmute microphone if user hasn't manually muted
+        if (this.isAISpeaking) {
+          this.isAISpeaking = false;
+          this.unmuteMicrophoneAfterAI();
+          console.log('[RealtimeService] AI stopped speaking - unmuted mic');
+        }
+        break;
+
       case 'error':
         console.error('[RealtimeService] Error event:', event.error);
         this.config.onError?.(new Error(event.error?.message || 'Unknown error'));
@@ -327,9 +349,11 @@ export class RealtimeService {
   }
 
   /**
-   * Mute/unmute the microphone
+   * Mute/unmute the microphone (user-initiated)
    */
   public setMuted(muted: boolean): void {
+    this.userRequestedMute = muted;
+
     if (!this.localStream) return;
 
     const audioTrack = this.localStream.getAudioTracks()[0];
@@ -337,6 +361,32 @@ export class RealtimeService {
       audioTrack.enabled = !muted;
       this.isMuted = muted;
       console.log('[RealtimeService] Microphone', muted ? 'muted' : 'unmuted');
+    }
+  }
+
+  /**
+   * Mute microphone when AI is speaking (automatic echo prevention)
+   */
+  private muteMicrophoneForAI(): void {
+    if (!this.localStream || this.userRequestedMute) return;
+
+    const audioTrack = this.localStream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = false;
+      this.isMuted = true;
+    }
+  }
+
+  /**
+   * Unmute microphone after AI finishes speaking (if user hasn't manually muted)
+   */
+  private unmuteMicrophoneAfterAI(): void {
+    if (!this.localStream || this.userRequestedMute) return;
+
+    const audioTrack = this.localStream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = true;
+      this.isMuted = false;
     }
   }
 
