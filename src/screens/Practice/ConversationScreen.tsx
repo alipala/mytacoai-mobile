@@ -60,6 +60,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [backgroundAnalyses, setBackgroundAnalyses] = useState<BackgroundAnalysisResponse[]>([]);
   const [sessionSummary, setSessionSummary] = useState<string>('');
   const [sessionCompletedNaturally, setSessionCompletedNaturally] = useState(false);
+  const [autoSavePending, setAutoSavePending] = useState(false);
 
   // Realtime service ref
   const realtimeServiceRef = useRef<RealtimeService | null>(null);
@@ -68,8 +69,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Animation for recording button
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Ref to avoid stale closure in useEffect
-  const handleAutomaticSessionEndRef = useRef<(() => Promise<void>) | null>(null);
+  // Ref to track if auto-save was triggered
+  const autoSaveTriggeredRef = useRef(false);
 
   // Update session duration every second and check for completion (5 minutes)
   useEffect(() => {
@@ -80,17 +81,27 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setSessionDuration(duration);
 
       // Check if 5 minutes (300 seconds) completed
-      if (duration >= 300 && !sessionCompletedNaturally) {
-        console.log('[TIMER] 5 minutes completed - triggering automatic session save');
+      if (duration >= 300 && !autoSaveTriggeredRef.current) {
+        console.log('[TIMER] ⏰ 5 minutes completed - triggering automatic session save');
         clearInterval(interval);
-        if (handleAutomaticSessionEndRef.current) {
-          handleAutomaticSessionEndRef.current();
-        }
+
+        // Mark as triggered to prevent double-firing
+        autoSaveTriggeredRef.current = true;
+        setSessionCompletedNaturally(true);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [sessionStartTime, sessionCompletedNaturally]);
+  }, [sessionStartTime]);
+
+  // Trigger auto-save when session completes naturally
+  useEffect(() => {
+    if (sessionCompletedNaturally && !autoSavePending) {
+      console.log('[TIMER] Triggering automatic session save...');
+      setAutoSavePending(true);
+      handleAutomaticSessionEnd();
+    }
+  }, [sessionCompletedNaturally, autoSavePending]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -334,13 +345,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   // Automatic session end when 5 minutes completed - WITH SAVING
   const handleAutomaticSessionEnd = async () => {
-    // Update ref for timer callback
-    handleAutomaticSessionEndRef.current = handleAutomaticSessionEnd;
     try {
-      console.log('[AUTO_END] 5 minutes completed - starting automatic session save');
-
-      // Mark session as completed naturally
-      setSessionCompletedNaturally(true);
+      console.log('[AUTO_END] 💾 Starting automatic session save...');
 
       // Show saving modal
       setShowSavingModal(true);
