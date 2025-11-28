@@ -277,8 +277,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
           if (state === 'connected') {
             setIsConnecting(false);
-            // Add welcome message from AI tutor
-            addMessage('assistant', `Hello! I'm excited to practice ${language} with you today. Let's talk about ${topic}!`);
+            // Connection established - user can start speaking when ready
+            console.log('[CONVERSATION] Ready for conversation');
           } else if (state === 'failed' || state === 'disconnected') {
             setIsConnecting(false);
             if (state === 'failed') {
@@ -294,6 +294,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       // Connect to OpenAI Realtime API via WebRTC
       await realtimeServiceRef.current.connect();
+
+      // Start with microphone muted - user must press button to speak
+      realtimeServiceRef.current.setMuted(true);
+      console.log('[CONVERSATION] Initial state: microphone muted');
 
     } catch (error: any) {
       console.error('[CONVERSATION] Error initializing:', error);
@@ -406,6 +410,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const handleEndSession = async () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    // If session already completed naturally, just navigate away
+    if (sessionCompletedNaturally) {
+      console.log('[CONVERSATION] Session already completed - navigating to dashboard');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+      });
+      return;
     }
 
     setShowEndSessionModal(true);
@@ -568,6 +582,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   // Back handler
   const handleBack = () => {
+    // If session already completed naturally, navigate to dashboard
+    if (sessionCompletedNaturally) {
+      console.log('[CONVERSATION] Session already completed - navigating to dashboard');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+      });
+      return;
+    }
+
+    // If conversation started, confirm before ending
     if (messages.length > 0) {
       Alert.alert(
         'End Session?',

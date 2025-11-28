@@ -69,7 +69,10 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+          })}
           style={styles.backButton}
           activeOpacity={0.7}
         >
