@@ -59,6 +59,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [savingStage, setSavingStage] = useState<SavingStage>('saving');
   const [backgroundAnalyses, setBackgroundAnalyses] = useState<BackgroundAnalysisResponse[]>([]);
   const [sessionSummary, setSessionSummary] = useState<string>('');
+  const [sessionCompletedNaturally, setSessionCompletedNaturally] = useState(false);
 
   // Realtime service ref
   const realtimeServiceRef = useRef<RealtimeService | null>(null);
@@ -67,17 +68,29 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Animation for recording button
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Update session duration every second
+  // Ref to avoid stale closure in useEffect
+  const handleAutomaticSessionEndRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Update session duration every second and check for completion (5 minutes)
   useEffect(() => {
     if (!sessionStartTime) return;
 
     const interval = setInterval(() => {
       const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
       setSessionDuration(duration);
+
+      // Check if 5 minutes (300 seconds) completed
+      if (duration >= 300 && !sessionCompletedNaturally) {
+        console.log('[TIMER] 5 minutes completed - triggering automatic session save');
+        clearInterval(interval);
+        if (handleAutomaticSessionEndRef.current) {
+          handleAutomaticSessionEndRef.current();
+        }
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [sessionStartTime]);
+  }, [sessionStartTime, sessionCompletedNaturally]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -282,7 +295,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     console.log('[CONVERSATION]', newRecordingState ? 'Microphone active' : 'Microphone muted');
   };
 
-  // End session and save progress
+  // Manual end session (user clicks End button) - NO SAVING
   const handleEndSession = async () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -291,21 +304,56 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     setShowEndSessionModal(true);
   };
 
+  // Confirm manual early end - just disconnect without saving
   const handleConfirmEndSession = async () => {
     try {
-      // Close end session modal and show saving modal
       setShowEndSessionModal(false);
+
+      // Disconnect realtime service
+      if (realtimeServiceRef.current) {
+        console.log('[MANUAL_END] User ended session early - disconnecting without saving');
+        await realtimeServiceRef.current.disconnect();
+        realtimeServiceRef.current = null;
+      }
+
+      // Navigate back to dashboard without saving
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+      });
+    } catch (error) {
+      console.error('[MANUAL_END] Error disconnecting:', error);
+
+      // Navigate back anyway
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+      });
+    }
+  };
+
+  // Automatic session end when 5 minutes completed - WITH SAVING
+  const handleAutomaticSessionEnd = async () => {
+    // Update ref for timer callback
+    handleAutomaticSessionEndRef.current = handleAutomaticSessionEnd;
+    try {
+      console.log('[AUTO_END] 5 minutes completed - starting automatic session save');
+
+      // Mark session as completed naturally
+      setSessionCompletedNaturally(true);
+
+      // Show saving modal
       setShowSavingModal(true);
       setSavingStage('saving');
 
       // Disconnect realtime service first
       if (realtimeServiceRef.current) {
-        console.log('[CONVERSATION] Disconnecting realtime service');
+        console.log('[AUTO_END] Disconnecting realtime service');
         await realtimeServiceRef.current.disconnect();
         realtimeServiceRef.current = null;
       }
 
-      console.log('[SESSION_SAVE] Saving conversation with', collectedSentences.length, 'sentences for analysis');
+      console.log('[AUTO_END] Saving conversation with', collectedSentences.length, 'sentences for analysis');
 
       // Save conversation progress
       if (messages.length > 0) {
@@ -330,11 +378,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           },
         });
 
-        console.log('[SESSION_SAVE] Session saved successfully:', result);
+        console.log('[AUTO_END] Session saved successfully:', result);
 
         // Store the results
         if (result.background_analyses && result.background_analyses.length > 0) {
-          console.log('[SESSION_SAVE] Received', result.background_analyses.length, 'analyses');
+          console.log('[AUTO_END] Received', result.background_analyses.length, 'analyses');
           setBackgroundAnalyses(result.background_analyses);
         }
 
@@ -351,13 +399,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         setSavingStage('success');
       } else {
         // No messages, just navigate back
+        setShowSavingModal(false);
         navigation.reset({
           index: 0,
           routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
         });
       }
     } catch (error) {
-      console.error('[SESSION_SAVE] Error saving session:', error);
+      console.error('[AUTO_END] Error saving session:', error);
 
       // Close saving modal
       setShowSavingModal(false);
@@ -374,7 +423,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         [
           {
             text: 'Try Again',
-            onPress: () => handleConfirmEndSession(),
+            onPress: () => handleAutomaticSessionEnd(),
           },
           {
             text: 'Exit Anyway',
@@ -615,7 +664,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </View>
       </Modal>
 
-      {/* End Session Modal */}
+      {/* End Session Modal - Warning for Early Exit */}
       <Modal
         visible={showEndSessionModal}
         animationType="fade"
@@ -624,20 +673,21 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.endModalContent}>
-            <Text style={styles.endModalTitle}>End Practice Session?</Text>
+            <Ionicons name="warning-outline" size={48} color="#F59E0B" style={{ marginBottom: 16, textAlign: 'center' }} />
+            <Text style={styles.endModalTitle}>End Early?</Text>
             <Text style={styles.endModalText}>
-              Your progress will be saved and you can review your session in the dashboard.
+              You haven't completed the full 5-minute session yet. If you end now, your progress won't be saved and you won't receive analysis or flashcards.
             </Text>
 
             <View style={styles.endModalStats}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{formatDuration(sessionDuration)}</Text>
-                <Text style={styles.statLabel}>Duration</Text>
+                <Text style={styles.statLabel}>Time Spent</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{messages.filter(m => m.role === 'user').length}</Text>
-                <Text style={styles.statLabel}>Messages</Text>
+                <Text style={styles.statValue}>{formatDuration(300 - sessionDuration)}</Text>
+                <Text style={styles.statLabel}>Remaining</Text>
               </View>
             </View>
 
@@ -647,7 +697,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 onPress={() => setShowEndSessionModal(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.cancelButtonText}>Continue</Text>
+                <Text style={styles.cancelButtonText}>Keep Practicing</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -655,7 +705,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 onPress={handleConfirmEndSession}
                 activeOpacity={0.8}
               >
-                <Text style={styles.confirmEndButtonText}>End Session</Text>
+                <Text style={styles.confirmEndButtonText}>End Anyway</Text>
               </TouchableOpacity>
             </View>
           </View>
