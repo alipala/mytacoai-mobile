@@ -16,10 +16,12 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { ProgressService, LearningService } from '../../api/generated';
+import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
 import { LearningPlanCard } from '../../components/LearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
+import { SubscriptionBanner } from '../../components/SubscriptionBanner';
+import { PricingModal } from '../../components/PricingModal';
 import { styles } from './styles/DashboardScreen.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -36,7 +38,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [progressStats, setProgressStats] = useState<any>(null);
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
-  
+
+  // Subscription state
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
   // Modal state
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
@@ -63,14 +70,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         setUserName(displayName);
       }
 
-      // Load learning plans and progress stats in parallel
-      const [plansResponse, statsResponse] = await Promise.all([
+      // Load learning plans, progress stats, and subscription status in parallel
+      const [plansResponse, statsResponse, subscriptionResponse] = await Promise.all([
         LearningService.getUserLearningPlansApiLearningPlansGet(),
         ProgressService.getProgressStatsApiProgressStatsGet(),
+        StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet(),
       ]);
 
       setLearningPlans(plansResponse as LearningPlan[]);
       setProgressStats(statsResponse);
+      setSubscriptionStatus(subscriptionResponse);
+      console.log('📊 Subscription status loaded:', subscriptionResponse);
 
     } catch (error: any) {
       console.error('Error loading dashboard:', error);
@@ -155,6 +165,29 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
   };
 
+  const handleUpgradePress = () => {
+    console.log('📱 handleUpgradePress called in DashboardScreen');
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    console.log('📱 Setting showPricingModal to true');
+    setShowPricingModal(true);
+    console.log('📱 showPricingModal state updated');
+  };
+
+  const handleDismissBanner = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setBannerDismissed(true);
+  };
+
+  const handleSelectPlan = (planId: string, period: 'monthly' | 'annual') => {
+    setShowPricingModal(false);
+    // Navigate to checkout screen
+    navigation.navigate('Checkout', { planId, period });
+  };
+
   const handleLogout = async () => {
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -186,6 +219,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <ActivityIndicator size="large" color="#4FD1C5" />
           <Text style={styles.loadingText}>Loading your learning journey...</Text>
         </View>
+
+        {/* Pricing Modal */}
+        <PricingModal
+          visible={showPricingModal}
+          onClose={() => setShowPricingModal(false)}
+          onSelectPlan={handleSelectPlan}
+        />
       </SafeAreaView>
     );
   }
@@ -203,6 +243,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Pricing Modal */}
+        <PricingModal
+          visible={showPricingModal}
+          onClose={() => setShowPricingModal(false)}
+          onSelectPlan={handleSelectPlan}
+        />
       </SafeAreaView>
     );
   }
@@ -218,16 +265,30 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             style={styles.logo}
             resizeMode="contain"
           />
-          
-          {/* iOS-Standard Text Button */}
-          <TouchableOpacity 
-            style={styles.profileButton} 
-            onPress={handleLogout}
-            activeOpacity={0.6}
-          >
-            <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-            <Text style={styles.profileText}>{userName}</Text>
-          </TouchableOpacity>
+
+          <View style={styles.headerActions}>
+            {/* Upgrade Button - only show for free users */}
+            {subscriptionStatus?.plan === 'free' && (
+              <TouchableOpacity
+                style={styles.upgradeButton}
+                onPress={handleUpgradePress}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+                <Text style={styles.upgradeButtonText}>Upgrade</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* iOS-Standard Text Button */}
+            <TouchableOpacity
+              style={styles.profileButton}
+              onPress={handleLogout}
+              activeOpacity={0.6}
+            >
+              <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
+              <Text style={styles.profileText}>{userName}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -236,6 +297,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
+          {/* Subscription Banner for empty state */}
+          {subscriptionStatus && !bannerDismissed && (
+            <View style={{ width: '100%', paddingBottom: 20 }}>
+              <SubscriptionBanner
+                plan={subscriptionStatus.plan}
+                sessionsRemaining={subscriptionStatus.limits?.sessions_remaining || 0}
+                onUpgradePress={handleUpgradePress}
+                onDismiss={handleDismissBanner}
+              />
+            </View>
+          )}
+
           <Ionicons name="book-outline" size={80} color="#D1D5DB" />
           <Text style={styles.emptyTitle}>No Learning Plans Yet</Text>
           <Text style={styles.emptyMessage}>
@@ -249,6 +322,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <Text style={styles.createPlanButtonText}>Create Your First Plan</Text>
           </TouchableOpacity>
         </ScrollView>
+
+        {/* Pricing Modal */}
+        <PricingModal
+          visible={showPricingModal}
+          onClose={() => setShowPricingModal(false)}
+          onSelectPlan={handleSelectPlan}
+        />
       </SafeAreaView>
     );
   }
@@ -263,15 +343,29 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           resizeMode="contain"
         />
 
-        {/* iOS-Standard Text Button (not rounded pill) */}
-        <TouchableOpacity 
-          style={styles.profileButton} 
-          onPress={handleLogout}
-          activeOpacity={0.6}
-        >
-          <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-          <Text style={styles.profileText}>{userName}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {/* Upgrade Button - only show for free users */}
+          {subscriptionStatus?.plan === 'free' && (
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={handleUpgradePress}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+              <Text style={styles.upgradeButtonText}>Upgrade</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* iOS-Standard Text Button (not rounded pill) */}
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={handleLogout}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.profileText}>{userName}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -282,6 +376,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* Subscription Banner */}
+        {subscriptionStatus && !bannerDismissed && (
+          <>
+            {console.log('🎯 Rendering SubscriptionBanner with plan:', subscriptionStatus.plan)}
+            <SubscriptionBanner
+              plan={subscriptionStatus.plan}
+              sessionsRemaining={subscriptionStatus.limits?.sessions_remaining || 0}
+              onUpgradePress={handleUpgradePress}
+              onDismiss={handleDismissBanner}
+            />
+          </>
+        )}
+
         {/* Title Section - Compact */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>Your Learning Journey</Text>
@@ -367,6 +474,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onContinueLearning={handleModalContinueLearning}
         />
       )}
+
+      {/* Pricing Modal */}
+      <PricingModal
+        visible={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        onSelectPlan={handleSelectPlan}
+      />
     </SafeAreaView>
   );
 };
