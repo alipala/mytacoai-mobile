@@ -82,6 +82,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 }) => {
   const [isAnnual, setIsAnnual] = useState(false);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('💳 PricingModal visible prop changed:', visible);
+  }, [visible]);
+
   const handleTogglePeriod = () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

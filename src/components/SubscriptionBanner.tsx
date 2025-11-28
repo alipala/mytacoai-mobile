@@ -43,7 +43,10 @@ export const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({
 
           <TouchableOpacity
             style={styles.upgradeButton}
-            onPress={onUpgradePress}
+            onPress={() => {
+              console.log('🚀 Upgrade button pressed in SubscriptionBanner');
+              onUpgradePress();
+            }}
             activeOpacity={0.8}
           >
             <Ionicons name="flash" size={16} color="#4ECFBF" />

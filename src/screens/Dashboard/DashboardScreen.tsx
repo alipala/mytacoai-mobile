@@ -80,6 +80,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setLearningPlans(plansResponse as LearningPlan[]);
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
+      console.log('📊 Subscription status loaded:', subscriptionResponse);
 
     } catch (error: any) {
       console.error('Error loading dashboard:', error);
@@ -165,10 +166,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   };
 
   const handleUpgradePress = () => {
+    console.log('📱 handleUpgradePress called in DashboardScreen');
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    console.log('📱 Setting showPricingModal to true');
     setShowPricingModal(true);
+    console.log('📱 showPricingModal state updated');
   };
 
   const handleDismissBanner = () => {
@@ -325,12 +329,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       >
         {/* Subscription Banner */}
         {subscriptionStatus && !bannerDismissed && (
-          <SubscriptionBanner
-            plan={subscriptionStatus.plan}
-            sessionsRemaining={subscriptionStatus.limits?.sessions_remaining || 0}
-            onUpgradePress={handleUpgradePress}
-            onDismiss={handleDismissBanner}
-          />
+          <>
+            {console.log('🎯 Rendering SubscriptionBanner with plan:', subscriptionStatus.plan)}
+            <SubscriptionBanner
+              plan={subscriptionStatus.plan}
+              sessionsRemaining={subscriptionStatus.limits?.sessions_remaining || 0}
+              onUpgradePress={handleUpgradePress}
+              onDismiss={handleDismissBanner}
+            />
+          </>
         )}
 
         {/* Title Section - Compact */}
