@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DefaultService, ProgressService } from '../../api/generated';
+import { RealtimeService } from '../../services/RealtimeService';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -50,8 +51,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
 
-  // WebSocket/Realtime connection ref
-  const wsRef = useRef<any>(null);
+  // Realtime service ref
+  const realtimeServiceRef = useRef<RealtimeService | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Animation for recording button
@@ -68,6 +69,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
     return () => clearInterval(interval);
   }, [sessionStartTime]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Disconnect realtime service when component unmounts
+      if (realtimeServiceRef.current) {
+        console.log('[CONVERSATION] Cleaning up realtime service');
+        realtimeServiceRef.current.disconnect();
+      }
+    };
+  }, []);
 
   // Pulse animation for recording button
   useEffect(() => {
@@ -114,26 +126,45 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setIsConnecting(true);
       setConnectionError(null);
 
-      // Get realtime token from API
-      const tokenResponse = await DefaultService.generateTokenApiRealtimeTokenPost({
-        requestBody: {
-          language,
-          level,
-          topic,
-          voice: 'alloy', // Default voice
+      console.log('[CONVERSATION] Initializing WebRTC connection...');
+
+      // Create and configure RealtimeService
+      realtimeServiceRef.current = new RealtimeService({
+        language,
+        level,
+        topic,
+        voice: 'alloy',
+        onTranscript: (transcript: string, role: 'user' | 'assistant') => {
+          // Add transcript as a message
+          console.log('[CONVERSATION] Transcript received:', role, transcript);
+          addMessage(role, transcript);
+        },
+        onError: (error: Error) => {
+          console.error('[CONVERSATION] Service error:', error);
+          setConnectionError(error.message);
+        },
+        onConnectionStateChange: (state: string) => {
+          console.log('[CONVERSATION] Connection state:', state);
+
+          if (state === 'connected') {
+            setIsConnecting(false);
+            // Add welcome message from AI tutor
+            addMessage('assistant', `Hello! I'm excited to practice ${language} with you today. Let's talk about ${topic}!`);
+          } else if (state === 'failed' || state === 'disconnected') {
+            setIsConnecting(false);
+            if (state === 'failed') {
+              setConnectionError('Connection failed. Please try again.');
+            }
+          }
+        },
+        onEvent: (event) => {
+          // Log all events for debugging
+          console.log('[CONVERSATION] Event:', event.type);
         },
       });
 
-      console.log('[CONVERSATION] Realtime token received:', tokenResponse);
-
-      // TODO: Initialize WebSocket connection with OpenAI Realtime API
-      // For now, we'll simulate the connection
-      setTimeout(() => {
-        setIsConnecting(false);
-
-        // Add welcome message from AI tutor
-        addMessage('assistant', `Hello! I'm excited to practice ${language} with you today. Let's talk about ${topic}!`);
-      }, 1500);
+      // Connect to OpenAI Realtime API via WebRTC
+      await realtimeServiceRef.current.connect();
 
     } catch (error: any) {
       console.error('[CONVERSATION] Error initializing:', error);
@@ -175,31 +206,25 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }, 100);
   };
 
-  // Toggle recording state
+  // Toggle recording state (mute/unmute microphone)
   const handleToggleRecording = () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    setIsRecording((prev) => !prev);
-
-    // TODO: Implement actual voice recording logic
-    // For now, simulate recording
-    if (!isRecording) {
-      console.log('[CONVERSATION] Started recording');
-    } else {
-      console.log('[CONVERSATION] Stopped recording');
-
-      // Simulate user message after recording
-      setTimeout(() => {
-        addMessage('user', 'This is a simulated user message for testing.');
-
-        // Simulate AI response
-        setTimeout(() => {
-          addMessage('assistant', 'That\'s great! Can you tell me more about that?');
-        }, 1500);
-      }, 500);
+    if (!realtimeServiceRef.current) {
+      console.warn('[CONVERSATION] Service not initialized');
+      return;
     }
+
+    const newRecordingState = !isRecording;
+    setIsRecording(newRecordingState);
+
+    // Mute/unmute the microphone
+    // Note: In WebRTC with server VAD, the mic is always "on" but we can mute it
+    realtimeServiceRef.current.setMuted(!newRecordingState);
+
+    console.log('[CONVERSATION]', newRecordingState ? 'Microphone active' : 'Microphone muted');
   };
 
   // End session and save progress
@@ -213,6 +238,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const handleConfirmEndSession = async () => {
     try {
+      // Disconnect realtime service first
+      if (realtimeServiceRef.current) {
+        console.log('[CONVERSATION] Disconnecting realtime service');
+        await realtimeServiceRef.current.disconnect();
+      }
+
       // Save conversation progress
       await ProgressService.saveConversationApiProgressSaveConversationPost({
         requestBody: {
@@ -247,7 +278,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           {
             text: 'Exit Anyway',
             style: 'destructive',
-            onPress: () => navigation.navigate('Main', { screen: 'Dashboard' }),
+            onPress: () => {
+              // Ensure service is disconnected even if save fails
+              if (realtimeServiceRef.current) {
+                realtimeServiceRef.current.disconnect();
+              }
+              navigation.navigate('Main', { screen: 'Dashboard' });
+            },
           },
         ]
       );

@@ -17,6 +17,8 @@
       "bundleIdentifier": "com.anonymous.MyTacoAIMobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice conversations for language practice.",
+        "NSCameraUsageDescription": "This app may need access to your camera for future video features.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
@@ -36,6 +38,13 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.MyTacoAIMobile",
+      "permissions": [
+        "RECORD_AUDIO",
+        "CAMERA",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "MODIFY_AUDIO_SETTINGS"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
