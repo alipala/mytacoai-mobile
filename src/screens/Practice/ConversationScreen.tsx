@@ -592,24 +592,32 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             {language.charAt(0).toUpperCase() + language.slice(1)} Practice
           </Text>
           {sessionStartTime && (
-            <AnimatedCountdownTimer
-              duration={sessionDuration}
-              pulseAnim={timerPulseAnim}
-              colorAnim={timerColorAnim}
-              scaleAnim={timerScaleAnim}
-              formatDuration={formatDuration}
-            />
+            <Text style={styles.headerSubtitle}>
+              {formatDuration(sessionDuration)}
+            </Text>
           )}
         </View>
 
         <TouchableOpacity
           onPress={handleEndSession}
-          style={styles.endButton}
-          activeOpacity={0.7}
+          style={styles.modernEndButton}
+          activeOpacity={0.8}
         >
-          <Text style={styles.endButtonText}>End</Text>
+          <Ionicons name="stop-circle" size={20} color="#FFFFFF" />
+          <Text style={styles.modernEndButtonText}>End</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Floating Countdown Overlay (appears in last 10 seconds) */}
+      {sessionStartTime && (
+        <AnimatedCountdownTimer
+          duration={sessionDuration}
+          pulseAnim={timerPulseAnim}
+          colorAnim={timerColorAnim}
+          scaleAnim={timerScaleAnim}
+          formatDuration={formatDuration}
+        />
+      )}
 
       {/* Conversation Transcript */}
       <ScrollView
@@ -826,7 +834,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   );
 };
 
-// Animated Countdown Timer Component
+// Animated Countdown Timer Component - Modern Floating Design
 interface AnimatedCountdownTimerProps {
   duration: number;
   pulseAnim: Animated.Value;
@@ -845,15 +853,15 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
   const secondsRemaining = 300 - duration;
   const isCountingDown = secondsRemaining <= 10 && secondsRemaining >= 0;
 
-  // Color interpolation: teal → yellow → red
+  // Color interpolation: gradient colors
   const backgroundColor = colorAnim.interpolate({
     inputRange: [0, 5, 10],
-    outputRange: ['#14B8A6', '#F59E0B', '#EF4444'], // teal → yellow → red
+    outputRange: ['rgba(239, 68, 68, 0.95)', 'rgba(245, 158, 11, 0.95)', 'rgba(20, 184, 166, 0.95)'], // red → orange → teal
   });
 
-  const borderColor = colorAnim.interpolate({
+  const ringColor = colorAnim.interpolate({
     inputRange: [0, 5, 10],
-    outputRange: ['#14B8A6', '#F59E0B', '#EF4444'],
+    outputRange: ['#EF4444', '#F59E0B', '#14B8A6'],
   });
 
   if (!isCountingDown) {
@@ -865,37 +873,36 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
     );
   }
 
-  // Countdown mode with animations
+  // Countdown mode with modern floating design
   return (
     <Animated.View
-      style={{
-        transform: [{ scale: scaleAnim }, { scale: pulseAnim }],
-      }}
+      style={[
+        styles.floatingCountdownContainer,
+        {
+          transform: [{ scale: pulseAnim }],
+        },
+      ]}
     >
       <Animated.View
         style={[
-          styles.timerContainer,
+          styles.countdownCard,
           {
             backgroundColor,
-            borderColor,
-            borderWidth: 2,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-            elevation: 5,
+            transform: [{ scale: scaleAnim }],
           },
         ]}
       >
-        {/* Countdown Badge */}
-        <View style={styles.countdownBadge}>
-          <Text style={styles.countdownText}>{secondsRemaining}s</Text>
-        </View>
+        {/* Animated Ring */}
+        <Animated.View style={[styles.countdownRing, { borderColor: ringColor }]}>
+          <View style={styles.countdownContent}>
+            {/* Large Countdown Number */}
+            <Text style={styles.countdownNumber}>{secondsRemaining}</Text>
+            <Text style={styles.countdownLabel}>SECONDS</Text>
+          </View>
+        </Animated.View>
 
-        {/* Timer Text */}
-        <Text style={[styles.headerSubtitle, styles.countdownTimerText]}>
-          {formatDuration(duration)}
-        </Text>
+        {/* Session Ending Message */}
+        <Text style={styles.sessionEndingText}>Session Ending...</Text>
       </Animated.View>
     </Animated.View>
   );
@@ -942,6 +949,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#EF4444',
+  },
+  // Modern End Button Styles
+  modernEndButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  modernEndButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   messagesContainer: {
     flex: 1,
@@ -1203,37 +1231,63 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  // Countdown Timer Styles
-  timerContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+  // Modern Floating Countdown Timer Styles
+  floatingCountdownContainer: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  countdownCard: {
+    paddingVertical: 24,
+    paddingHorizontal: 32,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  countdownRing: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    marginBottom: 12,
+  },
+  countdownContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  countdownBadge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  countdownNumber: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -2,
   },
-  countdownText: {
+  countdownLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#EF4444',
-  },
-  countdownTimerText: {
     color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 16,
+    letterSpacing: 1,
+    opacity: 0.9,
+    marginTop: 4,
+  },
+  sessionEndingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    opacity: 0.95,
+    letterSpacing: 0.5,
   },
 });
 

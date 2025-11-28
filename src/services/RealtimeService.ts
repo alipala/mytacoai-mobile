@@ -221,7 +221,14 @@ export class RealtimeService {
         session: {
           turn_detection: { type: 'server_vad' },
           input_audio_transcription: { model: 'whisper-1' },
+          instructions: `You are a friendly language tutor helping the user practice ${this.config.language}. Your role is to have a natural conversation about ${this.config.topic} at ${this.config.level} level. Start the conversation by greeting the user warmly and introducing yourself briefly.`,
         },
+      });
+
+      // Trigger AI to start the conversation with a greeting
+      console.log('[RealtimeService] Triggering AI to start conversation');
+      this.sendEvent({
+        type: 'response.create',
       });
     };
 
