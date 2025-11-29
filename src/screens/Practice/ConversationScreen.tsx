@@ -562,13 +562,6 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
-  import { API_BASE_URL } from '../../api/config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// ... (rest of the imports)
-
-// ... (rest of the component)
-
   // Automatic session end when 5 minutes completed - WITH SAVING
   const handleAutomaticSessionEnd = async () => {
     try {
