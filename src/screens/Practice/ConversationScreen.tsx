@@ -16,11 +16,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DefaultService, ProgressService, BackgroundAnalysisResponse } from '../../api/generated';
+import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
+import { API_BASE_URL } from '../../api/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -110,7 +111,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { mode, language, topic, level } = route.params;
+  const { mode, language, topic, level, planId } = route.params;
+
+  // Add state for the fetched learning plan
+  const [learningPlan, setLearningPlan] = useState<LearningPlan | null>(null);
 
   // Modal states
   const [showInfoModal, setShowInfoModal] = useState(true);
@@ -119,7 +123,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Conversation states
   const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(true); // Start in connecting state
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
@@ -148,6 +152,35 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   // Ref to track if auto-save was triggered
   const autoSaveTriggeredRef = useRef(false);
+
+  // Fetch learning plan if planId is provided
+  useEffect(() => {
+    if (planId) {
+      const fetchPlan = async () => {
+        try {
+          console.log(`[CONVERSATION] Fetching learning plan with ID: ${planId}`);
+          setIsConnecting(true);
+          const plan = await LearningService.getLearningPlanApiLearningPlanPlanIdGet({ planId });
+          setLearningPlan(plan);
+          console.log('[CONVERSATION] ✅ Learning plan fetched successfully.');
+          // Now that the plan is fetched, initialize the conversation
+          await initializeConversation(plan);
+        } catch (error) {
+          console.error('[CONVERSATION] Error fetching learning plan:', error);
+          setConnectionError('Failed to load learning plan details.');
+          setIsConnecting(false);
+          Alert.alert('Error', 'Could not load the learning plan. Please try again.', [
+            { text: 'OK', onPress: () => navigation.goBack() },
+          ]);
+        }
+      };
+      fetchPlan();
+    } else {
+      // For practice mode, show the info modal
+      setShowInfoModal(true);
+    }
+  }, [planId]);
+
 
   // Update session duration every second and check for completion (5 minutes)
   useEffect(() => {
@@ -309,32 +342,54 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
-  // Initialize conversation when modal is dismissed
-  const handleStartConversation = async () => {
+  // Initialize conversation for practice mode when modal is dismissed
+  const handleStartPracticeConversation = async () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     setShowInfoModal(false);
-    setSessionStartTime(Date.now());
     await initializeConversation();
   };
 
   // Initialize the realtime conversation
-  const initializeConversation = async () => {
+  const initializeConversation = async (plan: LearningPlan | null = null) => {
     try {
-      setIsConnecting(true);
+      // Ensure we are in a connecting state
+      if (!isConnecting) setIsConnecting(true);
       setConnectionError(null);
+  
+      const sessionLanguage = plan ? plan.language : language;
+      const sessionLevel = plan ? plan.proficiency_level : level;
+      const assessmentData = plan ? plan.plan_content?.assessment_summary : null;
+  
+      console.log(`[CONVERSATION] Initializing WebRTC connection for ${plan ? 'Learning Plan' : 'Practice'}`);
+      console.log(`[CONVERSATION] Language: ${sessionLanguage}, Level: ${sessionLevel}`);
+      if (assessmentData) {
+        console.log('[CONVERSATION] Including assessment data from learning plan.');
+      }
 
-      console.log('[CONVERSATION] Initializing WebRTC connection...');
+      // Fetch user's preferred voice
+      let userVoice = 'alloy'; // Default voice
+      try {
+        const voicePreference = await AuthenticationService.getVoicePreferenceApiAuthGetVoiceGet();
+        if (voicePreference && typeof voicePreference === 'object' && 'voice' in voicePreference && voicePreference.voice) {
+          userVoice = (voicePreference as any).voice;
+          console.log(`[CONVERSATION] Using user's preferred voice: ${userVoice}`);
+        } else {
+          console.log('[CONVERSATION] No voice preference found, using default: alloy');
+        }
+      } catch (voiceError) {
+        console.warn('[CONVERSATION] Could not fetch voice preference, using default:', voiceError);
+      }
 
       // Create and configure RealtimeService
       realtimeServiceRef.current = new RealtimeService({
-        language,
-        level,
-        topic,
-        voice: 'alloy',
+        language: sessionLanguage,
+        level: sessionLevel,
+        topic: plan ? null : topic, // Topic is only for practice mode
+        assessmentData: assessmentData || undefined,
+        voice: userVoice,
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
-          // Add transcript as a message
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);
         },
@@ -347,7 +402,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
           if (state === 'connected') {
             setIsConnecting(false);
-            // Connection established - user can start speaking when ready
+            setSessionStartTime(Date.now()); // Start timer on successful connection
             console.log('[CONVERSATION] Ready for conversation');
           } else if (state === 'failed' || state === 'disconnected') {
             setIsConnecting(false);
@@ -357,7 +412,6 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           }
         },
         onEvent: (event) => {
-          // Log all events for debugging
           console.log('[CONVERSATION] Event:', event.type);
         },
       });
@@ -376,11 +430,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       Alert.alert(
         'Connection Error',
-        'Failed to start conversation. Please try again.',
+        'Failed to start a conversation. Please try again.',
         [
           {
             text: 'Retry',
-            onPress: () => initializeConversation(),
+            onPress: () => initializeConversation(plan),
           },
           {
             text: 'Cancel',
@@ -470,7 +524,6 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     setIsRecording(newRecordingState);
 
     // Mute/unmute the microphone
-    // Note: In WebRTC with server VAD, the mic is always "on" but we can mute it
     realtimeServiceRef.current.setMuted(!newRecordingState);
 
     console.log('[CONVERSATION]', newRecordingState ? 'Microphone active' : 'Microphone muted');
@@ -547,32 +600,74 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         await new Promise(resolve => setTimeout(resolve, 600));
         setSavingStage('analyzing');
 
-        const result = await ProgressService.saveConversationApiProgressSaveConversationPost({
-          requestBody: {
-            language,
-            level,
-            topic: topic || null,
-            messages: messages.map(msg => ({
-              role: msg.role,
-              content: msg.content,
-              timestamp: msg.timestamp,
-            })),
-            duration_minutes: sessionDuration / 60,
-            learning_plan_id: null,
-            conversation_type: 'practice',
-            sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : null,
-          },
-        });
+        let result: any;
+
+        if (planId) {
+          // New logic for learning plan sessions
+          console.log('[AUTO_END] Saving learning plan session via new endpoint...');
+          const token = await AsyncStorage.getItem('auth_token');
+          const summaryText = `Session completed: ${Math.round(sessionDuration / 60 * 10) / 10} minutes, ${messages.length} messages exchanged. Focus: general conversation at ${learningPlan?.proficiency_level} level in ${learningPlan?.language}.`;
+          
+          const response = await fetch(`${API_BASE_URL}/api/learning/session-summary?plan_id=${planId}&session_summary=${encodeURIComponent(summaryText)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              messages: messages.map(msg => ({
+                role: msg.role,
+                content: msg.content,
+                timestamp: msg.timestamp,
+              })),
+              duration_minutes: sessionDuration / 60,
+              language: learningPlan?.language || language,
+              level: learningPlan?.proficiency_level || level,
+              sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : null,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`API Error: ${response.status} ${errorBody}`);
+          }
+
+          result = await response.json();
+
+        } else {
+          // Original logic for practice sessions
+          console.log('[AUTO_END] Saving practice session via original endpoint...');
+          result = await ProgressService.saveConversationApiProgressSaveConversationPost({
+            requestBody: {
+              language: language,
+              level: level,
+              topic: topic || null,
+              messages: messages.map(msg => ({
+                role: msg.role,
+                content: msg.content,
+                timestamp: msg.timestamp,
+              })),
+              duration_minutes: sessionDuration / 60,
+              learning_plan_id: null,
+              conversation_type: 'practice',
+              sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : null,
+            },
+          });
+        }
 
         console.log('[AUTO_END] Session saved successfully:', result);
 
-        // Store the results
+        // Store the results (compatible with both responses)
         if (result.background_analyses && result.background_analyses.length > 0) {
           console.log('[AUTO_END] Received', result.background_analyses.length, 'analyses');
           setBackgroundAnalyses(result.background_analyses);
         }
 
-        if (result.summary) {
+        // The new endpoint doesn't return a summary, so we generate it client-side for the modal
+        if (planId) {
+          const summaryText = `Session completed: ${Math.round(sessionDuration / 60 * 10) / 10} minutes, ${messages.length} messages exchanged.`;
+          setSessionSummary(summaryText);
+        } else if (result.summary) {
           setSessionSummary(result.summary);
         }
 
@@ -650,6 +745,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     });
   };
 
+  const screenLanguage = learningPlan?.language || language;
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -659,7 +756,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
-            {language.charAt(0).toUpperCase() + language.slice(1)} Practice
+            {screenLanguage ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice` : 'Conversation'}
           </Text>
         </View>
 
@@ -704,7 +801,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         {isConnecting ? (
           <View style={styles.connectingContainer}>
             <ActivityIndicator size="large" color="#14B8A6" />
-            <Text style={styles.connectingText}>Connecting to AI tutor...</Text>
+            <Text style={styles.connectingText}>
+              {planId ? 'Loading your learning plan...' : 'Connecting to AI tutor...'}
+            </Text>
           </View>
         ) : connectionError ? (
           <View style={styles.errorContainer}>
@@ -755,9 +854,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </Text>
       </View>
 
-      {/* Important Information Modal */}
+      {/* Important Information Modal (for practice mode only) */}
       <Modal
-        visible={showInfoModal}
+        visible={showInfoModal && !planId}
         animationType="slide"
         transparent={true}
         onRequestClose={() => {}}
@@ -813,7 +912,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
             <TouchableOpacity
               style={styles.modalButton}
-              onPress={handleStartConversation}
+              onPress={handleStartPracticeConversation}
               activeOpacity={0.8}
             >
               <Text style={styles.modalButtonText}>Got it! Let's start</Text>
