@@ -3,8 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isTokenExpired } from '../utils/jwtUtils';
 
 // Set your backend URL
+// For physical device testing, use your laptop's local IP address
+// Find your IP: ifconfig (Mac/Linux) or ipconfig (Windows)
 export const API_BASE_URL = __DEV__
-  ? 'http://localhost:8000'
+  ? 'http://192.168.68.109:8000'  // Your laptop's local IP
   : 'https://mytacoai.com';
 
 // Configure OpenAPI client

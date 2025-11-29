@@ -12,6 +12,7 @@ import {
   MediaStream,
   MediaStreamTrack,
 } from 'react-native-webrtc';
+import InCallManager from 'react-native-incall-manager';
 import { DefaultService } from '../api/generated';
 
 // Event types that can be sent/received through WebRTC data channel
@@ -137,6 +138,17 @@ export class RealtimeService {
         video: false,
       });
 
+      // Configure audio routing for loudspeaker (high volume)
+      // InCallManager handles iOS/Android audio session management
+      try {
+        InCallManager.start({ media: 'audio', ringback: '' });
+        InCallManager.setForceSpeakerphoneOn(true); // Force speaker for maximum volume
+        console.log('[RealtimeService] Audio routing configured for loudspeaker');
+      } catch (audioError) {
+        console.warn('[RealtimeService] Audio routing configuration failed:', audioError);
+        // Non-fatal error, continue anyway
+      }
+
       console.log('[RealtimeService] Microphone access granted');
     } catch (error) {
       console.error('[RealtimeService] Microphone access denied:', error);
@@ -209,7 +221,14 @@ export class RealtimeService {
         session: {
           turn_detection: { type: 'server_vad' },
           input_audio_transcription: { model: 'whisper-1' },
+          instructions: `You are a friendly language tutor helping the user practice ${this.config.language}. Your role is to have a natural conversation about ${this.config.topic} at ${this.config.level} level. Start the conversation by greeting the user warmly and introducing yourself briefly.`,
         },
+      });
+
+      // Trigger AI to start the conversation with a greeting
+      console.log('[RealtimeService] Triggering AI to start conversation');
+      this.sendEvent({
+        type: 'response.create',
       });
     };
 
@@ -579,6 +598,14 @@ export class RealtimeService {
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
       this.localStream = null;
+    }
+
+    // Stop audio routing management
+    try {
+      InCallManager.stop();
+      console.log('[RealtimeService] Audio routing stopped');
+    } catch (error) {
+      console.warn('[RealtimeService] Error stopping audio routing:', error);
     }
 
     // Reset state
