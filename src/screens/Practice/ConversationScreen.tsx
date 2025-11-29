@@ -16,7 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse } from '../../api/generated';
+import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
@@ -368,13 +368,27 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.log('[CONVERSATION] Including assessment data from learning plan.');
       }
 
+      // Fetch user's preferred voice
+      let userVoice = 'alloy'; // Default voice
+      try {
+        const voicePreference = await AuthenticationService.getVoicePreferenceApiAuthGetVoiceGet();
+        if (voicePreference && typeof voicePreference === 'object' && 'voice' in voicePreference && voicePreference.voice) {
+          userVoice = (voicePreference as any).voice;
+          console.log(`[CONVERSATION] Using user's preferred voice: ${userVoice}`);
+        } else {
+          console.log('[CONVERSATION] No voice preference found, using default: alloy');
+        }
+      } catch (voiceError) {
+        console.warn('[CONVERSATION] Could not fetch voice preference, using default:', voiceError);
+      }
+
       // Create and configure RealtimeService
       realtimeServiceRef.current = new RealtimeService({
         language: sessionLanguage,
         level: sessionLevel,
         topic: plan ? null : topic, // Topic is only for practice mode
         assessmentData: assessmentData || undefined,
-        voice: 'alloy',
+        voice: userVoice,
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);
@@ -416,7 +430,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       Alert.alert(
         'Connection Error',
-        'Failed to start conversation. Please try again.',
+        'Failed to start a conversation. Please try again.',
         [
           {
             text: 'Retry',
