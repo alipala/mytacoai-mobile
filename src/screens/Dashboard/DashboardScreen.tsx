@@ -22,7 +22,6 @@ import { LearningPlanCard } from '../../components/LearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
-import { CreateLearningPlanModal } from '../../components/CreateLearningPlanModal';
 import { styles } from './styles/DashboardScreen.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -50,7 +49,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Modal state
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
-  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -221,32 +219,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   };
 
   const handleCreatePlan = () => {
-    // Prevent multiple rapid clicks
-    if (showCreatePlanModal) {
-      console.log('⚠️ Modal already open, ignoring click');
-      return;
-    }
-
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    console.log('📝 Opening Create Plan Modal with:', { language: userLanguage, level: userLevel });
-    setShowCreatePlanModal(true);
+    console.log('📝 Navigating to Speaking Assessment to create learning plan');
+
+    // Navigate to speaking assessment - required to create a learning plan
+    navigation.navigate('AssessmentLanguageSelection');
   };
 
-  const handlePlanCreated = async (planData: { planId: string }) => {
-    setShowCreatePlanModal(false);
-
-    console.log('✅ Learning plan created:', planData.planId);
-
-    // Reload dashboard data to show the new plan
-    await loadDashboardData();
-
-    if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-  };
 
   const handleLogout = async () => {
     if (Platform.OS === 'ios') {
@@ -400,15 +382,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
         />
-
-        {/* Create Learning Plan Modal */}
-        <CreateLearningPlanModal
-          visible={showCreatePlanModal}
-          onClose={() => setShowCreatePlanModal(false)}
-          onCreate={handlePlanCreated}
-          language={userLanguage}
-          recommendedLevel={userLevel}
-        />
       </SafeAreaView>
     );
   }
@@ -560,15 +533,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showPricingModal}
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
-      />
-
-      {/* Create Learning Plan Modal */}
-      <CreateLearningPlanModal
-        visible={showCreatePlanModal}
-        onClose={() => setShowCreatePlanModal(false)}
-        onCreate={handlePlanCreated}
-        language={userLanguage}
-        recommendedLevel={userLevel}
       />
     </SafeAreaView>
   );
