@@ -181,7 +181,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
     try {
       // Convert audio file to base64
       const base64Audio = await FileSystem.readAsStringAsync(audioUri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       console.log('Audio converted to base64, length:', base64Audio.length);
