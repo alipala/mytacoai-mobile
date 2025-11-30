@@ -221,9 +221,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   };
 
   const handleCreatePlan = () => {
+    // Prevent multiple rapid clicks
+    if (showCreatePlanModal) {
+      console.log('⚠️ Modal already open, ignoring click');
+      return;
+    }
+
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+
     console.log('📝 Opening Create Plan Modal with:', { language: userLanguage, level: userLevel });
     setShowCreatePlanModal(true);
   };

@@ -61,16 +61,20 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('📋 CreateLearningPlanModal render - visible:', visible, 'step:', step);
+
   // Load enriched goals when modal opens
   useEffect(() => {
     if (visible && step === 'goals') {
+      console.log('🚀 Modal opened, loading enriched goals...');
       loadEnrichedGoals();
     }
-  }, [visible]);
+  }, [visible, step]);
 
   // Reset state when modal closes
   useEffect(() => {
     if (!visible) {
+      console.log('🔒 Modal closed, resetting state...');
       setStep('goals');
       setSelectedMainGoal(null);
       setSelectedSubGoals([]);
@@ -263,8 +267,6 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
       </View>
     );
   };
-
-  if (!visible) return null;
 
   return (
     <Modal
