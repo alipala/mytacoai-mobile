@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,41 +17,31 @@ import { LearningService } from '../api/generated';
 interface CreateLearningPlanModalProps {
   visible: boolean;
   onClose: () => void;
-  onCreate: (planData: { topic: string; focus: string; duration: string }) => void;
+  onCreate: (planData: { planId: string }) => void;
   language: string;
   recommendedLevel?: string;
   assessmentFocus?: string[];
+  assessmentData?: any; // Full assessment result
 }
 
-interface OptionButton {
+interface MainGoal {
   id: string;
-  label: string;
-  description?: string;
-  icon?: string;
+  text: string;
+  category: string;
+  icon: string;
+  description: string;
+  sub_goal_count?: number;
 }
 
-const TOPICS: OptionButton[] = [
-  { id: 'conversation', label: 'Conversation Skills', icon: 'chatbubbles', description: 'Daily communication and dialogue' },
-  { id: 'business', label: 'Business Language', icon: 'briefcase', description: 'Professional and workplace communication' },
-  { id: 'travel', label: 'Travel & Tourism', icon: 'airplane', description: 'Essential phrases for travelers' },
-  { id: 'academic', label: 'Academic Language', icon: 'school', description: 'Formal and educational contexts' },
-  { id: 'social', label: 'Social Interactions', icon: 'people', description: 'Casual conversations and social settings' },
-];
+interface SubGoal {
+  id: string;
+  text: string;
+  description: string;
+  icon?: string;
+  main_goal?: string;
+}
 
-const FOCUS_AREAS: OptionButton[] = [
-  { id: 'speaking', label: 'Speaking', icon: 'mic' },
-  { id: 'listening', label: 'Listening', icon: 'ear' },
-  { id: 'grammar', label: 'Grammar', icon: 'create' },
-  { id: 'vocabulary', label: 'Vocabulary', icon: 'book' },
-  { id: 'pronunciation', label: 'Pronunciation', icon: 'volume-high' },
-];
-
-const DURATIONS: OptionButton[] = [
-  { id: '2', label: '2 Weeks', description: 'Quick boost' },
-  { id: '4', label: '1 Month', description: 'Standard pace' },
-  { id: '8', label: '2 Months', description: 'Comprehensive' },
-  { id: '12', label: '3 Months', description: 'In-depth mastery' },
-];
+type Step = 'goals' | 'subgoals' | 'duration' | 'creating';
 
 export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = ({
   visible,
@@ -60,93 +50,127 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
   language,
   recommendedLevel = 'intermediate',
   assessmentFocus = [],
+  assessmentData,
 }) => {
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [selectedFocus, setSelectedFocus] = useState<string | null>(null);
-  const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [step, setStep] = useState<Step>('goals');
+  const [mainGoals, setMainGoals] = useState<MainGoal[]>([]);
+  const [selectedMainGoal, setSelectedMainGoal] = useState<string | null>(null);
+  const [subGoals, setSubGoals] = useState<SubGoal[]>([]);
+  const [selectedSubGoals, setSelectedSubGoals] = useState<string[]>([]);
+  const [duration, setDuration] = useState<number>(3);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Pre-select focus based on assessment results
-  React.useEffect(() => {
-    if (assessmentFocus.length > 0 && !selectedFocus) {
-      // Map common assessment areas to focus options
-      const focusMap: Record<string, string> = {
-        'pronunciation': 'pronunciation',
-        'grammar': 'grammar',
-        'vocabulary': 'vocabulary',
-        'fluency': 'speaking',
-        'coherence': 'speaking',
-      };
-
-      for (const area of assessmentFocus) {
-        const areaLower = area.toLowerCase();
-        for (const [key, value] of Object.entries(focusMap)) {
-          if (areaLower.includes(key)) {
-            setSelectedFocus(value);
-            return;
-          }
-        }
-      }
+  // Load enriched goals when modal opens
+  useEffect(() => {
+    if (visible && step === 'goals') {
+      loadEnrichedGoals();
     }
-  }, [assessmentFocus]);
+  }, [visible]);
 
-  // Helper to format language name for display
-  const formatLanguage = (lang: string): string => {
-    const languageMap: Record<string, string> = {
-      'english': 'English',
-      'spanish': 'Spanish',
-      'french': 'French',
-      'german': 'German',
-      'dutch': 'Dutch',
-      'portuguese': 'Portuguese',
-    };
-    return languageMap[lang.toLowerCase()] || lang.charAt(0).toUpperCase() + lang.slice(1);
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setStep('goals');
+      setSelectedMainGoal(null);
+      setSelectedSubGoals([]);
+      setDuration(3);
+      setError(null);
+    }
+  }, [visible]);
+
+  const loadEnrichedGoals = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('📥 Fetching enriched goals...');
+
+      const goals = await LearningService.getLearningGoalsApiLearningGoalsGet({
+        enriched: true,
+      });
+
+      console.log('✅ Enriched goals loaded:', goals);
+      setMainGoals(goals as MainGoal[]);
+      setIsLoading(false);
+    } catch (err: any) {
+      console.error('❌ Error loading enriched goals:', err);
+      setError('Failed to load learning goals');
+      setIsLoading(false);
+    }
   };
 
-  // Helper to format level for display
-  const formatLevel = (level: string): string => {
-    const levelMap: Record<string, string> = {
-      'beginner': 'Beginner',
-      'elementary': 'Elementary',
-      'intermediate': 'Intermediate',
-      'upper-intermediate': 'Upper Intermediate',
-      'advanced': 'Advanced',
-      'proficient': 'Proficient',
-    };
-    return levelMap[level.toLowerCase()] || level.charAt(0).toUpperCase() + level.slice(1);
+  const handleMainGoalSelect = async (goalId: string) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    setSelectedMainGoal(goalId);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      console.log('📥 Fetching sub-goals for:', goalId);
+
+      const subGoalsData = await LearningService.getSubGoalsApiLearningGoalsGoalIdSubGoalsGet({
+        goalId,
+      });
+
+      console.log('✅ Sub-goals loaded:', subGoalsData);
+      setSubGoals(subGoalsData as SubGoal[]);
+      setStep('subgoals');
+      setIsLoading(false);
+    } catch (err: any) {
+      console.error('❌ Error loading sub-goals:', err);
+      setError('Failed to load sub-goals');
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubGoalToggle = (subGoalId: string) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    setSelectedSubGoals((prev) => {
+      if (prev.includes(subGoalId)) {
+        return prev.filter((id) => id !== subGoalId);
+      } else {
+        // Limit to 3 sub-goals
+        if (prev.length >= 3) {
+          return prev;
+        }
+        return [...prev, subGoalId];
+      }
+    });
   };
 
   const handleCreatePlan = async () => {
-    if (!selectedTopic || !selectedFocus || !selectedDuration) {
-      Alert.alert('Incomplete', 'Please select all options to create your learning plan.');
-      return;
-    }
+    if (!selectedMainGoal) return;
 
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    setIsCreating(true);
+    setStep('creating');
+    setIsLoading(true);
 
     try {
-      // Create learning plan via API
       const planData = {
-        language: language,
+        language,
         proficiency_level: recommendedLevel,
-        topic: selectedTopic,
-        focus_area: selectedFocus,
-        duration_weeks: parseInt(selectedDuration),
-        goals: assessmentFocus.length > 0
-          ? `Improve ${assessmentFocus.slice(0, 2).join(' and ')}`
-          : `Master ${selectedFocus} skills`,
+        goals: [selectedMainGoal],
+        sub_goals: selectedSubGoals,
+        duration_months: duration,
+        assessment_data: assessmentData,
       };
 
-      console.log('📤 Creating learning plan with data:', planData);
-      console.log('📍 Language:', formatLanguage(language), '| Level:', formatLevel(recommendedLevel));
+      console.log('📤 Creating plan with data:', planData);
 
-      await LearningService.createLearningPlanApiLearningPlanPost({
+      const plan = await LearningService.createLearningPlanApiLearningPlanPost({
         requestBody: planData,
       });
+
+      console.log('✅ Plan created successfully:', plan.id);
 
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -159,67 +183,88 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
           {
             text: 'Great!',
             onPress: () => {
-              onCreate({
-                topic: selectedTopic,
-                focus: selectedFocus,
-                duration: selectedDuration,
-              });
+              onCreate({ planId: plan.id });
             },
           },
         ]
       );
-    } catch (error: any) {
-      console.error('Error creating learning plan:', error);
+    } catch (err: any) {
+      console.error('❌ Error creating plan:', err);
 
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
 
+      setError(err.message || 'Failed to create learning plan');
+      setIsLoading(false);
+      setStep('duration');
+
       Alert.alert(
         'Error',
-        error.message || 'Failed to create learning plan. Please try again.',
+        err.message || 'Failed to create learning plan. Please try again.',
         [{ text: 'OK' }]
       );
-    } finally {
-      setIsCreating(false);
     }
   };
 
-  const renderOption = (
-    option: OptionButton,
-    isSelected: boolean,
-    onSelect: () => void
-  ) => (
-    <TouchableOpacity
-      key={option.id}
-      style={[styles.optionCard, isSelected && styles.optionCardSelected]}
-      onPress={onSelect}
-      activeOpacity={0.7}
-    >
-      {option.icon && (
-        <View style={[styles.optionIcon, isSelected && styles.optionIconSelected]}>
-          <Ionicons
-            name={option.icon as any}
-            size={24}
-            color={isSelected ? '#4FD1C5' : '#6B7280'}
-          />
-        </View>
-      )}
-      <View style={styles.optionInfo}>
-        <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
-          {option.label}
-        </Text>
-        {option.description && (
-          <Text style={styles.optionDescription}>{option.description}</Text>
-        )}
+  const handleBack = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    if (step === 'subgoals') {
+      setStep('goals');
+      setSelectedMainGoal(null);
+      setSubGoals([]);
+    } else if (step === 'duration') {
+      setStep('subgoals');
+      setSelectedSubGoals([]);
+    }
+  };
+
+  const renderProgressSteps = () => {
+    const steps = [
+      { key: 'goals', label: 'Goal', number: 1 },
+      { key: 'subgoals', label: 'Focus', number: 2 },
+      { key: 'duration', label: 'Duration', number: 3 },
+    ];
+
+    return (
+      <View style={styles.progressSteps}>
+        {steps.map((s, index) => (
+          <React.Fragment key={s.key}>
+            <View
+              style={[
+                styles.stepCircle,
+                (step === s.key || (s.key === 'duration' && step === 'creating')) &&
+                  styles.stepCircleActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.stepNumber,
+                  (step === s.key || (s.key === 'duration' && step === 'creating')) &&
+                    styles.stepNumberActive,
+                ]}
+              >
+                {s.number}
+              </Text>
+            </View>
+            {index < steps.length - 1 && (
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color="#D1D5DB"
+                style={styles.stepChevron}
+              />
+            )}
+          </React.Fragment>
+        ))}
       </View>
-      {isSelected && (
-        <View style={styles.checkmark}>
-          <Ionicons name="checkmark-circle" size={24} color="#4FD1C5" />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+    );
+  };
+
+  if (!visible) return null;
 
   return (
     <Modal
@@ -233,9 +278,21 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
         <View style={styles.header}>
           <View style={styles.placeholder} />
           <Text style={styles.headerTitle}>Create Learning Plan</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton} disabled={isCreating}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeButton}
+            disabled={isLoading}
+          >
             <Ionicons name="close" size={28} color="#1F2937" />
           </TouchableOpacity>
+        </View>
+
+        {/* Subheader */}
+        <View style={styles.subheader}>
+          <Text style={styles.subheaderText}>
+            {language.charAt(0).toUpperCase() + language.slice(1)} • Level: {recommendedLevel}
+          </Text>
+          {renderProgressSteps()}
         </View>
 
         <ScrollView
@@ -243,92 +300,231 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Introduction */}
-          <View style={styles.introSection}>
-            <Text style={styles.introTitle}>Customize Your Learning Journey</Text>
-            <Text style={styles.introText}>
-              Creating a <Text style={styles.highlight}>{formatLanguage(language)}</Text> learning plan at{' '}
-              <Text style={styles.highlight}>{formatLevel(recommendedLevel)}</Text> level.
-              Choose your preferences below to personalize your plan.
-            </Text>
-          </View>
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
-          {/* Topic Selection */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>1. Choose Your Topic</Text>
-            <View style={styles.optionsContainer}>
-              {TOPICS.map((topic) =>
-                renderOption(topic, selectedTopic === topic.id, () => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setSelectedTopic(topic.id);
-                })
+          {/* Step 1: Main Goal Selection */}
+          {step === 'goals' && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>What's your main learning goal?</Text>
+              <Text style={styles.stepSubtitle}>
+                Choose the primary reason you're learning {language}
+              </Text>
+
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#4FD1C5" />
+                </View>
+              ) : (
+                <View style={styles.goalsContainer}>
+                  {mainGoals.map((goal) => (
+                    <TouchableOpacity
+                      key={goal.id}
+                      onPress={() => handleMainGoalSelect(goal.id)}
+                      style={styles.goalCard}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.goalIcon}>{goal.icon}</Text>
+                      <View style={styles.goalInfo}>
+                        <Text style={styles.goalTitle}>{goal.text}</Text>
+                        <Text style={styles.goalDescription}>{goal.description}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                    </TouchableOpacity>
+                  ))}
+                </View>
               )}
             </View>
-          </View>
+          )}
 
-          {/* Focus Area Selection */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>2. Select Your Focus Area</Text>
-            {assessmentFocus.length > 0 && (
-              <View style={styles.suggestionBadge}>
-                <Ionicons name="bulb" size={16} color="#F59E0B" />
-                <Text style={styles.suggestionText}>
-                  Recommended based on your assessment
-                </Text>
+          {/* Step 2: Sub-Goals Selection */}
+          {step === 'subgoals' && (
+            <View style={styles.stepContainer}>
+              <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                <Ionicons name="chevron-back" size={20} color="#4FD1C5" />
+                <Text style={styles.backButtonText}>Back to goals</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.stepTitle}>What specific areas to focus on?</Text>
+              <Text style={styles.stepSubtitle}>
+                Select up to 3 focus areas (optional - you can skip this step)
+              </Text>
+
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#4FD1C5" />
+                </View>
+              ) : (
+                <>
+                  <View style={styles.subGoalsContainer}>
+                    {subGoals.map((subGoal) => {
+                      const isSelected = selectedSubGoals.includes(subGoal.id);
+                      const isDisabled = !isSelected && selectedSubGoals.length >= 3;
+
+                      return (
+                        <TouchableOpacity
+                          key={subGoal.id}
+                          onPress={() => !isDisabled && handleSubGoalToggle(subGoal.id)}
+                          disabled={isDisabled}
+                          style={[
+                            styles.subGoalCard,
+                            isSelected && styles.subGoalCardSelected,
+                            isDisabled && styles.subGoalCardDisabled,
+                          ]}
+                          activeOpacity={0.7}
+                        >
+                          <View
+                            style={[
+                              styles.checkbox,
+                              isSelected && styles.checkboxSelected,
+                            ]}
+                          >
+                            {isSelected && (
+                              <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                            )}
+                          </View>
+                          <View style={styles.subGoalInfo}>
+                            <Text style={styles.subGoalTitle}>{subGoal.text}</Text>
+                            <Text style={styles.subGoalDescription}>
+                              {subGoal.description}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+
+                  <View style={styles.footer}>
+                    <Text style={styles.selectionCount}>
+                      {selectedSubGoals.length} of 3 selected
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setStep('duration')}
+                      style={styles.continueButton}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.continueButtonText}>Continue</Text>
+                      <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+
+          {/* Step 3: Duration Selection */}
+          {step === 'duration' && (
+            <View style={styles.stepContainer}>
+              <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                <Ionicons name="chevron-back" size={20} color="#4FD1C5" />
+                <Text style={styles.backButtonText}>Back to focus areas</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.stepTitle}>How long do you want to study?</Text>
+              <Text style={styles.stepSubtitle}>
+                Choose a duration that fits your schedule and goals
+              </Text>
+
+              <View style={styles.durationContainer}>
+                {[1, 2, 3, 6].map((months) => (
+                  <TouchableOpacity
+                    key={months}
+                    onPress={() => setDuration(months)}
+                    style={[
+                      styles.durationCard,
+                      duration === months && styles.durationCardSelected,
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name="calendar"
+                      size={32}
+                      color={duration === months ? '#4FD1C5' : '#9CA3AF'}
+                    />
+                    <Text style={styles.durationNumber}>{months}</Text>
+                    <Text style={styles.durationLabel}>
+                      {months === 1 ? 'Month' : 'Months'}
+                    </Text>
+                    <Text style={styles.durationSessions}>
+                      {months * 8} sessions
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            )}
-            <View style={styles.optionsContainer}>
-              {FOCUS_AREAS.map((focus) =>
-                renderOption(focus, selectedFocus === focus.id, () => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setSelectedFocus(focus.id);
-                })
-              )}
-            </View>
-          </View>
 
-          {/* Duration Selection */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>3. Choose Duration</Text>
-            <View style={styles.optionsContainer}>
-              {DURATIONS.map((duration) =>
-                renderOption(duration, selectedDuration === duration.id, () => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setSelectedDuration(duration.id);
-                })
-              )}
-            </View>
-          </View>
-        </ScrollView>
+              {/* Summary */}
+              <View style={styles.summaryCard}>
+                <Text style={styles.summaryTitle}>Your Learning Plan Summary</Text>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Language:</Text>
+                  <Text style={styles.summaryValue}>
+                    {language.charAt(0).toUpperCase() + language.slice(1)}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Level:</Text>
+                  <Text style={styles.summaryValue}>{recommendedLevel}</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Main Goal:</Text>
+                  <Text style={styles.summaryValue}>
+                    {mainGoals.find((g) => g.id === selectedMainGoal)?.text}
+                  </Text>
+                </View>
+                {selectedSubGoals.length > 0 && (
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Focus Areas:</Text>
+                    <View style={styles.summarySubGoals}>
+                      {selectedSubGoals.map((id) => {
+                        const subGoal = subGoals.find((sg) => sg.id === id);
+                        return (
+                          <Text key={id} style={styles.summarySubGoalItem}>
+                            • {subGoal?.text}
+                          </Text>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Duration:</Text>
+                  <Text style={styles.summaryValue}>{duration} months</Text>
+                </View>
+                <View style={[styles.summaryItem, styles.summaryItemHighlight]}>
+                  <Text style={styles.summaryLabel}>Total Sessions:</Text>
+                  <Text style={styles.summaryValueHighlight}>{duration * 8}</Text>
+                </View>
+              </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[
-              styles.createButton,
-              (!selectedTopic || !selectedFocus || !selectedDuration || isCreating) &&
-                styles.createButtonDisabled,
-            ]}
-            onPress={handleCreatePlan}
-            disabled={!selectedTopic || !selectedFocus || !selectedDuration || isCreating}
-            activeOpacity={0.8}
-          >
-            {isCreating ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <>
+              <TouchableOpacity
+                onPress={handleCreatePlan}
+                disabled={isLoading}
+                style={styles.createButton}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="flash" size={20} color="#FFFFFF" />
                 <Text style={styles.createButtonText}>Create My Learning Plan</Text>
-                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Step 4: Creating */}
+          {step === 'creating' && (
+            <View style={styles.creatingContainer}>
+              <View style={styles.creatingIconContainer}>
+                <ActivityIndicator size="large" color="#4FD1C5" />
+              </View>
+              <Text style={styles.creatingTitle}>Creating Your Personalized Plan</Text>
+              <Text style={styles.creatingSubtitle}>
+                Our AI is analyzing your assessment results and crafting a customized
+                learning journey just for you...
+              </Text>
+            </View>
+          )}
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -359,6 +555,46 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
+  subheader: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#F9FAFB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  subheaderText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  progressSteps: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCircleActive: {
+    backgroundColor: '#4FD1C5',
+  },
+  stepNumber: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  stepNumberActive: {
+    color: '#FFFFFF',
+  },
+  stepChevron: {
+    marginHorizontal: 8,
+  },
   scrollView: {
     flex: 1,
   },
@@ -367,103 +603,236 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 40,
   },
-  introSection: {
-    backgroundColor: '#E6FFFA',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
   },
-  introTitle: {
-    fontSize: 20,
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+  },
+  stepContainer: {
+    flex: 1,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  backButtonText: {
+    fontSize: 14,
+    color: '#4FD1C5',
+    marginLeft: 4,
+  },
+  stepTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  introText: {
-    fontSize: 15,
-    color: '#374151',
-    lineHeight: 22,
+  stepSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
   },
-  highlight: {
-    fontWeight: '600',
-    color: '#4FD1C5',
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
   },
-  section: {
-    marginBottom: 32,
+  goalsContainer: {
+    gap: 12,
   },
-  sectionTitle: {
+  goalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  goalIcon: {
+    fontSize: 40,
+    marginRight: 16,
+  },
+  goalInfo: {
+    flex: 1,
+  },
+  goalTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 16,
+    marginBottom: 4,
   },
-  suggestionBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    gap: 6,
+  goalDescription: {
+    fontSize: 14,
+    color: '#6B7280',
   },
-  suggestionText: {
-    fontSize: 13,
-    color: '#92400E',
-    fontWeight: '500',
-  },
-  optionsContainer: {
+  subGoalsContainer: {
     gap: 12,
+    marginBottom: 24,
   },
-  optionCard: {
+  subGoalCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  optionCardSelected: {
-    backgroundColor: '#F0FDF4',
+  subGoalCardSelected: {
+    backgroundColor: '#E6FFFA',
     borderColor: '#4FD1C5',
   },
-  optionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#E5E7EB',
+  subGoalCardDisabled: {
+    opacity: 0.5,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
-  },
-  optionIconSelected: {
-    backgroundColor: '#E6FFFA',
-  },
-  optionInfo: {
-    flex: 1,
-  },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  optionLabelSelected: {
-    color: '#1F2937',
-  },
-  optionDescription: {
-    fontSize: 13,
-    color: '#6B7280',
+    marginRight: 12,
     marginTop: 2,
   },
-  checkmark: {
-    marginLeft: 12,
+  checkboxSelected: {
+    backgroundColor: '#4FD1C5',
+    borderColor: '#4FD1C5',
+  },
+  subGoalInfo: {
+    flex: 1,
+  },
+  subGoalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  subGoalDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+  },
+  selectionCount: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  continueButton: {
+    flexDirection: 'row',
+    backgroundColor: '#4FD1C5',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 8,
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  durationContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 24,
+  },
+  durationCard: {
+    width: '48%',
+    aspectRatio: 1,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  durationCardSelected: {
+    backgroundColor: '#E6FFFA',
+    borderColor: '#4FD1C5',
+  },
+  durationNumber: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginTop: 8,
+  },
+  durationLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  durationSessions: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 8,
+  },
+  summaryCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  summaryItemHighlight: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    marginTop: 8,
+    paddingTop: 16,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  summarySubGoals: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  summarySubGoalItem: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  summaryValueHighlight: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4FD1C5',
   },
   createButton: {
     flexDirection: 'row',
@@ -475,12 +844,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  createButtonDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
   createButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  creatingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  creatingIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#E6FFFA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  creatingTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  creatingSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 40,
   },
 });

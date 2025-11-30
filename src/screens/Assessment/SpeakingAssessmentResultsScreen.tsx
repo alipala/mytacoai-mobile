@@ -34,14 +34,15 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     setShowCreatePlanModal(true);
   };
 
-  const handleCreatePlan = async (planData: { topic: string; focus: string; duration: string }) => {
-    // The modal will handle creating the plan
-    // After the plan is created, navigate to dashboard
+  const handleCreatePlan = async (planData: { planId: string }) => {
+    // The modal has created the plan
     setShowCreatePlanModal(false);
 
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+
+    console.log('✅ Learning plan created:', planData.planId);
 
     // Navigate to Main dashboard
     navigation.navigate('Main', { screen: 'Dashboard' });
@@ -215,6 +216,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
         language={language}
         recommendedLevel={result.recommended_level}
         assessmentFocus={result.areas_for_improvement}
+        assessmentData={assessmentResult}
       />
     </SafeAreaView>
   );

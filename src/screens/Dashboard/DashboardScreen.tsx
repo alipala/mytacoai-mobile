@@ -221,10 +221,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     setShowCreatePlanModal(true);
   };
 
-  const handlePlanCreated = async () => {
+  const handlePlanCreated = async (planData: { planId: string }) => {
     setShowCreatePlanModal(false);
+
+    console.log('✅ Learning plan created:', planData.planId);
+
     // Reload dashboard data to show the new plan
     await loadDashboardData();
+
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
