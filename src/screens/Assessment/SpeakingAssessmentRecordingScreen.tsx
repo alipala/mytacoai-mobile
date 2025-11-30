@@ -87,21 +87,44 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
   useEffect(() => {
     const setupAudio = async () => {
       try {
-        await Audio.requestPermissionsAsync();
+        const { status } = await Audio.requestPermissionsAsync();
+
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission Required',
+            'Microphone access is required for speaking assessment. Please enable it in Settings.',
+            [
+              {
+                text: 'Go Back',
+                onPress: () => navigation.goBack(),
+              },
+            ]
+          );
+          return;
+        }
+
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: true,
           playsInSilentModeIOS: true,
         });
       } catch (error) {
         console.error('Error setting up audio:', error);
-        Alert.alert('Permission Error', 'Please allow microphone access to record audio.');
+        Alert.alert(
+          'Setup Error',
+          'Failed to set up audio recording. Please try again.',
+          [{ text: 'Go Back', onPress: () => navigation.goBack() }]
+        );
       }
     };
 
     setupAudio();
 
     return () => {
-      // Cleanup
+      // Cleanup timer
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      // Cleanup recording
       if (recordingObject) {
         recordingObject.stopAndUnloadAsync();
       }

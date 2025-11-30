@@ -61,7 +61,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setLoading(true);
       setError(null);
 
-      // Get user info from storage
+      // Get user info from storage and determine language/level preferences
+      let finalLanguage = 'english';
+      let finalLevel = 'intermediate';
+
       const userJson = await AsyncStorage.getItem('user');
       if (userJson) {
         const user = JSON.parse(userJson);
@@ -75,10 +78,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
         // Extract user language and level preferences
         if (user.preferred_language) {
-          setUserLanguage(user.preferred_language);
+          finalLanguage = user.preferred_language;
         }
         if (user.preferred_level) {
-          setUserLevel(user.preferred_level);
+          finalLevel = user.preferred_level;
         }
       }
 
@@ -95,15 +98,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       console.log('📊 Subscription status loaded:', subscriptionResponse);
 
       // If user doesn't have preferences set, infer from most recent learning plan
-      if ((!userLanguage || userLanguage === 'english') && plansResponse && plansResponse.length > 0) {
+      if ((!finalLanguage || finalLanguage === 'english') && plansResponse && plansResponse.length > 0) {
         const mostRecentPlan = plansResponse[0] as LearningPlan;
         if (mostRecentPlan.language) {
-          setUserLanguage(mostRecentPlan.language);
+          finalLanguage = mostRecentPlan.language;
         }
         if (mostRecentPlan.proficiency_level) {
-          setUserLevel(mostRecentPlan.proficiency_level);
+          finalLevel = mostRecentPlan.proficiency_level;
         }
       }
+
+      // Update state with final values
+      setUserLanguage(finalLanguage);
+      setUserLevel(finalLevel);
 
     } catch (error: any) {
       console.error('Error loading dashboard:', error);
