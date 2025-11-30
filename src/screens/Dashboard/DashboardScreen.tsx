@@ -554,6 +554,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       />
 
       {/* Create Learning Plan Modal */}
+      {console.log('🎯 About to render CreateLearningPlanModal, visible:', showCreatePlanModal)}
+      {showCreatePlanModal && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+          <View style={{ backgroundColor: 'white', padding: 20, borderRadius: 10 }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>TEST MODAL WORKS!</Text>
+            <TouchableOpacity onPress={() => setShowCreatePlanModal(false)} style={{ marginTop: 20, padding: 10, backgroundColor: '#4FD1C5', borderRadius: 5 }}>
+              <Text style={{ color: 'white' }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
       <CreateLearningPlanModal
         visible={showCreatePlanModal}
         onClose={() => setShowCreatePlanModal(false)}
