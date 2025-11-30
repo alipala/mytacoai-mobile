@@ -90,6 +90,32 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
     }
   }, [assessmentFocus]);
 
+  // Helper to format language name for display
+  const formatLanguage = (lang: string): string => {
+    const languageMap: Record<string, string> = {
+      'english': 'English',
+      'spanish': 'Spanish',
+      'french': 'French',
+      'german': 'German',
+      'dutch': 'Dutch',
+      'portuguese': 'Portuguese',
+    };
+    return languageMap[lang.toLowerCase()] || lang.charAt(0).toUpperCase() + lang.slice(1);
+  };
+
+  // Helper to format level for display
+  const formatLevel = (level: string): string => {
+    const levelMap: Record<string, string> = {
+      'beginner': 'Beginner',
+      'elementary': 'Elementary',
+      'intermediate': 'Intermediate',
+      'upper-intermediate': 'Upper Intermediate',
+      'advanced': 'Advanced',
+      'proficient': 'Proficient',
+    };
+    return levelMap[level.toLowerCase()] || level.charAt(0).toUpperCase() + level.slice(1);
+  };
+
   const handleCreatePlan = async () => {
     if (!selectedTopic || !selectedFocus || !selectedDuration) {
       Alert.alert('Incomplete', 'Please select all options to create your learning plan.');
@@ -115,7 +141,8 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
           : `Master ${selectedFocus} skills`,
       };
 
-      console.log('Creating learning plan with data:', planData);
+      console.log('📤 Creating learning plan with data:', planData);
+      console.log('📍 Language:', formatLanguage(language), '| Level:', formatLevel(recommendedLevel));
 
       await LearningService.createLearningPlanApiLearningPlanPost({
         requestBody: planData,
@@ -220,8 +247,9 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
           <View style={styles.introSection}>
             <Text style={styles.introTitle}>Customize Your Learning Journey</Text>
             <Text style={styles.introText}>
-              Based on your assessment, we recommend <Text style={styles.highlight}>{recommendedLevel}</Text> level.
-              Choose your preferences below to create a personalized plan.
+              Creating a <Text style={styles.highlight}>{formatLanguage(language)}</Text> learning plan at{' '}
+              <Text style={styles.highlight}>{formatLevel(recommendedLevel)}</Text> level.
+              Choose your preferences below to personalize your plan.
             </Text>
           </View>
 

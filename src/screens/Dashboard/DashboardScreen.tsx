@@ -36,6 +36,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  const [userLanguage, setUserLanguage] = useState<string>('english');
+  const [userLevel, setUserLevel] = useState<string>('intermediate');
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [progressStats, setProgressStats] = useState<any>(null);
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
@@ -63,13 +65,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       const userJson = await AsyncStorage.getItem('user');
       if (userJson) {
         const user = JSON.parse(userJson);
-        
+
         // Use name and surname
         const displayName = [user.first_name, user.last_name]
           .filter(Boolean)
           .join(' ') || user.name || user.email?.split('@')[0] || 'User';
-        
+
         setUserName(displayName);
+
+        // Extract user language and level preferences
+        if (user.preferred_language) {
+          setUserLanguage(user.preferred_language);
+        }
+        if (user.preferred_level) {
+          setUserLevel(user.preferred_level);
+        }
       }
 
       // Load learning plans, progress stats, and subscription status in parallel
@@ -83,6 +93,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
       console.log('📊 Subscription status loaded:', subscriptionResponse);
+
+      // If user doesn't have preferences set, infer from most recent learning plan
+      if ((!userLanguage || userLanguage === 'english') && plansResponse && plansResponse.length > 0) {
+        const mostRecentPlan = plansResponse[0] as LearningPlan;
+        if (mostRecentPlan.language) {
+          setUserLanguage(mostRecentPlan.language);
+        }
+        if (mostRecentPlan.proficiency_level) {
+          setUserLevel(mostRecentPlan.proficiency_level);
+        }
+      }
 
     } catch (error: any) {
       console.error('Error loading dashboard:', error);
@@ -196,6 +217,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    console.log('📝 Opening Create Plan Modal with:', { language: userLanguage, level: userLevel });
     setShowCreatePlanModal(true);
   };
 
@@ -518,8 +540,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showCreatePlanModal}
         onClose={() => setShowCreatePlanModal(false)}
         onCreate={handlePlanCreated}
-        language="english"
-        recommendedLevel="intermediate"
+        language={userLanguage}
+        recommendedLevel={userLevel}
       />
     </SafeAreaView>
   );
