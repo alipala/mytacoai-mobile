@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Image,
   Platform,
-  ActionSheetIOS,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +21,7 @@ import { LearningPlanCard } from '../../components/LearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
+import { SessionTypeModal } from '../../components/SessionTypeModal';
 import { styles } from './styles/DashboardScreen.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -49,6 +49,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Modal state
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
+  const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -147,45 +148,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    setShowSessionTypeModal(true);
+  };
 
-    // iOS-native ActionSheet
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Choose Session Type',
-          message: 'Select how you want to practice',
-          options: ['Cancel', 'Quick Practice', 'Speaking Assessment'],
-          cancelButtonIndex: 0,
-          userInterfaceStyle: 'light',
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) {
-            // Navigate to practice flow
-            navigation.navigate('LanguageSelection', { mode: 'practice' });
-          } else if (buttonIndex === 2) {
-            // Navigate to assessment flow
-            navigation.navigate('AssessmentLanguageSelection');
-          }
-        }
-      );
-    } else {
-      // Android fallback
-      Alert.alert(
-        'Choose Session Type',
-        'Select how you want to practice',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Quick Practice',
-            onPress: () => navigation.navigate('LanguageSelection', { mode: 'practice' }),
-          },
-          {
-            text: 'Speaking Assessment',
-            onPress: () => navigation.navigate('AssessmentLanguageSelection'),
-          },
-        ]
-      );
-    }
+  const handleSelectQuickPractice = () => {
+    navigation.navigate('LanguageSelection', { mode: 'practice' });
+  };
+
+  const handleSelectAssessment = () => {
+    navigation.navigate('AssessmentLanguageSelection');
   };
 
   const handleModalContinueLearning = () => {
@@ -268,6 +239,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
         />
+
+        {/* Session Type Modal */}
+        <SessionTypeModal
+          visible={showSessionTypeModal}
+          onClose={() => setShowSessionTypeModal(false)}
+          onSelectQuickPractice={handleSelectQuickPractice}
+          onSelectAssessment={handleSelectAssessment}
+        />
       </SafeAreaView>
     );
   }
@@ -291,6 +270,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+        />
+
+        {/* Session Type Modal */}
+        <SessionTypeModal
+          visible={showSessionTypeModal}
+          onClose={() => setShowSessionTypeModal(false)}
+          onSelectQuickPractice={handleSelectQuickPractice}
+          onSelectAssessment={handleSelectAssessment}
         />
       </SafeAreaView>
     );
@@ -381,6 +368,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+        />
+
+        {/* Session Type Modal */}
+        <SessionTypeModal
+          visible={showSessionTypeModal}
+          onClose={() => setShowSessionTypeModal(false)}
+          onSelectQuickPractice={handleSelectQuickPractice}
+          onSelectAssessment={handleSelectAssessment}
         />
       </SafeAreaView>
     );
@@ -533,6 +528,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showPricingModal}
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
+      />
+
+      {/* Session Type Modal */}
+      <SessionTypeModal
+        visible={showSessionTypeModal}
+        onClose={() => setShowSessionTypeModal(false)}
+        onSelectQuickPractice={handleSelectQuickPractice}
+        onSelectAssessment={handleSelectAssessment}
       />
     </SafeAreaView>
   );
