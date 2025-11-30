@@ -22,6 +22,7 @@ import { LearningPlanCard } from '../../components/LearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
+import { CreateLearningPlanModal } from '../../components/CreateLearningPlanModal';
 import { styles } from './styles/DashboardScreen.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -47,6 +48,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Modal state
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
+  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -190,6 +192,22 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     navigation.navigate('Checkout', { planId, period });
   };
 
+  const handleCreatePlan = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setShowCreatePlanModal(true);
+  };
+
+  const handlePlanCreated = async () => {
+    setShowCreatePlanModal(false);
+    // Reload dashboard data to show the new plan
+    await loadDashboardData();
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
   const handleLogout = async () => {
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -329,7 +347,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           {/* Create Plan Button */}
           <TouchableOpacity
             style={styles.createPlanButton}
-            onPress={() => navigation.navigate('CreatePlan')}
+            onPress={handleCreatePlan}
           >
             <Ionicons name="add-circle" size={20} color="#4FD1C5" />
             <Text style={styles.createPlanButtonText}>Create Learning Plan</Text>
@@ -493,6 +511,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showPricingModal}
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
+      />
+
+      {/* Create Learning Plan Modal */}
+      <CreateLearningPlanModal
+        visible={showCreatePlanModal}
+        onClose={() => setShowCreatePlanModal(false)}
+        onCreate={handlePlanCreated}
+        language="english"
+        recommendedLevel="intermediate"
       />
     </SafeAreaView>
   );
