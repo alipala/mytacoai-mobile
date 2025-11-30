@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { DefaultService } from '../../api/generated';
 import type { SpeakingAssessmentResponse } from '../../api/generated';
 
