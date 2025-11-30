@@ -126,7 +126,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {
           title: 'Choose Session Type',
           message: 'Select how you want to practice',
-          options: ['Cancel', 'Quick Practice', 'Assessment (Coming Soon)'],
+          options: ['Cancel', 'Quick Practice', 'Speaking Assessment'],
           cancelButtonIndex: 0,
           userInterfaceStyle: 'light',
         },
@@ -135,12 +135,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             // Navigate to practice flow
             navigation.navigate('LanguageSelection', { mode: 'practice' });
           } else if (buttonIndex === 2) {
-            // Assessment coming soon
-            Alert.alert(
-              'Coming Soon',
-              'Assessment feature will be available soon!',
-              [{ text: 'OK' }]
-            );
+            // Navigate to assessment flow
+            navigation.navigate('AssessmentLanguageSelection');
           }
         }
       );
@@ -156,8 +152,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             onPress: () => navigation.navigate('LanguageSelection', { mode: 'practice' }),
           },
           {
-            text: 'Assessment (Coming Soon)',
-            onPress: () => Alert.alert('Coming Soon', 'Assessment feature will be available soon!', [{ text: 'OK' }]),
+            text: 'Speaking Assessment',
+            onPress: () => navigation.navigate('AssessmentLanguageSelection'),
           },
         ]
       );

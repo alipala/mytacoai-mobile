@@ -27,6 +27,14 @@ import {
 } from './src/screens/Practice';
 import SentenceAnalysisScreen from './src/screens/Practice/SentenceAnalysisScreen';
 
+// Assessment Flow Screens
+import {
+  AssessmentLanguageSelectionScreen,
+  AssessmentTopicSelectionScreen,
+  SpeakingAssessmentRecordingScreen,
+  SpeakingAssessmentResultsScreen,
+} from './src/screens/Assessment';
+
 // Subscription Screens
 import { CheckoutScreen, CheckoutSuccessScreen } from './src/screens/Subscription';
 
@@ -195,6 +203,12 @@ export default function App() {
         <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
         <Stack.Screen name="Conversation" component={ConversationScreen} />
         <Stack.Screen name="SentenceAnalysis" component={SentenceAnalysisScreen} />
+
+        {/* Assessment Flow Screens */}
+        <Stack.Screen name="AssessmentLanguageSelection" component={AssessmentLanguageSelectionScreen} />
+        <Stack.Screen name="AssessmentTopicSelection" component={AssessmentTopicSelectionScreen} />
+        <Stack.Screen name="SpeakingAssessmentRecording" component={SpeakingAssessmentRecordingScreen} />
+        <Stack.Screen name="SpeakingAssessmentResults" component={SpeakingAssessmentResultsScreen} />
 
         {/* Main App (with tabs) */}
         <Stack.Screen name="Main" component={MainTabs} />
