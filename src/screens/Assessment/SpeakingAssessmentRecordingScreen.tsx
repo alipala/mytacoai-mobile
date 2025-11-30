@@ -138,7 +138,31 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       }
 
       const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      // Use custom recording options for better backend compatibility
+      // Default presets use formats that cause backend processing issues
+      const recordingOptions = {
+        android: {
+          extension: '.m4a',
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.m4a',
+          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+          audioQuality: Audio.IOSAudioQuality.MEDIUM,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {},
+      };
+      await recording.prepareToRecordAsync(recordingOptions);
       await recording.startAsync();
 
       setRecordingObject(recording);
@@ -186,13 +210,18 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
 
       console.log('Audio converted to base64, length:', base64Audio.length);
 
+      // Add data URI prefix to help backend identify the audio format
+      // Format: data:audio/m4a;base64,{base64_data}
+      const audioWithPrefix = `data:audio/m4a;base64,${base64Audio}`;
+      console.log('Audio with data URI prefix, length:', audioWithPrefix.length);
+
       // Calculate duration
       const duration = RECORDING_DURATION - timeRemaining;
 
       // Call the speaking assessment API
       const response: SpeakingAssessmentResponse = await DefaultService.assessSpeakingApiSpeakingAssessPost({
         requestBody: {
-          audio_base64: base64Audio,
+          audio_base64: audioWithPrefix,
           language: language,
           duration: duration,
           prompt: prompt,
