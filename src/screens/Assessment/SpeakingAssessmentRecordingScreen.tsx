@@ -34,9 +34,13 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(RECORDING_DURATION);
   const [recordingObject, setRecordingObject] = useState<Audio.Recording | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const countdownScaleAnim = useRef(new Animated.Value(0)).current;
+  const countdownOpacityAnim = useRef(new Animated.Value(0)).current;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Pulse animation for recording indicator
   useEffect(() => {
@@ -59,6 +63,71 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       pulseAnim.setValue(1);
     }
   }, [isRecording]);
+
+  // Countdown animation and logic
+  useEffect(() => {
+    if (countdown !== null && countdown > 0) {
+      // Animate in the countdown number
+      Animated.parallel([
+        Animated.spring(countdownScaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 5,
+          useNativeDriver: true,
+        }),
+        Animated.timing(countdownOpacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Haptic feedback for each count
+      if (Platform.OS === 'ios') {
+        Haptics.impactAsync(
+          countdown <= 3
+            ? Haptics.ImpactFeedbackStyle.Heavy
+            : Haptics.ImpactFeedbackStyle.Medium
+        );
+      }
+
+      // Set timer for next count
+      countdownTimerRef.current = setTimeout(() => {
+        // Animate out
+        Animated.parallel([
+          Animated.timing(countdownScaleAnim, {
+            toValue: 1.5,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(countdownOpacityAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start();
+
+        // Update countdown after animation starts
+        setTimeout(() => {
+          countdownScaleAnim.setValue(0);
+          setCountdown(countdown - 1);
+        }, 150);
+      }, 1000);
+    } else if (countdown === 0) {
+      // Countdown finished, start recording
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      setCountdown(null);
+      handleStartRecording();
+    }
+
+    return () => {
+      if (countdownTimerRef.current) {
+        clearTimeout(countdownTimerRef.current);
+      }
+    };
+  }, [countdown]);
 
   // Timer countdown
   useEffect(() => {
@@ -131,12 +200,26 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
     };
   }, []);
 
+  const startCountdown = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setCountdown(5);
+  };
+
+  const skipCountdown = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    if (countdownTimerRef.current) {
+      clearTimeout(countdownTimerRef.current);
+    }
+    setCountdown(null);
+    handleStartRecording();
+  };
+
   const handleStartRecording = async () => {
     try {
-      if (Platform.OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      }
-
       const recording = new Audio.Recording();
       // Use LINEAR_PCM format to create WAV files that backend handles correctly
       // This matches what the backend expects and OpenAI can process
@@ -368,8 +451,9 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
         {!isRecording ? (
           <TouchableOpacity
             style={styles.recordButton}
-            onPress={handleStartRecording}
+            onPress={startCountdown}
             activeOpacity={0.8}
+            disabled={countdown !== null}
           >
             <Ionicons name="mic" size={32} color="#FFFFFF" />
             <Text style={styles.recordButtonText}>Start Recording</Text>
@@ -385,6 +469,36 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Countdown Overlay */}
+      {countdown !== null && countdown > 0 && (
+        <View style={styles.countdownOverlay}>
+          <View style={styles.countdownContent}>
+            <Animated.View
+              style={[
+                styles.countdownCircle,
+                {
+                  opacity: countdownOpacityAnim,
+                  transform: [{ scale: countdownScaleAnim }],
+                },
+              ]}
+            >
+              <Text style={styles.countdownNumber}>{countdown}</Text>
+            </Animated.View>
+            <Text style={styles.countdownLabel}>Get ready to speak...</Text>
+
+            {/* Skip Button */}
+            <TouchableOpacity
+              style={styles.skipButton}
+              onPress={skipCountdown}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.skipButtonText}>Skip</Text>
+              <Ionicons name="play-skip-forward" size={18} color="#4FD1C5" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -559,6 +673,63 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  countdownOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  countdownContent: {
+    alignItems: 'center',
+    gap: 32,
+  },
+  countdownCircle: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: '#4FD1C5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#4FD1C5',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.5,
+        shadowRadius: 30,
+      },
+      android: {
+        elevation: 20,
+      },
+    }),
+  },
+  countdownNumber: {
+    fontSize: 96,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  countdownLabel: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  skipButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#4FD1C5',
+    backgroundColor: 'rgba(79, 209, 197, 0.1)',
+  },
+  skipButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4FD1C5',
   },
 });
 
