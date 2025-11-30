@@ -14,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LearningService } from '../api/generated';
 
+console.log('🔥 CreateLearningPlanModal.tsx FILE LOADED!');
+
 interface CreateLearningPlanModalProps {
   visible: boolean;
   onClose: () => void;
