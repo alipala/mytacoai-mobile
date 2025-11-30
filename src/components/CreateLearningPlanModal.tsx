@@ -14,8 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LearningService } from '../api/generated';
 
-console.log('🔥 CreateLearningPlanModal.tsx FILE LOADED!');
-
 interface CreateLearningPlanModalProps {
   visible: boolean;
   onClose: () => void;
@@ -161,14 +159,18 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
     setIsLoading(true);
 
     try {
-      const planData = {
+      const planData: any = {
         language,
         proficiency_level: recommendedLevel,
         goals: [selectedMainGoal],
         sub_goals: selectedSubGoals,
         duration_months: duration,
-        assessment_data: assessmentData,
       };
+
+      // Only include assessment_data if it exists (from speaking assessment)
+      if (assessmentData) {
+        planData.assessment_data = assessmentData;
+      }
 
       console.log('📤 Creating plan with data:', planData);
 
