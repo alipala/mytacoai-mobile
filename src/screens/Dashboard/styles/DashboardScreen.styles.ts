@@ -156,26 +156,62 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // Compact Title Section
+  // Hero Greeting Section - Premium iOS Design
   titleSection: {
     paddingHorizontal: 20,
-    paddingTop: 12, // Reduced from 16
-    paddingBottom: 8,  // Reduced from 12
+    paddingTop: 20,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 8,
   },
-  title: {
-    fontSize: 24, // Reduced from 26
-    fontWeight: 'bold',
-    color: '#2D3748',
-    textAlign: 'center',
-    marginBottom: 4, // Reduced from 6
+  greetingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  subtitle: {
-    fontSize: 13,
-    color: '#718096',
-    textAlign: 'center',
+  greetingText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  greetingEmoji: {
+    fontSize: 28,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  statBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#D97706',
+  },
+  levelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  levelBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1D4ED8',
   },
   carouselContainer: {
-    marginVertical: 12, // Reduced from 16
+    marginVertical: 8,
   },
   carouselContent: {
     paddingHorizontal: 0,
@@ -189,7 +225,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 12, // Reduced from 16
+    marginTop: 12,
+    marginBottom: 4,
     gap: 6,
   },
   dot: {
@@ -207,7 +244,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginVertical: 16, // Reduced from 20
+    marginTop: 4,
+    marginBottom: 8,
   },
   dividerLine: {
     flex: 1,
@@ -215,42 +253,52 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   dividerText: {
-    marginHorizontal: 16,
-    fontSize: 12,
+    marginHorizontal: 12,
+    fontSize: 11,
     color: '#9CA3AF',
     fontWeight: '600',
   },
   newSessionButton: {
     marginHorizontal: 20,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1.5,
+    borderRadius: 14,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
-    marginBottom: 20, // Extra space at bottom
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: 'hidden',
   },
   newSessionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 12,
+  },
+  newSessionIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E6FFFA',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   newSessionTextContainer: {
     flex: 1,
   },
   newSessionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2D3748',
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 2,
   },
   newSessionSubtitle: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: '#6B7280',
+    fontWeight: '500',
   },
 });

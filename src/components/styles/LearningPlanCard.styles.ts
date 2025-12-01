@@ -2,26 +2,26 @@ import { StyleSheet, Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40;
-const CARD_HEIGHT = 400; // OPTIMIZED: 400px (was 480px)
+const CARD_HEIGHT = 460; // Premium: 460px - Enough height to show all content
 
 export const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    height: CARD_HEIGHT, // OPTIMIZED: 400px
+    height: CARD_HEIGHT,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 18, // OPTIMIZED: 18px (was 20px)
+    borderRadius: 20,
+    padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 18, // OPTIMIZED: 18px (was 24px)
+    marginBottom: 18,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
   },
   progressSection: {
     alignItems: 'center',
-    marginVertical: 16, // OPTIMIZED: 16px (was 24px)
+    marginVertical: 16,
   },
   progressRingWrapper: {
     alignItems: 'center',
@@ -82,19 +82,19 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   progressLabel: {
-    fontSize: 13, // OPTIMIZED: 13px (was 14px)
+    fontSize: 13,
     color: '#718096',
-    marginTop: 10, // OPTIMIZED: 10px (was 12px)
+    marginTop: 10,
     fontWeight: '500',
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 12, // OPTIMIZED: 12px (was 16px)
+    paddingVertical: 12,
     backgroundColor: '#F7FAFC',
     borderRadius: 12,
-    marginBottom: 12, // OPTIMIZED: 12px (was 16px)
+    marginBottom: 12,
   },
   statItem: {
     alignItems: 'center',
@@ -116,15 +116,17 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
   },
   planDescription: {
-    fontSize: 12, // OPTIMIZED: 12px (was 13px)
-    color: '#4A5568',
+    fontSize: 13,
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 14, // OPTIMIZED: 14px (was 20px)
+    lineHeight: 18,
+    marginBottom: 18,
+    marginTop: 4,
   },
+  // Buttons INSIDE card - Premium design
   buttonsContainer: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 4, // Minimal bottom margin
+    gap: 12,
   },
   continueButton: {
     flex: 1,
@@ -132,14 +134,14 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#4FD1C5',
-    borderRadius: 10,
-    paddingVertical: 12, // OPTIMIZED: 12px (was 14px)
-    gap: 6,
+    borderRadius: 12,
+    paddingVertical: 14,
+    gap: 8,
     shadowColor: '#4FD1C5',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   continueButtonDisabled: {
     backgroundColor: '#9CA3AF',
@@ -147,8 +149,8 @@ export const styles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 14, // OPTIMIZED: 14px (was 15px)
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
   detailsButton: {
     flex: 1,
@@ -156,15 +158,15 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    paddingVertical: 12, // OPTIMIZED: 12px (was 14px)
-    gap: 6,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingVertical: 14,
+    gap: 8,
   },
   detailsButtonText: {
     color: '#4A5568',
-    fontSize: 14, // OPTIMIZED: 14px (was 15px)
+    fontSize: 15,
     fontWeight: '600',
   },
 });

@@ -437,12 +437,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </>
         )}
 
-        {/* Title Section - Compact */}
+        {/* Hero Greeting Section - Premium Design */}
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Your Learning Journey</Text>
-          <Text style={styles.subtitle}>
-            Continue your progress and achieve your language goals
-          </Text>
+          <View style={styles.greetingContainer}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.greetingText}>Welcome back</Text>
+              <Text style={styles.greetingEmoji}>👋</Text>
+            </View>
+          </View>
+          <View style={styles.statsContainer}>
+            <View style={styles.statBadge}>
+              <Ionicons name="flame" size={16} color="#D97706" />
+              <Text style={styles.statBadgeText}>3 day streak</Text>
+            </View>
+            <View style={styles.levelBadge}>
+              <Ionicons name="trophy" size={16} color="#1D4ED8" />
+              <Text style={styles.levelBadgeText}>{userLevel.toUpperCase()}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Learning Plans Carousel - Compact Cards */}
@@ -495,17 +507,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Start New Session Button - NOW VISIBLE! */}
+        {/* Start New Session Button - Premium Design */}
         <TouchableOpacity
           style={styles.newSessionButton}
           onPress={handleStartNewSession}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
           <View style={styles.newSessionContent}>
-            <Ionicons name="add-circle-outline" size={24} color="#4FD1C5" />
+            <View style={styles.newSessionIconContainer}>
+              <Ionicons name="add-circle" size={24} color="#4FD1C5" />
+            </View>
             <View style={styles.newSessionTextContainer}>
               <Text style={styles.newSessionTitle}>Start New Session</Text>
-              <Text style={styles.newSessionSubtitle}>Practice or Assessment</Text>
+              <Text style={styles.newSessionSubtitle}>Quick Practice or Assessment</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </View>
