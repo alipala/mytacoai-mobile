@@ -26,6 +26,9 @@ import { useConversationHelp } from '../../hooks/useConversationHelp';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// MODULE-LEVEL LOG - Should appear when this file is imported
+console.log('🔴🔴🔴 CONVERSATIONSCREEN.TSX MODULE LOADED 🔴🔴🔴');
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface ConversationScreenProps {
