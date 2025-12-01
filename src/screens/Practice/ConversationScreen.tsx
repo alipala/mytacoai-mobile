@@ -408,7 +408,32 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         },
         onError: (error: Error) => {
           console.error('[CONVERSATION] Service error:', error);
-          setConnectionError(error.message);
+          const errorMessage = error.message || 'Connection failed';
+          setConnectionError(errorMessage);
+
+          // Show user-friendly error alert
+          Alert.alert(
+            'Connection Error',
+            'Unable to connect to the AI tutor. This might be due to temporary server issues.',
+            [
+              {
+                text: 'Retry',
+                onPress: () => {
+                  setConnectionError(null);
+                  if (planId && learningPlan) {
+                    initializeConversation(learningPlan);
+                  } else {
+                    initializePracticeConversation();
+                  }
+                },
+              },
+              {
+                text: 'Go Back',
+                style: 'cancel',
+                onPress: () => navigation.goBack(),
+              },
+            ]
+          );
         },
         onConnectionStateChange: (state: string) => {
           console.log('[CONVERSATION] Connection state:', state);

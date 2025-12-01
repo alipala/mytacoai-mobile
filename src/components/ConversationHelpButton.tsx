@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   TouchableOpacity,
   StyleSheet,
   Animated,
   Platform,
-  View,
-  Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -17,34 +15,14 @@ interface ConversationHelpButtonProps {
   helpLanguage?: string;
 }
 
-// Button text translations
-const getButtonText = (language: string) => {
-  const texts: Record<string, string> = {
-    english: 'Need Help?',
-    spanish: '¿Ayuda?',
-    french: 'Besoin d\'aide?',
-    german: 'Hilfe?',
-    italian: 'Aiuto?',
-    portuguese: 'Ajuda?',
-    dutch: 'Hulp?',
-    turkish: 'Yardım?',
-  };
-
-  return texts[language] || texts.english;
-};
-
 const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
   visible,
   isLoading,
   onPress,
-  helpLanguage = 'english',
 }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  const [isPressed, setIsPressed] = useState(false);
-
-  const buttonText = getButtonText(helpLanguage);
+  const glowOpacity = useRef(new Animated.Value(0.3)).current;
 
   // Entrance/exit animation
   useEffect(() => {
@@ -57,9 +35,35 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
         useNativeDriver: true,
       }).start();
 
-      // Start pulsing and glowing
-      startPulseAnimation();
-      startGlowAnimation();
+      // Start subtle pulse and glow
+      Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(pulseAnim, {
+              toValue: 1.05,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(glowOpacity, {
+              toValue: 0.6,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(pulseAnim, {
+              toValue: 1,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(glowOpacity, {
+              toValue: 0.3,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+          ]),
+        ])
+      ).start();
     } else {
       // Exit animation
       Animated.timing(scaleAnim, {
@@ -70,52 +74,15 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
     }
   }, [visible, isLoading]);
 
-  // Pulse animation (continuous)
-  const startPulseAnimation = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  };
-
-  // Glow animation (continuous)
-  const startGlowAnimation = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: false,
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 0,
-          duration: 2000,
-          useNativeDriver: false,
-        }),
-      ])
-    ).start();
-  };
-
   const handlePress = () => {
     if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     // Button press animation
-    setIsPressed(true);
     Animated.sequence([
       Animated.timing(scaleAnim, {
-        toValue: 0.9,
+        toValue: 0.85,
         duration: 100,
         useNativeDriver: true,
       }),
@@ -126,7 +93,6 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setIsPressed(false);
       onPress();
     });
   };
@@ -134,11 +100,6 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
   if (!visible || isLoading) {
     return null;
   }
-
-  const glowColor = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['rgba(251, 191, 36, 0.3)', 'rgba(251, 191, 36, 0.7)'],
-  });
 
   return (
     <Animated.View
@@ -157,36 +118,24 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
         style={[
           styles.glowContainer,
           {
-            backgroundColor: glowColor,
-            transform: [{ scale: glowAnim }],
+            opacity: glowOpacity,
           },
         ]}
       />
 
       {/* Main button */}
       <TouchableOpacity
-        style={[
-          styles.button,
-          isPressed && styles.buttonPressed,
-        ]}
+        style={styles.button}
         onPress={handlePress}
-        activeOpacity={0.9}
+        activeOpacity={0.8}
       >
-        <View style={styles.iconContainer}>
-          <Ionicons name="bulb" size={24} color="#FFFFFF" />
-        </View>
-        <Text style={styles.buttonText}>{buttonText}</Text>
-        <View style={styles.badge}>
-          <Ionicons name="sparkles" size={12} color="#FFF" />
-        </View>
+        <Ionicons name="bulb" size={28} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Animated indicator dots */}
-      <View style={styles.indicatorDots}>
-        <View style={[styles.dot, styles.dot1]} />
-        <View style={[styles.dot, styles.dot2]} />
-        <View style={[styles.dot, styles.dot3]} />
-      </View>
+      {/* Small indicator badge */}
+      <Animated.View style={styles.badge}>
+        <Ionicons name="sparkles" size={10} color="#FFF" />
+      </Animated.View>
     </Animated.View>
   );
 };
@@ -194,80 +143,55 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 120,
-    right: 20,
+    bottom: 140,
+    left: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000,
-    elevation: 1000,
-  },
-  glowContainer: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    opacity: 0.6,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FBB040',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 30,
+    zIndex: 999,
     ...Platform.select({
-      ios: {
-        shadowColor: '#FBB040',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.5,
-        shadowRadius: 12,
-      },
       android: {
         elevation: 8,
       },
     }),
   },
-  buttonPressed: {
-    backgroundColor: '#F59E0B',
+  glowContainer: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FBB040',
   },
-  iconContainer: {
-    marginRight: 8,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginRight: 4,
+  button: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FBB040',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#FBB040',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
   badge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: '#EF4444',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 4,
-  },
-  indicatorDots: {
-    position: 'absolute',
-    top: -8,
-    right: 8,
-    flexDirection: 'row',
-    gap: 4,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  dot1: {
-    backgroundColor: '#10B981',
-  },
-  dot2: {
-    backgroundColor: '#3B82F6',
-  },
-  dot3: {
-    backgroundColor: '#8B5CF6',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
 });
 

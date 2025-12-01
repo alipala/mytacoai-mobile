@@ -289,8 +289,10 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 
           <ScrollView
             style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true}
             contentContainerStyle={styles.scrollContent}
+            bounces={true}
+            scrollEnabled={true}
           >
             {isLoading ? (
               /* Loading State */
@@ -499,10 +501,11 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: SCREEN_WIDTH * 0.9,
-    maxHeight: SCREEN_HEIGHT * 0.8,
+    maxHeight: SCREEN_HEIGHT * 0.85,
+    minHeight: 500,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    overflow: 'hidden',
+    overflow: 'visible',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -553,9 +556,11 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    width: '100%',
   },
   scrollContent: {
-    padding: 20,
+    padding: 16,
+    flexGrow: 1,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -593,16 +598,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B5CF6',
   },
   contentContainer: {
-    gap: 16,
+    paddingBottom: 8,
   },
   section: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 16,
@@ -612,8 +617,8 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: '#EFF6FF',
-    padding: 16,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#DBEAFE',
   },
@@ -623,12 +628,12 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   responsesContainer: {
-    gap: 12,
+    gap: 10,
   },
   responseCard: {
     backgroundColor: '#F0FDF4',
-    padding: 16,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#BBF7D0',
   },
@@ -748,6 +753,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94A3B8',
     marginTop: 16,
+  },
+  debugInfo: {
+    backgroundColor: '#FEF3C7',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+    marginBottom: 16,
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#92400E',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    marginBottom: 8,
   },
 });
 
