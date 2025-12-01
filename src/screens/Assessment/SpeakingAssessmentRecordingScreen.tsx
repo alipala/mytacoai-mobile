@@ -23,6 +23,7 @@ interface SpeakingAssessmentRecordingScreenProps {
 }
 
 const RECORDING_DURATION = 60; // 60 seconds = 1 minute
+const MINIMUM_SPEAKING_TIME = 45; // 45 seconds minimum for quality assessment
 
 const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScreenProps> = ({
   navigation,
@@ -35,10 +36,12 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
   const [timeRemaining, setTimeRemaining] = useState(RECORDING_DURATION);
   const [recordingObject, setRecordingObject] = useState<Audio.Recording | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [canStopRecording, setCanStopRecording] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const countdownScaleAnim = useRef(new Animated.Value(0)).current;
   const countdownOpacityAnim = useRef(new Animated.Value(0)).current;
+  const stopButtonScaleAnim = useRef(new Animated.Value(1)).current;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -135,6 +138,35 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       timerRef.current = setTimeout(() => {
         setTimeRemaining(timeRemaining - 1);
 
+        // Calculate elapsed time
+        const elapsedTime = RECORDING_DURATION - timeRemaining + 1;
+
+        // Enable stop button at 45 seconds with celebration
+        if (elapsedTime === MINIMUM_SPEAKING_TIME && !canStopRecording) {
+          setCanStopRecording(true);
+
+          // Success haptic feedback
+          if (Platform.OS === 'ios') {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          }
+
+          // Animate stop button
+          Animated.sequence([
+            Animated.spring(stopButtonScaleAnim, {
+              toValue: 1.1,
+              tension: 100,
+              friction: 3,
+              useNativeDriver: true,
+            }),
+            Animated.spring(stopButtonScaleAnim, {
+              toValue: 1,
+              tension: 100,
+              friction: 3,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }
+
         // Haptic feedback at 10 seconds remaining
         if (timeRemaining === 10 && Platform.OS === 'ios') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -150,7 +182,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
         clearTimeout(timerRef.current);
       }
     };
-  }, [isRecording, timeRemaining]);
+  }, [isRecording, timeRemaining, canStopRecording]);
 
   // Request audio permissions and setup
   useEffect(() => {
@@ -255,6 +287,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       setRecordingObject(recording);
       setIsRecording(true);
       setTimeRemaining(RECORDING_DURATION);
+      setCanStopRecording(false); // Reset - must record for 45 seconds
 
       console.log('Recording started');
     } catch (error) {
@@ -508,14 +541,53 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
             <Text style={styles.recordButtonText}>Start Recording</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            style={styles.stopButton}
-            onPress={handleStopRecording}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="stop" size={32} color="#FFFFFF" />
-            <Text style={styles.stopButtonText}>Stop & Analyze</Text>
-          </TouchableOpacity>
+          <View style={styles.stopButtonContainer}>
+            {/* Progress Message */}
+            {!canStopRecording && (
+              <View style={styles.progressMessage}>
+                <Ionicons name="timer-outline" size={20} color="#6B7280" />
+                <Text style={styles.progressText}>
+                  Keep speaking... {MINIMUM_SPEAKING_TIME - (RECORDING_DURATION - timeRemaining)}s more needed
+                </Text>
+              </View>
+            )}
+            {canStopRecording && (
+              <View style={styles.progressMessage}>
+                <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                <Text style={[styles.progressText, styles.progressTextSuccess]}>
+                  Perfect! You can finish now
+                </Text>
+              </View>
+            )}
+
+            {/* Stop Button */}
+            <TouchableOpacity
+              style={[
+                styles.stopButton,
+                !canStopRecording && styles.stopButtonDisabled
+              ]}
+              onPress={handleStopRecording}
+              activeOpacity={0.8}
+              disabled={!canStopRecording}
+            >
+              <Animated.View style={[
+                styles.stopButtonContent,
+                { transform: [{ scale: stopButtonScaleAnim }] }
+              ]}>
+                <Ionicons
+                  name="stop"
+                  size={32}
+                  color={canStopRecording ? "#FFFFFF" : "#9CA3AF"}
+                />
+                <Text style={[
+                  styles.stopButtonText,
+                  !canStopRecording && styles.stopButtonTextDisabled
+                ]}>
+                  {canStopRecording ? 'Finish & Analyze' : 'Recording...'}
+                </Text>
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -767,20 +839,48 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  stopButton: {
+  stopButtonContainer: {
+    gap: 12,
+  },
+  progressMessage: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  progressTextSuccess: {
+    color: '#10B981',
+  },
+  stopButton: {
     backgroundColor: '#EF4444',
     borderRadius: 12,
     paddingVertical: 18,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  stopButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+    opacity: 0.7,
+  },
+  stopButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
   stopButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  stopButtonTextDisabled: {
+    color: '#9CA3AF',
   },
   analyzingContainer: {
     flex: 1,
