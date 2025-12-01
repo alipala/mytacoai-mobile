@@ -7,10 +7,12 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
-  Alert,
   ActivityIndicator,
   Image,
   Platform,
+  Modal,
+  Animated,
+  Pressable,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,6 +52,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -201,27 +204,28 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   };
 
 
-  const handleLogout = async () => {
+  const handleLogoutPress = () => {
     if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    setShowLogoutModal(true);
+  };
 
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await AsyncStorage.removeItem('auth_token');
-            await AsyncStorage.removeItem('user');
-            navigation.replace('Login');
-          },
-        },
-      ]
-    );
+  const handleConfirmLogout = async () => {
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    setShowLogoutModal(false);
+    await AsyncStorage.removeItem('auth_token');
+    await AsyncStorage.removeItem('user');
+    navigation.replace('Login');
+  };
+
+  const handleCancelLogout = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowLogoutModal(false);
   };
 
   // Loading State
@@ -303,19 +307,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onPress={handleUpgradePress}
                 activeOpacity={0.7}
               >
-                <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+                <Ionicons name="sparkles" size={20} color="#4FD1C5" />
                 <Text style={styles.upgradeButtonText}>Upgrade</Text>
               </TouchableOpacity>
             )}
 
-            {/* iOS-Standard Text Button */}
+            {/* EXIT Button - Premium Design */}
             <TouchableOpacity
-              style={styles.profileButton}
-              onPress={handleLogout}
-              activeOpacity={0.6}
+              style={styles.exitButton}
+              onPress={handleLogoutPress}
+              activeOpacity={0.7}
             >
-              <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-              <Text style={styles.profileText}>{userName}</Text>
+              <Ionicons name="log-out-outline" size={26} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -399,19 +402,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               onPress={handleUpgradePress}
               activeOpacity={0.7}
             >
-              <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+              <Ionicons name="sparkles" size={20} color="#4FD1C5" />
               <Text style={styles.upgradeButtonText}>Upgrade</Text>
             </TouchableOpacity>
           )}
 
-          {/* iOS-Standard Text Button (not rounded pill) */}
+          {/* EXIT Button - Premium Design */}
           <TouchableOpacity
-            style={styles.profileButton}
-            onPress={handleLogout}
-            activeOpacity={0.6}
+            style={styles.exitButton}
+            onPress={handleLogoutPress}
+            activeOpacity={0.7}
           >
-            <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-            <Text style={styles.profileText}>{userName}</Text>
+            <Ionicons name="log-out-outline" size={26} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -551,6 +553,44 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onSelectQuickPractice={handleSelectQuickPractice}
         onSelectAssessment={handleSelectAssessment}
       />
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelLogout}
+      >
+        <Pressable style={styles.logoutModalOverlay} onPress={handleCancelLogout}>
+          <Pressable style={styles.logoutModalContainer} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.logoutModalHeader}>
+              <View style={styles.logoutIconContainer}>
+                <Ionicons name="log-out" size={32} color="#EF4444" />
+              </View>
+            </View>
+            <Text style={styles.logoutModalTitle}>Sign Out?</Text>
+            <Text style={styles.logoutModalMessage}>
+              Are you sure you want to sign out? You'll need to log in again to access your learning progress.
+            </Text>
+            <View style={styles.logoutModalButtons}>
+              <TouchableOpacity
+                style={styles.logoutCancelButton}
+                onPress={handleCancelLogout}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.logoutConfirmButton}
+                onPress={handleConfirmLogout}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };

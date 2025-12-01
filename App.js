@@ -47,46 +47,61 @@ import './src/api/config'; // Initialize API config
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Main App Tabs (after login)
+// Main App Tabs (after login) - Premium iOS Design
 function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: '#14B8A6',
+      screenOptions={({ route }) => ({
+        tabBarActiveTintColor: '#4FD1C5',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          borderTopWidth: 0,
+          height: 88,
+          paddingBottom: 28,
+          paddingTop: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 8,
         },
-      }}
+        tabBarLabelStyle: {
+          fontSize: 13,
+          fontWeight: '600',
+          marginTop: 4,
+        },
+        tabBarIcon: ({ focused, color }) => {
+          let iconName;
+          let iconSize = 28;
+
+          if (route.name === 'Dashboard') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={iconSize} color={color} />;
+        },
+      })}
     >
       {/* Dashboard Tab */}
-      <Tab.Screen 
-        name="Dashboard" 
+      <Tab.Screen
+        name="Dashboard"
         component={DashboardScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
           tabBarLabel: 'Home',
-          headerShown: false, // ✅ Hide navigation header - Dashboard has its own
+          headerShown: false,
         }}
       />
 
       {/* Profile Tab */}
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
         options={{
-          headerShown: false, // ProfileScreen has its own header
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
           tabBarLabel: 'Profile',
+          headerShown: false,
         }}
       />
     </Tab.Navigator>

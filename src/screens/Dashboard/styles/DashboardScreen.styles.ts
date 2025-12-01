@@ -7,53 +7,47 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F7F9FA',
   },
-  // iOS-Native Header - Clean, Professional
+  // iOS-Native Header - Premium Design for Large Screens
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#4FD1C5',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    height: 56, // iOS standard header height
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    height: 68,
   },
   logo: {
-    width: 90,
-    height: 28,
+    width: 120,
+    height: 38,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   upgradeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
   },
   upgradeButtonText: {
     color: '#4FD1C5',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
-  // iOS-Standard Text Button (NOT rounded pill!)
-  profileButton: {
-    flexDirection: 'row',
+  // EXIT Button - Premium Design
+  exitButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    // NO backgroundColor, NO borderRadius
-    // Clean iOS-native style
-  },
-  profileText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -300,5 +294,79 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     fontWeight: '500',
+  },
+  // Logout Modal - Premium Design
+  logoutModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  logoutModalContainer: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  logoutModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoutIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  logoutModalMessage: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  logoutModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  logoutCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  logoutCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  logoutConfirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+  },
+  logoutConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
