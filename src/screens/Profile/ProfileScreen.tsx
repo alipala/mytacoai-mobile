@@ -14,6 +14,7 @@ import {
   Modal,
   FlatList,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,6 +26,7 @@ import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import { styles } from './styles/ProfileScreen.styles';
 
 const API_URL = API_BASE_URL;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // Types remain the same...
 interface User {
@@ -144,11 +146,36 @@ const ProfileScreen: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'flashcards' | 'notifications'>('overview');
-  
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const [expandedConversations, setExpandedConversations] = useState<Record<string, boolean>>({});
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
+
+  // Tab Navigation Helpers
+  const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
+
+  const handleTabPress = (tab: typeof activeTab) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setActiveTab(tab);
+    const index = tabs.indexOf(tab);
+    scrollViewRef.current?.scrollTo({ x: index * SCREEN_WIDTH, animated: true });
+  };
+
+  const handleScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SCREEN_WIDTH);
+    const newTab = tabs[index];
+    if (newTab && newTab !== activeTab) {
+      setActiveTab(newTab);
+      if (Platform.OS === 'ios') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    }
+  };
 
   // API Functions
   const getAuthToken = async (): Promise<string | null> => {
@@ -755,12 +782,7 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.tabs}>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'overview' && styles.tabActive]}
-              onPress={() => {
-                if (Platform.OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                setActiveTab('overview');
-              }}
+              onPress={() => handleTabPress('overview')}
               activeOpacity={0.7}
             >
               <Ionicons
@@ -773,12 +795,7 @@ const ProfileScreen: React.FC = () => {
 
             <TouchableOpacity
               style={[styles.tab, activeTab === 'progress' && styles.tabActive]}
-              onPress={() => {
-                if (Platform.OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                setActiveTab('progress');
-              }}
+              onPress={() => handleTabPress('progress')}
               activeOpacity={0.7}
             >
               <Ionicons
@@ -791,12 +808,7 @@ const ProfileScreen: React.FC = () => {
 
             <TouchableOpacity
               style={[styles.tab, activeTab === 'flashcards' && styles.tabActive]}
-              onPress={() => {
-                if (Platform.OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                setActiveTab('flashcards');
-              }}
+              onPress={() => handleTabPress('flashcards')}
               activeOpacity={0.7}
             >
               <Ionicons
@@ -809,12 +821,7 @@ const ProfileScreen: React.FC = () => {
 
             <TouchableOpacity
               style={[styles.tab, activeTab === 'notifications' && styles.tabActive]}
-              onPress={() => {
-                if (Platform.OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                setActiveTab('notifications');
-              }}
+              onPress={() => handleTabPress('notifications')}
               activeOpacity={0.7}
             >
               <View style={styles.tabContent}>
@@ -834,22 +841,60 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Content */}
-        {activeTab === 'flashcards' ? (
-          renderFlashcardsTab()
-        ) : (
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
-            }
-          >
-            {activeTab === 'overview' && renderOverviewTab()}
-            {activeTab === 'progress' && renderProgressTab()}
-            {activeTab === 'notifications' && renderNotificationsTab()}
-          </ScrollView>
-        )}
+        {/* Swipeable Content */}
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
+          scrollEventThrottle={16}
+          style={styles.pagerContainer}
+        >
+          {/* Overview Page */}
+          <View style={styles.page}>
+            <ScrollView
+              style={styles.pageContent}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+              }
+            >
+              {renderOverviewTab()}
+            </ScrollView>
+          </View>
+
+          {/* Progress Page */}
+          <View style={styles.page}>
+            <ScrollView
+              style={styles.pageContent}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+              }
+            >
+              {renderProgressTab()}
+            </ScrollView>
+          </View>
+
+          {/* Flashcards Page */}
+          <View style={styles.page}>
+            {renderFlashcardsTab()}
+          </View>
+
+          {/* Notifications Page */}
+          <View style={styles.page}>
+            <ScrollView
+              style={styles.pageContent}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+              }
+            >
+              {renderNotificationsTab()}
+            </ScrollView>
+          </View>
+        </ScrollView>
 
         {/* Flashcard Modal */}
         <Modal

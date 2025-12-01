@@ -314,6 +314,17 @@ export const styles = StyleSheet.create({
   weekBadgeText: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
   currentWeekFocus: { fontSize: 15, fontWeight: '600', color: '#1F2937' },
 
+  // Swipeable Tab Pager
+  pagerContainer: {
+    flex: 1,
+  },
+  page: {
+    width: width,
+  },
+  pageContent: {
+    flex: 1,
+  },
+
   // Flashcards - GRID
   flashcardsContainer: { flex: 1 },
   flashcardGridContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20 },
