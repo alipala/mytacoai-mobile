@@ -226,9 +226,14 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
         message: error?.message,
         status: error?.status,
         statusText: error?.statusText,
-        body: error?.body,
+        body: JSON.stringify(error?.body, null, 2),
         url: error?.url,
       });
+
+      // Log validation errors specifically
+      if (error?.status === 422 && error?.body?.detail) {
+        console.error('[CONVERSATION_HELP] ❌ Validation errors:', JSON.stringify(error.body.detail, null, 2));
+      }
 
       // Handle specific error cases
       if (error?.status === 204) {
