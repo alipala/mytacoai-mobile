@@ -7,53 +7,47 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F7F9FA',
   },
-  // iOS-Native Header - Clean, Professional
+  // iOS-Native Header - Premium Design for Large Screens
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#4FD1C5',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    height: 56, // iOS standard header height
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    height: 68,
   },
   logo: {
-    width: 90,
-    height: 28,
+    width: 120,
+    height: 38,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   upgradeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
   },
   upgradeButtonText: {
     color: '#4FD1C5',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
-  // iOS-Standard Text Button (NOT rounded pill!)
-  profileButton: {
-    flexDirection: 'row',
+  // EXIT Button - Premium Design
+  exitButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    // NO backgroundColor, NO borderRadius
-    // Clean iOS-native style
-  },
-  profileText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -156,26 +150,62 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // Compact Title Section
+  // Hero Greeting Section - Premium iOS Design
   titleSection: {
     paddingHorizontal: 20,
-    paddingTop: 12, // Reduced from 16
-    paddingBottom: 8,  // Reduced from 12
+    paddingTop: 20,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 8,
   },
-  title: {
-    fontSize: 24, // Reduced from 26
-    fontWeight: 'bold',
-    color: '#2D3748',
-    textAlign: 'center',
-    marginBottom: 4, // Reduced from 6
+  greetingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  subtitle: {
-    fontSize: 13,
-    color: '#718096',
-    textAlign: 'center',
+  greetingText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  greetingEmoji: {
+    fontSize: 28,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  statBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#D97706',
+  },
+  levelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  levelBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1D4ED8',
   },
   carouselContainer: {
-    marginVertical: 12, // Reduced from 16
+    marginVertical: 8,
   },
   carouselContent: {
     paddingHorizontal: 0,
@@ -189,7 +219,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 12, // Reduced from 16
+    marginTop: 12,
+    marginBottom: 4,
     gap: 6,
   },
   dot: {
@@ -207,7 +238,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginVertical: 16, // Reduced from 20
+    marginTop: 4,
+    marginBottom: 8,
   },
   dividerLine: {
     flex: 1,
@@ -215,42 +247,126 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   dividerText: {
-    marginHorizontal: 16,
-    fontSize: 12,
+    marginHorizontal: 12,
+    fontSize: 11,
     color: '#9CA3AF',
     fontWeight: '600',
   },
   newSessionButton: {
     marginHorizontal: 20,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1.5,
+    borderRadius: 14,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
-    marginBottom: 20, // Extra space at bottom
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: 'hidden',
   },
   newSessionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 12,
+  },
+  newSessionIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E6FFFA',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   newSessionTextContainer: {
     flex: 1,
   },
   newSessionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2D3748',
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 2,
   },
   newSessionSubtitle: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  // Logout Modal - Premium Design
+  logoutModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  logoutModalContainer: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  logoutModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoutIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  logoutModalMessage: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  logoutModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  logoutCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  logoutCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  logoutConfirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+  },
+  logoutConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

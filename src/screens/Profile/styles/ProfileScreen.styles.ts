@@ -6,15 +6,76 @@ export const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F9FAFB' },
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  headerTitle: { fontSize: 28, fontWeight: '700', color: '#1F2937' },
-  tabs: { flexDirection: 'row', backgroundColor: '#FFFFFF', paddingHorizontal: 8, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 8, borderRadius: 8, gap: 6, position: 'relative' },
-  tabActive: { backgroundColor: '#ECFDF5' },
-  tabText: { fontSize: 12, fontWeight: '600', color: '#9CA3AF' },
-  tabTextActive: { color: '#14B8A6' },
-  tabBadge: { position: 'absolute', top: 4, right: 4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5 },
-  tabBadgeText: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
+  header: { paddingHorizontal: 20, paddingVertical: 18, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  headerTitle: { fontSize: 32, fontWeight: '700', color: '#1F2937' },
+
+  // Premium Segmented Control Tabs
+  tabsContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  tabs: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    padding: 4,
+    gap: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    gap: 6,
+    position: 'relative',
+  },
+  tabActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabContent: {
+    alignItems: 'center',
+    gap: 6,
+    position: 'relative',
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  tabTextActive: {
+    color: '#4FD1C5',
+    fontWeight: '700',
+  },
+  tabBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -8,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  tabBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   content: { flex: 1, padding: 20 },
 
   // Welcome
@@ -49,35 +110,44 @@ export const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   emptyStateText: { fontSize: 18, fontWeight: '600', color: '#6B7280', marginTop: 16 },
 
-  // Progress Tab - IMPROVED DESIGN
+  // Progress Tab - PREMIUM IOS DESIGN
   progressPlanCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 16,
-    elevation: 2,
-    borderWidth: 1,
+    borderRadius: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1.5,
     borderColor: '#E5E7EB',
+    borderLeftWidth: 5,
+    borderLeftColor: '#4FD1C5',
+    overflow: 'hidden',
   },
   progressPlanHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#FAFBFC',
   },
   progressPlanHeaderLeft: {
     flex: 1,
     marginRight: 16
   },
   progressPlanTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 4
+    marginBottom: 6
   },
   progressPlanSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B7280',
-    marginBottom: 12,
+    marginBottom: 14,
+    fontWeight: '500',
   },
   progressBarContainer: {
     flexDirection: 'row',
@@ -86,24 +156,26 @@ export const styles = StyleSheet.create({
   },
   progressBarTrack: {
     flex: 1,
-    height: 8,
+    height: 10,
     backgroundColor: '#E5E7EB',
-    borderRadius: 4,
+    borderRadius: 5,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 5,
   },
   progressBarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    minWidth: 45,
+    fontSize: 18,
+    fontWeight: '800',
+    minWidth: 50,
     textAlign: 'right',
   },
   progressPlanContent: {
     paddingHorizontal: 20,
+    paddingTop: 16,
     paddingBottom: 20,
+    backgroundColor: '#FFFFFF',
   },
 
   // Skills Grid - TRUE HORIZONTAL 2 COLUMNS
@@ -252,6 +324,19 @@ export const styles = StyleSheet.create({
   weekBadge: { backgroundColor: '#3B82F6', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   weekBadgeText: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
   currentWeekFocus: { fontSize: 15, fontWeight: '600', color: '#1F2937' },
+
+  // Swipeable Tab Pager
+  pagerContainer: {
+    flex: 1,
+  },
+  page: {
+    width: width,
+  },
+  pageContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
 
   // Flashcards - GRID
   flashcardsContainer: { flex: 1 },

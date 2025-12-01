@@ -168,7 +168,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 
   return (
     <View style={styles.card}>
-      {/* Header Section - Compact */}
+      {/* Header Section - Premium */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.flagEmoji}>{getLanguageFlag(language)}</Text>
@@ -185,12 +185,12 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         </View>
       </View>
 
-      {/* Progress Section - Compact */}
+      {/* Progress Section - Premium */}
       <View style={styles.progressSection}>
         <AnimatedProgressCircle percentage={percentage} size={110} strokeWidth={10} />
       </View>
 
-      {/* Stats Row - Compact */}
+      {/* Stats Row - Premium */}
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{completedSessions}</Text>
@@ -212,23 +212,23 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         </View>
       </View>
 
-      {/* Plan Description - Compact */}
+      {/* Plan Description */}
       <Text style={styles.planDescription} numberOfLines={1}>
         {plan.duration_weeks || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
       </Text>
 
-      {/* Action Buttons - Compact */}
+      {/* Action Buttons - Premium Design INSIDE Card */}
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={[styles.continueButton, isCompleted && styles.continueButtonDisabled]}
           onPress={handleContinuePress}
           disabled={isCompleted}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <Ionicons 
-            name={isCompleted ? "checkmark-circle" : "play"} 
-            size={16} 
-            color="#FFFFFF" 
+          <Ionicons
+            name={isCompleted ? "checkmark-circle" : "play-circle"}
+            size={20}
+            color="#FFFFFF"
           />
           <Text style={styles.continueButtonText}>
             {isCompleted ? 'Completed' : 'Continue'}
@@ -238,9 +238,9 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         <TouchableOpacity
           style={styles.detailsButton}
           onPress={handleViewDetailsPress}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <Ionicons name="eye-outline" size={16} color="#4A5568" />
+          <Ionicons name="information-circle-outline" size={20} color="#4A5568" />
           <Text style={styles.detailsButtonText}>Details</Text>
         </TouchableOpacity>
       </View>

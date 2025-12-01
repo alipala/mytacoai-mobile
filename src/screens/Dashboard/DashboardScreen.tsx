@@ -7,11 +7,12 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
-  Alert,
   ActivityIndicator,
   Image,
   Platform,
-  ActionSheetIOS,
+  Modal,
+  Animated,
+  Pressable,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +23,7 @@ import { LearningPlanCard } from '../../components/LearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
+import { SessionTypeModal } from '../../components/SessionTypeModal';
 import { styles } from './styles/DashboardScreen.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -35,6 +37,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  const [userLanguage, setUserLanguage] = useState<string>('english');
+  const [userLevel, setUserLevel] = useState<string>('intermediate');
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [progressStats, setProgressStats] = useState<any>(null);
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
@@ -47,6 +51,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Modal state
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
+  const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -57,17 +63,28 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setLoading(true);
       setError(null);
 
-      // Get user info from storage
+      // Get user info from storage and determine language/level preferences
+      let finalLanguage = 'english';
+      let finalLevel = 'intermediate';
+
       const userJson = await AsyncStorage.getItem('user');
       if (userJson) {
         const user = JSON.parse(userJson);
-        
+
         // Use name and surname
         const displayName = [user.first_name, user.last_name]
           .filter(Boolean)
           .join(' ') || user.name || user.email?.split('@')[0] || 'User';
-        
+
         setUserName(displayName);
+
+        // Extract user language and level preferences
+        if (user.preferred_language) {
+          finalLanguage = user.preferred_language;
+        }
+        if (user.preferred_level) {
+          finalLevel = user.preferred_level;
+        }
       }
 
       // Load learning plans, progress stats, and subscription status in parallel
@@ -81,6 +98,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
       console.log('📊 Subscription status loaded:', subscriptionResponse);
+
+      // If user doesn't have preferences set, infer from most recent learning plan
+      if ((!finalLanguage || finalLanguage === 'english') && plansResponse && plansResponse.length > 0) {
+        const mostRecentPlan = plansResponse[0] as LearningPlan;
+        if (mostRecentPlan.language) {
+          finalLanguage = mostRecentPlan.language;
+        }
+        if (mostRecentPlan.proficiency_level) {
+          finalLevel = mostRecentPlan.proficiency_level;
+        }
+      }
+
+      // Update state with final values
+      setUserLanguage(finalLanguage);
+      setUserLevel(finalLevel);
 
     } catch (error: any) {
       console.error('Error loading dashboard:', error);
@@ -119,49 +151,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    setShowSessionTypeModal(true);
+  };
 
-    // iOS-native ActionSheet
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Choose Session Type',
-          message: 'Select how you want to practice',
-          options: ['Cancel', 'Quick Practice', 'Assessment (Coming Soon)'],
-          cancelButtonIndex: 0,
-          userInterfaceStyle: 'light',
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) {
-            // Navigate to practice flow
-            navigation.navigate('LanguageSelection', { mode: 'practice' });
-          } else if (buttonIndex === 2) {
-            // Assessment coming soon
-            Alert.alert(
-              'Coming Soon',
-              'Assessment feature will be available soon!',
-              [{ text: 'OK' }]
-            );
-          }
-        }
-      );
-    } else {
-      // Android fallback
-      Alert.alert(
-        'Choose Session Type',
-        'Select how you want to practice',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Quick Practice',
-            onPress: () => navigation.navigate('LanguageSelection', { mode: 'practice' }),
-          },
-          {
-            text: 'Assessment (Coming Soon)',
-            onPress: () => Alert.alert('Coming Soon', 'Assessment feature will be available soon!', [{ text: 'OK' }]),
-          },
-        ]
-      );
-    }
+  const handleSelectQuickPractice = () => {
+    navigation.navigate('LanguageSelection', { mode: 'practice' });
+  };
+
+  const handleSelectAssessment = () => {
+    navigation.navigate('AssessmentLanguageSelection');
   };
 
   const handleModalContinueLearning = () => {
@@ -194,27 +192,40 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     navigation.navigate('Checkout', { planId, period });
   };
 
-  const handleLogout = async () => {
+  const handleCreatePlan = () => {
     if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await AsyncStorage.removeItem('auth_token');
-            await AsyncStorage.removeItem('user');
-            navigation.replace('Login');
-          },
-        },
-      ]
-    );
+    console.log('📝 Navigating to Speaking Assessment to create learning plan');
+
+    // Navigate to speaking assessment - required to create a learning plan
+    navigation.navigate('AssessmentLanguageSelection');
+  };
+
+
+  const handleLogoutPress = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    setShowLogoutModal(false);
+    await AsyncStorage.removeItem('auth_token');
+    await AsyncStorage.removeItem('user');
+    navigation.replace('Login');
+  };
+
+  const handleCancelLogout = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowLogoutModal(false);
   };
 
   // Loading State
@@ -231,6 +242,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+        />
+
+        {/* Session Type Modal */}
+        <SessionTypeModal
+          visible={showSessionTypeModal}
+          onClose={() => setShowSessionTypeModal(false)}
+          onSelectQuickPractice={handleSelectQuickPractice}
+          onSelectAssessment={handleSelectAssessment}
         />
       </SafeAreaView>
     );
@@ -256,6 +275,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
         />
+
+        {/* Session Type Modal */}
+        <SessionTypeModal
+          visible={showSessionTypeModal}
+          onClose={() => setShowSessionTypeModal(false)}
+          onSelectQuickPractice={handleSelectQuickPractice}
+          onSelectAssessment={handleSelectAssessment}
+        />
       </SafeAreaView>
     );
   }
@@ -280,19 +307,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onPress={handleUpgradePress}
                 activeOpacity={0.7}
               >
-                <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+                <Ionicons name="sparkles" size={20} color="#4FD1C5" />
                 <Text style={styles.upgradeButtonText}>Upgrade</Text>
               </TouchableOpacity>
             )}
 
-            {/* iOS-Standard Text Button */}
+            {/* EXIT Button - Premium Design */}
             <TouchableOpacity
-              style={styles.profileButton}
-              onPress={handleLogout}
-              activeOpacity={0.6}
+              style={styles.exitButton}
+              onPress={handleLogoutPress}
+              activeOpacity={0.7}
             >
-              <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-              <Text style={styles.profileText}>{userName}</Text>
+              <Ionicons name="log-out-outline" size={26} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -333,7 +359,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           {/* Create Plan Button */}
           <TouchableOpacity
             style={styles.createPlanButton}
-            onPress={() => navigation.navigate('CreatePlan')}
+            onPress={handleCreatePlan}
           >
             <Ionicons name="add-circle" size={20} color="#4FD1C5" />
             <Text style={styles.createPlanButtonText}>Create Learning Plan</Text>
@@ -345,6 +371,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+        />
+
+        {/* Session Type Modal */}
+        <SessionTypeModal
+          visible={showSessionTypeModal}
+          onClose={() => setShowSessionTypeModal(false)}
+          onSelectQuickPractice={handleSelectQuickPractice}
+          onSelectAssessment={handleSelectAssessment}
         />
       </SafeAreaView>
     );
@@ -368,19 +402,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               onPress={handleUpgradePress}
               activeOpacity={0.7}
             >
-              <Ionicons name="sparkles" size={18} color="#4FD1C5" />
+              <Ionicons name="sparkles" size={20} color="#4FD1C5" />
               <Text style={styles.upgradeButtonText}>Upgrade</Text>
             </TouchableOpacity>
           )}
 
-          {/* iOS-Standard Text Button (not rounded pill) */}
+          {/* EXIT Button - Premium Design */}
           <TouchableOpacity
-            style={styles.profileButton}
-            onPress={handleLogout}
-            activeOpacity={0.6}
+            style={styles.exitButton}
+            onPress={handleLogoutPress}
+            activeOpacity={0.7}
           >
-            <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
-            <Text style={styles.profileText}>{userName}</Text>
+            <Ionicons name="log-out-outline" size={26} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -406,12 +439,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </>
         )}
 
-        {/* Title Section - Compact */}
+        {/* Hero Greeting Section - Premium Design */}
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Your Learning Journey</Text>
-          <Text style={styles.subtitle}>
-            Continue your progress and achieve your language goals
-          </Text>
+          <View style={styles.greetingContainer}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.greetingText}>Welcome back</Text>
+              <Text style={styles.greetingEmoji}>👋</Text>
+            </View>
+          </View>
+          <View style={styles.statsContainer}>
+            <View style={styles.statBadge}>
+              <Ionicons name="flame" size={16} color="#D97706" />
+              <Text style={styles.statBadgeText}>3 day streak</Text>
+            </View>
+            <View style={styles.levelBadge}>
+              <Ionicons name="trophy" size={16} color="#1D4ED8" />
+              <Text style={styles.levelBadgeText}>{userLevel.toUpperCase()}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Learning Plans Carousel - Compact Cards */}
@@ -464,17 +509,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Start New Session Button - NOW VISIBLE! */}
+        {/* Start New Session Button - Premium Design */}
         <TouchableOpacity
           style={styles.newSessionButton}
           onPress={handleStartNewSession}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
           <View style={styles.newSessionContent}>
-            <Ionicons name="add-circle-outline" size={24} color="#4FD1C5" />
+            <View style={styles.newSessionIconContainer}>
+              <Ionicons name="add-circle" size={24} color="#4FD1C5" />
+            </View>
             <View style={styles.newSessionTextContainer}>
               <Text style={styles.newSessionTitle}>Start New Session</Text>
-              <Text style={styles.newSessionSubtitle}>Practice or Assessment</Text>
+              <Text style={styles.newSessionSubtitle}>Quick Practice or Assessment</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </View>
@@ -498,6 +545,52 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
       />
+
+      {/* Session Type Modal */}
+      <SessionTypeModal
+        visible={showSessionTypeModal}
+        onClose={() => setShowSessionTypeModal(false)}
+        onSelectQuickPractice={handleSelectQuickPractice}
+        onSelectAssessment={handleSelectAssessment}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelLogout}
+      >
+        <Pressable style={styles.logoutModalOverlay} onPress={handleCancelLogout}>
+          <Pressable style={styles.logoutModalContainer} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.logoutModalHeader}>
+              <View style={styles.logoutIconContainer}>
+                <Ionicons name="log-out" size={32} color="#EF4444" />
+              </View>
+            </View>
+            <Text style={styles.logoutModalTitle}>Sign Out?</Text>
+            <Text style={styles.logoutModalMessage}>
+              Are you sure you want to sign out? You'll need to log in again to access your learning progress.
+            </Text>
+            <View style={styles.logoutModalButtons}>
+              <TouchableOpacity
+                style={styles.logoutCancelButton}
+                onPress={handleCancelLogout}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.logoutConfirmButton}
+                onPress={handleConfirmLogout}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
