@@ -120,6 +120,8 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 6,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
     borderLeftWidth: 5,
     borderLeftColor: '#4FD1C5',
     overflow: 'hidden',
