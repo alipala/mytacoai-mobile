@@ -63,19 +63,30 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
   // Load help settings on mount
   useEffect(() => {
+    console.log('[CONVERSATION_HELP] 🚀 Hook mounted, loading settings...');
     loadHelpSettings();
   }, []);
+
+  // Log when help settings change
+  useEffect(() => {
+    console.log('[CONVERSATION_HELP] 📊 Settings updated:', {
+      help_enabled: helpSettings.help_enabled,
+      help_language: helpSettings.help_language,
+    });
+  }, [helpSettings]);
 
   /**
    * Load user's help settings from AsyncStorage and API
    */
   const loadHelpSettings = async () => {
     try {
+      console.log('[CONVERSATION_HELP] 🔄 Loading settings...');
+
       // Get auth token
       const token = await AsyncStorage.getItem('token');
 
       if (!token) {
-        console.log('[CONVERSATION_HELP] No auth token found, using default settings');
+        console.log('[CONVERSATION_HELP] ⚠️ No auth token found, using default settings with help_enabled=true');
         return;
       }
 
@@ -85,13 +96,26 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
       // Try to fetch settings from API
       try {
         const settings = await ConversationHelpService.getHelpSettingsApiConversationHelpSettingsGet();
-        setHelpSettings(settings);
-        console.log('[CONVERSATION_HELP] Loaded user settings:', settings);
+
+        // Merge with defaults, ensuring help_enabled defaults to true if not explicitly set to false
+        const mergedSettings = {
+          ...settings,
+          help_enabled: settings.help_enabled !== false ? true : false, // Default to true unless explicitly false
+          help_language: settings.help_language || 'english',
+          show_pronunciation: settings.show_pronunciation !== false,
+          show_grammar_tips: settings.show_grammar_tips !== false,
+          show_cultural_notes: settings.show_cultural_notes !== false,
+          show_vocabulary: settings.show_vocabulary !== false,
+        };
+
+        setHelpSettings(mergedSettings);
+        console.log('[CONVERSATION_HELP] ✅ Loaded user settings:', mergedSettings);
+        console.log('[CONVERSATION_HELP] 🔑 help_enabled:', mergedSettings.help_enabled);
       } catch (apiError) {
-        console.log('[CONVERSATION_HELP] Failed to load settings from API, using defaults');
+        console.log('[CONVERSATION_HELP] ⚠️ Failed to load settings from API, using defaults with help_enabled=true');
       }
     } catch (error) {
-      console.error('[CONVERSATION_HELP] Error loading settings:', error);
+      console.error('[CONVERSATION_HELP] ❌ Error loading settings:', error);
     }
   };
 
@@ -301,11 +325,16 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     aiResponse: string,
     conversationContext: ConversationMessage[]
   ) => {
+    console.log('[CONVERSATION_HELP] 📞 handleAIResponseComplete called');
+    console.log('[CONVERSATION_HELP] 🔑 help_enabled:', helpSettings.help_enabled);
+    console.log('[CONVERSATION_HELP] 📄 aiResponse length:', aiResponse?.length || 0);
+
     if (!helpSettings.help_enabled || !aiResponse) {
+      console.log('[CONVERSATION_HELP] ⛔ Skipping: help_enabled=', helpSettings.help_enabled, 'aiResponse=', !!aiResponse);
       return;
     }
 
-    console.log('[CONVERSATION_HELP] AI response completion detected, scheduling help generation');
+    console.log('[CONVERSATION_HELP] ✅ AI response completion detected, scheduling help generation');
 
     // Clear any existing timeout
     if (helpGenerationTimeoutRef.current) {

@@ -496,15 +496,24 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       }
 
       // Trigger conversation help when AI responds
-      if (role === 'assistant' && content.trim().length > 0 && conversationHelp.helpSettings.help_enabled) {
-        console.log('[CONVERSATION_HELP] AI response detected, triggering help generation');
-        // Convert messages to the format expected by conversation help
-        const conversationContext = updated.slice(-5).map(m => ({
-          role: m.role,
-          content: m.content,
-          timestamp: m.timestamp,
-        }));
-        conversationHelp.handleAIResponseComplete(content, conversationContext);
+      if (role === 'assistant') {
+        console.log('[CONVERSATION_HELP] 🎯 AI message received');
+        console.log('[CONVERSATION_HELP] 📝 Content length:', content.trim().length);
+        console.log('[CONVERSATION_HELP] ⚙️ Help enabled:', conversationHelp.helpSettings.help_enabled);
+        console.log('[CONVERSATION_HELP] 🔍 Help settings:', conversationHelp.helpSettings);
+
+        if (content.trim().length > 0 && conversationHelp.helpSettings.help_enabled) {
+          console.log('[CONVERSATION_HELP] ✅ Conditions met, triggering help generation');
+          // Convert messages to the format expected by conversation help
+          const conversationContext = updated.slice(-5).map(m => ({
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp,
+          }));
+          conversationHelp.handleAIResponseComplete(content, conversationContext);
+        } else {
+          console.log('[CONVERSATION_HELP] ❌ Conditions not met, skipping help generation');
+        }
       }
 
       return updated;
