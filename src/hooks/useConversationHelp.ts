@@ -201,6 +201,8 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
         topic: topic || undefined,
       };
 
+      console.log('[CONVERSATION_HELP] 📤 Sending API request with data:', JSON.stringify(requestData, null, 2));
+
       const helpContent = await ConversationHelpService.generateHelpContentApiConversationHelpGeneratePost({
         requestBody: requestData,
       });
@@ -219,7 +221,14 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
       return helpContent;
     } catch (error: any) {
-      console.error('[CONVERSATION_HELP] Error generating help content:', error);
+      console.error('[CONVERSATION_HELP] ❌ Error generating help content:', error);
+      console.error('[CONVERSATION_HELP] ❌ Error details:', {
+        message: error?.message,
+        status: error?.status,
+        statusText: error?.statusText,
+        body: error?.body,
+        url: error?.url,
+      });
 
       // Handle specific error cases
       if (error?.status === 204) {

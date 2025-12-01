@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -159,20 +159,19 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Ref to track if auto-save was triggered
   const autoSaveTriggeredRef = useRef(false);
 
-  // Initialize conversation help system
+  // Initialize conversation help system with memoized options to prevent re-renders
+  const conversationHelpOptions = useMemo(() => ({
+    targetLanguage: learningPlan?.language || language,
+    proficiencyLevel: learningPlan?.proficiency_level || level,
+    topic: planId ? undefined : topic,
+    enabled: true,
+  }), [learningPlan?.language, learningPlan?.proficiency_level, language, level, planId, topic]);
+
   console.log('[CONVERSATION_HELP] 🔵🔵🔵 ABOUT TO CALL useConversationHelp HOOK');
-  console.log('[CONVERSATION_HELP] Parameters:', {
-    targetLanguage: learningPlan?.language || language,
-    proficiencyLevel: learningPlan?.proficiency_level || level,
-    topic: planId ? undefined : topic,
-    enabled: true,
-  });
-  const conversationHelp = useConversationHelp({
-    targetLanguage: learningPlan?.language || language,
-    proficiencyLevel: learningPlan?.proficiency_level || level,
-    topic: planId ? undefined : topic,
-    enabled: true,
-  });
+  console.log('[CONVERSATION_HELP] Parameters:', conversationHelpOptions);
+
+  const conversationHelp = useConversationHelp(conversationHelpOptions);
+
   console.log('[CONVERSATION_HELP] 🟢🟢🟢 HOOK RETURNED:', {
     isLoading: conversationHelp.isLoading,
     isHelpReady: conversationHelp.isHelpReady,
