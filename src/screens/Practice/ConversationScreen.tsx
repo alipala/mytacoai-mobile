@@ -20,6 +20,9 @@ import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisRespo
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
+import ConversationHelpModal from '../../components/ConversationHelpModal';
+import ConversationHelpButton from '../../components/ConversationHelpButton';
+import { useConversationHelp } from '../../hooks/useConversationHelp';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -152,6 +155,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   // Ref to track if auto-save was triggered
   const autoSaveTriggeredRef = useRef(false);
+
+  // Initialize conversation help system
+  const conversationHelp = useConversationHelp({
+    targetLanguage: learningPlan?.language || language,
+    proficiencyLevel: learningPlan?.proficiency_level || level,
+    topic: planId ? undefined : topic,
+    enabled: true,
+  });
 
   // Fetch learning plan if planId is provided
   useEffect(() => {
@@ -484,6 +495,18 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
       }
 
+      // Trigger conversation help when AI responds
+      if (role === 'assistant' && content.trim().length > 0 && conversationHelp.helpSettings.help_enabled) {
+        console.log('[CONVERSATION_HELP] AI response detected, triggering help generation');
+        // Convert messages to the format expected by conversation help
+        const conversationContext = updated.slice(-5).map(m => ({
+          role: m.role,
+          content: m.content,
+          timestamp: m.timestamp,
+        }));
+        conversationHelp.handleAIResponseComplete(content, conversationContext);
+      }
+
       return updated;
     });
 
@@ -522,6 +545,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
     const newRecordingState = !isRecording;
     setIsRecording(newRecordingState);
+
+    // Reset conversation help when user starts speaking
+    if (newRecordingState && (conversationHelp.isHelpReady || conversationHelp.isModalVisible)) {
+      console.log('[CONVERSATION_HELP] User started speaking, resetting help state');
+      conversationHelp.resetHelpState();
+    }
 
     // Mute/unmute the microphone
     realtimeServiceRef.current.setMuted(!newRecordingState);
@@ -825,6 +854,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         )}
       </ScrollView>
 
+      {/* Conversation Help Button */}
+      <ConversationHelpButton
+        visible={conversationHelp.isHelpReady && !isRecording && !isConnecting}
+        isLoading={conversationHelp.isLoading}
+        onPress={conversationHelp.showHelpModal}
+        helpLanguage={conversationHelp.helpSettings.help_language}
+      />
+
       {/* Recording Button */}
       <View style={styles.footer}>
         {isRecording && (
@@ -983,6 +1020,22 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         onComplete={() => setShowSavingModal(false)}
         onViewAnalysis={handleViewAnalysis}
         onGoDashboard={handleGoDashboard}
+      />
+
+      {/* Conversation Help Modal */}
+      <ConversationHelpModal
+        visible={conversationHelp.isModalVisible}
+        helpData={conversationHelp.helpData}
+        isLoading={conversationHelp.isLoading}
+        targetLanguage={learningPlan?.language || language}
+        helpLanguage={conversationHelp.helpSettings.help_language || 'english'}
+        onClose={conversationHelp.closeHelpModal}
+        onSelectResponse={(responseText) => {
+          // When user selects a suggested response, we could add it to the input
+          // For now, just close the modal and let them speak it
+          console.log('[CONVERSATION_HELP] User selected response:', responseText);
+          conversationHelp.selectSuggestedResponse(responseText);
+        }}
       />
     </SafeAreaView>
   );
