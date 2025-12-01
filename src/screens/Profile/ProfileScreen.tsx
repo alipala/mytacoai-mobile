@@ -508,9 +508,15 @@ const ProfileScreen: React.FC = () => {
           return (
             <View key={plan.id} style={styles.progressPlanCard}>
               {/* Header with Progress */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.progressPlanHeader}
-                onPress={() => setExpandedPlans(prev => ({ ...prev, [plan.id]: !prev[plan.id] }))}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setExpandedPlans(prev => ({ ...prev, [plan.id]: !prev[plan.id] }));
+                }}
+                activeOpacity={0.7}
               >
                 <View style={styles.progressPlanHeaderLeft}>
                   <Text style={styles.progressPlanTitle}>

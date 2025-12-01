@@ -110,35 +110,42 @@ export const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   emptyStateText: { fontSize: 18, fontWeight: '600', color: '#6B7280', marginTop: 16 },
 
-  // Progress Tab - IMPROVED DESIGN
+  // Progress Tab - PREMIUM IOS DESIGN
   progressPlanCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 16,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderRadius: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderLeftWidth: 5,
+    borderLeftColor: '#4FD1C5',
+    overflow: 'hidden',
   },
   progressPlanHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#FAFBFC',
   },
   progressPlanHeaderLeft: {
     flex: 1,
     marginRight: 16
   },
   progressPlanTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 4
+    marginBottom: 6
   },
   progressPlanSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B7280',
-    marginBottom: 12,
+    marginBottom: 14,
+    fontWeight: '500',
   },
   progressBarContainer: {
     flexDirection: 'row',
@@ -147,24 +154,26 @@ export const styles = StyleSheet.create({
   },
   progressBarTrack: {
     flex: 1,
-    height: 8,
+    height: 10,
     backgroundColor: '#E5E7EB',
-    borderRadius: 4,
+    borderRadius: 5,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 5,
   },
   progressBarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    minWidth: 45,
+    fontSize: 18,
+    fontWeight: '800',
+    minWidth: 50,
     textAlign: 'right',
   },
   progressPlanContent: {
     paddingHorizontal: 20,
+    paddingTop: 16,
     paddingBottom: 20,
+    backgroundColor: '#FFFFFF',
   },
 
   // Skills Grid - TRUE HORIZONTAL 2 COLUMNS
@@ -323,6 +332,8 @@ export const styles = StyleSheet.create({
   },
   pageContent: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
 
   // Flashcards - GRID
