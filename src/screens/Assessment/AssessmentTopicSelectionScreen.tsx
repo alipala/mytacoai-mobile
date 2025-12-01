@@ -208,8 +208,8 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
           disabled={!selectedTopic}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Start Assessment</Text>
-          <Ionicons name="mic" size={20} color="#FFFFFF" />
+          <Text style={styles.continueButtonText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
