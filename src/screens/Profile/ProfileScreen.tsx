@@ -13,11 +13,13 @@ import {
   Alert,
   Modal,
   FlatList,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import { styles } from './styles/ProfileScreen.styles';
@@ -748,44 +750,88 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.headerTitle}>Profile</Text>
         </View>
 
-        {/* Tabs - NO BADGE ON FLASHCARDS */}
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'overview' && styles.tabActive]}
-            onPress={() => setActiveTab('overview')}
-          >
-            <Ionicons name="home" size={20} color={activeTab === 'overview' ? '#14B8A6' : '#9CA3AF'} />
-            <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>Overview</Text>
-          </TouchableOpacity>
+        {/* Tabs - Premium Segmented Control Design */}
+        <View style={styles.tabsContainer}>
+          <View style={styles.tabs}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'overview' && styles.tabActive]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setActiveTab('overview');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={activeTab === 'overview' ? 'home' : 'home-outline'}
+                size={24}
+                color={activeTab === 'overview' ? '#4FD1C5' : '#9CA3AF'}
+              />
+              <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>Overview</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'progress' && styles.tabActive]}
-            onPress={() => setActiveTab('progress')}
-          >
-            <Ionicons name="trending-up" size={20} color={activeTab === 'progress' ? '#14B8A6' : '#9CA3AF'} />
-            <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>Progress</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'progress' && styles.tabActive]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setActiveTab('progress');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={activeTab === 'progress' ? 'trending-up' : 'trending-up-outline'}
+                size={24}
+                color={activeTab === 'progress' ? '#4FD1C5' : '#9CA3AF'}
+              />
+              <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>Progress</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'flashcards' && styles.tabActive]}
-            onPress={() => setActiveTab('flashcards')}
-          >
-            <Ionicons name="albums" size={20} color={activeTab === 'flashcards' ? '#14B8A6' : '#9CA3AF'} />
-            <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>Flashcards</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'flashcards' && styles.tabActive]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setActiveTab('flashcards');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={activeTab === 'flashcards' ? 'albums' : 'albums-outline'}
+                size={24}
+                color={activeTab === 'flashcards' ? '#4FD1C5' : '#9CA3AF'}
+              />
+              <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>Cards</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'notifications' && styles.tabActive]}
-            onPress={() => setActiveTab('notifications')}
-          >
-            <Ionicons name="notifications" size={20} color={activeTab === 'notifications' ? '#14B8A6' : '#9CA3AF'} />
-            <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>Alerts</Text>
-            {unreadCount > 0 && (
-              <View style={styles.tabBadge}>
-                <Text style={styles.tabBadgeText}>{unreadCount}</Text>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'notifications' && styles.tabActive]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setActiveTab('notifications');
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.tabContent}>
+                <Ionicons
+                  name={activeTab === 'notifications' ? 'notifications' : 'notifications-outline'}
+                  size={24}
+                  color={activeTab === 'notifications' ? '#4FD1C5' : '#9CA3AF'}
+                />
+                <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>Alerts</Text>
+                {unreadCount > 0 && (
+                  <View style={styles.tabBadge}>
+                    <Text style={styles.tabBadgeText}>{unreadCount}</Text>
+                  </View>
+                )}
               </View>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Content */}
