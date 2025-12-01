@@ -8,9 +8,6 @@ import {
 } from '../api/generated';
 import { OpenAPI } from '../api/generated/core/OpenAPI';
 
-// MODULE LOADED - This log should appear when the file is imported
-console.log('[CONVERSATION_HELP] 🚨🚨🚨 MODULE LOADED - useConversationHelp.ts file imported successfully');
-
 interface ConversationMessage {
   role: string;
   content: string;
@@ -33,17 +30,12 @@ interface HelpState {
 }
 
 export const useConversationHelp = (options: UseConversationHelpOptions) => {
-  // Log immediately to confirm hook is called
-  console.log('[CONVERSATION_HELP] ⭐️⭐️⭐️ HOOK CALLED! Options:', JSON.stringify(options, null, 2));
-
   const {
     targetLanguage,
     proficiencyLevel,
     topic,
     enabled = true,
   } = options;
-
-  console.log('[CONVERSATION_HELP] ⭐️ After destructuring, enabled=', enabled);
 
   // State for help settings
   const [helpSettings, setHelpSettings] = useState<UserHelpSettings>({
@@ -55,8 +47,6 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     show_vocabulary: true,
     user_id: '',
   });
-
-  console.log('[CONVERSATION_HELP] ⭐️ State initialized');
 
   // State for help content and UI
   const [helpState, setHelpState] = useState<HelpState>({
@@ -262,7 +252,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
       return null;
     }
-  }, [targetLanguage, proficiencyLevel, topic, helpSettings.help_enabled, helpSettings.help_language, helpState.helpData]);
+  }, [targetLanguage, proficiencyLevel, topic, helpSettings.help_enabled, helpSettings.help_language]);
 
   /**
    * Show help modal

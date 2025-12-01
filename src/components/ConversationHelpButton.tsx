@@ -198,6 +198,8 @@ const styles = StyleSheet.create({
     right: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1000,
+    elevation: 1000,
   },
   glowContainer: {
     position: 'absolute',
