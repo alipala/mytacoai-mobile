@@ -159,7 +159,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
   /**
    * Generate help content for AI response
    */
-  const generateHelpContent = async (
+  const generateHelpContent = useCallback(async (
     aiResponse: string,
     conversationContext: ConversationMessage[]
   ): Promise<ConversationHelpResponse | null> => {
@@ -257,7 +257,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
       return null;
     }
-  };
+  }, [targetLanguage, proficiencyLevel, topic, helpSettings.help_enabled, helpSettings.help_language, helpState.helpData]);
 
   /**
    * Show help modal
