@@ -195,7 +195,9 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       }
       // Cleanup recording
       if (recordingObject) {
-        recordingObject.stopAndUnloadAsync();
+        recordingObject.stopAndUnloadAsync().catch(() => {
+          console.log('Recording already cleaned up');
+        });
       }
     };
   }, []);
@@ -220,6 +222,16 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
 
   const handleStartRecording = async () => {
     try {
+      // Clean up any existing recording first
+      if (recordingObject) {
+        try {
+          await recordingObject.stopAndUnloadAsync();
+        } catch (e) {
+          console.log('No existing recording to clean up');
+        }
+        setRecordingObject(null);
+      }
+
       const recording = new Audio.Recording();
       // Use LINEAR_PCM format to create WAV files that backend handles correctly
       // This matches what the backend expects and OpenAI can process
@@ -398,33 +410,69 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       </View>
 
       <View style={styles.content}>
-        {/* Timer Display */}
-        <View style={styles.timerContainer}>
-          <Text style={styles.timerLabel}>Time Remaining</Text>
-          <Text style={[
-            styles.timerText,
-            timeRemaining <= 10 && styles.timerTextWarning,
-          ]}>
-            {formatTime(timeRemaining)}
-          </Text>
-        </View>
+        {/* Main Card */}
+        <View style={styles.mainCard}>
+          {/* Timer Display - Circular Progress */}
+          <View style={styles.timerSection}>
+            <View style={styles.timerCircle}>
+              <Text style={[
+                styles.timerText,
+                timeRemaining <= 10 && styles.timerTextWarning,
+              ]}>
+                {formatTime(timeRemaining)}
+              </Text>
+              <Text style={styles.timerSubtext}>
+                {isRecording ? 'remaining' : 'duration'}
+              </Text>
+            </View>
+          </View>
 
-        {/* Topic Info */}
-        <View style={styles.topicContainer}>
-          <Text style={styles.topicLabel}>Topic</Text>
-          <Text style={styles.topicName}>{topicName}</Text>
-          <View style={styles.promptContainer}>
-            <Text style={styles.promptText}>{prompt}</Text>
+          {/* Topic Card */}
+          <View style={styles.topicCard}>
+            <View style={styles.topicHeader}>
+              <Ionicons name="chatbubble-ellipses" size={24} color="#4FD1C5" />
+              <Text style={styles.topicLabel}>Your Topic</Text>
+            </View>
+            <Text style={styles.topicName}>{topicName}</Text>
+            <View style={styles.promptBox}>
+              <Ionicons name="chatbubble-ellipses-outline" size={18} color="#9CA3AF" style={styles.quoteIcon} />
+              <Text style={styles.promptText}>{prompt}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Instructions */}
+        {/* Tips Section */}
         {!isRecording && (
-          <View style={styles.instructionsContainer}>
-            <Ionicons name="information-circle-outline" size={24} color="#6B7280" />
-            <Text style={styles.instructionsText}>
-              You have 1 minute to speak about this topic. Tap the microphone button when you're ready to start.
-            </Text>
+          <View style={styles.tipsSection}>
+            <View style={styles.tipCard}>
+              <View style={styles.tipIconContainer}>
+                <Ionicons name="time-outline" size={20} color="#4FD1C5" />
+              </View>
+              <View style={styles.tipContent}>
+                <Text style={styles.tipTitle}>1 minute</Text>
+                <Text style={styles.tipText}>to speak</Text>
+              </View>
+            </View>
+
+            <View style={styles.tipCard}>
+              <View style={styles.tipIconContainer}>
+                <Ionicons name="mic-outline" size={20} color="#8B5CF6" />
+              </View>
+              <View style={styles.tipContent}>
+                <Text style={styles.tipTitle}>Speak clearly</Text>
+                <Text style={styles.tipText}>natural pace</Text>
+              </View>
+            </View>
+
+            <View style={styles.tipCard}>
+              <View style={styles.tipIconContainer}>
+                <Ionicons name="star-outline" size={20} color="#F59E0B" />
+              </View>
+              <View style={styles.tipContent}>
+                <Text style={styles.tipTitle}>Be yourself</Text>
+                <Text style={styles.tipText}>relax & enjoy</Text>
+              </View>
+            </View>
           </View>
         )}
 
@@ -439,9 +487,10 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                 },
               ]}
             >
-              <Ionicons name="mic" size={32} color="#EF4444" />
+              <View style={styles.recordingDot} />
             </Animated.View>
-            <Text style={styles.recordingText}>Recording in progress...</Text>
+            <Text style={styles.recordingText}>Recording...</Text>
+            <Text style={styles.recordingSubtext}>Speak naturally about the topic</Text>
           </View>
         )}
       </View>
@@ -506,7 +555,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
   },
   header: {
     flexDirection: 'row',
@@ -531,84 +580,171 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 16,
   },
-  timerContainer: {
+  mainCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  timerSection: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
   },
-  timerLabel: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 8,
+  timerCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#F0FDFA',
+    borderWidth: 4,
+    borderColor: '#4FD1C5',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   timerText: {
-    fontSize: 56,
+    fontSize: 48,
     fontWeight: 'bold',
     color: '#4FD1C5',
   },
   timerTextWarning: {
     color: '#EF4444',
   },
-  topicContainer: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
+  timerSubtext: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  topicCard: {
+    gap: 12,
+  },
+  topicHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
   },
   topicLabel: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom: 8,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   topicName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 12,
+    lineHeight: 32,
   },
-  promptContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+  promptBox: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
     padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: '#4FD1C5',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quoteIcon: {
+    marginTop: 2,
   },
   promptText: {
+    flex: 1,
     fontSize: 16,
     color: '#374151',
     lineHeight: 24,
+    fontStyle: 'italic',
   },
-  instructionsContainer: {
+  tipsSection: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#FEF3C7',
-    borderRadius: 12,
-    padding: 16,
     gap: 12,
+    marginBottom: 20,
   },
-  instructionsText: {
+  tipCard: {
     flex: 1,
-    fontSize: 14,
-    color: '#92400E',
-    lineHeight: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    alignItems: 'center',
+    gap: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  tipIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tipContent: {
+    alignItems: 'center',
+  },
+  tipTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1F2937',
+    textAlign: 'center',
+  },
+  tipText: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   recordingIndicatorContainer: {
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 20,
   },
   recordingPulse: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#FEE2E2',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
+  recordingDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#EF4444',
+  },
   recordingText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#EF4444',
-    fontWeight: '600',
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  recordingSubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    fontWeight: '500',
   },
   footer: {
     paddingHorizontal: 20,
@@ -651,6 +787,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
+    backgroundColor: '#F9FAFB',
   },
   analyzingIconContainer: {
     width: 100,
