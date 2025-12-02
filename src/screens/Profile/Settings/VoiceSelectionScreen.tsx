@@ -27,6 +27,18 @@ interface VoiceCharacter {
   icon_url?: string;
 }
 
+// Local avatar images mapping
+const VOICE_AVATARS: Record<string, any> = {
+  alloy: require('../../../../assets/tutors/alloy.png'),
+  ash: require('../../../../assets/tutors/ash.png'),
+  ballad: require('../../../../assets/tutors/ballad.png'),
+  coral: require('../../../../assets/tutors/coral.png'),
+  echo: require('../../../../assets/tutors/echo.png'),
+  sage: require('../../../../assets/tutors/sage.png'),
+  shimmer: require('../../../../assets/tutors/shimmer.png'),
+  verse: require('../../../../assets/tutors/verse.png'),
+};
+
 interface VoiceSelectionScreenProps {
   onBack: () => void;
 }
@@ -194,11 +206,25 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
                 activeOpacity={0.7}
               >
                 <View style={styles.voiceCardHeader}>
-                  <View style={styles.voiceAvatar}>
-                    <Text style={styles.voiceAvatarText}>
-                      {voiceName.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
+                  {VOICE_AVATARS[voiceName] ? (
+                    <Image
+                      source={VOICE_AVATARS[voiceName]}
+                      style={styles.voiceAvatarImage}
+                      resizeMode="cover"
+                    />
+                  ) : voiceData.icon_url ? (
+                    <Image
+                      source={{ uri: voiceData.icon_url }}
+                      style={styles.voiceAvatarImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.voiceAvatar}>
+                      <Text style={styles.voiceAvatarText}>
+                        {voiceName.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
                   {isSelected && (
                     <View style={styles.checkmark}>
                       <Ionicons name="checkmark-circle" size={24} color="#4ECFBF" />
@@ -299,7 +325,13 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
             {voices[selectedVoice] && (
               <View style={styles.modalContent}>
                 <View style={styles.modalVoiceCard}>
-                  {voices[selectedVoice].icon_url ? (
+                  {VOICE_AVATARS[selectedVoice] ? (
+                    <Image
+                      source={VOICE_AVATARS[selectedVoice]}
+                      style={styles.modalVoiceImage}
+                      resizeMode="cover"
+                    />
+                  ) : voices[selectedVoice]?.icon_url ? (
                     <Image
                       source={{ uri: voices[selectedVoice].icon_url }}
                       style={styles.modalVoiceImage}
@@ -491,6 +523,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#4ECFBF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  voiceAvatarImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
   voiceAvatarText: {
     fontSize: 20,
