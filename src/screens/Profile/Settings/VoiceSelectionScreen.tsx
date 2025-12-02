@@ -131,14 +131,18 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
           }
         }
 
-        // Check if API returned any voices
-        if (Object.keys(apiVoices).length > 0) {
-          console.log('Loaded voices from API:', Object.keys(apiVoices));
-          setVoices(apiVoices);
-        } else {
-          console.log('API returned empty voices, using fallback data');
-          setVoices(DEFAULT_VOICES);
-        }
+        // Merge API voices with DEFAULT_VOICES to ensure we have all fields
+        const mergedVoices: Record<string, VoiceCharacter> = {};
+        Object.keys(DEFAULT_VOICES).forEach((voiceId) => {
+          mergedVoices[voiceId] = {
+            ...DEFAULT_VOICES[voiceId],
+            ...(apiVoices[voiceId] || {}),
+          };
+        });
+
+        console.log('Loaded voices from API:', Object.keys(apiVoices));
+        console.log('Sample voice data:', JSON.stringify(mergedVoices.alloy, null, 2));
+        setVoices(mergedVoices);
       } catch (charactersError) {
         console.log('Could not load voices from API, using fallback data');
         setVoices(DEFAULT_VOICES);
@@ -179,9 +183,13 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       setSaving(true);
       setShowConfirmModal(false);
 
+      console.log('🎤 Attempting to change voice to:', selectedVoice);
+
       const response = await AuthenticationService.selectVoiceApiAuthSelectVoicePost({
         requestBody: { voice: selectedVoice },
       });
+
+      console.log('✅ Voice change API response:', JSON.stringify(response, null, 2));
 
       if (response.success) {
         setCurrentVoice(selectedVoice);
@@ -191,9 +199,12 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
         }
 
         Alert.alert('Success', response.message || `Voice changed to ${selectedVoice}`);
+      } else {
+        console.warn('⚠️ Voice change response success=false');
+        Alert.alert('Warning', 'Voice change may not have been saved');
       }
     } catch (error: any) {
-      console.error('Error saving voice:', error);
+      console.error('❌ Error saving voice:', error);
       Alert.alert('Error', error.message || 'Failed to save voice preference');
     } finally {
       setSaving(false);
