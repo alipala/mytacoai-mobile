@@ -71,19 +71,6 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     loadHelpSettings();
   }, []);
 
-  // Update help_enabled when the enabled prop changes (e.g., when learning plan loads)
-  useEffect(() => {
-    console.log('[CONVERSATION_HELP] 🔄 enabled prop changed:', enabled);
-    console.log('[CONVERSATION_HELP] 🔄 Current helpSettings.help_enabled:', helpSettings.help_enabled);
-    if (helpSettings.help_enabled !== enabled) {
-      console.log('[CONVERSATION_HELP] 🔄 Updating helpSettings.help_enabled to:', enabled);
-      setHelpSettings(prev => ({
-        ...prev,
-        help_enabled: enabled,
-      }));
-    }
-  }, [enabled, helpSettings.help_enabled]);
-
   // Log when help settings change
   useEffect(() => {
     console.log('[CONVERSATION_HELP] 📊 Settings updated:', {
@@ -104,6 +91,11 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
       if (!token) {
         console.log('[CONVERSATION_HELP] ⚠️ No auth token found, using default settings with help_enabled=true');
+        // Set help_enabled to true by default for guest users
+        setHelpSettings(prev => ({
+          ...prev,
+          help_enabled: true,
+        }));
         return;
       }
 

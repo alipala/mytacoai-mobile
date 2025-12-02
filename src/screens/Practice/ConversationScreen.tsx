@@ -140,6 +140,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   }, [learningPlan]);
 
   // Modal states
+  // Show modal immediately for both modes
   const [showInfoModal, setShowInfoModal] = useState(true);
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
 
@@ -272,9 +273,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           });
           setLearningPlan(plan);
           console.log('[CONVERSATION] 💾 Learning plan saved to state');
-          // Now that the plan is fetched, initialize the conversation
-          console.log('[CONVERSATION] 🚀 Initializing conversation with plan data');
-          await initializeConversation(plan);
+          // Learning plan is ready, modal is already showing
+          console.log('[CONVERSATION] ✅ Learning plan ready, waiting for user to start');
+          setIsConnecting(false);
         } catch (error) {
           console.error('[CONVERSATION] ❌ Error fetching learning plan:', error);
           setConnectionError('Failed to load learning plan details.');
@@ -285,11 +286,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
       };
       fetchPlan();
-    } else {
-      console.log('[CONVERSATION] 📝 No planId, showing info modal for practice mode');
-      // For practice mode, show the info modal
-      setShowInfoModal(true);
     }
+    // For practice mode, modal is already shown via initial state
   }, [planId]);
 
 
@@ -453,13 +451,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
-  // Initialize conversation for practice mode when modal is dismissed
+  // Initialize conversation when modal is dismissed (works for both practice and learning plan modes)
   const handleStartPracticeConversation = async () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    setShowInfoModal(false);
-    await initializeConversation();
+
+    // For learning plan mode, wait for plan to load if still loading
+    if (planId) {
+      if (!learningPlan && isConnecting) {
+        console.log('[CONVERSATION] ⏳ Plan still loading, please wait...');
+        return; // Don't close modal yet, plan is still loading
+      }
+
+      if (!learningPlan) {
+        console.log('[CONVERSATION] ❌ No learning plan loaded');
+        Alert.alert('Error', 'Learning plan not loaded. Please try again.');
+        return;
+      }
+
+      console.log('[CONVERSATION] 🚀 Starting learning plan conversation');
+      setShowInfoModal(false);
+      await initializeConversation(learningPlan);
+    } else {
+      console.log('[CONVERSATION] 🚀 Starting practice conversation');
+      setShowInfoModal(false);
+      await initializeConversation();
+    }
   };
 
   // Initialize the realtime conversation
@@ -629,15 +647,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
         console.log('[CONVERSATION_HELP] 🎯 AI message received');
         console.log('[CONVERSATION_HELP] 📝 Content length:', content.trim().length);
-        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from helpSettings):', latestConversationHelp.helpSettings.help_enabled);
-        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from options via REF):', latestOptions.enabled);
+        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from helpSettings - USER PREFERENCE):', latestConversationHelp.helpSettings.help_enabled);
+        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from options - HAS VALID DATA):', latestOptions.enabled);
         console.log('[CONVERSATION_HELP] ⚙️ Has learningPlan (via REF):', !!latestLearningPlan);
         console.log('[CONVERSATION_HELP] ⚙️ Target language (via REF):', latestOptions.targetLanguage);
         console.log('[CONVERSATION_HELP] ⚙️ Proficiency level (via REF):', latestOptions.proficiencyLevel);
         console.log('[CONVERSATION_HELP] 🔍 Help settings:', latestConversationHelp.helpSettings);
 
-        // Use latest options from ref to avoid stale closure values
-        const shouldGenerateHelp = content.trim().length > 0 && latestOptions.enabled;
+        // Check BOTH: user wants help AND we have valid data
+        const shouldGenerateHelp = content.trim().length > 0 &&
+                                  latestOptions.enabled &&
+                                  latestConversationHelp.helpSettings.help_enabled;
         console.log('[CONVERSATION_HELP] 🔍 Should generate help:', shouldGenerateHelp);
 
         if (shouldGenerateHelp) {
@@ -1004,7 +1024,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       {/* Conversation Help Button */}
       <ConversationHelpButton
-        visible={conversationHelp.isHelpReady || conversationHelp.isLoading}
+        visible={
+          conversationHelp.helpSettings.help_enabled &&
+          (conversationHelp.isHelpReady || conversationHelp.isLoading)
+        }
         isLoading={conversationHelp.isLoading}
         onPress={conversationHelp.showHelpModal}
         helpLanguage={conversationHelp.helpSettings.help_language}
@@ -1012,10 +1035,6 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       {/* Recording Button */}
       <View style={styles.footer}>
-        {isRecording && (
-          <Text style={styles.recordingIndicator}>Recording...</Text>
-        )}
-
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
           <TouchableOpacity
             style={[
@@ -1039,9 +1058,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </Text>
       </View>
 
-      {/* Important Information Modal (for practice mode only) */}
+      {/* Important Information Modal (for both practice and learning plan modes) */}
       <Modal
-        visible={showInfoModal && !planId}
+        visible={showInfoModal}
         animationType="slide"
         transparent={true}
         onRequestClose={() => {}}
@@ -1095,13 +1114,37 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               </View>
             </ScrollView>
 
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={handleStartPracticeConversation}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modalButtonText}>Got it! Let's start</Text>
-            </TouchableOpacity>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={styles.modalButtonSecondary}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setShowInfoModal(false);
+                  navigation.goBack();
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Go Back</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButtonPrimary,
+                  (planId && isConnecting) && styles.modalButtonDisabled
+                ]}
+                onPress={handleStartPracticeConversation}
+                activeOpacity={0.8}
+                disabled={planId && isConnecting}
+              >
+                {planId && isConnecting ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Got it! Let's start</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1177,12 +1220,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         isLoading={conversationHelp.isLoading}
         targetLanguage={learningPlan?.language || language}
         helpLanguage={conversationHelp.helpSettings.help_language || 'english'}
+        helpEnabled={conversationHelp.helpSettings.help_enabled}
         onClose={conversationHelp.closeHelpModal}
         onSelectResponse={(responseText) => {
           // When user selects a suggested response, we could add it to the input
           // For now, just close the modal and let them speak it
           console.log('[CONVERSATION_HELP] User selected response:', responseText);
           conversationHelp.selectSuggestedResponse(responseText);
+        }}
+        onToggleHelp={(enabled) => {
+          console.log('[CONVERSATION_HELP] User toggled help:', enabled);
+          conversationHelp.updateHelpSettings({ help_enabled: enabled });
         }}
       />
     </SafeAreaView>
@@ -1491,12 +1539,6 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
   },
-  recordingIndicator: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#EF4444',
-    marginBottom: 12,
-  },
   recordButton: {
     width: 80,
     height: 80,
@@ -1569,17 +1611,40 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     lineHeight: 20,
   },
-  modalButton: {
+  modalButtonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  modalButtonPrimary: {
+    flex: 1,
     backgroundColor: '#14B8A6',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 24,
+  },
+  modalButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    opacity: 0.6,
+  },
+  modalButtonSecondary: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
   },
   modalButtonText: {
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  modalButtonSecondaryText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   endModalContent: {
     backgroundColor: '#FFFFFF',

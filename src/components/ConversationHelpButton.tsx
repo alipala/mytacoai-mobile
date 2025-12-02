@@ -165,13 +165,6 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
           <Ionicons name="bulb" size={32} color="#FFFFFF" />
         )}
       </TouchableOpacity>
-
-      {/* Small indicator badge - only show when not loading */}
-      {!isLoading && (
-        <Animated.View style={styles.badge}>
-          <Ionicons name="sparkles" size={10} color="#FFF" />
-        </Animated.View>
-      )}
     </Animated.View>
   );
 };
@@ -180,8 +173,8 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     // Position to the right of the microphone button (centered at screen center)
-    // Microphone is centered, radius 40px, gap 10px, help button starts 50px from center
-    left: SCREEN_WIDTH / 2 + 50,
+    // Microphone is centered (radius 40px), add more gap (20px), help button starts 100px from center
+    left: SCREEN_WIDTH / 2 + 100,
     // Align vertically with microphone button center
     // Footer paddingBottom(24) + text height(~26) + button half height(40) = 90px from bottom to button center
     bottom: 90,
@@ -219,19 +212,6 @@ const styles = StyleSheet.create({
         elevation: 6,
       },
     }),
-  },
-  badge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#EF4444',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
 });
 

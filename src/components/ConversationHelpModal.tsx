@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
   Platform,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -24,8 +25,10 @@ interface ConversationHelpModalProps {
   isLoading: boolean;
   targetLanguage: string;
   helpLanguage: string;
+  helpEnabled: boolean;
   onClose: () => void;
   onSelectResponse?: (responseText: string) => void;
+  onToggleHelp?: (enabled: boolean) => void;
 }
 
 // UI text translations
@@ -43,6 +46,7 @@ const getUIText = (language: string) => {
       creating: 'Creating suggestions for you',
       tapToSelect: 'Tap to use this response',
       close: 'Close',
+      enableHelp: 'Enable Help',
     },
     spanish: {
       conversationHelp: 'Ayuda de Conversación',
@@ -146,8 +150,10 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   isLoading,
   targetLanguage,
   helpLanguage,
+  helpEnabled,
   onClose,
   onSelectResponse,
+  onToggleHelp,
 }) => {
   const [scaleAnim] = useState(new Animated.Value(0));
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['responses']));
@@ -252,6 +258,15 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     onClose();
   };
 
+  const handleToggleHelp = (value: boolean) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    if (onToggleHelp) {
+      onToggleHelp(value);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -282,9 +297,19 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
               </View>
               <Text style={styles.title}>{uiText.conversationHelp}</Text>
             </View>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#64748B" />
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              <Switch
+                value={helpEnabled}
+                onValueChange={handleToggleHelp}
+                trackColor={{ false: '#D1D5DB', true: '#86EFAC' }}
+                thumbColor={helpEnabled ? '#10B981' : '#F3F4F6'}
+                ios_backgroundColor="#D1D5DB"
+                style={styles.toggle}
+              />
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView
@@ -524,6 +549,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  toggle: {
+    transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }],
   },
   iconContainer: {
     width: 36,
