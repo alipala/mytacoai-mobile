@@ -119,6 +119,26 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Add state for the fetched learning plan
   const [learningPlan, setLearningPlan] = useState<LearningPlan | null>(null);
 
+  // Log route params once on mount
+  useEffect(() => {
+    console.log('[CONVERSATION] 🎬 Component mounted with route params:', {
+      mode,
+      language,
+      topic,
+      level,
+      planId,
+    });
+  }, []);
+
+  // Log when learning plan changes
+  useEffect(() => {
+    console.log('[CONVERSATION] 📚 Learning plan state changed:', {
+      hasLearningPlan: !!learningPlan,
+      language: learningPlan?.language,
+      proficiency_level: learningPlan?.proficiency_level,
+    });
+  }, [learningPlan]);
+
   // Modal states
   const [showInfoModal, setShowInfoModal] = useState(true);
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
@@ -157,29 +177,106 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const autoSaveTriggeredRef = useRef(false);
 
   // Initialize conversation help system with memoized options to prevent re-renders
-  const conversationHelpOptions = useMemo(() => ({
-    targetLanguage: learningPlan?.language || language,
-    proficiencyLevel: learningPlan?.proficiency_level || level,
-    topic: planId ? undefined : topic,
-    enabled: true,
-  }), [learningPlan?.language, learningPlan?.proficiency_level, language, level, planId, topic]);
+  const conversationHelpOptions = useMemo(() => {
+    const targetLang = learningPlan?.language || language;
+    const profLevel = learningPlan?.proficiency_level || level;
+
+    // Only enable if we have valid required fields
+    const hasRequiredFields = !!targetLang && !!profLevel;
+
+    console.log('[CONVERSATION_HELP_OPTIONS] 📋 Creating options:', {
+      learningPlanLanguage: learningPlan?.language,
+      routeLanguage: language,
+      learningPlanLevel: learningPlan?.proficiency_level,
+      routeLevel: level,
+      targetLang,
+      profLevel,
+      hasRequiredFields,
+      enabled: hasRequiredFields,
+    });
+
+    return {
+      targetLanguage: targetLang || 'english', // Fallback to prevent undefined
+      proficiencyLevel: profLevel || 'beginner', // Fallback to prevent undefined
+      topic: planId ? undefined : topic,
+      enabled: hasRequiredFields, // Disable until we have valid data
+    };
+  }, [learningPlan?.language, learningPlan?.proficiency_level, language, level, planId, topic]);
 
   const conversationHelp = useConversationHelp(conversationHelpOptions);
 
+  // Use refs to ensure event handlers always have latest values
+  const conversationHelpOptionsRef = useRef(conversationHelpOptions);
+  const learningPlanRef = useRef(learningPlan);
+  const conversationHelpRef = useRef(conversationHelp);
+
+  // Keep refs in sync with latest values
+  useEffect(() => {
+    conversationHelpOptionsRef.current = conversationHelpOptions;
+  }, [conversationHelpOptions]);
+
+  useEffect(() => {
+    learningPlanRef.current = learningPlan;
+  }, [learningPlan]);
+
+  useEffect(() => {
+    conversationHelpRef.current = conversationHelp;
+  }, [conversationHelp]);
+
+  // Log when conversation help options change
+  useEffect(() => {
+    console.log('[CONVERSATION_HELP_OPTIONS] 🔄 Options changed:', conversationHelpOptions);
+  }, [conversationHelpOptions]);
+
+  // Retroactively generate help when learning plan loads and there are existing messages
+  useEffect(() => {
+    if (learningPlan && conversationHelpOptions.enabled && messages.length > 0) {
+      console.log('[CONVERSATION_HELP] 🔄 Learning plan loaded, checking for recent AI messages to generate help');
+
+      // Find the most recent assistant message
+      const lastAssistantMessage = messages.slice().reverse().find(m => m.role === 'assistant');
+
+      if (lastAssistantMessage && lastAssistantMessage.content.trim().length > 0) {
+        console.log('[CONVERSATION_HELP] 🔄 Retroactively generating help for last AI message');
+
+        const conversationContext = messages.slice(-5).map(m => ({
+          role: m.role,
+          content: m.content,
+          timestamp: m.timestamp,
+        }));
+
+        conversationHelp.handleAIResponseComplete(
+          lastAssistantMessage.content,
+          conversationContext
+        );
+      }
+    }
+  }, [learningPlan?.id, conversationHelpOptions.enabled]);
+
   // Fetch learning plan if planId is provided
   useEffect(() => {
+    console.log('[CONVERSATION] 🔍 Checking if we need to fetch plan. planId:', planId);
     if (planId) {
       const fetchPlan = async () => {
         try {
-          console.log(`[CONVERSATION] Fetching learning plan with ID: ${planId}`);
+          console.log(`[CONVERSATION] 📥 Fetching learning plan with ID: ${planId}`);
           setIsConnecting(true);
           const plan = await LearningService.getLearningPlanApiLearningPlanPlanIdGet({ planId });
-          setLearningPlan(plan);
           console.log('[CONVERSATION] ✅ Learning plan fetched successfully.');
+          console.log('[CONVERSATION] 📊 Plan details:', {
+            id: plan.id,
+            language: plan.language,
+            proficiency_level: plan.proficiency_level,
+            hasLanguage: !!plan.language,
+            hasProficiency: !!plan.proficiency_level,
+          });
+          setLearningPlan(plan);
+          console.log('[CONVERSATION] 💾 Learning plan saved to state');
           // Now that the plan is fetched, initialize the conversation
+          console.log('[CONVERSATION] 🚀 Initializing conversation with plan data');
           await initializeConversation(plan);
         } catch (error) {
-          console.error('[CONVERSATION] Error fetching learning plan:', error);
+          console.error('[CONVERSATION] ❌ Error fetching learning plan:', error);
           setConnectionError('Failed to load learning plan details.');
           setIsConnecting(false);
           Alert.alert('Error', 'Could not load the learning plan. Please try again.', [
@@ -189,6 +286,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       };
       fetchPlan();
     } else {
+      console.log('[CONVERSATION] 📝 No planId, showing info modal for practice mode');
       // For practice mode, show the info modal
       setShowInfoModal(true);
     }
@@ -524,12 +622,25 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       // Trigger conversation help when AI responds
       if (role === 'assistant') {
+        // Use refs to get the LATEST values (avoid closure issue)
+        const latestOptions = conversationHelpOptionsRef.current;
+        const latestLearningPlan = learningPlanRef.current;
+        const latestConversationHelp = conversationHelpRef.current;
+
         console.log('[CONVERSATION_HELP] 🎯 AI message received');
         console.log('[CONVERSATION_HELP] 📝 Content length:', content.trim().length);
-        console.log('[CONVERSATION_HELP] ⚙️ Help enabled:', conversationHelp.helpSettings.help_enabled);
-        console.log('[CONVERSATION_HELP] 🔍 Help settings:', conversationHelp.helpSettings);
+        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from helpSettings):', latestConversationHelp.helpSettings.help_enabled);
+        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from options via REF):', latestOptions.enabled);
+        console.log('[CONVERSATION_HELP] ⚙️ Has learningPlan (via REF):', !!latestLearningPlan);
+        console.log('[CONVERSATION_HELP] ⚙️ Target language (via REF):', latestOptions.targetLanguage);
+        console.log('[CONVERSATION_HELP] ⚙️ Proficiency level (via REF):', latestOptions.proficiencyLevel);
+        console.log('[CONVERSATION_HELP] 🔍 Help settings:', latestConversationHelp.helpSettings);
 
-        if (content.trim().length > 0 && conversationHelp.helpSettings.help_enabled) {
+        // Use latest options from ref to avoid stale closure values
+        const shouldGenerateHelp = content.trim().length > 0 && latestOptions.enabled;
+        console.log('[CONVERSATION_HELP] 🔍 Should generate help:', shouldGenerateHelp);
+
+        if (shouldGenerateHelp) {
           console.log('[CONVERSATION_HELP] ✅ Conditions met, triggering help generation');
           // Convert messages to the format expected by conversation help
           const conversationContext = updated.slice(-5).map(m => ({
@@ -537,7 +648,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             content: m.content,
             timestamp: m.timestamp,
           }));
-          conversationHelp.handleAIResponseComplete(content, conversationContext);
+          latestConversationHelp.handleAIResponseComplete(content, conversationContext);
         } else {
           console.log('[CONVERSATION_HELP] ❌ Conditions not met, skipping help generation');
         }
@@ -582,10 +693,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     const newRecordingState = !isRecording;
     setIsRecording(newRecordingState);
 
-    // Reset conversation help when user starts speaking
-    if (newRecordingState && (conversationHelp.isHelpReady || conversationHelp.isModalVisible)) {
-      console.log('[CONVERSATION_HELP] User started speaking, resetting help state');
-      conversationHelp.resetHelpState();
+    // Keep conversation help visible while recording so user can read suggestions
+    // Only close the modal if it's open, but keep the button visible
+    if (newRecordingState && conversationHelp.isModalVisible) {
+      console.log('[CONVERSATION_HELP] User started speaking, closing modal but keeping help button visible');
+      conversationHelp.closeHelpModal();
     }
 
     // Mute/unmute the microphone
@@ -892,7 +1004,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       {/* Conversation Help Button */}
       <ConversationHelpButton
-        visible={conversationHelp.isHelpReady && !isRecording && !isConnecting}
+        visible={conversationHelp.isHelpReady || conversationHelp.isLoading}
         isLoading={conversationHelp.isLoading}
         onPress={conversationHelp.showHelpModal}
         helpLanguage={conversationHelp.helpSettings.help_language}

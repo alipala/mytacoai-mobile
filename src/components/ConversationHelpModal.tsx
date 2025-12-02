@@ -374,16 +374,9 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                                 <Ionicons name="volume-medium" size={18} color="#10B981" />
                               </TouchableOpacity>
                             </View>
-                            {response.pronunciation && (
-                              <Text style={styles.pronunciationText}>/{response.pronunciation}/</Text>
-                            )}
                             {response.explanation && (
                               <Text style={styles.explanationText}>{response.explanation}</Text>
                             )}
-                            <View style={styles.tapHint}>
-                              <Ionicons name="hand-left-outline" size={14} color="#10B981" />
-                              <Text style={styles.tapHintText}>{uiText.tapToSelect}</Text>
-                            </View>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -559,7 +552,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   scrollContent: {
-    padding: 16,
+    padding: 12,
     flexGrow: 1,
   },
   loadingContainer: {
@@ -598,42 +591,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B5CF6',
   },
   contentContainer: {
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   section: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: 6,
+    marginBottom: 6,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1E293B',
     flex: 1,
   },
   summaryCard: {
     backgroundColor: '#EFF6FF',
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#DBEAFE',
   },
   summaryText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#1E40AF',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   responsesContainer: {
-    gap: 10,
+    gap: 8,
   },
   responseCard: {
     backgroundColor: '#F0FDF4',
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#BBF7D0',
   },
@@ -641,10 +634,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   responseText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#166534',
     flex: 1,
@@ -659,10 +652,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   explanationText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#166534',
-    lineHeight: 18,
-    marginBottom: 8,
+    lineHeight: 16,
   },
   tapHint: {
     flexDirection: 'row',

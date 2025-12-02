@@ -4,9 +4,12 @@ import {
   StyleSheet,
   Animated,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ConversationHelpButtonProps {
   visible: boolean;
@@ -23,10 +26,11 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowOpacity = useRef(new Animated.Value(0.3)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
 
   // Entrance/exit animation
   useEffect(() => {
-    if (visible && !isLoading) {
+    if (visible) {
       // Entrance animation with bounce
       Animated.spring(scaleAnim, {
         toValue: 1,
@@ -35,35 +39,37 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
         useNativeDriver: true,
       }).start();
 
-      // Start subtle pulse and glow
-      Animated.loop(
-        Animated.sequence([
-          Animated.parallel([
-            Animated.timing(pulseAnim, {
-              toValue: 1.05,
-              duration: 2000,
-              useNativeDriver: true,
-            }),
-            Animated.timing(glowOpacity, {
-              toValue: 0.6,
-              duration: 2000,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.parallel([
-            Animated.timing(pulseAnim, {
-              toValue: 1,
-              duration: 2000,
-              useNativeDriver: true,
-            }),
-            Animated.timing(glowOpacity, {
-              toValue: 0.3,
-              duration: 2000,
-              useNativeDriver: true,
-            }),
-          ]),
-        ])
-      ).start();
+      if (!isLoading) {
+        // Start subtle pulse and glow when not loading
+        Animated.loop(
+          Animated.sequence([
+            Animated.parallel([
+              Animated.timing(pulseAnim, {
+                toValue: 1.05,
+                duration: 2000,
+                useNativeDriver: true,
+              }),
+              Animated.timing(glowOpacity, {
+                toValue: 0.6,
+                duration: 2000,
+                useNativeDriver: true,
+              }),
+            ]),
+            Animated.parallel([
+              Animated.timing(pulseAnim, {
+                toValue: 1,
+                duration: 2000,
+                useNativeDriver: true,
+              }),
+              Animated.timing(glowOpacity, {
+                toValue: 0.3,
+                duration: 2000,
+                useNativeDriver: true,
+              }),
+            ]),
+          ])
+        ).start();
+      }
     } else {
       // Exit animation
       Animated.timing(scaleAnim, {
@@ -74,7 +80,23 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
     }
   }, [visible, isLoading]);
 
+  // Spinning animation for loading state
+  useEffect(() => {
+    if (isLoading) {
+      spinAnim.setValue(0);
+      Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      ).start();
+    }
+  }, [isLoading]);
+
   const handlePress = () => {
+    if (isLoading) return; // Don't allow press while loading
+
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -97,9 +119,14 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
     });
   };
 
-  if (!visible || isLoading) {
+  if (!visible) {
     return null;
   }
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
     <Animated.View
@@ -127,15 +154,24 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
       <TouchableOpacity
         style={styles.button}
         onPress={handlePress}
-        activeOpacity={0.8}
+        activeOpacity={isLoading ? 1 : 0.8}
+        disabled={isLoading}
       >
-        <Ionicons name="bulb" size={28} color="#FFFFFF" />
+        {isLoading ? (
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
+            <Ionicons name="hourglass" size={32} color="#FFFFFF" />
+          </Animated.View>
+        ) : (
+          <Ionicons name="bulb" size={32} color="#FFFFFF" />
+        )}
       </TouchableOpacity>
 
-      {/* Small indicator badge */}
-      <Animated.View style={styles.badge}>
-        <Ionicons name="sparkles" size={10} color="#FFF" />
-      </Animated.View>
+      {/* Small indicator badge - only show when not loading */}
+      {!isLoading && (
+        <Animated.View style={styles.badge}>
+          <Ionicons name="sparkles" size={10} color="#FFF" />
+        </Animated.View>
+      )}
     </Animated.View>
   );
 };
@@ -143,8 +179,12 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 140,
-    left: 30,
+    // Position to the right of the microphone button (centered at screen center)
+    // Microphone is centered, radius 40px, gap 10px, help button starts 50px from center
+    left: SCREEN_WIDTH / 2 + 50,
+    // Align vertically with microphone button center
+    // Footer paddingBottom(24) + text height(~26) + button half height(40) = 90px from bottom to button center
+    bottom: 90,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,
@@ -156,15 +196,15 @@ const styles = StyleSheet.create({
   },
   glowContainer: {
     position: 'absolute',
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: '#FBB040',
   },
   button: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#FBB040',
     alignItems: 'center',
     justifyContent: 'center',

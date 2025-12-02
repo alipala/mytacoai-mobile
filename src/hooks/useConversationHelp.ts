@@ -37,6 +37,10 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     enabled = true,
   } = options;
 
+  // Keep track of the enabled prop to use during settings load
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
   // State for help settings
   const [helpSettings, setHelpSettings] = useState<UserHelpSettings>({
     help_enabled: enabled,
@@ -67,6 +71,19 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     loadHelpSettings();
   }, []);
 
+  // Update help_enabled when the enabled prop changes (e.g., when learning plan loads)
+  useEffect(() => {
+    console.log('[CONVERSATION_HELP] 🔄 enabled prop changed:', enabled);
+    console.log('[CONVERSATION_HELP] 🔄 Current helpSettings.help_enabled:', helpSettings.help_enabled);
+    if (helpSettings.help_enabled !== enabled) {
+      console.log('[CONVERSATION_HELP] 🔄 Updating helpSettings.help_enabled to:', enabled);
+      setHelpSettings(prev => ({
+        ...prev,
+        help_enabled: enabled,
+      }));
+    }
+  }, [enabled, helpSettings.help_enabled]);
+
   // Log when help settings change
   useEffect(() => {
     console.log('[CONVERSATION_HELP] 📊 Settings updated:', {
@@ -78,7 +95,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
   /**
    * Load user's help settings from AsyncStorage and API
    */
-  const loadHelpSettings = async () => {
+  const loadHelpSettings = useCallback(async () => {
     try {
       console.log('[CONVERSATION_HELP] 🔄 Loading settings...');
 
@@ -97,10 +114,11 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
       try {
         const settings = await ConversationHelpService.getHelpSettingsApiConversationHelpSettingsGet();
 
-        // Merge with defaults, ensuring help_enabled defaults to true if not explicitly set to false
+        // Use preferences from API but ALWAYS use the enabled prop from options
+        // This allows the component to control when help is enabled based on having valid data
         const mergedSettings = {
           ...settings,
-          help_enabled: settings.help_enabled !== false ? true : false, // Default to true unless explicitly false
+          help_enabled: enabledRef.current, // ALWAYS use options.enabled, ignore API setting
           help_language: settings.help_language || 'english',
           show_pronunciation: settings.show_pronunciation !== false,
           show_grammar_tips: settings.show_grammar_tips !== false,
@@ -109,15 +127,16 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
         };
 
         setHelpSettings(mergedSettings);
-        console.log('[CONVERSATION_HELP] ✅ Loaded user settings:', mergedSettings);
-        console.log('[CONVERSATION_HELP] 🔑 help_enabled:', mergedSettings.help_enabled);
+        console.log('[CONVERSATION_HELP] ✅ Loaded user settings from API');
+        console.log('[CONVERSATION_HELP] 🔑 help_enabled (using options prop):', enabledRef.current);
+        console.log('[CONVERSATION_HELP] 🔑 help_enabled (API returned, but ignored):', settings.help_enabled);
       } catch (apiError) {
-        console.log('[CONVERSATION_HELP] ⚠️ Failed to load settings from API, using defaults with help_enabled=true');
+        console.log('[CONVERSATION_HELP] ⚠️ Failed to load settings from API, using defaults with help_enabled from options:', enabledRef.current);
       }
     } catch (error) {
       console.error('[CONVERSATION_HELP] ❌ Error loading settings:', error);
     }
-  };
+  }, []); // Empty deps - only uses refs and setters which don't change
 
   /**
    * Update help settings locally and on server
