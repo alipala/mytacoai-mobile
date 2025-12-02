@@ -400,4 +400,7 @@ export const styles = StyleSheet.create({
   helpNote: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#FFF7ED', padding: 16, borderRadius: 12, marginTop: 8, gap: 12, borderWidth: 1, borderColor: '#FDBA74' },
   helpNoteText: { fontSize: 13, color: '#9A3412', lineHeight: 20, flex: 1 },
   helpNoteBold: { fontWeight: '700' },
+
+  // Modal Safe Area
+  modalSafeArea: { flex: 1, backgroundColor: '#FFFFFF' },
 });

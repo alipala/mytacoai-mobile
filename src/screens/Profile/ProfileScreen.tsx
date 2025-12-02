@@ -24,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
+import SettingsScreen from './Settings/SettingsScreen';
 import { styles } from './styles/ProfileScreen.styles';
 
 const API_URL = API_BASE_URL;
@@ -951,105 +952,16 @@ const ProfileScreen: React.FC = () => {
           </View>
         </Modal>
 
-        {/* App Settings Modal - Coming Soon */}
+        {/* App Settings Modal */}
         <Modal
           visible={showAppSettings}
           animationType="slide"
           presentationStyle="pageSheet"
           onRequestClose={() => setShowAppSettings(false)}
         >
-          <View style={styles.appSettingsContainerNonTransparent}>
-              {/* Header */}
-              <View style={styles.appSettingsHeader}>
-                <View style={styles.headerLeft}>
-                  <Ionicons name="settings" size={24} color="#4ECFBF" />
-                  <Text style={styles.appSettingsTitle}>App Settings</Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (Platform.OS === 'ios') {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    }
-                    setShowAppSettings(false);
-                  }}
-                  style={styles.closeButton}
-                >
-                  <Ionicons name="close" size={24} color="#64748B" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Content */}
-              <ScrollView style={styles.appSettingsContent} showsVerticalScrollIndicator={false}>
-                {/* Coming Soon Badge */}
-                <View style={styles.comingSoonBadge}>
-                  <Ionicons name="rocket" size={24} color="#8B5CF6" />
-                  <Text style={styles.comingSoonText}>Coming Soon</Text>
-                </View>
-
-                {/* Planned Features */}
-                <Text style={styles.plannedFeaturesTitle}>We're working on:</Text>
-
-                {/* Account Preferences */}
-                <View style={styles.featureItem}>
-                  <View style={styles.featureIcon}>
-                    <Ionicons name="person-outline" size={24} color="#3B82F6" />
-                  </View>
-                  <View style={styles.featureInfo}>
-                    <Text style={styles.featureLabel}>Account Preferences</Text>
-                    <Text style={styles.featureDescription}>
-                      Manage your profile, email, and account settings
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Voice Selection */}
-                <View style={styles.featureItem}>
-                  <View style={styles.featureIcon}>
-                    <Ionicons name="mic-outline" size={24} color="#10B981" />
-                  </View>
-                  <View style={styles.featureInfo}>
-                    <Text style={styles.featureLabel}>Voice Selection</Text>
-                    <Text style={styles.featureDescription}>
-                      Choose your preferred AI tutor voice
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Language Defaults */}
-                <View style={styles.featureItem}>
-                  <View style={styles.featureIcon}>
-                    <Ionicons name="language-outline" size={24} color="#F59E0B" />
-                  </View>
-                  <View style={styles.featureInfo}>
-                    <Text style={styles.featureLabel}>Language Defaults</Text>
-                    <Text style={styles.featureDescription}>
-                      Set default language and proficiency level
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Notification Settings */}
-                <View style={styles.featureItem}>
-                  <View style={styles.featureIcon}>
-                    <Ionicons name="notifications-outline" size={24} color="#EC4899" />
-                  </View>
-                  <View style={styles.featureInfo}>
-                    <Text style={styles.featureLabel}>Notification Settings</Text>
-                    <Text style={styles.featureDescription}>
-                      Customize reminders and notification preferences
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Note about conversation help */}
-                <View style={styles.helpNote}>
-                  <Ionicons name="bulb" size={20} color="#FBB040" />
-                  <Text style={styles.helpNoteText}>
-                    <Text style={styles.helpNoteBold}>Conversation Help</Text> settings can be accessed directly during your practice sessions by tapping the lightbulb icon.
-                  </Text>
-                </View>
-              </ScrollView>
-          </View>
+          <SafeAreaView style={styles.modalSafeArea}>
+            <SettingsScreen onClose={() => setShowAppSettings(false)} />
+          </SafeAreaView>
         </Modal>
       </View>
     </SafeAreaView>
