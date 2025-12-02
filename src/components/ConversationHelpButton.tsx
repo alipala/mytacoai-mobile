@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     // Position at top-right corner of conversation area
     right: 16,
-    // Below timer badge (timer is ~50px height), add 16px gap = 66px
-    // Account for safe area - position at 100px from top
-    top: 100,
+    // Below header (~60px) + timer badge (~50px) + gap (16px) = 126px
+    // This ensures no overlap with End button in header
+    top: 126,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,

@@ -530,28 +530,6 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                 <Text style={styles.emptyText}>No help content available</Text>
               </View>
             )}
-
-            {/* Microphone Reminder - Always show when help data is available */}
-            {!isLoading && helpData && (
-              <View style={styles.micReminderContainer}>
-                <View style={styles.micReminderContent}>
-                  <Animated.View
-                    style={[
-                      styles.micIconContainer,
-                      {
-                        transform: [{ scale: micPulseAnim }],
-                      },
-                    ]}
-                  >
-                    <Ionicons name="mic" size={24} color="#14B8A6" />
-                  </Animated.View>
-                  <View style={styles.micReminderTextContainer}>
-                    <Text style={styles.micReminderTitle}>{uiText.readyToRespond}</Text>
-                    <Text style={styles.micReminderSubtitle}>{uiText.tapMicToSpeak}</Text>
-                  </View>
-                </View>
-              </View>
-            )}
           </ScrollView>
         </Animated.View>
       </BlurView>
@@ -873,66 +851,6 @@ const styles = StyleSheet.create({
     color: '#92400E',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     marginBottom: 8,
-  },
-  micReminderContainer: {
-    marginTop: 16,
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  micReminderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0FDFA',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#14B8A6',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  micIconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#14B8A6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  micReminderTextContainer: {
-    flex: 1,
-  },
-  micReminderTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0D9488',
-    marginBottom: 4,
-  },
-  micReminderSubtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#14B8A6',
   },
 });
 

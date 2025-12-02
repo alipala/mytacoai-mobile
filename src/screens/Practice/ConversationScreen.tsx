@@ -1022,12 +1022,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         )}
       </ScrollView>
 
-      {/* Conversation Help Button - Smart Visibility */}
+      {/* Conversation Help Button */}
       <ConversationHelpButton
         visible={
           conversationHelp.helpSettings.help_enabled &&
           (conversationHelp.isHelpReady || conversationHelp.isLoading) &&
-          !isRecording && // Hide when user is actively recording
           messages.length > 0 // Only show after conversation has started
         }
         isLoading={conversationHelp.isLoading}
