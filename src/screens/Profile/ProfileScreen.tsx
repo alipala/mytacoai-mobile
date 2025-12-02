@@ -16,6 +16,7 @@ import {
   Platform,
   Dimensions,
   Animated,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -977,20 +978,20 @@ const ProfileScreen: React.FC = () => {
           transparent={true}
           onRequestClose={() => setShowAppSettings(false)}
         >
-          <TouchableOpacity
-            style={styles.appSettingsOverlay}
-            activeOpacity={1}
-            onPress={() => setShowAppSettings(false)}
-          >
-            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-              <Animated.View
-                style={[
-                  styles.appSettingsContainer,
-                  {
-                    transform: [{ translateY: appSettingsSlideAnim }],
-                  },
-                ]}
-              >
+          <View style={styles.appSettingsOverlay}>
+            <TouchableOpacity
+              style={StyleSheet.absoluteFill}
+              activeOpacity={1}
+              onPress={() => setShowAppSettings(false)}
+            />
+            <Animated.View
+              style={[
+                styles.appSettingsContainer,
+                {
+                  transform: [{ translateY: appSettingsSlideAnim }],
+                },
+              ]}
+            >
               {/* Header */}
               <View style={styles.appSettingsHeader}>
                 <View style={styles.headerLeft}>
@@ -1082,8 +1083,7 @@ const ProfileScreen: React.FC = () => {
                 </View>
               </ScrollView>
             </Animated.View>
-            </TouchableOpacity>
-          </TouchableOpacity>
+          </View>
         </Modal>
       </View>
     </SafeAreaView>
