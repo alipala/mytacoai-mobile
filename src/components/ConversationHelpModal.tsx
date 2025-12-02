@@ -47,6 +47,8 @@ const getUIText = (language: string) => {
       tapToSelect: 'Tap to use this response',
       close: 'Close',
       enableHelp: 'Enable Help',
+      tapMicToSpeak: 'Tap microphone to speak',
+      readyToRespond: 'Ready to respond?',
     },
     spanish: {
       conversationHelp: 'Ayuda de Conversación',
@@ -155,31 +157,53 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   onSelectResponse,
   onToggleHelp,
 }) => {
-  const [scaleAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(-SCREEN_HEIGHT));
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['responses']));
   const dotAnimations = useRef([
     new Animated.Value(0),
     new Animated.Value(0),
     new Animated.Value(0),
   ]).current;
+  const micPulseAnim = useRef(new Animated.Value(1)).current;
 
   const uiText = getUIText(helpLanguage);
 
-  // Entrance animation
+  // Slide-down entrance animation from top
   useEffect(() => {
     if (visible) {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 65,
+        friction: 9,
         useNativeDriver: true,
       }).start();
 
       if (Platform.OS === 'ios') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
+
+      // Start microphone pulse animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(micPulseAnim, {
+            toValue: 1.15,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(micPulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
     } else {
-      scaleAnim.setValue(0);
+      Animated.timing(slideAnim, {
+        toValue: -SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+      micPulseAnim.setValue(1);
     }
   }, [visible]);
 
@@ -271,7 +295,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={handleClose}
     >
       <BlurView intensity={80} style={styles.blurContainer}>
@@ -285,7 +309,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
           style={[
             styles.modalContainer,
             {
-              transform: [{ scale: scaleAnim }],
+              transform: [{ translateY: slideAnim }],
             },
           ]}
         >
@@ -392,16 +416,25 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                           >
                             <View style={styles.responseHeader}>
                               <Text style={styles.responseText}>{response.text}</Text>
-                              <TouchableOpacity
-                                onPress={() => playPronunciation(response.text || '')}
-                                style={styles.pronunciationButton}
-                              >
-                                <Ionicons name="volume-medium" size={18} color="#10B981" />
-                              </TouchableOpacity>
+                              <View style={styles.responseActions}>
+                                <TouchableOpacity
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    playPronunciation(response.text || '');
+                                  }}
+                                  style={styles.pronunciationButton}
+                                >
+                                  <Ionicons name="volume-medium" size={18} color="#10B981" />
+                                </TouchableOpacity>
+                              </View>
                             </View>
                             {response.explanation && (
                               <Text style={styles.explanationText}>{response.explanation}</Text>
                             )}
+                            <View style={styles.tapHintRow}>
+                              <Ionicons name="hand-left-outline" size={14} color="#10B981" />
+                              <Text style={styles.tapHintText}>{uiText.tapToSelect}</Text>
+                            </View>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -501,6 +534,28 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                 <Text style={styles.emptyText}>No help content available</Text>
               </View>
             )}
+
+            {/* Microphone Reminder - Always show when help data is available */}
+            {!isLoading && helpData && (
+              <View style={styles.micReminderContainer}>
+                <View style={styles.micReminderContent}>
+                  <Animated.View
+                    style={[
+                      styles.micIconContainer,
+                      {
+                        transform: [{ scale: micPulseAnim }],
+                      },
+                    ]}
+                  >
+                    <Ionicons name="mic" size={24} color="#14B8A6" />
+                  </Animated.View>
+                  <View style={styles.micReminderTextContainer}>
+                    <Text style={styles.micReminderTitle}>{uiText.readyToRespond}</Text>
+                    <Text style={styles.micReminderSubtitle}>{uiText.tapMicToSpeak}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
           </ScrollView>
         </Animated.View>
       </BlurView>
@@ -511,19 +566,21 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 const styles = StyleSheet.create({
   blurContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
-    width: SCREEN_WIDTH * 0.9,
-    maxHeight: SCREEN_HEIGHT * 0.85,
+    width: SCREEN_WIDTH,
+    maxHeight: SCREEN_HEIGHT * 0.80,
     minHeight: 500,
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    overflow: 'visible',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
+    marginTop: 0,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -658,10 +715,21 @@ const styles = StyleSheet.create({
   },
   responseCard: {
     backgroundColor: '#F0FDF4',
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: '#BBF7D0',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   responseHeader: {
     flexDirection: 'row',
@@ -675,9 +743,17 @@ const styles = StyleSheet.create({
     color: '#166534',
     flex: 1,
     marginRight: 8,
+    lineHeight: 22,
+  },
+  responseActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   pronunciationButton: {
-    padding: 4,
+    padding: 6,
+    backgroundColor: '#DCFCE7',
+    borderRadius: 6,
   },
   pronunciationText: {
     fontSize: 12,
@@ -687,7 +763,17 @@ const styles = StyleSheet.create({
   explanationText: {
     fontSize: 12,
     color: '#166534',
-    lineHeight: 16,
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  tapHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#BBF7D0',
   },
   tapHint: {
     flexDirection: 'row',
@@ -696,9 +782,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tapHintText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#10B981',
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   vocabularyContainer: {
     gap: 12,
@@ -792,6 +879,66 @@ const styles = StyleSheet.create({
     color: '#92400E',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     marginBottom: 8,
+  },
+  micReminderContainer: {
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  micReminderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDFA',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#14B8A6',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  micIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#14B8A6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  micReminderTextContainer: {
+    flex: 1,
+  },
+  micReminderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0D9488',
+    marginBottom: 4,
+  },
+  micReminderSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#14B8A6',
   },
 });
 
