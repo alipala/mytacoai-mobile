@@ -157,7 +157,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   onSelectResponse,
   onToggleHelp,
 }) => {
-  const [slideAnim] = useState(new Animated.Value(-SCREEN_HEIGHT));
+  const [scaleAnim] = useState(new Animated.Value(0));
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['responses']));
   const dotAnimations = useRef([
     new Animated.Value(0),
@@ -168,13 +168,13 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 
   const uiText = getUIText(helpLanguage);
 
-  // Slide-down entrance animation from top
+  // Center scale entrance animation
   useEffect(() => {
     if (visible) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        tension: 65,
-        friction: 9,
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
         useNativeDriver: true,
       }).start();
 
@@ -198,11 +198,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
         ])
       ).start();
     } else {
-      Animated.timing(slideAnim, {
-        toValue: -SCREEN_HEIGHT,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
+      scaleAnim.setValue(0);
       micPulseAnim.setValue(1);
     }
   }, [visible]);
@@ -295,7 +291,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="none"
+      animationType="fade"
       onRequestClose={handleClose}
     >
       <BlurView intensity={80} style={styles.blurContainer}>
@@ -309,7 +305,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
           style={[
             styles.modalContainer,
             {
-              transform: [{ translateY: slideAnim }],
+              transform: [{ scale: scaleAnim }],
             },
           ]}
         >
@@ -566,21 +562,19 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 const styles = StyleSheet.create({
   blurContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
-    width: SCREEN_WIDTH,
-    maxHeight: SCREEN_HEIGHT * 0.80,
+    width: SCREEN_WIDTH * 0.9,
+    maxHeight: SCREEN_HEIGHT * 0.85,
     minHeight: 500,
     backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    overflow: 'hidden',
-    marginTop: 0,
+    borderRadius: 24,
+    overflow: 'visible',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
