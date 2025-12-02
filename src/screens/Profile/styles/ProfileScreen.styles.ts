@@ -374,4 +374,30 @@ export const styles = StyleSheet.create({
   flashcardModalTitle: { fontSize: 17, fontWeight: '700', color: '#1F2937', textAlign: 'center' },
   flashcardModalSubtitle: { fontSize: 12, fontWeight: '500', color: '#6B7280', marginTop: 2, textAlign: 'center' },
   headerSpacer: { width: 44 },
+
+  // App Settings Modal
+  appSettingsOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
+  appSettingsContainer: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 8 },
+  appSettingsContainerNonTransparent: { flex: 1, backgroundColor: '#F9FAFB', paddingTop: 20 },
+  appSettingsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFFFFF' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  appSettingsTitle: { fontSize: 18, fontWeight: '700', color: '#1E293B', marginLeft: 12 },
+  appSettingsContent: { flex: 1, padding: 20 },
+
+  // Coming Soon Badge
+  comingSoonBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3E8FF', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 20, marginBottom: 24, gap: 8 },
+  comingSoonText: { fontSize: 16, fontWeight: '700', color: '#8B5CF6', letterSpacing: 0.5 },
+
+  // Planned Features
+  plannedFeaturesTitle: { fontSize: 18, fontWeight: '700', color: '#1E293B', marginBottom: 16 },
+  featureItem: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F9FAFB', padding: 16, borderRadius: 12, marginBottom: 12, gap: 12 },
+  featureIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  featureInfo: { flex: 1 },
+  featureLabel: { fontSize: 16, fontWeight: '600', color: '#1E293B', marginBottom: 4 },
+  featureDescription: { fontSize: 14, color: '#64748B', lineHeight: 20 },
+
+  // Help Note
+  helpNote: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#FFF7ED', padding: 16, borderRadius: 12, marginTop: 8, gap: 12, borderWidth: 1, borderColor: '#FDBA74' },
+  helpNoteText: { fontSize: 13, color: '#9A3412', lineHeight: 20, flex: 1 },
+  helpNoteBold: { fontWeight: '700' },
 });

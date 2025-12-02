@@ -47,6 +47,8 @@ const getUIText = (language: string) => {
       tapToSelect: 'Tap to use this response',
       close: 'Close',
       enableHelp: 'Enable Help',
+      tapMicToSpeak: 'Tap microphone to speak',
+      readyToRespond: 'Ready to respond?',
     },
     spanish: {
       conversationHelp: 'Ayuda de Conversación',
@@ -162,10 +164,11 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     new Animated.Value(0),
     new Animated.Value(0),
   ]).current;
+  const micPulseAnim = useRef(new Animated.Value(1)).current;
 
   const uiText = getUIText(helpLanguage);
 
-  // Entrance animation
+  // Center scale entrance animation
   useEffect(() => {
     if (visible) {
       Animated.spring(scaleAnim, {
@@ -178,8 +181,25 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
       if (Platform.OS === 'ios') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
+
+      // Start microphone pulse animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(micPulseAnim, {
+            toValue: 1.15,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(micPulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
     } else {
       scaleAnim.setValue(0);
+      micPulseAnim.setValue(1);
     }
   }, [visible]);
 
@@ -392,16 +412,25 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                           >
                             <View style={styles.responseHeader}>
                               <Text style={styles.responseText}>{response.text}</Text>
-                              <TouchableOpacity
-                                onPress={() => playPronunciation(response.text || '')}
-                                style={styles.pronunciationButton}
-                              >
-                                <Ionicons name="volume-medium" size={18} color="#10B981" />
-                              </TouchableOpacity>
+                              <View style={styles.responseActions}>
+                                <TouchableOpacity
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    playPronunciation(response.text || '');
+                                  }}
+                                  style={styles.pronunciationButton}
+                                >
+                                  <Ionicons name="volume-medium" size={18} color="#10B981" />
+                                </TouchableOpacity>
+                              </View>
                             </View>
                             {response.explanation && (
                               <Text style={styles.explanationText}>{response.explanation}</Text>
                             )}
+                            <View style={styles.tapHintRow}>
+                              <Ionicons name="hand-left-outline" size={14} color="#10B981" />
+                              <Text style={styles.tapHintText}>{uiText.tapToSelect}</Text>
+                            </View>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -658,10 +687,21 @@ const styles = StyleSheet.create({
   },
   responseCard: {
     backgroundColor: '#F0FDF4',
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: '#BBF7D0',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   responseHeader: {
     flexDirection: 'row',
@@ -675,9 +715,17 @@ const styles = StyleSheet.create({
     color: '#166534',
     flex: 1,
     marginRight: 8,
+    lineHeight: 22,
+  },
+  responseActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   pronunciationButton: {
-    padding: 4,
+    padding: 6,
+    backgroundColor: '#DCFCE7',
+    borderRadius: 6,
   },
   pronunciationText: {
     fontSize: 12,
@@ -687,7 +735,17 @@ const styles = StyleSheet.create({
   explanationText: {
     fontSize: 12,
     color: '#166534',
-    lineHeight: 16,
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  tapHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#BBF7D0',
   },
   tapHint: {
     flexDirection: 'row',
@@ -696,9 +754,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tapHintText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#10B981',
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   vocabularyContainer: {
     gap: 12,

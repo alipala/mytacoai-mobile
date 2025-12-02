@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import {
+  View,
   TouchableOpacity,
   StyleSheet,
   Animated,
@@ -16,17 +17,21 @@ interface ConversationHelpButtonProps {
   isLoading: boolean;
   onPress: () => void;
   helpLanguage?: string;
+  isHelpReady?: boolean; // NEW: indicates help data is available
 }
 
 const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
   visible,
   isLoading,
   onPress,
+  isHelpReady = false,
 }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowOpacity = useRef(new Animated.Value(0.3)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
+  const badgePulseAnim = useRef(new Animated.Value(1)).current;
+  const loadingPulseAnim = useRef(new Animated.Value(1)).current;
 
   // Entrance/exit animation
   useEffect(() => {
@@ -94,6 +99,50 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
     }
   }, [isLoading]);
 
+  // Badge pulse animation when help is ready
+  useEffect(() => {
+    if (isHelpReady && !isLoading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(badgePulseAnim, {
+            toValue: 1.2,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(badgePulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      badgePulseAnim.setValue(1);
+    }
+  }, [isHelpReady, isLoading]);
+
+  // Loading pulse animation - makes button pulse while loading
+  useEffect(() => {
+    if (isLoading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(loadingPulseAnim, {
+            toValue: 1.08,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(loadingPulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      loadingPulseAnim.setValue(1);
+    }
+  }, [isLoading]);
+
   const handlePress = () => {
     if (isLoading) return; // Don't allow press while loading
 
@@ -128,6 +177,10 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
     outputRange: ['0deg', '360deg'],
   });
 
+  // Determine button color based on state
+  const buttonColor = isLoading ? '#8B5CF6' : '#FBB040'; // Purple when loading, yellow when ready
+  const glowColor = isLoading ? '#8B5CF6' : '#FBB040';
+
   return (
     <Animated.View
       style={[
@@ -136,6 +189,7 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
           transform: [
             { scale: scaleAnim },
             { scale: pulseAnim },
+            { scale: isLoading ? loadingPulseAnim : 1 }, // Add loading pulse
           ],
         },
       ]}
@@ -146,25 +200,40 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
           styles.glowContainer,
           {
             opacity: glowOpacity,
+            backgroundColor: glowColor,
           },
         ]}
       />
 
       {/* Main button */}
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, { backgroundColor: buttonColor }]}
         onPress={handlePress}
         activeOpacity={isLoading ? 1 : 0.8}
         disabled={isLoading}
       >
         {isLoading ? (
           <Animated.View style={{ transform: [{ rotate: spin }] }}>
-            <Ionicons name="hourglass" size={32} color="#FFFFFF" />
+            <Ionicons name="hourglass" size={24} color="#FFFFFF" />
           </Animated.View>
         ) : (
-          <Ionicons name="bulb" size={32} color="#FFFFFF" />
+          <Ionicons name="bulb" size={24} color="#FFFFFF" />
         )}
       </TouchableOpacity>
+
+      {/* Badge indicator - shows when help is ready */}
+      {isHelpReady && !isLoading && (
+        <Animated.View
+          style={[
+            styles.badge,
+            {
+              transform: [{ scale: badgePulseAnim }],
+            },
+          ]}
+        >
+          <View style={styles.badgeDot} />
+        </Animated.View>
+      )}
     </Animated.View>
   );
 };
@@ -172,12 +241,11 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    // Position to the right of the microphone button (centered at screen center)
-    // Microphone is centered (radius 40px), add more gap (20px), help button starts 100px from center
-    left: SCREEN_WIDTH / 2 + 100,
-    // Align vertically with microphone button center
-    // Footer paddingBottom(24) + text height(~26) + button half height(40) = 90px from bottom to button center
-    bottom: 90,
+    // Position at top-right corner of conversation area
+    right: 16,
+    // Below header (~60px) + timer badge (~50px) + gap (16px) = 126px
+    // This ensures no overlap with End button in header
+    top: 126,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,
@@ -189,29 +257,57 @@ const styles = StyleSheet.create({
   },
   glowContainer: {
     position: 'absolute',
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#FBB040',
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    // backgroundColor set dynamically
   },
   button: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FBB040',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    // backgroundColor set dynamically based on loading state
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#FBB040',
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.3,
         shadowRadius: 8,
       },
       android: {
         elevation: 6,
       },
     }),
+  },
+  badge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.6,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  badgeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#10B981',
   },
 });
 
