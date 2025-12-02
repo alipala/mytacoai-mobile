@@ -378,7 +378,9 @@ export const styles = StyleSheet.create({
   // App Settings Modal
   appSettingsOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
   appSettingsContainer: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 8 },
-  appSettingsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  appSettingsContainerNonTransparent: { flex: 1, backgroundColor: '#F9FAFB', paddingTop: 20 },
+  appSettingsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFFFFF' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   appSettingsTitle: { fontSize: 18, fontWeight: '700', color: '#1E293B', marginLeft: 12 },
   appSettingsContent: { flex: 1, padding: 20 },
 

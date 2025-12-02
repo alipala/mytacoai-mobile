@@ -955,16 +955,10 @@ const ProfileScreen: React.FC = () => {
         <Modal
           visible={showAppSettings}
           animationType="slide"
-          transparent={true}
+          presentationStyle="pageSheet"
           onRequestClose={() => setShowAppSettings(false)}
         >
-          <View style={styles.appSettingsOverlay}>
-            <TouchableOpacity
-              style={StyleSheet.absoluteFill}
-              activeOpacity={1}
-              onPress={() => setShowAppSettings(false)}
-            />
-            <View style={styles.appSettingsContainer}>
+          <View style={styles.appSettingsContainerNonTransparent}>
               {/* Header */}
               <View style={styles.appSettingsHeader}>
                 <View style={styles.headerLeft}>
@@ -1055,7 +1049,6 @@ const ProfileScreen: React.FC = () => {
                   </Text>
                 </View>
               </ScrollView>
-            </View>
           </View>
         </Modal>
       </View>
