@@ -15,6 +15,7 @@ import {
   FlatList,
   Platform,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -153,6 +154,7 @@ const ProfileScreen: React.FC = () => {
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
+  const appSettingsSlideAnim = React.useRef(new Animated.Value(1000)).current;
 
   // Tab Navigation Helpers
   const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
@@ -284,6 +286,26 @@ const ProfileScreen: React.FC = () => {
     };
     loadData();
   }, []);
+
+  // App Settings modal animation
+  useEffect(() => {
+    if (showAppSettings) {
+      // Slide up from bottom
+      Animated.spring(appSettingsSlideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 10,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Slide down to bottom
+      Animated.timing(appSettingsSlideAnim, {
+        toValue: 1000,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showAppSettings]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -953,12 +975,19 @@ const ProfileScreen: React.FC = () => {
         {/* App Settings Modal - Coming Soon */}
         <Modal
           visible={showAppSettings}
-          animationType="slide"
+          animationType="none"
           transparent={true}
           onRequestClose={() => setShowAppSettings(false)}
         >
           <View style={styles.appSettingsOverlay}>
-            <View style={styles.appSettingsContainer}>
+            <Animated.View
+              style={[
+                styles.appSettingsContainer,
+                {
+                  transform: [{ translateY: appSettingsSlideAnim }],
+                },
+              ]}
+            >
               {/* Header */}
               <View style={styles.appSettingsHeader}>
                 <View style={styles.headerLeft}>
@@ -1049,7 +1078,7 @@ const ProfileScreen: React.FC = () => {
                   </Text>
                 </View>
               </ScrollView>
-            </View>
+            </Animated.View>
           </View>
         </Modal>
       </View>
