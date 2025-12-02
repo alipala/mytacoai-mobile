@@ -14,6 +14,7 @@ import {
   Platform,
   StyleSheet,
   Image,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -36,6 +37,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
   const [currentVoice, setCurrentVoice] = useState<string>('');
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [voices, setVoices] = useState<Record<string, VoiceCharacter>>({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     loadVoiceData();
@@ -70,7 +72,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
     setSelectedVoice(voice);
   };
 
-  const handleSaveVoice = async () => {
+  const handleShowConfirmation = () => {
     if (selectedVoice === currentVoice) {
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -79,8 +81,17 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       return;
     }
 
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmVoiceChange = async () => {
     try {
       setSaving(true);
+      setShowConfirmModal(false);
+
       const response = await AuthenticationService.selectVoiceApiAuthSelectVoicePost({
         requestBody: { voice: selectedVoice },
       });
@@ -92,7 +103,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
 
-        Alert.alert('Success', `Voice changed to ${selectedVoice}`);
+        Alert.alert('Success', response.message || `Voice changed to ${selectedVoice}`);
       }
     } catch (error: any) {
       console.error('Error saving voice:', error);
@@ -100,6 +111,13 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancelConfirmation = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowConfirmModal(false);
   };
 
   if (loading) {
@@ -244,7 +262,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
         <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-            onPress={handleSaveVoice}
+            onPress={handleShowConfirmation}
             disabled={saving}
             activeOpacity={0.7}
           >
@@ -261,6 +279,84 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showConfirmModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelConfirmation}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Ionicons name="volume-medium" size={24} color="#4ECFBF" />
+              <Text style={styles.modalTitle}>Confirm Voice Change</Text>
+            </View>
+
+            {/* Voice Info */}
+            {voices[selectedVoice] && (
+              <View style={styles.modalContent}>
+                <View style={styles.modalVoiceCard}>
+                  {voices[selectedVoice].icon_url ? (
+                    <Image
+                      source={{ uri: voices[selectedVoice].icon_url }}
+                      style={styles.modalVoiceImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.modalVoiceAvatar}>
+                      <Text style={styles.modalVoiceAvatarText}>
+                        {selectedVoice.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text style={styles.modalVoiceName}>
+                  {selectedVoice.charAt(0).toUpperCase() + selectedVoice.slice(1)}
+                </Text>
+                <Text style={styles.modalVoicePersonality}>
+                  {voices[selectedVoice].personality}
+                </Text>
+                <Text style={styles.modalVoiceDescription}>
+                  {voices[selectedVoice].description}
+                </Text>
+
+                {/* Info Banner */}
+                <View style={styles.modalInfoBanner}>
+                  <Ionicons name="pencil" size={16} color="#0D9488" />
+                  <Text style={styles.modalInfoText}>
+                    <Text style={styles.modalInfoBold}>Voice Update: </Text>
+                    This voice will be used for all your future AI tutor conversations. You can change it again anytime from your profile settings.
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={handleCancelConfirmation}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalConfirmButton}
+                onPress={handleConfirmVoiceChange}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                <Text style={styles.modalConfirmButtonText}>Confirm Change</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -487,6 +583,135 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+
+  // Confirmation Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  modalContent: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalVoiceCard: {
+    marginBottom: 16,
+  },
+  modalVoiceImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  modalVoiceAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#4ECFBF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalVoiceAvatarText: {
+    fontSize: 40,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalVoiceName: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  modalVoicePersonality: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#4ECFBF',
+    marginBottom: 12,
+  },
+  modalVoiceDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  modalInfoBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#CCFBF1',
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+    alignItems: 'flex-start',
+  },
+  modalInfoText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#0D9488',
+    lineHeight: 18,
+  },
+  modalInfoBold: {
+    fontWeight: '600',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    paddingTop: 0,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  modalConfirmButton: {
+    flex: 1,
+    backgroundColor: '#4ECFBF',
+    flexDirection: 'row',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  modalConfirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
