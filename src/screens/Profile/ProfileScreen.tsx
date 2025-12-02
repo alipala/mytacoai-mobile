@@ -290,20 +290,18 @@ const ProfileScreen: React.FC = () => {
   // App Settings modal animation
   useEffect(() => {
     if (showAppSettings) {
-      // Slide up from bottom
+      // Ensure we start off-screen
+      appSettingsSlideAnim.setValue(1000);
+      // Then immediately slide up with spring animation
       Animated.spring(appSettingsSlideAnim, {
         toValue: 0,
-        tension: 50,
-        friction: 10,
+        tension: 65,
+        friction: 8,
         useNativeDriver: true,
       }).start();
     } else {
-      // Slide down to bottom
-      Animated.timing(appSettingsSlideAnim, {
-        toValue: 1000,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
+      // Reset to off-screen position when closing
+      appSettingsSlideAnim.setValue(1000);
     }
   }, [showAppSettings]);
 
@@ -979,15 +977,20 @@ const ProfileScreen: React.FC = () => {
           transparent={true}
           onRequestClose={() => setShowAppSettings(false)}
         >
-          <View style={styles.appSettingsOverlay}>
-            <Animated.View
-              style={[
-                styles.appSettingsContainer,
-                {
-                  transform: [{ translateY: appSettingsSlideAnim }],
-                },
-              ]}
-            >
+          <TouchableOpacity
+            style={styles.appSettingsOverlay}
+            activeOpacity={1}
+            onPress={() => setShowAppSettings(false)}
+          >
+            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+              <Animated.View
+                style={[
+                  styles.appSettingsContainer,
+                  {
+                    transform: [{ translateY: appSettingsSlideAnim }],
+                  },
+                ]}
+              >
               {/* Header */}
               <View style={styles.appSettingsHeader}>
                 <View style={styles.headerLeft}>
@@ -1079,7 +1082,8 @@ const ProfileScreen: React.FC = () => {
                 </View>
               </ScrollView>
             </Animated.View>
-          </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </Modal>
       </View>
     </SafeAreaView>
