@@ -15,7 +15,6 @@ import {
   FlatList,
   Platform,
   Dimensions,
-  Animated,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -155,7 +154,6 @@ const ProfileScreen: React.FC = () => {
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
-  const appSettingsSlideAnim = React.useRef(new Animated.Value(1000)).current;
 
   // Tab Navigation Helpers
   const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
@@ -287,24 +285,6 @@ const ProfileScreen: React.FC = () => {
     };
     loadData();
   }, []);
-
-  // App Settings modal animation
-  useEffect(() => {
-    if (showAppSettings) {
-      // Ensure we start off-screen
-      appSettingsSlideAnim.setValue(1000);
-      // Then immediately slide up with spring animation
-      Animated.spring(appSettingsSlideAnim, {
-        toValue: 0,
-        tension: 65,
-        friction: 8,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      // Reset to off-screen position when closing
-      appSettingsSlideAnim.setValue(1000);
-    }
-  }, [showAppSettings]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -974,7 +954,7 @@ const ProfileScreen: React.FC = () => {
         {/* App Settings Modal - Coming Soon */}
         <Modal
           visible={showAppSettings}
-          animationType="none"
+          animationType="slide"
           transparent={true}
           onRequestClose={() => setShowAppSettings(false)}
         >
@@ -984,14 +964,7 @@ const ProfileScreen: React.FC = () => {
               activeOpacity={1}
               onPress={() => setShowAppSettings(false)}
             />
-            <Animated.View
-              style={[
-                styles.appSettingsContainer,
-                {
-                  transform: [{ translateY: appSettingsSlideAnim }],
-                },
-              ]}
-            >
+            <View style={styles.appSettingsContainer}>
               {/* Header */}
               <View style={styles.appSettingsHeader}>
                 <View style={styles.headerLeft}>
@@ -1082,7 +1055,7 @@ const ProfileScreen: React.FC = () => {
                   </Text>
                 </View>
               </ScrollView>
-            </Animated.View>
+            </View>
           </View>
         </Modal>
       </View>
