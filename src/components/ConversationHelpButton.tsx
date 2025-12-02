@@ -31,6 +31,7 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
   const glowOpacity = useRef(new Animated.Value(0.3)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
   const badgePulseAnim = useRef(new Animated.Value(1)).current;
+  const loadingPulseAnim = useRef(new Animated.Value(1)).current;
 
   // Entrance/exit animation
   useEffect(() => {
@@ -120,6 +121,28 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
     }
   }, [isHelpReady, isLoading]);
 
+  // Loading pulse animation - makes button pulse while loading
+  useEffect(() => {
+    if (isLoading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(loadingPulseAnim, {
+            toValue: 1.08,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(loadingPulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      loadingPulseAnim.setValue(1);
+    }
+  }, [isLoading]);
+
   const handlePress = () => {
     if (isLoading) return; // Don't allow press while loading
 
@@ -154,6 +177,10 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
     outputRange: ['0deg', '360deg'],
   });
 
+  // Determine button color based on state
+  const buttonColor = isLoading ? '#8B5CF6' : '#FBB040'; // Purple when loading, yellow when ready
+  const glowColor = isLoading ? '#8B5CF6' : '#FBB040';
+
   return (
     <Animated.View
       style={[
@@ -162,6 +189,7 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
           transform: [
             { scale: scaleAnim },
             { scale: pulseAnim },
+            { scale: isLoading ? loadingPulseAnim : 1 }, // Add loading pulse
           ],
         },
       ]}
@@ -172,13 +200,14 @@ const ConversationHelpButton: React.FC<ConversationHelpButtonProps> = ({
           styles.glowContainer,
           {
             opacity: glowOpacity,
+            backgroundColor: glowColor,
           },
         ]}
       />
 
       {/* Main button */}
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, { backgroundColor: buttonColor }]}
         onPress={handlePress}
         activeOpacity={isLoading ? 1 : 0.8}
         disabled={isLoading}
@@ -231,20 +260,20 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: '#FBB040',
+    // backgroundColor set dynamically
   },
   button: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#FBB040',
+    // backgroundColor set dynamically based on loading state
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#FBB040',
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.3,
         shadowRadius: 8,
       },
       android: {
