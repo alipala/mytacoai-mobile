@@ -39,6 +39,50 @@ const VOICE_AVATARS: Record<string, any> = {
   verse: require('../../../assets/tutor/verse.png'),
 };
 
+// Fallback voice data (same as web app)
+const DEFAULT_VOICES: Record<string, VoiceCharacter> = {
+  alloy: {
+    name: 'Alloy',
+    description: 'Balanced and clear voice, great for general learning',
+    personality: 'Professional and encouraging',
+  },
+  ash: {
+    name: 'Ash',
+    description: 'Warm and friendly voice, perfect for conversational practice',
+    personality: 'Warm and approachable',
+  },
+  ballad: {
+    name: 'Ballad',
+    description: 'Melodic and expressive voice, ideal for pronunciation work',
+    personality: 'Expressive and articulate',
+  },
+  coral: {
+    name: 'Coral',
+    description: 'Bright and energetic voice, motivating for active learning',
+    personality: 'Energetic and motivating',
+  },
+  echo: {
+    name: 'Echo',
+    description: 'Calm and patient voice, excellent for beginners',
+    personality: 'Patient and supportive',
+  },
+  sage: {
+    name: 'Sage',
+    description: 'Storytelling voice, engaging for immersive conversations',
+    personality: 'Engaging storyteller',
+  },
+  shimmer: {
+    name: 'Shimmer',
+    description: 'Deep and confident voice, great for advanced learners',
+    personality: 'Confident and authoritative',
+  },
+  verse: {
+    name: 'Verse',
+    description: 'Modern and dynamic voice, perfect for contemporary topics',
+    personality: 'Dynamic and modern',
+  },
+};
+
 interface VoiceSelectionScreenProps {
   onBack: () => void;
 }
@@ -59,19 +103,39 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
     try {
       setLoading(true);
 
-      // Load current voice preference and available voices in parallel
-      const [voiceResponse, charactersResponse] = await Promise.all([
-        AuthenticationService.getVoicePreferenceApiAuthGetVoiceGet(),
-        DefaultService.getVoiceCharactersApiVoiceCharactersGet(),
-      ]);
+      // Try to load current voice preference
+      let currentVoiceId = 'ash';
+      try {
+        const voiceResponse = await AuthenticationService.getVoicePreferenceApiAuthGetVoiceGet();
+        currentVoiceId = voiceResponse.voice || 'ash';
+      } catch (voiceError) {
+        console.log('Could not load voice preference, using default');
+      }
 
-      const voice = voiceResponse.voice || 'ash';
-      setCurrentVoice(voice);
-      setSelectedVoice(voice);
-      setVoices(charactersResponse || {});
+      setCurrentVoice(currentVoiceId);
+      setSelectedVoice(currentVoiceId);
+
+      // Try to load voice characters from API, fallback to DEFAULT_VOICES
+      try {
+        const charactersResponse = await DefaultService.getVoiceCharactersApiVoiceCharactersGet();
+        const apiVoices = charactersResponse || {};
+
+        // Check if API returned any voices
+        if (Object.keys(apiVoices).length > 0) {
+          console.log('Loaded voices from API:', Object.keys(apiVoices));
+          setVoices(apiVoices);
+        } else {
+          console.log('API returned empty voices, using fallback data');
+          setVoices(DEFAULT_VOICES);
+        }
+      } catch (charactersError) {
+        console.log('Could not load voices from API, using fallback data');
+        setVoices(DEFAULT_VOICES);
+      }
     } catch (error) {
       console.error('Error loading voice data:', error);
-      Alert.alert('Error', 'Failed to load voice preferences');
+      // Even on error, set the default voices so the UI shows something
+      setVoices(DEFAULT_VOICES);
     } finally {
       setLoading(false);
     }
