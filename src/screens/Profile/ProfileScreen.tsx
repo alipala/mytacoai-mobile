@@ -23,6 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
+import ConversationHelpSettingsModal from '../../components/ConversationHelpSettingsModal';
 import { styles } from './styles/ProfileScreen.styles';
 
 const API_URL = API_BASE_URL;
@@ -152,6 +153,7 @@ const ProfileScreen: React.FC = () => {
   const [expandedConversations, setExpandedConversations] = useState<Record<string, boolean>>({});
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
+  const [showHelpSettings, setShowHelpSettings] = useState(false);
 
   // Tab Navigation Helpers
   const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
@@ -781,6 +783,17 @@ const ProfileScreen: React.FC = () => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
+          <TouchableOpacity
+            onPress={() => {
+              if (Platform.OS === 'ios') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              setShowHelpSettings(true);
+            }}
+            style={styles.settingsButton}
+          >
+            <Ionicons name="settings-outline" size={24} color="#64748B" />
+          </TouchableOpacity>
         </View>
 
         {/* Tabs - Premium Segmented Control Design */}
@@ -937,6 +950,12 @@ const ProfileScreen: React.FC = () => {
             )}
           </View>
         </Modal>
+
+        {/* Conversation Help Settings Modal */}
+        <ConversationHelpSettingsModal
+          visible={showHelpSettings}
+          onClose={() => setShowHelpSettings(false)}
+        />
       </View>
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,9 @@ import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisRespo
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
+import ConversationHelpModal from '../../components/ConversationHelpModal';
+import ConversationHelpButton from '../../components/ConversationHelpButton';
+import { useConversationHelp } from '../../hooks/useConversationHelp';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -116,7 +119,28 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Add state for the fetched learning plan
   const [learningPlan, setLearningPlan] = useState<LearningPlan | null>(null);
 
+  // Log route params once on mount
+  useEffect(() => {
+    console.log('[CONVERSATION] 🎬 Component mounted with route params:', {
+      mode,
+      language,
+      topic,
+      level,
+      planId,
+    });
+  }, []);
+
+  // Log when learning plan changes
+  useEffect(() => {
+    console.log('[CONVERSATION] 📚 Learning plan state changed:', {
+      hasLearningPlan: !!learningPlan,
+      language: learningPlan?.language,
+      proficiency_level: learningPlan?.proficiency_level,
+    });
+  }, [learningPlan]);
+
   // Modal states
+  // Show modal immediately for both modes
   const [showInfoModal, setShowInfoModal] = useState(true);
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
 
@@ -153,20 +177,107 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Ref to track if auto-save was triggered
   const autoSaveTriggeredRef = useRef(false);
 
+  // Initialize conversation help system with memoized options to prevent re-renders
+  const conversationHelpOptions = useMemo(() => {
+    const targetLang = learningPlan?.language || language;
+    const profLevel = learningPlan?.proficiency_level || level;
+
+    // Only enable if we have valid required fields
+    const hasRequiredFields = !!targetLang && !!profLevel;
+
+    console.log('[CONVERSATION_HELP_OPTIONS] 📋 Creating options:', {
+      learningPlanLanguage: learningPlan?.language,
+      routeLanguage: language,
+      learningPlanLevel: learningPlan?.proficiency_level,
+      routeLevel: level,
+      targetLang,
+      profLevel,
+      hasRequiredFields,
+      enabled: hasRequiredFields,
+    });
+
+    return {
+      targetLanguage: targetLang || 'english', // Fallback to prevent undefined
+      proficiencyLevel: profLevel || 'beginner', // Fallback to prevent undefined
+      topic: planId ? undefined : topic,
+      enabled: hasRequiredFields, // Disable until we have valid data
+    };
+  }, [learningPlan?.language, learningPlan?.proficiency_level, language, level, planId, topic]);
+
+  const conversationHelp = useConversationHelp(conversationHelpOptions);
+
+  // Use refs to ensure event handlers always have latest values
+  const conversationHelpOptionsRef = useRef(conversationHelpOptions);
+  const learningPlanRef = useRef(learningPlan);
+  const conversationHelpRef = useRef(conversationHelp);
+
+  // Keep refs in sync with latest values
+  useEffect(() => {
+    conversationHelpOptionsRef.current = conversationHelpOptions;
+  }, [conversationHelpOptions]);
+
+  useEffect(() => {
+    learningPlanRef.current = learningPlan;
+  }, [learningPlan]);
+
+  useEffect(() => {
+    conversationHelpRef.current = conversationHelp;
+  }, [conversationHelp]);
+
+  // Log when conversation help options change
+  useEffect(() => {
+    console.log('[CONVERSATION_HELP_OPTIONS] 🔄 Options changed:', conversationHelpOptions);
+  }, [conversationHelpOptions]);
+
+  // Retroactively generate help when learning plan loads and there are existing messages
+  useEffect(() => {
+    if (learningPlan && conversationHelpOptions.enabled && messages.length > 0) {
+      console.log('[CONVERSATION_HELP] 🔄 Learning plan loaded, checking for recent AI messages to generate help');
+
+      // Find the most recent assistant message
+      const lastAssistantMessage = messages.slice().reverse().find(m => m.role === 'assistant');
+
+      if (lastAssistantMessage && lastAssistantMessage.content.trim().length > 0) {
+        console.log('[CONVERSATION_HELP] 🔄 Retroactively generating help for last AI message');
+
+        const conversationContext = messages.slice(-5).map(m => ({
+          role: m.role,
+          content: m.content,
+          timestamp: m.timestamp,
+        }));
+
+        conversationHelp.handleAIResponseComplete(
+          lastAssistantMessage.content,
+          conversationContext
+        );
+      }
+    }
+  }, [learningPlan?.id, conversationHelpOptions.enabled]);
+
   // Fetch learning plan if planId is provided
   useEffect(() => {
+    console.log('[CONVERSATION] 🔍 Checking if we need to fetch plan. planId:', planId);
     if (planId) {
       const fetchPlan = async () => {
         try {
-          console.log(`[CONVERSATION] Fetching learning plan with ID: ${planId}`);
+          console.log(`[CONVERSATION] 📥 Fetching learning plan with ID: ${planId}`);
           setIsConnecting(true);
           const plan = await LearningService.getLearningPlanApiLearningPlanPlanIdGet({ planId });
-          setLearningPlan(plan);
           console.log('[CONVERSATION] ✅ Learning plan fetched successfully.');
-          // Now that the plan is fetched, initialize the conversation
-          await initializeConversation(plan);
+          console.log('[CONVERSATION] 📊 Plan details:', {
+            id: plan.id,
+            language: plan.language,
+            proficiency_level: plan.proficiency_level,
+            hasLanguage: !!plan.language,
+            hasProficiency: !!plan.proficiency_level,
+          });
+          setLearningPlan(plan);
+          console.log('[CONVERSATION] 💾 Learning plan saved to state');
+          // Learning plan is ready, modal is already showing
+          console.log('[CONVERSATION] ✅ Learning plan ready, waiting for user to start');
+          setIsConnecting(false);
         } catch (error) {
-          console.error('[CONVERSATION] Error fetching learning plan:', error);
+          console.error('[CONVERSATION] ❌ Error fetching learning plan:', error);
           setConnectionError('Failed to load learning plan details.');
           setIsConnecting(false);
           Alert.alert('Error', 'Could not load the learning plan. Please try again.', [
@@ -175,10 +286,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
       };
       fetchPlan();
-    } else {
-      // For practice mode, show the info modal
-      setShowInfoModal(true);
     }
+    // For practice mode, modal is already shown via initial state
   }, [planId]);
 
 
@@ -342,13 +451,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
-  // Initialize conversation for practice mode when modal is dismissed
+  // Initialize conversation when modal is dismissed (works for both practice and learning plan modes)
   const handleStartPracticeConversation = async () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    setShowInfoModal(false);
-    await initializeConversation();
+
+    // For learning plan mode, wait for plan to load if still loading
+    if (planId) {
+      if (!learningPlan && isConnecting) {
+        console.log('[CONVERSATION] ⏳ Plan still loading, please wait...');
+        return; // Don't close modal yet, plan is still loading
+      }
+
+      if (!learningPlan) {
+        console.log('[CONVERSATION] ❌ No learning plan loaded');
+        Alert.alert('Error', 'Learning plan not loaded. Please try again.');
+        return;
+      }
+
+      console.log('[CONVERSATION] 🚀 Starting learning plan conversation');
+      setShowInfoModal(false);
+      await initializeConversation(learningPlan);
+    } else {
+      console.log('[CONVERSATION] 🚀 Starting practice conversation');
+      setShowInfoModal(false);
+      await initializeConversation();
+    }
   };
 
   // Initialize the realtime conversation
@@ -395,7 +524,32 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         },
         onError: (error: Error) => {
           console.error('[CONVERSATION] Service error:', error);
-          setConnectionError(error.message);
+          const errorMessage = error.message || 'Connection failed';
+          setConnectionError(errorMessage);
+
+          // Show user-friendly error alert
+          Alert.alert(
+            'Connection Error',
+            'Unable to connect to the AI tutor. This might be due to temporary server issues.',
+            [
+              {
+                text: 'Retry',
+                onPress: () => {
+                  setConnectionError(null);
+                  if (planId && learningPlan) {
+                    initializeConversation(learningPlan);
+                  } else {
+                    initializePracticeConversation();
+                  }
+                },
+              },
+              {
+                text: 'Go Back',
+                style: 'cancel',
+                onPress: () => navigation.goBack(),
+              },
+            ]
+          );
         },
         onConnectionStateChange: (state: string) => {
           console.log('[CONVERSATION] Connection state:', state);
@@ -484,6 +638,42 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
       }
 
+      // Trigger conversation help when AI responds
+      if (role === 'assistant') {
+        // Use refs to get the LATEST values (avoid closure issue)
+        const latestOptions = conversationHelpOptionsRef.current;
+        const latestLearningPlan = learningPlanRef.current;
+        const latestConversationHelp = conversationHelpRef.current;
+
+        console.log('[CONVERSATION_HELP] 🎯 AI message received');
+        console.log('[CONVERSATION_HELP] 📝 Content length:', content.trim().length);
+        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from helpSettings - USER PREFERENCE):', latestConversationHelp.helpSettings.help_enabled);
+        console.log('[CONVERSATION_HELP] ⚙️ Help enabled (from options - HAS VALID DATA):', latestOptions.enabled);
+        console.log('[CONVERSATION_HELP] ⚙️ Has learningPlan (via REF):', !!latestLearningPlan);
+        console.log('[CONVERSATION_HELP] ⚙️ Target language (via REF):', latestOptions.targetLanguage);
+        console.log('[CONVERSATION_HELP] ⚙️ Proficiency level (via REF):', latestOptions.proficiencyLevel);
+        console.log('[CONVERSATION_HELP] 🔍 Help settings:', latestConversationHelp.helpSettings);
+
+        // Check BOTH: user wants help AND we have valid data
+        const shouldGenerateHelp = content.trim().length > 0 &&
+                                  latestOptions.enabled &&
+                                  latestConversationHelp.helpSettings.help_enabled;
+        console.log('[CONVERSATION_HELP] 🔍 Should generate help:', shouldGenerateHelp);
+
+        if (shouldGenerateHelp) {
+          console.log('[CONVERSATION_HELP] ✅ Conditions met, triggering help generation');
+          // Convert messages to the format expected by conversation help
+          const conversationContext = updated.slice(-5).map(m => ({
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp,
+          }));
+          latestConversationHelp.handleAIResponseComplete(content, conversationContext);
+        } else {
+          console.log('[CONVERSATION_HELP] ❌ Conditions not met, skipping help generation');
+        }
+      }
+
       return updated;
     });
 
@@ -522,6 +712,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
     const newRecordingState = !isRecording;
     setIsRecording(newRecordingState);
+
+    // Keep conversation help visible while recording so user can read suggestions
+    // Only close the modal if it's open, but keep the button visible
+    if (newRecordingState && conversationHelp.isModalVisible) {
+      console.log('[CONVERSATION_HELP] User started speaking, closing modal but keeping help button visible');
+      conversationHelp.closeHelpModal();
+    }
 
     // Mute/unmute the microphone
     realtimeServiceRef.current.setMuted(!newRecordingState);
@@ -825,12 +1022,19 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         )}
       </ScrollView>
 
+      {/* Conversation Help Button */}
+      <ConversationHelpButton
+        visible={
+          conversationHelp.helpSettings.help_enabled &&
+          (conversationHelp.isHelpReady || conversationHelp.isLoading)
+        }
+        isLoading={conversationHelp.isLoading}
+        onPress={conversationHelp.showHelpModal}
+        helpLanguage={conversationHelp.helpSettings.help_language}
+      />
+
       {/* Recording Button */}
       <View style={styles.footer}>
-        {isRecording && (
-          <Text style={styles.recordingIndicator}>Recording...</Text>
-        )}
-
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
           <TouchableOpacity
             style={[
@@ -854,9 +1058,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </Text>
       </View>
 
-      {/* Important Information Modal (for practice mode only) */}
+      {/* Important Information Modal (for both practice and learning plan modes) */}
       <Modal
-        visible={showInfoModal && !planId}
+        visible={showInfoModal}
         animationType="slide"
         transparent={true}
         onRequestClose={() => {}}
@@ -910,13 +1114,37 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               </View>
             </ScrollView>
 
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={handleStartPracticeConversation}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modalButtonText}>Got it! Let's start</Text>
-            </TouchableOpacity>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={styles.modalButtonSecondary}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setShowInfoModal(false);
+                  navigation.goBack();
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Go Back</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButtonPrimary,
+                  (planId && isConnecting) && styles.modalButtonDisabled
+                ]}
+                onPress={handleStartPracticeConversation}
+                activeOpacity={0.8}
+                disabled={planId && isConnecting}
+              >
+                {planId && isConnecting ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Got it! Let's start</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -983,6 +1211,27 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         onComplete={() => setShowSavingModal(false)}
         onViewAnalysis={handleViewAnalysis}
         onGoDashboard={handleGoDashboard}
+      />
+
+      {/* Conversation Help Modal */}
+      <ConversationHelpModal
+        visible={conversationHelp.isModalVisible}
+        helpData={conversationHelp.helpData}
+        isLoading={conversationHelp.isLoading}
+        targetLanguage={learningPlan?.language || language}
+        helpLanguage={conversationHelp.helpSettings.help_language || 'english'}
+        helpEnabled={conversationHelp.helpSettings.help_enabled}
+        onClose={conversationHelp.closeHelpModal}
+        onSelectResponse={(responseText) => {
+          // When user selects a suggested response, we could add it to the input
+          // For now, just close the modal and let them speak it
+          console.log('[CONVERSATION_HELP] User selected response:', responseText);
+          conversationHelp.selectSuggestedResponse(responseText);
+        }}
+        onToggleHelp={(enabled) => {
+          console.log('[CONVERSATION_HELP] User toggled help:', enabled);
+          conversationHelp.updateHelpSettings({ help_enabled: enabled });
+        }}
       />
     </SafeAreaView>
   );
@@ -1290,12 +1539,6 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
   },
-  recordingIndicator: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#EF4444',
-    marginBottom: 12,
-  },
   recordButton: {
     width: 80,
     height: 80,
@@ -1368,17 +1611,40 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     lineHeight: 20,
   },
-  modalButton: {
+  modalButtonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  modalButtonPrimary: {
+    flex: 1,
     backgroundColor: '#14B8A6',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 24,
+  },
+  modalButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    opacity: 0.6,
+  },
+  modalButtonSecondary: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
   },
   modalButtonText: {
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  modalButtonSecondaryText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   endModalContent: {
     backgroundColor: '#FFFFFF',
