@@ -168,6 +168,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Animation for recording button
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Progress bar animation
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
   // Countdown animation refs
   const timerPulseAnim = useRef(new Animated.Value(1)).current;
   const timerColorAnim = useRef(new Animated.Value(0)).current;
@@ -298,6 +301,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     const interval = setInterval(async () => {
       const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
       setSessionDuration(duration);
+
+      // Update progress bar (0 to 1 over 5 minutes)
+      const progress = Math.min(duration / 300, 1);
+      Animated.timing(progressAnim, {
+        toValue: progress,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
 
       // Calculate seconds remaining
       const secondsRemaining = 300 - duration;
@@ -977,6 +988,27 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </View>
       )}
 
+      {/* Progress Bar - Visual time indicator */}
+      {sessionStartTime && (
+        <View style={styles.progressBarContainer}>
+          <Animated.View
+            style={[
+              styles.progressBarFill,
+              {
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0%', '100%'],
+                }),
+                backgroundColor: progressAnim.interpolate({
+                  inputRange: [0, 0.6, 0.9, 1],
+                  outputRange: ['#14B8A6', '#F59E0B', '#F59E0B', '#EF4444'],
+                }),
+              },
+            ]}
+          />
+        </View>
+      )}
+
       {/* Floating Countdown Overlay (appears in last 10 seconds) */}
       {sessionStartTime && (
         <AnimatedCountdownTimer
@@ -1384,6 +1416,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: '#6B7280',
+  },
+  // Progress Bar Styles
+  progressBarContainer: {
+    width: '100%',
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 0,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
   },
   // Modern End Button Styles
   modernEndButton: {
