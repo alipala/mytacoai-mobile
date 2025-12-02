@@ -18,8 +18,8 @@ export const styles = StyleSheet.create({
     height: 68,
   },
   logo: {
-    width: 120,
-    height: 38,
+    width: 180,
+    height: 57,
   },
   headerActions: {
     flexDirection: 'row',

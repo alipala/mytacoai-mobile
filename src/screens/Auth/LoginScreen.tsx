@@ -23,6 +23,7 @@ import {
   ScrollView,
   SafeAreaView,
   Animated,
+  Image,
 } from 'react-native';
 import { authService } from '../../api/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -284,10 +285,13 @@ export const LoginScreen = ({ navigation }: any) => {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-          {/* Logo/Title */}
+          {/* Logo */}
           <View style={styles.logoContainer}>
-            <Text style={styles.title}>MyTaco AI</Text>
-            <Text style={styles.subtitle}>Language Learning</Text>
+            <Image
+              source={require('../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
 
           {/* Auth Card */}

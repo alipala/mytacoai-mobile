@@ -17,17 +17,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-    color: '#4FD1C5', // Changed from orange to teal
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#718096',
+  logoImage: {
+    width: 200,
+    height: 63,
   },
   card: {
     backgroundColor: '#FFFFFF',
