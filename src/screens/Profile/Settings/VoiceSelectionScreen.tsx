@@ -29,14 +29,14 @@ interface VoiceCharacter {
 
 // Local avatar images mapping
 const VOICE_AVATARS: Record<string, any> = {
-  alloy: require('../../../../assets/tutors/alloy.png'),
-  ash: require('../../../../assets/tutors/ash.png'),
-  ballad: require('../../../../assets/tutors/ballad.png'),
-  coral: require('../../../../assets/tutors/coral.png'),
-  echo: require('../../../../assets/tutors/echo.png'),
-  sage: require('../../../../assets/tutors/sage.png'),
-  shimmer: require('../../../../assets/tutors/shimmer.png'),
-  verse: require('../../../../assets/tutors/verse.png'),
+  alloy: require('../../../assets/tutor/alloy.png'),
+  ash: require('../../../assets/tutor/ash.png'),
+  ballad: require('../../../assets/tutor/ballad.png'),
+  coral: require('../../../assets/tutor/coral.png'),
+  echo: require('../../../assets/tutor/echo.png'),
+  sage: require('../../../assets/tutor/sage.png'),
+  shimmer: require('../../../assets/tutor/shimmer.png'),
+  verse: require('../../../assets/tutor/verse.png'),
 };
 
 interface VoiceSelectionScreenProps {
