@@ -118,7 +118,18 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       // Try to load voice characters from API, fallback to DEFAULT_VOICES
       try {
         const charactersResponse = await DefaultService.getVoiceCharactersApiVoiceCharactersGet();
-        const apiVoices = charactersResponse || {};
+
+        // Extract voices from response - API returns { success: true, voices: {...} }
+        let apiVoices = {};
+        if (charactersResponse && typeof charactersResponse === 'object') {
+          // Check if response has a 'voices' property
+          if ('voices' in charactersResponse && charactersResponse.voices) {
+            apiVoices = charactersResponse.voices as Record<string, VoiceCharacter>;
+          } else if (!('success' in charactersResponse)) {
+            // If no 'success' key, assume the response itself is the voices object
+            apiVoices = charactersResponse as Record<string, VoiceCharacter>;
+          }
+        }
 
         // Check if API returned any voices
         if (Object.keys(apiVoices).length > 0) {
