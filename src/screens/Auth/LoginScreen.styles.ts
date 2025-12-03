@@ -3,7 +3,13 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FA',
+    backgroundColor: '#0D9488', // Match gradient start color for any overflow
+  },
+  gradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
   },
   keyboardView: {
     flex: 1,
@@ -12,137 +18,209 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
+    paddingTop: 40,
   },
+
+  // Logo Section
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-    color: '#4FD1C5', // Changed from orange to teal
+  logoImage: {
+    width: 340,
+    height: 107,
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#718096',
-  },
+
+  // Card Design with Glassmorphism
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 24,
+    borderRadius: 24,
+    padding: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
   },
+
+  // Tab Navigation
   tabContainer: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    marginBottom: 24,
+    borderBottomWidth: 2,
+    borderBottomColor: '#E5E7EB',
+    marginBottom: 28,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
+    marginBottom: -2,
   },
   activeTab: {
-    borderBottomColor: '#4FD1C5',
+    borderBottomColor: '#14B8A6',
   },
   tabText: {
-    fontSize: 16,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 17,
     fontWeight: '500',
-    color: '#718096',
+    color: '#9CA3AF',
   },
   activeTabText: {
-    color: '#4FD1C5',
+    fontFamily: 'Inter_600SemiBold',
+    color: '#14B8A6',
     fontWeight: '600',
   },
+
+  // Form Content
   formContainer: {
-    // Form content
+    // Container for form elements
   },
   formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2D3748',
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 26,
+    fontWeight: '600',
+    color: '#1F2937',
     textAlign: 'center',
     marginBottom: 8,
   },
   formSubtitle: {
-    fontSize: 14,
-    color: '#718096',
+    fontFamily: 'Inter_400Regular',
+    fontSize: 15,
+    fontWeight: '400',
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
+    lineHeight: 22,
+  },
+
+  // Modern Input Styling
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F9FAFB',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#4FD1C5', // Changed to teal
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    fontFamily: 'Inter_400Regular',
+    flex: 1,
     fontSize: 16,
-    backgroundColor: '#fff',
-    color: '#2D3748',
+    color: '#1F2937',
+    fontWeight: '400',
   },
+  eyeIcon: {
+    padding: 4,
+  },
+
+  // Error Messaging
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginLeft: 4,
+    gap: 6,
+  },
+  errorText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 13,
+    color: '#EF4444',
+    fontWeight: '500',
+  },
+
+  // Forgot Password
   forgotPasswordContainer: {
     alignItems: 'flex-end',
     marginBottom: 24,
+    marginTop: -8,
   },
   forgotPasswordText: {
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: '#4FD1C5',
-    fontWeight: '500',
+    color: '#14B8A6',
+    fontWeight: '600',
   },
+
+  // Primary Button
   button: {
-    backgroundColor: '#4FD1C5', // Changed from orange to teal
-    height: 50,
-    borderRadius: 8,
+    backgroundColor: '#14B8A6',
+    height: 56,
+    borderRadius: 12,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+    gap: 8,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: 'white',
-    fontSize: 16,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#FFFFFF',
+    fontSize: 17,
     fontWeight: '600',
   },
+
+  // Divider
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 24,
   },
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E5E7EB',
   },
   dividerText: {
-    marginHorizontal: 12,
+    fontFamily: 'Inter_500Medium',
+    marginHorizontal: 16,
     fontSize: 14,
-    color: '#718096',
+    color: '#9CA3AF',
+    fontWeight: '500',
   },
+
+  // Google Sign-In Button
   googleButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    height: 50,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    height: 56,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   googleButtonText: {
-    color: '#2D3748',
+    fontFamily: 'Inter_600SemiBold',
+    color: '#1F2937',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });
