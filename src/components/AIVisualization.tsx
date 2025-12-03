@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -7,8 +7,6 @@ import Animated, {
   withRepeat,
   withSequence,
   Easing,
-  interpolate,
-  interpolateColor,
 } from 'react-native-reanimated';
 import { ConversationState } from '../hooks/useConversationState';
 
@@ -16,6 +14,17 @@ interface AIVisualizationProps {
   state: ConversationState;
   size?: number;
 }
+
+/**
+ * State color mapping (outside component for performance)
+ */
+const STATE_COLORS_MAP = {
+  AI_SPEAKING: '#3B82F6', // Blue
+  AI_LISTENING: '#FB923C', // Orange
+  USER_SPEAKING: '#14B8A6', // Teal
+  AI_IDLE: '#94A3B8', // Slate
+  USER_IDLE: '#94A3B8', // Slate
+};
 
 /**
  * Central AI Orb Visualization
@@ -47,6 +56,9 @@ const AIVisualization: React.FC<AIVisualizationProps> = ({
   const ring1Opacity = useSharedValue(0.6);
   const ring2Opacity = useSharedValue(0.4);
   const ring3Opacity = useSharedValue(0.2);
+
+  // Memoize color based on state
+  const stateColor = useMemo(() => STATE_COLORS_MAP[state], [state]);
 
   /**
    * Update animations based on state
@@ -276,24 +288,6 @@ const AIVisualization: React.FC<AIVisualizationProps> = ({
   }, [state]);
 
   /**
-   * Color based on state
-   */
-  const getStateColor = () => {
-    switch (state) {
-      case 'AI_SPEAKING':
-        return '#3B82F6'; // Blue
-      case 'AI_LISTENING':
-        return '#FB923C'; // Orange
-      case 'USER_SPEAKING':
-        return '#14B8A6'; // Teal
-      case 'AI_IDLE':
-      case 'USER_IDLE':
-      default:
-        return '#94A3B8'; // Slate
-    }
-  };
-
-  /**
    * Animated styles
    */
   const orbStyle = useAnimatedStyle(() => {
@@ -326,8 +320,6 @@ const AIVisualization: React.FC<AIVisualizationProps> = ({
       opacity: ring3Opacity.value,
     };
   });
-
-  const stateColor = getStateColor();
 
   return (
     <View style={styles.container}>

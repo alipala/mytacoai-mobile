@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -7,7 +7,6 @@ import Animated, {
   withRepeat,
   withSequence,
   Easing,
-  interpolateColor,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ConversationState } from '../hooks/useConversationState';
@@ -15,6 +14,42 @@ import { ConversationState } from '../hooks/useConversationState';
 interface ConversationBackgroundProps {
   state: ConversationState;
 }
+
+/**
+ * State color definitions (outside component to avoid recalculation)
+ */
+const STATE_COLORS = {
+  AI_SPEAKING: {
+    start: '#1E40AF', // Deep blue
+    middle: '#3B82F6', // Bright blue
+    end: '#60A5FA', // Light blue
+    animationType: 'pulse' as const,
+  },
+  AI_LISTENING: {
+    start: '#F59E0B', // Amber
+    middle: '#FB923C', // Orange
+    end: '#FBBF24', // Yellow
+    animationType: 'breathing' as const,
+  },
+  USER_SPEAKING: {
+    start: '#06B6D4', // Cyan
+    middle: '#14B8A6', // Teal
+    end: '#10B981', // Emerald
+    animationType: 'micro-pulse' as const,
+  },
+  AI_IDLE: {
+    start: '#E0F2FE', // Very light blue
+    middle: '#F0F9FF', // Almost white
+    end: '#F9FAFB', // Neutral grey
+    animationType: 'subtle' as const,
+  },
+  USER_IDLE: {
+    start: '#E0F2FE', // Very light blue
+    middle: '#F0F9FF', // Almost white
+    end: '#F9FAFB', // Neutral grey
+    animationType: 'subtle' as const,
+  },
+};
 
 /**
  * Animated gradient background that responds to conversation state
@@ -39,52 +74,14 @@ const ConversationBackground: React.FC<ConversationBackgroundProps> = ({ state }
   // Opacity animation for subtle glow
   const glowOpacity = useSharedValue(0.3);
 
-  /**
-   * State color definitions
-   */
-  const getStateColors = (currentState: ConversationState) => {
-    switch (currentState) {
-      case 'AI_SPEAKING':
-        return {
-          start: '#1E40AF', // Deep blue
-          middle: '#3B82F6', // Bright blue
-          end: '#60A5FA', // Light blue
-          animationType: 'pulse', // Pulsing animation
-        };
-
-      case 'AI_LISTENING':
-        return {
-          start: '#F59E0B', // Amber
-          middle: '#FB923C', // Orange
-          end: '#FBBF24', // Yellow
-          animationType: 'breathing', // Slow breathing animation
-        };
-
-      case 'USER_SPEAKING':
-        return {
-          start: '#06B6D4', // Cyan
-          middle: '#14B8A6', // Teal
-          end: '#10B981', // Emerald
-          animationType: 'micro-pulse', // Small pulse
-        };
-
-      case 'AI_IDLE':
-      case 'USER_IDLE':
-      default:
-        return {
-          start: '#E0F2FE', // Very light blue
-          middle: '#F0F9FF', // Almost white
-          end: '#F9FAFB', // Neutral grey
-          animationType: 'subtle', // Very minimal motion
-        };
-    }
-  };
+  // Memoize current colors based on state
+  const colors = useMemo(() => STATE_COLORS[state], [state]);
 
   /**
    * Update animations when state changes
    */
   useEffect(() => {
-    const { animationType } = getStateColors(state);
+    const { animationType } = colors;
 
     console.log('[CONVERSATION_BG] State changed to:', state, '- Animation:', animationType);
 
@@ -195,14 +192,12 @@ const ConversationBackground: React.FC<ConversationBackgroundProps> = ({ state }
         glowOpacity.value = withTiming(0.15);
         break;
     }
-  }, [state]);
+  }, [state, colors]);
 
   /**
    * Animated styles
    */
   const animatedContainerStyle = useAnimatedStyle(() => {
-    const colors = getStateColors(state);
-
     return {
       transform: [{ scale: breathingScale.value }],
       opacity: 1,
@@ -214,8 +209,6 @@ const ConversationBackground: React.FC<ConversationBackgroundProps> = ({ state }
       opacity: glowOpacity.value,
     };
   });
-
-  const colors = getStateColors(state);
 
   return (
     <Animated.View style={[styles.container, animatedContainerStyle]}>
