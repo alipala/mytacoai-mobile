@@ -214,7 +214,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 
       {/* Plan Description */}
       <Text style={styles.planDescription} numberOfLines={1}>
-        {plan.duration_weeks || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
+        {plan.duration_months || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
       </Text>
 
       {/* Action Buttons - Premium Design INSIDE Card */}

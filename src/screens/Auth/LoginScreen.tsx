@@ -213,6 +213,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
       await authService.login(email, password);
       const user = await authService.getCurrentUser();
+      await AsyncStorage.setItem('auth_provider', 'email');
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -363,6 +364,7 @@ export const LoginScreen = ({ navigation }: any) => {
       await AsyncStorage.setItem('auth_token', response.access_token);
       const user = await AuthenticationService.getUserMeApiAuthMeGet();
       await AsyncStorage.setItem('user', JSON.stringify(user));
+      await AsyncStorage.setItem('auth_provider', 'google');
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 

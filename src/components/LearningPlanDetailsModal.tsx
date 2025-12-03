@@ -155,6 +155,14 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   const level = plan?.proficiency_level || plan?.target_cefr_level || 'B1';
   const levelColors = getLevelColor(level);
 
+  // Calculate practice time for this specific learning plan
+  // Assuming average session is ~10-15 minutes
+  const avgMinutesPerSession = 12;
+  const practiceTimeMinutes = completedSessions * avgMinutesPerSession;
+
+  // Calculate current week based on sessions completed (assuming 3 sessions per week)
+  const currentWeek = Math.max(1, Math.ceil(completedSessions / 3));
+
   // CRITICAL: Simple, reliable animation
   useEffect(() => {
     if (visible) {
@@ -276,17 +284,17 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                     <Text style={styles.statCardLabel}>Practice Time</Text>
                   </View>
                   <Text style={styles.statCardValue}>
-                    {Math.round((progressStats?.total_minutes || 140))} min
+                    {practiceTimeMinutes} min
                   </Text>
                 </View>
 
                 <View style={styles.statCard}>
                   <View style={styles.statCardLeft}>
                     <Ionicons name="trending-up" size={24} color="#8B5CF6" />
-                    <Text style={styles.statCardLabel}>This Week</Text>
+                    <Text style={styles.statCardLabel}>Current Week</Text>
                   </View>
                   <Text style={styles.statCardValue}>
-                    {progressStats?.sessions_this_week || 2}
+                    Week {currentWeek}
                   </Text>
                 </View>
               </View>

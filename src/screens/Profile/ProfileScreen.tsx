@@ -155,6 +155,7 @@ const ProfileScreen: React.FC = () => {
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
+  const [flashcardFilter, setFlashcardFilter] = useState<'all' | 'practice' | 'learning_plan'>('all');
 
   // Tab Navigation Helpers
   const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
@@ -501,9 +502,16 @@ const ProfileScreen: React.FC = () => {
       );
     }
 
+    // Sort learning plans from latest to earliest
+    const sortedPlans = [...learningPlans].sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return dateB - dateA; // Latest first
+    });
+
     return (
       <View>
-        {learningPlans.map((plan) => {
+        {sortedPlans.map((plan) => {
           const progressPercentage = plan.progress_percentage || 0;
           const currentWeek = Math.ceil((plan.completed_sessions || 0) / 3);
           const isExpanded = expandedPlans[plan.id];
@@ -526,7 +534,7 @@ const ProfileScreen: React.FC = () => {
                     {plan.plan_content.title || `${plan.language} Learning`}
                   </Text>
                   <Text style={styles.progressPlanSubtitle}>
-                    {plan.proficiency_level} • {plan.duration_months} months
+                    {plan.proficiency_level} • {plan.duration_months} months • Created {formatDate(plan.created_at)}
                   </Text>
                   <View style={styles.progressBarContainer}>
                     <View style={styles.progressBarTrack}>
@@ -693,26 +701,118 @@ const ProfileScreen: React.FC = () => {
     </View>
   );
 
-  const renderFlashcardsTab = () => (
-    <View style={styles.flashcardsContainer}>
-      {flashcardSets.length > 0 ? (
-        <FlatList
-          data={flashcardSets}
-          renderItem={renderFlashcardItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.flashcardGridRow}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.flashcardGridContent}
-        />
-      ) : (
-        <View style={styles.emptyState}>
-          <Ionicons name="albums-outline" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyStateText}>No Flashcards Yet</Text>
+  const renderFlashcardsTab = () => {
+    // Filter flashcard sets based on selected filter
+    const filteredFlashcards = flashcardSets.filter((set) => {
+      if (flashcardFilter === 'all') return true;
+      if (flashcardFilter === 'practice') {
+        // Flashcards from practice sessions (no learning plan reference)
+        return !set.learning_plan_id;
+      }
+      if (flashcardFilter === 'learning_plan') {
+        // Flashcards from learning plans
+        return !!set.learning_plan_id;
+      }
+      return true;
+    });
+
+    return (
+      <View style={styles.flashcardsContainer}>
+        {/* iOS-style segmented control filter */}
+        <View style={styles.flashcardFilterContainer}>
+          <View style={styles.flashcardFilterSegment}>
+            <TouchableOpacity
+              style={[
+                styles.flashcardFilterButton,
+                flashcardFilter === 'all' && styles.flashcardFilterButtonActive,
+              ]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setFlashcardFilter('all');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.flashcardFilterButtonText,
+                  flashcardFilter === 'all' && styles.flashcardFilterButtonTextActive,
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.flashcardFilterButton,
+                flashcardFilter === 'practice' && styles.flashcardFilterButtonActive,
+              ]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setFlashcardFilter('practice');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.flashcardFilterButtonText,
+                  flashcardFilter === 'practice' && styles.flashcardFilterButtonTextActive,
+                ]}
+              >
+                Practice
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.flashcardFilterButton,
+                flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonActive,
+              ]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setFlashcardFilter('learning_plan');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.flashcardFilterButtonText,
+                  flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonTextActive,
+                ]}
+              >
+                Learning Plan
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      )}
-    </View>
-  );
+
+        {filteredFlashcards.length > 0 ? (
+          <FlatList
+            data={filteredFlashcards}
+            renderItem={renderFlashcardItem}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            columnWrapperStyle={styles.flashcardGridRow}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.flashcardGridContent}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="albums-outline" size={64} color="#D1D5DB" />
+            <Text style={styles.emptyStateText}>
+              {flashcardFilter === 'all' ? 'No Flashcards Yet' : `No ${flashcardFilter === 'practice' ? 'Practice' : 'Learning Plan'} Flashcards`}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   // Notifications Tab
   const renderNotificationsTab = () => (
