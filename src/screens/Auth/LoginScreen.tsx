@@ -26,7 +26,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Toast from 'react-native-toast-message';
+import { showToast, GlobalToast } from '../../components/CustomToast';
 import { authService } from '../../api/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
@@ -208,11 +208,11 @@ export const LoginScreen = ({ navigation }: any) => {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      Toast.show({
+      showToast({
         type: 'success',
         text1: 'Welcome Back! 🎉',
         text2: `Great to see you again, ${user.first_name || user.email}!`,
-        visibilityTime: 3000,
+        duration: 3000,
       });
 
       setTimeout(() => {
@@ -226,11 +226,11 @@ export const LoginScreen = ({ navigation }: any) => {
       const errorDetail = error.response?.data?.detail || error.body?.detail || error.message;
 
       if (statusCode === 403) {
-        Toast.show({
+        showToast({
           type: 'error',
           text1: 'Email Not Verified',
           text2: 'Please check your inbox for the verification link.',
-          visibilityTime: 4000,
+          duration: 4000,
         });
 
         setTimeout(() => {
@@ -243,20 +243,20 @@ export const LoginScreen = ({ navigation }: any) => {
 
       if (statusCode === 401) {
         setPasswordError('Invalid email or password');
-        Toast.show({
+        showToast({
           type: 'error',
           text1: 'Invalid Credentials',
           text2: 'Please check your email and password.',
-          visibilityTime: 3000,
+          duration: 3000,
         });
         return;
       }
 
-      Toast.show({
+      showToast({
         type: 'error',
         text1: 'Login Failed',
         text2: errorDetail || 'An error occurred. Please try again.',
-        visibilityTime: 4000,
+        duration: 4000,
       });
     } finally {
       setLoading(false);
@@ -287,11 +287,11 @@ export const LoginScreen = ({ navigation }: any) => {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      Toast.show({
+      showToast({
         type: 'success',
         text1: 'Account Created! 🎉',
         text2: 'Please check your email to verify your account.',
-        visibilityTime: 4000,
+        duration: 4000,
       });
 
       setFullName('');
@@ -317,11 +317,11 @@ export const LoginScreen = ({ navigation }: any) => {
         errorMessage = error.message;
       }
 
-      Toast.show({
+      showToast({
         type: 'error',
         text1: 'Registration Failed',
         text2: errorMessage,
-        visibilityTime: 4000,
+        duration: 4000,
       });
     } finally {
       setLoading(false);
@@ -358,11 +358,11 @@ export const LoginScreen = ({ navigation }: any) => {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      Toast.show({
+      showToast({
         type: 'success',
         text1: 'Welcome! 🎉',
         text2: `Signed in as ${user.email}`,
-        visibilityTime: 3000,
+        duration: 3000,
       });
 
       setTimeout(() => {
@@ -375,11 +375,11 @@ export const LoginScreen = ({ navigation }: any) => {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         // User cancelled - no error message needed
       } else {
-        Toast.show({
+        showToast({
           type: 'error',
           text1: 'Google Sign-In Failed',
           text2: 'Please try again or use email sign-in.',
-          visibilityTime: 3000,
+          duration: 3000,
         });
       }
     } finally {
@@ -773,7 +773,7 @@ export const LoginScreen = ({ navigation }: any) => {
       </LinearGradient>
 
       {/* Toast Notifications */}
-      <Toast />
+      <GlobalToast />
     </SafeAreaView>
   );
 };
