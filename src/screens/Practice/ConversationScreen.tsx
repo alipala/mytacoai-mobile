@@ -9,6 +9,7 @@ import {
   Platform,
   Modal,
   Animated,
+  Easing,
   ActivityIndicator,
   Alert,
   Dimensions,
@@ -63,19 +64,19 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 500,
-        easing: Animated.Easing.bezier(0.4, 0.0, 0.2, 1),
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 500,
-        easing: Animated.Easing.bezier(0.4, 0.0, 0.2, 1),
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
         toValue: 1,
         duration: 500,
-        easing: Animated.Easing.bezier(0.4, 0.0, 0.2, 1),
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
         useNativeDriver: true,
       }),
     ]).start();
