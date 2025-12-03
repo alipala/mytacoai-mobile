@@ -393,19 +393,20 @@ export const LoginScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={['#0D9488', '#14B8A6', '#2DD4BF']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        <Animated.View
-          style={{
-            flex: 1,
-            opacity: fadeAnim,
-          }}
-        >
+        <SafeAreaView style={styles.safeArea}>
+          <Animated.View
+            style={{
+              flex: 1,
+              opacity: fadeAnim,
+            }}
+          >
           <KeyboardAvoidingView
             style={styles.keyboardView}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -768,11 +769,12 @@ export const LoginScreen = ({ navigation }: any) => {
               </Animated.View>
             </ScrollView>
           </KeyboardAvoidingView>
-        </Animated.View>
+          </Animated.View>
+        </SafeAreaView>
       </LinearGradient>
 
       {/* Toast Notifications */}
       <GlobalToast />
-    </SafeAreaView>
+    </View>
   );
 };
