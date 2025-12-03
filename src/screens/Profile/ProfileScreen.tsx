@@ -249,6 +249,15 @@ const ProfileScreen: React.FC = () => {
         fetchWithAuth('/api/flashcards/sets'),
         fetchWithAuth('/api/flashcards/due?limit=10'),
       ]);
+
+      // Debug: Log flashcard sets with their topics
+      console.log('📚 Flashcard Sets:', sets?.map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        topic: s.topic,
+        session_id: s.session_id
+      })));
+
       setFlashcardSets(sets || []);
       setDueFlashcards(due || []);
     } catch (error) {
@@ -709,17 +718,49 @@ const ProfileScreen: React.FC = () => {
     // Filter flashcard sets based on selected filter
     const filteredFlashcards = flashcardSets.filter((set) => {
       if (flashcardFilter === 'all') return true;
+
       if (flashcardFilter === 'practice') {
-        // Practice flashcards have generic topics or no specific learning plan association
-        // We consider flashcards as "practice" if topic doesn't contain "Learning Plan" or "Week"
-        return !set.topic || (!set.topic.includes('Learning Plan') && !set.topic.includes('Week'));
+        // Practice flashcards: Check if title/description suggests it's from quick practice
+        // Usually practice sessions have titles like "Quick Practice", "Conversation Practice", etc.
+        const titleLower = (set.title || '').toLowerCase();
+        const topicLower = (set.topic || '').toLowerCase();
+        const descLower = (set.description || '').toLowerCase();
+
+        // Consider it practice if it mentions "practice", "quick", or "conversation"
+        // and doesn't mention "week" or "learning plan"
+        const isPractice = (
+          titleLower.includes('practice') ||
+          titleLower.includes('quick') ||
+          titleLower.includes('conversation') ||
+          topicLower.includes('practice') ||
+          topicLower.includes('quick')
+        ) && !titleLower.includes('week') && !titleLower.includes('learning plan');
+
+        return isPractice;
       }
+
       if (flashcardFilter === 'learning_plan') {
-        // Learning plan flashcards have "Learning Plan" or "Week" in their topic
-        return set.topic && (set.topic.includes('Learning Plan') || set.topic.includes('Week'));
+        // Learning plan flashcards: Check if title/description/topic mentions week or learning plan
+        const titleLower = (set.title || '').toLowerCase();
+        const topicLower = (set.topic || '').toLowerCase();
+        const descLower = (set.description || '').toLowerCase();
+
+        const isLearningPlan =
+          titleLower.includes('week') ||
+          titleLower.includes('learning plan') ||
+          topicLower.includes('week') ||
+          topicLower.includes('learning plan') ||
+          descLower.includes('week') ||
+          /week\s*\d+/i.test(titleLower); // Matches "Week 1", "week 2", etc.
+
+        return isLearningPlan;
       }
+
       return true;
     });
+
+    // Debug logging
+    console.log(`🔍 Filter: ${flashcardFilter}, Total: ${flashcardSets.length}, Filtered: ${filteredFlashcards.length}`);
 
     return (
       <View style={styles.flashcardsContainer}>
