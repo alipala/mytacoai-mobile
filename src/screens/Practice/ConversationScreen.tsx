@@ -51,9 +51,10 @@ interface Message {
 // Enhanced Animated Message Component with smooth entrance
 interface AnimatedMessageProps {
   message: Message;
+  voiceName?: string;
 }
 
-const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
+const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message, voiceName = 'Alloy' }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -127,7 +128,7 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
           styles.roleText,
           message.role === 'user' ? styles.roleTextUser : styles.roleTextAssistant,
         ]}>
-          {message.role === 'user' ? 'You' : 'AI Tutor'}
+          {message.role === 'user' ? 'You' : voiceName.charAt(0).toUpperCase() + voiceName.slice(1)}
         </Text>
       </View>
 
@@ -1194,7 +1195,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : (
           messages.map((message) => (
-            <AnimatedMessage key={message.id} message={message} />
+            <AnimatedMessage key={message.id} message={message} voiceName={userVoice} />
           ))
         )}
       </ScrollView>
@@ -1228,15 +1229,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           />
         </View>
 
-        {/* End Button - Right */}
+        {/* Leave Button - Right */}
         <TouchableOpacity
           style={styles.footerSideButton}
           onPress={handleEndSession}
           activeOpacity={0.7}
         >
-          <Ionicons name="stop-circle" size={24} color="#EF4444" />
+          <Ionicons name="exit-outline" size={24} color="#EF4444" />
           <Text style={[styles.footerButtonText, { color: '#EF4444' }]}>
-            End
+            Leave
           </Text>
         </TouchableOpacity>
       </View>
