@@ -151,7 +151,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      Alert.alert('Account Deleted', 'Your account has been permanently deleted. We're sorry to see you go!');
+      Alert.alert('Account Deleted', 'Your account has been permanently deleted. We are sorry to see you go!');
       setShowDeleteModal(false);
     } catch (error: any) {
       console.error('Error deleting account:', error);
