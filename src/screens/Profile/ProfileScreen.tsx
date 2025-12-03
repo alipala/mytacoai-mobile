@@ -720,40 +720,13 @@ const ProfileScreen: React.FC = () => {
       if (flashcardFilter === 'all') return true;
 
       if (flashcardFilter === 'practice') {
-        // Practice flashcards: Check if title/description suggests it's from quick practice
-        // Usually practice sessions have titles like "Quick Practice", "Conversation Practice", etc.
-        const titleLower = (set.title || '').toLowerCase();
-        const topicLower = (set.topic || '').toLowerCase();
-        const descLower = (set.description || '').toLowerCase();
-
-        // Consider it practice if it mentions "practice", "quick", or "conversation"
-        // and doesn't mention "week" or "learning plan"
-        const isPractice = (
-          titleLower.includes('practice') ||
-          titleLower.includes('quick') ||
-          titleLower.includes('conversation') ||
-          topicLower.includes('practice') ||
-          topicLower.includes('quick')
-        ) && !titleLower.includes('week') && !titleLower.includes('learning plan');
-
-        return isPractice;
+        // Practice flashcards: session_id does NOT start with "learning_plan"
+        return !set.session_id.startsWith('learning_plan');
       }
 
       if (flashcardFilter === 'learning_plan') {
-        // Learning plan flashcards: Check if title/description/topic mentions week or learning plan
-        const titleLower = (set.title || '').toLowerCase();
-        const topicLower = (set.topic || '').toLowerCase();
-        const descLower = (set.description || '').toLowerCase();
-
-        const isLearningPlan =
-          titleLower.includes('week') ||
-          titleLower.includes('learning plan') ||
-          topicLower.includes('week') ||
-          topicLower.includes('learning plan') ||
-          descLower.includes('week') ||
-          /week\s*\d+/i.test(titleLower); // Matches "Week 1", "week 2", etc.
-
-        return isLearningPlan;
+        // Learning plan flashcards: session_id STARTS with "learning_plan"
+        return set.session_id.startsWith('learning_plan');
       }
 
       return true;
