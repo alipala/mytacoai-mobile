@@ -976,27 +976,21 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Animated Background - Responds to conversation state */}
-      <ConversationBackground state={conversationState.currentState} />
+      {/* Subtle Static Background - Clean, minimal */}
+      <ConversationBackground />
 
       {/* Header */}
       <View style={styles.header}>
-        {/* Empty spacer for header balance */}
-        <View style={styles.backButton} />
-
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
             {screenLanguage ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice` : 'Conversation'}
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={handleEndSession}
-          style={styles.endButton}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.endButtonText}>End</Text>
-        </TouchableOpacity>
+        {/* Small AI Blob in top-right corner */}
+        <View style={styles.headerAIBlob}>
+          <AIVisualization state={conversationState.currentState} size={40} />
+        </View>
       </View>
 
       {/* Timer Badge - Clean design below header */}
@@ -1063,9 +1057,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : messages.length === 0 ? (
           <View style={styles.emptyContainer}>
-            {/* AI Visualization - Shows state visually */}
+            {/* Large AI Visualization - Shows state visually (only when empty) */}
             <View style={styles.aiVisualizationContainer}>
-              <AIVisualization state={conversationState.currentState} size={140} />
+              <AIVisualization state={conversationState.currentState} size={120} />
             </View>
             <Text style={styles.emptyTitle}>Ready to start</Text>
             <Text style={styles.emptyText}>
@@ -1073,38 +1067,71 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             </Text>
           </View>
         ) : (
-          <>
-            {/* AI Visualization - Always visible during conversation */}
-            <View style={styles.aiVisualizationContainerInline}>
-              <AIVisualization state={conversationState.currentState} size={100} />
-            </View>
-            {messages.map((message) => (
-              <AnimatedMessage key={message.id} message={message} />
-            ))}
-          </>
+          messages.map((message) => (
+            <AnimatedMessage key={message.id} message={message} />
+          ))
         )}
       </ScrollView>
 
-      {/* Conversation Help Button */}
-      <ConversationHelpButton
-        visible={
-          conversationHelp.helpSettings.help_enabled &&
+      {/* Footer with Help, Microphone, and End buttons */}
+      <View style={styles.footerContainer}>
+        {/* Help Button - Left */}
+        <TouchableOpacity
+          style={styles.footerSideButton}
+          onPress={conversationHelp.showHelpModal}
+          disabled={
+            !conversationHelp.helpSettings.help_enabled ||
+            (!conversationHelp.isHelpReady && !conversationHelp.isLoading) ||
+            messages.length === 0
+          }
+          activeOpacity={0.7}
+        >
+          {conversationHelp.helpSettings.help_enabled &&
           (conversationHelp.isHelpReady || conversationHelp.isLoading) &&
-          messages.length > 0 // Only show after conversation has started
-        }
-        isLoading={conversationHelp.isLoading}
-        isHelpReady={conversationHelp.isHelpReady}
-        onPress={conversationHelp.showHelpModal}
-        helpLanguage={conversationHelp.helpSettings.help_language}
-      />
+          messages.length > 0 ? (
+            <>
+              <Ionicons
+                name="help-circle"
+                size={24}
+                color={conversationHelp.isHelpReady ? '#8B5CF6' : '#D1D5DB'}
+              />
+              <Text style={[
+                styles.footerButtonText,
+                { color: conversationHelp.isHelpReady ? '#8B5CF6' : '#D1D5DB' }
+              ]}>
+                Help
+              </Text>
+            </>
+          ) : (
+            <View style={{ opacity: 0 }}>
+              <Ionicons name="help-circle" size={24} color="transparent" />
+              <Text style={styles.footerButtonText}>Help</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
-      {/* Enhanced Recording Button with State-Aware Animations */}
-      <EnhancedRecordingButton
-        isRecording={isRecording}
-        onPress={handleToggleRecording}
-        disabled={isConnecting}
-        conversationState={conversationState.currentState}
-      />
+        {/* Enhanced Recording Button - Center */}
+        <View style={styles.footerCenterButton}>
+          <EnhancedRecordingButton
+            isRecording={isRecording}
+            onPress={handleToggleRecording}
+            disabled={isConnecting}
+            conversationState={conversationState.currentState}
+          />
+        </View>
+
+        {/* End Button - Right */}
+        <TouchableOpacity
+          style={styles.footerSideButton}
+          onPress={handleEndSession}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="stop-circle" size={24} color="#EF4444" />
+          <Text style={[styles.footerButtonText, { color: '#EF4444' }]}>
+            End
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Important Information Modal (for both practice and learning plan modes) */}
       <Modal
@@ -1369,9 +1396,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  backButton: {
-    padding: 8,
-  },
   headerCenter: {
     flex: 1,
     alignItems: 'center',
@@ -1380,6 +1404,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#1F2937',
+  },
+  headerAIBlob: {
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerSubtitle: {
     fontSize: 13,
@@ -1524,6 +1554,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     marginBottom: 8,
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  footerSideButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 70,
+  },
+  footerCenterButton: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  footerButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
   messageRow: {
     marginBottom: 20,

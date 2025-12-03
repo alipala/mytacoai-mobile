@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { ConversationState } from '../hooks/useConversationState';
+import MicrophoneRipples from './MicrophoneRipples';
 
 interface EnhancedRecordingButtonProps {
   isRecording: boolean;
@@ -36,38 +37,17 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
   // Animation values
   const buttonScale = useSharedValue(1);
   const pulseScale = useSharedValue(1);
-  const ringScale = useSharedValue(1);
-  const ringOpacity = useSharedValue(0);
 
   /**
    * Button animations based on state
    */
   useEffect(() => {
     if (isRecording) {
-      // Active recording - pulsing animation
+      // Active recording - subtle pulsing animation
       buttonScale.value = withRepeat(
         withSequence(
-          withTiming(1.1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1.05, { duration: 800, easing: Easing.inOut(Easing.ease) }),
           withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        false
-      );
-
-      // Expanding ring effect
-      ringScale.value = withRepeat(
-        withSequence(
-          withTiming(1.8, { duration: 1200, easing: Easing.out(Easing.ease) }),
-          withTiming(1, { duration: 0 })
-        ),
-        -1,
-        false
-      );
-
-      ringOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0.6, { duration: 200 }),
-          withTiming(0, { duration: 1000, easing: Easing.out(Easing.ease) })
         ),
         -1,
         false
@@ -75,8 +55,6 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
     } else {
       // Idle state - reset animations
       buttonScale.value = withTiming(1, { duration: 300 });
-      ringScale.value = withTiming(1, { duration: 300 });
-      ringOpacity.value = withTiming(0, { duration: 300 });
     }
   }, [isRecording]);
 
@@ -148,27 +126,16 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
     };
   });
 
-  const ringAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: ringScale.value }],
-      opacity: ringOpacity.value,
-    };
-  });
-
   const buttonColor = getButtonColor();
   const buttonText = getButtonText();
 
   return (
     <View style={styles.container}>
-      {/* Expanding ring effect */}
-      <Animated.View
-        style={[
-          styles.ring,
-          {
-            borderColor: buttonColor,
-          },
-          ringAnimatedStyle,
-        ]}
+      {/* Concentric ripples when user is speaking */}
+      <MicrophoneRipples
+        isActive={isRecording}
+        size={80}
+        color={buttonColor}
       />
 
       {/* Main button */}
@@ -214,13 +181,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-  },
-  ring: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
   },
   buttonText: {
     fontSize: 14,
