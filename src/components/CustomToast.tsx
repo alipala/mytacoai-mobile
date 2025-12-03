@@ -156,7 +156,7 @@ export const CustomToast: React.FC<CustomToastProps> = ({
         >
           <Ionicons name="close" size={20} color="#6B7280" />
         </TouchableOpacity>
-      </TouchableView>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
