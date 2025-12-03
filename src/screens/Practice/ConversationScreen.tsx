@@ -9,6 +9,7 @@ import {
   Platform,
   Modal,
   Animated,
+  Easing,
   ActivityIndicator,
   Alert,
   Dimensions,
@@ -26,6 +27,13 @@ import { useConversationHelp } from '../../hooks/useConversationHelp';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// New state-driven animation components
+import { useConversationState } from '../../hooks/useConversationState';
+import ConversationBackground from '../../components/ConversationBackground';
+import AIVisualization from '../../components/AIVisualization';
+import AIVoiceAvatar from '../../components/AIVoiceAvatar';
+import EnhancedRecordingButton from '../../components/EnhancedRecordingButton';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface ConversationScreenProps {
@@ -40,28 +48,56 @@ interface Message {
   timestamp: string;
 }
 
-// Animated Message Component with fade-in effect
+// Enhanced Animated Message Component with smooth entrance
 interface AnimatedMessageProps {
   message: Message;
+  voiceName?: string;
 }
 
-const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
+const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message, voiceName = 'Alloy' }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Smooth entrance animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 500,
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 400,
+        duration: 500,
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 500,
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Subtle glow effect for AI messages
+    if (message.role === 'assistant') {
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
   }, []);
 
   return (
@@ -71,7 +107,10 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
         message.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant,
         {
           opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
+          transform: [
+            { translateY: slideAnim },
+            { scale: scaleAnim },
+          ],
         },
       ]}
     >
@@ -89,14 +128,20 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
           styles.roleText,
           message.role === 'user' ? styles.roleTextUser : styles.roleTextAssistant,
         ]}>
-          {message.role === 'user' ? 'You' : 'AI Tutor'}
+          {message.role === 'user' ? 'You' : voiceName.charAt(0).toUpperCase() + voiceName.slice(1)}
         </Text>
       </View>
 
-      <View
+      <Animated.View
         style={[
           styles.messageBubble,
           message.role === 'user' ? styles.messageBubbleUser : styles.messageBubbleAssistant,
+          message.role === 'assistant' && {
+            shadowOpacity: glowAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.1, 0.25],
+            }),
+          },
         ]}
       >
         <Text style={[
@@ -105,8 +150,88 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
         ]}>
           {message.content}
         </Text>
-      </View>
+      </Animated.View>
     </Animated.View>
+  );
+};
+
+// Animated Help Button Component
+const AnimatedHelpButton: React.FC<{
+  isLoading: boolean;
+  isReady: boolean;
+  onPress: () => void;
+  disabled: boolean;
+}> = ({ isLoading, isReady, onPress, disabled }) => {
+  const rotation = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isLoading) {
+      // Rotating loading animation
+      Animated.loop(
+        Animated.timing(rotation, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      rotation.stopAnimation();
+      rotation.setValue(0);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (isReady && !isLoading) {
+      // Pop animation when ready
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.3,
+          duration: 200,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isReady, isLoading]);
+
+  const rotateInterpolate = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const color = isReady ? '#8B5CF6' : '#D1D5DB';
+
+  return (
+    <TouchableOpacity
+      style={styles.footerSideButton}
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.7}
+    >
+      <Animated.View
+        style={{
+          transform: [
+            { rotate: isLoading ? rotateInterpolate : '0deg' },
+            { scale: scaleAnim },
+          ],
+        }}
+      >
+        <Ionicons
+          name={isLoading ? 'sync' : 'help-circle'}
+          size={24}
+          color={color}
+        />
+      </Animated.View>
+      <Text style={[styles.footerButtonText, { color }]}>Help</Text>
+    </TouchableOpacity>
   );
 };
 
@@ -151,6 +276,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
+  const [userVoice, setUserVoice] = useState<string>('alloy'); // Track user's selected voice
 
   // Session saving states
   const [collectedSentences, setCollectedSentences] = useState<SentenceForAnalysis[]>([]);
@@ -209,10 +335,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const conversationHelp = useConversationHelp(conversationHelpOptions);
 
+  // Initialize conversation state machine
+  const conversationState = useConversationState();
+
   // Use refs to ensure event handlers always have latest values
   const conversationHelpOptionsRef = useRef(conversationHelpOptions);
   const learningPlanRef = useRef(learningPlan);
   const conversationHelpRef = useRef(conversationHelp);
+  const conversationStateRef = useRef(conversationState);
 
   // Keep refs in sync with latest values
   useEffect(() => {
@@ -226,6 +356,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   useEffect(() => {
     conversationHelpRef.current = conversationHelp;
   }, [conversationHelp]);
+
+  useEffect(() => {
+    conversationStateRef.current = conversationState;
+  }, [conversationState]);
 
   // Log when conversation help options change
   useEffect(() => {
@@ -509,12 +643,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       }
 
       // Fetch user's preferred voice
-      let userVoice = 'alloy'; // Default voice
+      let selectedVoice = 'alloy'; // Default voice
       try {
         const voicePreference = await AuthenticationService.getVoicePreferenceApiAuthGetVoiceGet();
         if (voicePreference && typeof voicePreference === 'object' && 'voice' in voicePreference && voicePreference.voice) {
-          userVoice = (voicePreference as any).voice;
-          console.log(`[CONVERSATION] Using user's preferred voice: ${userVoice}`);
+          selectedVoice = (voicePreference as any).voice;
+          console.log(`[CONVERSATION] Using user's preferred voice: ${selectedVoice}`);
         } else {
           console.log('[CONVERSATION] No voice preference found, using default: alloy');
         }
@@ -522,13 +656,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.warn('[CONVERSATION] Could not fetch voice preference, using default:', voiceError);
       }
 
+      // Update state with selected voice
+      setUserVoice(selectedVoice);
+
       // Create and configure RealtimeService
       realtimeServiceRef.current = new RealtimeService({
         language: sessionLanguage,
         level: sessionLevel,
         topic: plan ? null : topic, // Topic is only for practice mode
         assessmentData: assessmentData || undefined,
-        voice: userVoice,
+        voice: selectedVoice,
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);
@@ -578,6 +715,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         },
         onEvent: (event) => {
           console.log('[CONVERSATION] Event:', event.type);
+          // Pass events to conversation state machine
+          conversationStateRef.current.handleRealtimeEvent(event);
         },
       });
 
@@ -723,6 +862,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
     const newRecordingState = !isRecording;
     setIsRecording(newRecordingState);
+
+    // Update conversation state machine
+    conversationState.setUserSpeaking(newRecordingState);
 
     // Keep conversation help visible while recording so user can read suggestions
     // Only close the modal if it's open, but keep the button visible
@@ -957,24 +1099,25 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Subtle Static Background - Clean, minimal */}
+      <ConversationBackground />
+
       {/* Header */}
       <View style={styles.header}>
-        {/* Empty spacer for header balance */}
-        <View style={styles.backButton} />
-
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
             {screenLanguage ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice` : 'Conversation'}
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={handleEndSession}
-          style={styles.endButton}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.endButtonText}>End</Text>
-        </TouchableOpacity>
+        {/* AI Voice Avatar with animated rings in top-right corner */}
+        <View style={styles.headerAIBlob}>
+          <AIVoiceAvatar
+            voice={userVoice}
+            state={conversationState.currentState}
+            size={40}
+          />
+        </View>
       </View>
 
       {/* Timer Badge - Clean design below header */}
@@ -1041,7 +1184,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : messages.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubbles-outline" size={64} color="#D1D5DB" />
+            {/* Large AI Visualization - Shows state visually (only when empty) */}
+            <View style={styles.aiVisualizationContainer}>
+              <AIVisualization state={conversationState.currentState} size={120} />
+            </View>
             <Text style={styles.emptyTitle}>Ready to start</Text>
             <Text style={styles.emptyText}>
               Tap the microphone button below to begin speaking
@@ -1049,47 +1195,51 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : (
           messages.map((message) => (
-            <AnimatedMessage key={message.id} message={message} />
+            <AnimatedMessage key={message.id} message={message} voiceName={userVoice} />
           ))
         )}
       </ScrollView>
 
-      {/* Conversation Help Button */}
-      <ConversationHelpButton
-        visible={
-          conversationHelp.helpSettings.help_enabled &&
-          (conversationHelp.isHelpReady || conversationHelp.isLoading) &&
-          messages.length > 0 // Only show after conversation has started
-        }
-        isLoading={conversationHelp.isLoading}
-        isHelpReady={conversationHelp.isHelpReady}
-        onPress={conversationHelp.showHelpModal}
-        helpLanguage={conversationHelp.helpSettings.help_language}
-      />
+      {/* Footer with Help, Microphone, and End buttons */}
+      <View style={styles.footerContainer}>
+        {/* Animated Help Button - Left */}
+        {conversationHelp.helpSettings.help_enabled &&
+        (conversationHelp.isHelpReady || conversationHelp.isLoading) &&
+        messages.length > 0 ? (
+          <AnimatedHelpButton
+            isLoading={conversationHelp.isLoading}
+            isReady={conversationHelp.isHelpReady}
+            onPress={conversationHelp.showHelpModal}
+            disabled={false}
+          />
+        ) : (
+          <View style={[styles.footerSideButton, { opacity: 0 }]}>
+            <Ionicons name="help-circle" size={24} color="transparent" />
+            <Text style={styles.footerButtonText}>Help</Text>
+          </View>
+        )}
 
-      {/* Recording Button */}
-      <View style={styles.footer}>
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <TouchableOpacity
-            style={[
-              styles.recordButton,
-              isRecording && styles.recordButtonActive,
-            ]}
+        {/* Enhanced Recording Button - Center */}
+        <View style={styles.footerCenterButton}>
+          <EnhancedRecordingButton
+            isRecording={isRecording}
             onPress={handleToggleRecording}
             disabled={isConnecting}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={isRecording ? 'stop' : 'mic'}
-              size={32}
-              color="#FFFFFF"
-            />
-          </TouchableOpacity>
-        </Animated.View>
+            conversationState={conversationState.currentState}
+          />
+        </View>
 
-        <Text style={styles.recordHint}>
-          {isRecording ? 'Tap to stop' : 'Tap to speak'}
-        </Text>
+        {/* Leave Button - Right */}
+        <TouchableOpacity
+          style={styles.footerSideButton}
+          onPress={handleEndSession}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="exit-outline" size={24} color="#EF4444" />
+          <Text style={[styles.footerButtonText, { color: '#EF4444' }]}>
+            Leave
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Important Information Modal (for both practice and learning plan modes) */}
@@ -1344,7 +1494,7 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent', // Allow animated background to show through
   },
   header: {
     flexDirection: 'row',
@@ -1355,9 +1505,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  backButton: {
-    padding: 8,
-  },
   headerCenter: {
     flex: 1,
     alignItems: 'center',
@@ -1366,6 +1513,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#1F2937',
+  },
+  headerAIBlob: {
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerSubtitle: {
     fontSize: 13,
@@ -1455,7 +1608,7 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'transparent', // Allow animated background gradient to show
   },
   messagesContent: {
     padding: 16,
@@ -1494,7 +1647,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#1F2937',
-    marginTop: 16,
+    marginTop: 24,
   },
   emptyText: {
     fontSize: 15,
@@ -1502,6 +1655,40 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 32,
+  },
+  aiVisualizationContainer: {
+    marginBottom: 24,
+  },
+  aiVisualizationContainerInline: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginBottom: 8,
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  footerSideButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 70,
+  },
+  footerCenterButton: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  footerButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
   messageRow: {
     marginBottom: 20,
