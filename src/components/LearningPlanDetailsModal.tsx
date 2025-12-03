@@ -155,9 +155,9 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   const level = plan?.proficiency_level || plan?.target_cefr_level || 'B1';
   const levelColors = getLevelColor(level);
 
-  // Calculate practice time for this specific learning plan
-  // Assuming average session is ~10-15 minutes
-  const avgMinutesPerSession = 12;
+  // Calculate estimated practice time for this specific learning plan
+  // Using average session duration based on typical conversation length
+  const avgMinutesPerSession = 15; // Increased to be more realistic
   const practiceTimeMinutes = completedSessions * avgMinutesPerSession;
 
   // Calculate current week based on sessions completed (assuming 3 sessions per week)
@@ -281,10 +281,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <View style={styles.statCard}>
                   <View style={styles.statCardLeft}>
                     <Ionicons name="time-outline" size={24} color="#3B82F6" />
-                    <Text style={styles.statCardLabel}>Practice Time</Text>
+                    <Text style={styles.statCardLabel}>Est. Time</Text>
                   </View>
                   <Text style={styles.statCardValue}>
-                    {practiceTimeMinutes} min
+                    ~{practiceTimeMinutes} min
                   </Text>
                 </View>
 

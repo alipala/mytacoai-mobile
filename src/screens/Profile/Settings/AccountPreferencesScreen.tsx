@@ -54,8 +54,17 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
       setEmail(userData.email || '');
 
       // Check authentication provider
-      const provider = await AsyncStorage.getItem('auth_provider');
-      setAuthProvider(provider || 'email');
+      let provider = await AsyncStorage.getItem('auth_provider');
+
+      // If no provider stored yet, default to 'email'
+      // Note: Google users should have this set during login, but we'll default safely
+      if (!provider) {
+        provider = 'email';
+        await AsyncStorage.setItem('auth_provider', provider);
+      }
+
+      console.log('🔐 Auth provider loaded:', provider, 'for user:', userData.email);
+      setAuthProvider(provider);
     } catch (error) {
       console.error('Error loading user data:', error);
       Alert.alert('Error', 'Failed to load user data');

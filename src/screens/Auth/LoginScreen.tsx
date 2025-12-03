@@ -294,6 +294,9 @@ export const LoginScreen = ({ navigation }: any) => {
         },
       });
 
+      // Mark as email signup
+      await AsyncStorage.setItem('auth_provider', 'email');
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       showToast({

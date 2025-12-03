@@ -111,14 +111,18 @@ interface Flashcard {
 
 interface FlashcardSet {
   id: string;
+  session_id: string;
+  user_id: string;
   language: string;
   level: string;
+  topic?: string | null;
   title: string;
   description: string;
   flashcards: Flashcard[];
   total_cards: number;
   created_at: string;
   is_completed?: boolean;
+  completed_at?: string | null;
 }
 
 interface Notification {
@@ -706,12 +710,13 @@ const ProfileScreen: React.FC = () => {
     const filteredFlashcards = flashcardSets.filter((set) => {
       if (flashcardFilter === 'all') return true;
       if (flashcardFilter === 'practice') {
-        // Flashcards from practice sessions (no learning plan reference)
-        return !set.learning_plan_id;
+        // Practice flashcards have generic topics or no specific learning plan association
+        // We consider flashcards as "practice" if topic doesn't contain "Learning Plan" or "Week"
+        return !set.topic || (!set.topic.includes('Learning Plan') && !set.topic.includes('Week'));
       }
       if (flashcardFilter === 'learning_plan') {
-        // Flashcards from learning plans
-        return !!set.learning_plan_id;
+        // Learning plan flashcards have "Learning Plan" or "Week" in their topic
+        return set.topic && (set.topic.includes('Learning Plan') || set.topic.includes('Week'));
       }
       return true;
     });
