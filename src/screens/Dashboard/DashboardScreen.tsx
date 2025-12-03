@@ -94,7 +94,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet(),
       ]);
 
-      setLearningPlans(plansResponse as LearningPlan[]);
+      // Sort learning plans from latest to earliest
+      const sortedPlans = (plansResponse as LearningPlan[]).sort((a, b) => {
+        const dateA = new Date(a.created_at || '').getTime();
+        const dateB = new Date(b.created_at || '').getTime();
+        return dateB - dateA; // Latest first
+      });
+
+      setLearningPlans(sortedPlans);
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
       console.log('📊 Subscription status loaded:', subscriptionResponse);
@@ -226,6 +233,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setShowLogoutModal(false);
+  };
+
+  const getTimeBasedGreeting = (): string => {
+    const hour = new Date().getHours();
+    const firstName = userName?.split(' ')[0] || 'there';
+    let greeting = '';
+
+    if (hour >= 5 && hour < 12) {
+      greeting = 'Good morning';
+    } else if (hour >= 12 && hour < 17) {
+      greeting = 'Good afternoon';
+    } else if (hour >= 17 && hour < 22) {
+      greeting = 'Good evening';
+    } else {
+      greeting = 'Good night';
+    }
+
+    return `${greeting}, ${firstName}`;
   };
 
   // Loading State
@@ -442,10 +467,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {/* Hero Greeting Section - Premium Design */}
         <View style={styles.titleSection}>
           <View style={styles.greetingContainer}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={styles.greetingText}>Welcome back</Text>
-              <Text style={styles.greetingEmoji}>👋</Text>
-            </View>
+            <Text style={styles.greetingText}>{getTimeBasedGreeting()}</Text>
           </View>
           <View style={styles.statsContainer}>
             <View style={styles.statBadge}>

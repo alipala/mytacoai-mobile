@@ -341,7 +341,14 @@ export const styles = StyleSheet.create({
 
   // Flashcards - GRID
   flashcardsContainer: { flex: 1 },
-  flashcardGridContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20 },
+  // iOS-style Filter
+  flashcardFilterContainer: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
+  flashcardFilterSegment: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 10, padding: 3, gap: 3 },
+  flashcardFilterButton: { flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  flashcardFilterButtonActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 3 },
+  flashcardFilterButtonText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  flashcardFilterButtonTextActive: { color: '#4FD1C5', fontWeight: '700' },
+  flashcardGridContent: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20 },
   flashcardGridRow: { gap: 12, marginBottom: 12 },
   flashcardCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, elevation: 3, borderWidth: 1, borderColor: '#F3F4F6' },
   flashcardCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
