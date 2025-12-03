@@ -169,7 +169,9 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 24,
+    position: 'relative', // Ensure relative positioning for absolute children
   },
   button: {
     width: 80,

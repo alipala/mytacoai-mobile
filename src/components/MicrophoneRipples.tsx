@@ -148,6 +148,10 @@ const MicrophoneRipples: React.FC<MicrophoneRipplesProps> = ({
             width: size,
             height: size,
             borderRadius: size / 2,
+            top: '50%',
+            left: '50%',
+            marginTop: -size / 2,
+            marginLeft: -size / 2,
           },
           ring3Style,
         ]}
@@ -161,6 +165,10 @@ const MicrophoneRipples: React.FC<MicrophoneRipplesProps> = ({
             width: size,
             height: size,
             borderRadius: size / 2,
+            top: '50%',
+            left: '50%',
+            marginTop: -size / 2,
+            marginLeft: -size / 2,
           },
           ring2Style,
         ]}
@@ -174,6 +182,10 @@ const MicrophoneRipples: React.FC<MicrophoneRipplesProps> = ({
             width: size,
             height: size,
             borderRadius: size / 2,
+            top: '50%',
+            left: '50%',
+            marginTop: -size / 2,
+            marginLeft: -size / 2,
           },
           ring1Style,
         ]}

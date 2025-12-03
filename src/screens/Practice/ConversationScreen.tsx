@@ -31,6 +31,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useConversationState } from '../../hooks/useConversationState';
 import ConversationBackground from '../../components/ConversationBackground';
 import AIVisualization from '../../components/AIVisualization';
+import AIVoiceAvatar from '../../components/AIVoiceAvatar';
 import EnhancedRecordingButton from '../../components/EnhancedRecordingButton';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -153,6 +154,86 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
   );
 };
 
+// Animated Help Button Component
+const AnimatedHelpButton: React.FC<{
+  isLoading: boolean;
+  isReady: boolean;
+  onPress: () => void;
+  disabled: boolean;
+}> = ({ isLoading, isReady, onPress, disabled }) => {
+  const rotation = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isLoading) {
+      // Rotating loading animation
+      Animated.loop(
+        Animated.timing(rotation, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      rotation.stopAnimation();
+      rotation.setValue(0);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (isReady && !isLoading) {
+      // Pop animation when ready
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.3,
+          duration: 200,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isReady, isLoading]);
+
+  const rotateInterpolate = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const color = isReady ? '#8B5CF6' : '#D1D5DB';
+
+  return (
+    <TouchableOpacity
+      style={styles.footerSideButton}
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.7}
+    >
+      <Animated.View
+        style={{
+          transform: [
+            { rotate: isLoading ? rotateInterpolate : '0deg' },
+            { scale: scaleAnim },
+          ],
+        }}
+      >
+        <Ionicons
+          name={isLoading ? 'sync' : 'help-circle'}
+          size={24}
+          color={color}
+        />
+      </Animated.View>
+      <Text style={[styles.footerButtonText, { color }]}>Help</Text>
+    </TouchableOpacity>
+  );
+};
+
 const ConversationScreen: React.FC<ConversationScreenProps> = ({
   navigation,
   route,
@@ -194,6 +275,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
+  const [userVoice, setUserVoice] = useState<string>('alloy'); // Track user's selected voice
 
   // Session saving states
   const [collectedSentences, setCollectedSentences] = useState<SentenceForAnalysis[]>([]);
@@ -560,12 +642,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       }
 
       // Fetch user's preferred voice
-      let userVoice = 'alloy'; // Default voice
+      let selectedVoice = 'alloy'; // Default voice
       try {
         const voicePreference = await AuthenticationService.getVoicePreferenceApiAuthGetVoiceGet();
         if (voicePreference && typeof voicePreference === 'object' && 'voice' in voicePreference && voicePreference.voice) {
-          userVoice = (voicePreference as any).voice;
-          console.log(`[CONVERSATION] Using user's preferred voice: ${userVoice}`);
+          selectedVoice = (voicePreference as any).voice;
+          console.log(`[CONVERSATION] Using user's preferred voice: ${selectedVoice}`);
         } else {
           console.log('[CONVERSATION] No voice preference found, using default: alloy');
         }
@@ -573,13 +655,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.warn('[CONVERSATION] Could not fetch voice preference, using default:', voiceError);
       }
 
+      // Update state with selected voice
+      setUserVoice(selectedVoice);
+
       // Create and configure RealtimeService
       realtimeServiceRef.current = new RealtimeService({
         language: sessionLanguage,
         level: sessionLevel,
         topic: plan ? null : topic, // Topic is only for practice mode
         assessmentData: assessmentData || undefined,
-        voice: userVoice,
+        voice: selectedVoice,
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);
@@ -1024,9 +1109,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </Text>
         </View>
 
-        {/* Small AI Blob in top-right corner */}
+        {/* AI Voice Avatar with animated rings in top-right corner */}
         <View style={styles.headerAIBlob}>
-          <AIVisualization state={conversationState.currentState} size={40} />
+          <AIVoiceAvatar
+            voice={userVoice}
+            state={conversationState.currentState}
+            size={40}
+          />
         </View>
       </View>
 
@@ -1112,40 +1201,22 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       {/* Footer with Help, Microphone, and End buttons */}
       <View style={styles.footerContainer}>
-        {/* Help Button - Left */}
-        <TouchableOpacity
-          style={styles.footerSideButton}
-          onPress={conversationHelp.showHelpModal}
-          disabled={
-            !conversationHelp.helpSettings.help_enabled ||
-            (!conversationHelp.isHelpReady && !conversationHelp.isLoading) ||
-            messages.length === 0
-          }
-          activeOpacity={0.7}
-        >
-          {conversationHelp.helpSettings.help_enabled &&
-          (conversationHelp.isHelpReady || conversationHelp.isLoading) &&
-          messages.length > 0 ? (
-            <>
-              <Ionicons
-                name="help-circle"
-                size={24}
-                color={conversationHelp.isHelpReady ? '#8B5CF6' : '#D1D5DB'}
-              />
-              <Text style={[
-                styles.footerButtonText,
-                { color: conversationHelp.isHelpReady ? '#8B5CF6' : '#D1D5DB' }
-              ]}>
-                Help
-              </Text>
-            </>
-          ) : (
-            <View style={{ opacity: 0 }}>
-              <Ionicons name="help-circle" size={24} color="transparent" />
-              <Text style={styles.footerButtonText}>Help</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        {/* Animated Help Button - Left */}
+        {conversationHelp.helpSettings.help_enabled &&
+        (conversationHelp.isHelpReady || conversationHelp.isLoading) &&
+        messages.length > 0 ? (
+          <AnimatedHelpButton
+            isLoading={conversationHelp.isLoading}
+            isReady={conversationHelp.isHelpReady}
+            onPress={conversationHelp.showHelpModal}
+            disabled={false}
+          />
+        ) : (
+          <View style={[styles.footerSideButton, { opacity: 0 }]}>
+            <Ionicons name="help-circle" size={24} color="transparent" />
+            <Text style={styles.footerButtonText}>Help</Text>
+          </View>
+        )}
 
         {/* Enhanced Recording Button - Center */}
         <View style={styles.footerCenterButton}>
