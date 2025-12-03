@@ -46,28 +46,55 @@ interface Message {
   timestamp: string;
 }
 
-// Animated Message Component with fade-in effect
+// Enhanced Animated Message Component with smooth entrance
 interface AnimatedMessageProps {
   message: Message;
 }
 
 const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Smooth entrance animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 500,
+        easing: Animated.Easing.bezier(0.4, 0.0, 0.2, 1),
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 400,
+        duration: 500,
+        easing: Animated.Easing.bezier(0.4, 0.0, 0.2, 1),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 500,
+        easing: Animated.Easing.bezier(0.4, 0.0, 0.2, 1),
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Subtle glow effect for AI messages
+    if (message.role === 'assistant') {
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
   }, []);
 
   return (
@@ -77,7 +104,10 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
         message.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant,
         {
           opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
+          transform: [
+            { translateY: slideAnim },
+            { scale: scaleAnim },
+          ],
         },
       ]}
     >
@@ -99,10 +129,16 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
         </Text>
       </View>
 
-      <View
+      <Animated.View
         style={[
           styles.messageBubble,
           message.role === 'user' ? styles.messageBubbleUser : styles.messageBubbleAssistant,
+          message.role === 'assistant' && {
+            shadowOpacity: glowAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.1, 0.25],
+            }),
+          },
         ]}
       >
         <Text style={[
@@ -111,7 +147,7 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message }) => {
         ]}>
           {message.content}
         </Text>
-      </View>
+      </Animated.View>
     </Animated.View>
   );
 };
