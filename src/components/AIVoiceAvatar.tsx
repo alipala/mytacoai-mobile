@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Image } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,7 +8,6 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 import { ConversationState } from '../hooks/useConversationState';
 
 interface AIVoiceAvatarProps {
@@ -32,17 +31,19 @@ const VOICE_COLORS: Record<string, string> = {
 };
 
 /**
- * Voice icon mapping based on voice personality
+ * Voice avatar image mapping
  */
-const VOICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  alloy: 'cube-outline', // Metallic/structured
-  ash: 'flame-outline', // Warm/ash from fire
-  ballad: 'musical-note-outline', // Musical/song
-  coral: 'water-outline', // Ocean/coral reef
-  echo: 'megaphone-outline', // Sound/echo
-  sage: 'leaf-outline', // Wise/herbal
-  shimmer: 'sparkles-outline', // Shiny/glimmer
-  verse: 'book-outline', // Poetry/verse
+const VOICE_AVATARS: Record<string, any> = {
+  alloy: require('../assets/tutor/alloy.png'),
+  ash: require('../assets/tutor/ash.png'),
+  ballad: require('../assets/tutor/ballad.png'),
+  coral: require('../assets/tutor/coral.png'),
+  echo: require('../assets/tutor/echo.png'),
+  sage: require('../assets/tutor/sage.png'),
+  shimmer: require('../assets/tutor/shimmer.png'),
+  verse: require('../assets/tutor/verse.png'),
+  nova: require('../assets/tutor/nova.png'),
+  onyx: require('../assets/tutor/onyx.png'),
 };
 
 /**
@@ -218,7 +219,7 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
   });
 
   const voiceColor = VOICE_COLORS[voice] || '#8B5CF6';
-  const voiceIcon = VOICE_ICONS[voice] || 'person-outline';
+  const avatarImage = VOICE_AVATARS[voice] || VOICE_AVATARS.alloy;
 
   return (
     <View style={styles.container}>
@@ -250,7 +251,7 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
         ]}
       />
 
-      {/* Avatar circle with voice-specific icon */}
+      {/* Avatar circle with actual tutor image */}
       <Animated.View
         style={[
           styles.avatar,
@@ -258,12 +259,20 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: voiceColor,
+            overflow: 'hidden',
           },
           avatarStyle,
         ]}
       >
-        <Ionicons name={voiceIcon} size={size * 0.5} color="#FFFFFF" />
+        <Image
+          source={avatarImage}
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+          }}
+          resizeMode="cover"
+        />
       </Animated.View>
     </View>
   );
@@ -279,8 +288,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   avatar: {
-    alignItems: 'center',
-    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

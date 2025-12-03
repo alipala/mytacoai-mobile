@@ -131,9 +131,9 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Concentric ripples when user is speaking */}
+      {/* Concentric ripples - only show with mic button, NOT with stop button */}
       <MicrophoneRipples
-        isActive={conversationState === 'USER_SPEAKING'}
+        isActive={!isRecording && conversationState === 'USER_SPEAKING'}
         size={80}
         color={buttonColor}
       />
