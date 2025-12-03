@@ -26,6 +26,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { showToast, GlobalToast } from '../../components/CustomToast';
 import { authService } from '../../api/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -35,6 +36,13 @@ import { styles } from './LoginScreen.styles';
 
 
 export const LoginScreen = ({ navigation }: any) => {
+  // Load Inter fonts
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
+
   // Animation state
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -391,6 +399,11 @@ export const LoginScreen = ({ navigation }: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     navigation.navigate('ForgotPassword');
   };
+
+  // Wait for fonts to load
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>

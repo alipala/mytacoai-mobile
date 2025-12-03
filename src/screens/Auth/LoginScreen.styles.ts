@@ -62,13 +62,15 @@ export const styles = StyleSheet.create({
     borderBottomColor: '#14B8A6',
   },
   tabText: {
+    fontFamily: 'Inter_500Medium',
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#9CA3AF',
   },
   activeTabText: {
+    fontFamily: 'Inter_600SemiBold',
     color: '#14B8A6',
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   // Form Content
@@ -76,14 +78,17 @@ export const styles = StyleSheet.create({
     // Container for form elements
   },
   formTitle: {
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#1F2937',
     textAlign: 'center',
     marginBottom: 8,
   },
   formSubtitle: {
+    fontFamily: 'Inter_400Regular',
     fontSize: 15,
+    fontWeight: '400',
     color: '#6B7280',
     textAlign: 'center',
     marginBottom: 28,
@@ -112,10 +117,11 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
   input: {
+    fontFamily: 'Inter_400Regular',
     flex: 1,
     fontSize: 16,
     color: '#1F2937',
-    fontWeight: '500',
+    fontWeight: '400',
   },
   eyeIcon: {
     padding: 4,
@@ -130,6 +136,7 @@ export const styles = StyleSheet.create({
     gap: 6,
   },
   errorText: {
+    fontFamily: 'Inter_500Medium',
     fontSize: 13,
     color: '#EF4444',
     fontWeight: '500',
@@ -142,6 +149,7 @@ export const styles = StyleSheet.create({
     marginTop: -8,
   },
   forgotPasswordText: {
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
     color: '#14B8A6',
     fontWeight: '600',
@@ -167,9 +175,10 @@ export const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
+    fontFamily: 'Inter_600SemiBold',
     color: '#FFFFFF',
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   // Divider
@@ -184,6 +193,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   dividerText: {
+    fontFamily: 'Inter_500Medium',
     marginHorizontal: 16,
     fontSize: 14,
     color: '#9CA3AF',
@@ -208,6 +218,7 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   googleButtonText: {
+    fontFamily: 'Inter_600SemiBold',
     color: '#1F2937',
     fontSize: 16,
     fontWeight: '600',
