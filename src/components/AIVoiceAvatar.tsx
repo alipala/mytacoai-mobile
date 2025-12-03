@@ -32,6 +32,20 @@ const VOICE_COLORS: Record<string, string> = {
 };
 
 /**
+ * Voice icon mapping based on voice personality
+ */
+const VOICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  alloy: 'cube-outline', // Metallic/structured
+  ash: 'flame-outline', // Warm/ash from fire
+  ballad: 'musical-note-outline', // Musical/song
+  coral: 'water-outline', // Ocean/coral reef
+  echo: 'megaphone-outline', // Sound/echo
+  sage: 'leaf-outline', // Wise/herbal
+  shimmer: 'sparkles-outline', // Shiny/glimmer
+  verse: 'book-outline', // Poetry/verse
+};
+
+/**
  * AI Voice Avatar with Animated Rings
  *
  * Shows the selected AI voice avatar with animated concentric rings
@@ -204,6 +218,7 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
   });
 
   const voiceColor = VOICE_COLORS[voice] || '#8B5CF6';
+  const voiceIcon = VOICE_ICONS[voice] || 'person-outline';
 
   return (
     <View style={styles.container}>
@@ -235,7 +250,7 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
         ]}
       />
 
-      {/* Avatar circle with icon */}
+      {/* Avatar circle with voice-specific icon */}
       <Animated.View
         style={[
           styles.avatar,
@@ -248,7 +263,7 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
           avatarStyle,
         ]}
       >
-        <Ionicons name="person" size={size * 0.5} color="#FFFFFF" />
+        <Ionicons name={voiceIcon} size={size * 0.5} color="#FFFFFF" />
       </Animated.View>
     </View>
   );
