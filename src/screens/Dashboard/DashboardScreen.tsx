@@ -237,7 +237,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   const getTimeBasedGreeting = (): string => {
     const hour = new Date().getHours();
-    const firstName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || '';
+    const firstName = userName?.split(' ')[0] || 'there';
     let greeting = '';
 
     if (hour >= 5 && hour < 12) {
@@ -250,7 +250,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       greeting = 'Good night';
     }
 
-    return firstName ? `${greeting}, ${firstName}` : greeting;
+    return `${greeting}, ${firstName}`;
   };
 
   // Loading State
