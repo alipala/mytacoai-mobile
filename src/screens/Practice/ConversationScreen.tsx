@@ -26,6 +26,12 @@ import { useConversationHelp } from '../../hooks/useConversationHelp';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// New state-driven animation components
+import { useConversationState } from '../../hooks/useConversationState';
+import ConversationBackground from '../../components/ConversationBackground';
+import AIVisualization from '../../components/AIVisualization';
+import EnhancedRecordingButton from '../../components/EnhancedRecordingButton';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface ConversationScreenProps {
@@ -209,10 +215,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const conversationHelp = useConversationHelp(conversationHelpOptions);
 
+  // Initialize conversation state machine
+  const conversationState = useConversationState();
+
   // Use refs to ensure event handlers always have latest values
   const conversationHelpOptionsRef = useRef(conversationHelpOptions);
   const learningPlanRef = useRef(learningPlan);
   const conversationHelpRef = useRef(conversationHelp);
+  const conversationStateRef = useRef(conversationState);
 
   // Keep refs in sync with latest values
   useEffect(() => {
@@ -226,6 +236,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   useEffect(() => {
     conversationHelpRef.current = conversationHelp;
   }, [conversationHelp]);
+
+  useEffect(() => {
+    conversationStateRef.current = conversationState;
+  }, [conversationState]);
 
   // Log when conversation help options change
   useEffect(() => {
@@ -578,6 +592,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         },
         onEvent: (event) => {
           console.log('[CONVERSATION] Event:', event.type);
+          // Pass events to conversation state machine
+          conversationStateRef.current.handleRealtimeEvent(event);
         },
       });
 
@@ -723,6 +739,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
     const newRecordingState = !isRecording;
     setIsRecording(newRecordingState);
+
+    // Update conversation state machine
+    conversationState.setUserSpeaking(newRecordingState);
 
     // Keep conversation help visible while recording so user can read suggestions
     // Only close the modal if it's open, but keep the button visible
@@ -957,6 +976,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Animated Background - Responds to conversation state */}
+      <ConversationBackground state={conversationState.currentState} />
+
       {/* Header */}
       <View style={styles.header}>
         {/* Empty spacer for header balance */}
@@ -1041,16 +1063,25 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : messages.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubbles-outline" size={64} color="#D1D5DB" />
+            {/* AI Visualization - Shows state visually */}
+            <View style={styles.aiVisualizationContainer}>
+              <AIVisualization state={conversationState.currentState} size={140} />
+            </View>
             <Text style={styles.emptyTitle}>Ready to start</Text>
             <Text style={styles.emptyText}>
               Tap the microphone button below to begin speaking
             </Text>
           </View>
         ) : (
-          messages.map((message) => (
-            <AnimatedMessage key={message.id} message={message} />
-          ))
+          <>
+            {/* AI Visualization - Always visible during conversation */}
+            <View style={styles.aiVisualizationContainerInline}>
+              <AIVisualization state={conversationState.currentState} size={100} />
+            </View>
+            {messages.map((message) => (
+              <AnimatedMessage key={message.id} message={message} />
+            ))}
+          </>
         )}
       </ScrollView>
 
@@ -1067,30 +1098,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         helpLanguage={conversationHelp.helpSettings.help_language}
       />
 
-      {/* Recording Button */}
-      <View style={styles.footer}>
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <TouchableOpacity
-            style={[
-              styles.recordButton,
-              isRecording && styles.recordButtonActive,
-            ]}
-            onPress={handleToggleRecording}
-            disabled={isConnecting}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={isRecording ? 'stop' : 'mic'}
-              size={32}
-              color="#FFFFFF"
-            />
-          </TouchableOpacity>
-        </Animated.View>
-
-        <Text style={styles.recordHint}>
-          {isRecording ? 'Tap to stop' : 'Tap to speak'}
-        </Text>
-      </View>
+      {/* Enhanced Recording Button with State-Aware Animations */}
+      <EnhancedRecordingButton
+        isRecording={isRecording}
+        onPress={handleToggleRecording}
+        disabled={isConnecting}
+        conversationState={conversationState.currentState}
+      />
 
       {/* Important Information Modal (for both practice and learning plan modes) */}
       <Modal
@@ -1344,7 +1358,7 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent', // Allow animated background to show through
   },
   header: {
     flexDirection: 'row',
@@ -1455,7 +1469,7 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'transparent', // Allow animated background gradient to show
   },
   messagesContent: {
     padding: 16,
@@ -1494,7 +1508,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#1F2937',
-    marginTop: 16,
+    marginTop: 24,
   },
   emptyText: {
     fontSize: 15,
@@ -1502,6 +1516,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 32,
+  },
+  aiVisualizationContainer: {
+    marginBottom: 24,
+  },
+  aiVisualizationContainerInline: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginBottom: 8,
   },
   messageRow: {
     marginBottom: 20,
