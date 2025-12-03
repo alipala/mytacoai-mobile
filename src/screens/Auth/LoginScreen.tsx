@@ -428,11 +428,10 @@ export const LoginScreen = ({ navigation }: any) => {
                 ]}
               >
                 <Image
-                  source={require('../../assets/logo.png')}
+                  source={require('../../assets/logo-transparent.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />
-                <Text style={styles.logoTagline}>More Than a Language Coach</Text>
               </Animated.View>
 
               {/* Auth Card */}

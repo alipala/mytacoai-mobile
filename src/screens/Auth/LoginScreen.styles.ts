@@ -24,16 +24,8 @@ export const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoImage: {
-    width: 280,
-    height: 88,
-    marginBottom: 12,
-  },
-  logoTagline: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    opacity: 0.95,
-    letterSpacing: 0.5,
+    width: 340,
+    height: 107,
   },
 
   // Card Design with Glassmorphism

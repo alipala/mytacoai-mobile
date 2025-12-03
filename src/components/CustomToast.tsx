@@ -88,22 +88,34 @@ export const CustomToast: React.FC<CustomToastProps> = ({
   const getIcon = () => {
     switch (config.type) {
       case 'success':
-        return <Ionicons name="checkmark-circle" size={24} color="#10B981" />;
+        return (
+          <View style={[styles.iconContainer, { backgroundColor: '#D1FAE5' }]}>
+            <Ionicons name="checkmark-circle" size={26} color="#10B981" />
+          </View>
+        );
       case 'error':
-        return <Ionicons name="close-circle" size={24} color="#EF4444" />;
+        return (
+          <View style={[styles.iconContainer, { backgroundColor: '#FEE2E2' }]}>
+            <Ionicons name="close-circle" size={26} color="#EF4444" />
+          </View>
+        );
       case 'info':
-        return <Ionicons name="information-circle" size={24} color="#3B82F6" />;
+        return (
+          <View style={[styles.iconContainer, { backgroundColor: '#DBEAFE' }]}>
+            <Ionicons name="information-circle" size={26} color="#3B82F6" />
+          </View>
+        );
     }
   };
 
   const getBackgroundColor = () => {
     switch (config.type) {
       case 'success':
-        return '#F0FDF4';
+        return '#FFFFFF';
       case 'error':
-        return '#FEF2F2';
+        return '#FFFFFF';
       case 'info':
-        return '#EFF6FF';
+        return '#FFFFFF';
     }
   };
 
@@ -138,11 +150,10 @@ export const CustomToast: React.FC<CustomToastProps> = ({
           styles.toast,
           {
             backgroundColor: getBackgroundColor(),
-            borderLeftColor: getBorderColor(),
           },
         ]}
       >
-        <View style={styles.iconContainer}>{getIcon()}</View>
+        {getIcon()}
         <View style={styles.textContainer}>
           <Text style={styles.text1}>{config.text1}</Text>
           {config.text2 && <Text style={styles.text2}>{config.text2}</Text>}
@@ -164,45 +175,58 @@ export const CustomToast: React.FC<CustomToastProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 50,
-    left: 20,
-    right: 20,
+    top: 60,
+    left: 16,
+    right: 16,
     zIndex: 9999,
   },
   toast: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderLeftWidth: 4,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderLeftWidth: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 12,
   },
   iconContainer: {
-    marginRight: 12,
+    marginRight: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textContainer: {
     flex: 1,
   },
   text1: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: '#1F2937',
     marginBottom: 4,
+    letterSpacing: 0.2,
   },
   text2: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
     color: '#6B7280',
-    lineHeight: 18,
+    lineHeight: 20,
+    letterSpacing: 0.1,
   },
   closeButton: {
-    padding: 4,
-    marginLeft: 8,
+    padding: 6,
+    marginLeft: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
