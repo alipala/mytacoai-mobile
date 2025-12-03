@@ -400,6 +400,32 @@ export const LoginScreen = ({ navigation }: any) => {
     navigation.navigate('ForgotPassword');
   };
 
+  /**
+   * Validate Email Format
+   */
+  const validateEmailFormat = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
+  };
+
+  /**
+   * Handle Email Blur - Sign In
+   */
+  const handleEmailBlur = () => {
+    if (email.trim() && !validateEmailFormat(email)) {
+      setEmailError('Please enter a valid email address');
+    }
+  };
+
+  /**
+   * Handle Email Blur - Sign Up
+   */
+  const handleSignupEmailBlur = () => {
+    if (signupEmail.trim() && !validateEmailFormat(signupEmail)) {
+      setSignupEmailError('Please enter a valid email address');
+    }
+  };
+
   // Wait for fonts to load
   if (!fontsLoaded) {
     return null;
@@ -511,6 +537,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             setEmail(text);
                             if (emailError) setEmailError('');
                           }}
+                          onBlur={handleEmailBlur}
                           autoCapitalize="none"
                           keyboardType="email-address"
                           editable={!loading}
@@ -654,6 +681,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             setSignupEmail(text);
                             if (signupEmailError) setSignupEmailError('');
                           }}
+                          onBlur={handleSignupEmailBlur}
                           autoCapitalize="none"
                           keyboardType="email-address"
                           editable={!loading}
@@ -758,24 +786,6 @@ export const LoginScreen = ({ navigation }: any) => {
                           <Ionicons name="arrow-forward" size={20} color="white" />
                         </>
                       )}
-                    </TouchableOpacity>
-
-                    {/* Divider */}
-                    <View style={styles.dividerContainer}>
-                      <View style={styles.divider} />
-                      <Text style={styles.dividerText}>Or continue with</Text>
-                      <View style={styles.divider} />
-                    </View>
-
-                    {/* Google Sign-Up Button */}
-                    <TouchableOpacity
-                      style={styles.googleButton}
-                      onPress={handleGoogleSignIn}
-                      disabled={loading}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="logo-google" size={20} color="#DB4437" />
-                      <Text style={styles.googleButtonText}>Continue with Google</Text>
                     </TouchableOpacity>
                   </View>
                 )}
