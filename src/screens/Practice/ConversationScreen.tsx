@@ -634,12 +634,25 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   
       const sessionLanguage = plan ? plan.language : language;
       const sessionLevel = plan ? plan.proficiency_level : level;
-      const assessmentData = plan ? plan.plan_content?.assessment_summary : null;
-  
+
+      // Construct assessment_data with nested learning_plan_data for backend
+      const assessmentData = plan ? {
+        ...plan.plan_content?.assessment_summary,  // Includes overall_score
+        learning_plan_data: {
+          id: plan.id,
+          completed_sessions: plan.completed_sessions || 0,
+          total_sessions: plan.total_sessions || 0,
+          session_summaries: plan.session_summaries || [],
+          plan_content: plan.plan_content
+        }
+      } : null;
+
       console.log(`[CONVERSATION] Initializing WebRTC connection for ${plan ? 'Learning Plan' : 'Practice'}`);
       console.log(`[CONVERSATION] Language: ${sessionLanguage}, Level: ${sessionLevel}`);
       if (assessmentData) {
-        console.log('[CONVERSATION] Including assessment data from learning plan.');
+        console.log('[CONVERSATION] Including assessment data from learning plan with nested learning_plan_data.');
+        console.log('[CONVERSATION] Learning plan ID:', plan?.id);
+        console.log('[CONVERSATION] Sessions:', `${plan?.completed_sessions || 0}/${plan?.total_sessions || 0}`);
       }
 
       // Fetch user's preferred voice
@@ -687,7 +700,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                   if (planId && learningPlan) {
                     initializeConversation(learningPlan);
                   } else {
-                    initializePracticeConversation();
+                    initializeConversation(null);
                   }
                 },
               },
