@@ -136,10 +136,7 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Which language would you like to practice?</Text>
-        <Text style={styles.subtitle}>
-          Select the language you want to improve your conversation skills in
-        </Text>
+        <Text style={styles.title}>Choose Your Language</Text>
 
         {/* Language Grid */}
         <View style={styles.languageGrid}>

@@ -99,7 +99,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
 }) => {
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
-  const { mode, language, topic } = route.params;
+  const { mode, language, topic, customTopicText, researchData } = route.params;
 
   const handleLevelSelect = (levelId: string) => {
     if (Platform.OS === 'ios') {
@@ -122,6 +122,8 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
       language,
       topic,
       level: selectedLevel,
+      customTopicText,
+      researchData,
     });
   };
 
@@ -143,7 +145,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Your Level</Text>
+        <Text style={styles.headerTitle}>Select Level</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -161,10 +163,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>What's your current level?</Text>
-        <Text style={styles.subtitle}>
-          Select the CEFR level that best matches your current proficiency
-        </Text>
+        <Text style={styles.title}>Select Your Level</Text>
 
         {/* Levels List */}
         <View style={styles.levelsContainer}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,17 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  TextInput,
+  Modal,
+  KeyboardAvoidingView,
+  Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { DefaultService } from '../../api/generated';
+import LoadingModal from '../../components/LoadingModal';
 
 interface TopicSelectionScreenProps {
   navigation: any;
@@ -95,6 +103,13 @@ const PREDEFINED_TOPICS: Topic[] = [
     icon: 'people',
     color: '#14B8A6',
   },
+  {
+    id: 'custom',
+    name: '✨ Create Your Own',
+    description: 'Create a personalized topic for your conversation',
+    icon: 'sparkles',
+    color: '#4ECFBF',
+  },
 ];
 
 const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
@@ -102,13 +117,141 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
   route,
 }) => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [showCustomTopicModal, setShowCustomTopicModal] = useState(false);
+  const [customTopicText, setCustomTopicText] = useState('');
+  const [isResearching, setIsResearching] = useState(false);
   const { mode, language } = route.params;
+
+  // Animation values
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const sparkleAnim1 = useRef(new Animated.Value(0)).current;
+  const sparkleAnim2 = useRef(new Animated.Value(0)).current;
+  const sparkleAnim3 = useRef(new Animated.Value(0)).current;
+  const sparkleAnim4 = useRef(new Animated.Value(0)).current;
+
+  // Start animations on mount
+  useEffect(() => {
+    // Floating animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -8,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Pulsing animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.02,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Sparkle animations with staggered delays
+    const createSparkleAnimation = (animValue: Animated.Value, delay: number) => {
+      return Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(animValue, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(animValue, {
+            toValue: 0,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+    };
+
+    createSparkleAnimation(sparkleAnim1, 0).start();
+    createSparkleAnimation(sparkleAnim2, 250).start();
+    createSparkleAnimation(sparkleAnim3, 500).start();
+    createSparkleAnimation(sparkleAnim4, 750).start();
+  }, []);
 
   const handleTopicSelect = (topicId: string) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+
+    // If custom topic is selected, show modal
+    if (topicId === 'custom') {
+      setShowCustomTopicModal(true);
+      return;
+    }
+
     setSelectedTopic(topicId);
+  };
+
+  const handleCustomTopicSubmit = async () => {
+    if (!customTopicText.trim()) return;
+
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    setIsResearching(true);
+    setShowCustomTopicModal(false);
+
+    try {
+      console.log('🔍 Starting topic research for:', customTopicText);
+
+      // Call the research endpoint
+      const researchData = await DefaultService.researchCustomTopicApiCustomTopicResearchPost({
+        requestBody: {
+          language: language || 'english',
+          level: 'A1', // Default level, will be updated in next screen
+          user_prompt: customTopicText,
+          topic: 'custom',
+        },
+      });
+
+      console.log('✅ Topic research completed:', researchData);
+
+      // Navigate to Level Selection with research data
+      navigation.navigate('LevelSelection', {
+        mode,
+        language,
+        topic: 'custom',
+        customTopicText: customTopicText,
+        researchData: researchData,
+      });
+    } catch (error) {
+      console.error('❌ Topic research failed:', error);
+      Alert.alert(
+        'Research Failed',
+        'Unable to research your topic. Please try again or select a predefined topic.',
+        [{ text: 'OK', onPress: () => setShowCustomTopicModal(true) }]
+      );
+    } finally {
+      setIsResearching(false);
+    }
   };
 
   const handleContinue = () => {
@@ -162,14 +305,140 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>What would you like to talk about?</Text>
-        <Text style={styles.subtitle}>
-          Choose a topic that interests you for conversation practice
-        </Text>
+        <Text style={styles.title}>Select a Topic</Text>
+
+        {/* Custom Topic Card - Featured at Top */}
+        <Animated.View
+          style={[
+            styles.customTopicCard,
+            {
+              transform: [
+                { translateY: floatAnim },
+                { scale: pulseAnim },
+              ],
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={{ width: '100%' }}
+            onPress={() => handleTopicSelect('custom')}
+            activeOpacity={0.85}
+          >
+            {/* Animated gradient background */}
+            <View style={styles.customTopicGradient}>
+              {/* Gradient overlay effect */}
+              <View style={styles.gradientOverlay} />
+              {/* Sparkle decorations with animations */}
+              <Animated.View
+                style={[
+                  styles.sparkleTopLeft,
+                  {
+                    opacity: sparkleAnim1,
+                    transform: [
+                      {
+                        scale: sparkleAnim1.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1.2],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Ionicons name="sparkles" size={20} color="#FFD63A" />
+              </Animated.View>
+              <Animated.View
+                style={[
+                  styles.sparkleTopRight,
+                  {
+                    opacity: sparkleAnim2,
+                    transform: [
+                      {
+                        scale: sparkleAnim2.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1.2],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Ionicons name="star" size={16} color="#FFA955" />
+              </Animated.View>
+              <Animated.View
+                style={[
+                  styles.sparkleBottomLeft,
+                  {
+                    opacity: sparkleAnim3,
+                    transform: [
+                      {
+                        scale: sparkleAnim3.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1.2],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Ionicons name="star" size={14} color="#4ECFBF" />
+              </Animated.View>
+              <Animated.View
+                style={[
+                  styles.sparkleBottomRight,
+                  {
+                    opacity: sparkleAnim4,
+                    transform: [
+                      {
+                        scale: sparkleAnim4.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1.2],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Ionicons name="sparkles" size={18} color="#FFD63A" />
+              </Animated.View>
+
+            {/* Main icon */}
+            <View style={styles.customTopicIconContainer}>
+              <View style={styles.customTopicIconInner}>
+                <Ionicons name="sparkles" size={48} color="#FFFFFF" />
+              </View>
+            </View>
+
+            {/* Content */}
+            <View style={styles.customTopicContent}>
+              <View style={styles.customTopicBadge}>
+                <Ionicons name="star" size={12} color="#FFFFFF" />
+                <Text style={styles.customTopicBadgeText}>POPULAR</Text>
+              </View>
+              <Text style={styles.customTopicTitle}>✨ Create Your Own Topic</Text>
+              <Text style={styles.customTopicDescription}>
+                Design a personalized conversation about anything you want to learn
+              </Text>
+            </View>
+
+            {/* Arrow icon */}
+            <View style={styles.customTopicArrow}>
+              <Ionicons name="arrow-forward-circle" size={32} color="#FFFFFF" />
+            </View>
+          </View>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR CHOOSE A TOPIC</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
         {/* Topics Grid */}
         <View style={styles.topicsGrid}>
-          {PREDEFINED_TOPICS.map((topic) => (
+          {PREDEFINED_TOPICS.filter(topic => topic.id !== 'custom').map((topic) => (
             <TouchableOpacity
               key={topic.id}
               style={[
@@ -200,13 +469,6 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
           ))}
         </View>
 
-        {/* Custom Topic Note (for future implementation) */}
-        <View style={styles.customTopicNote}>
-          <Ionicons name="information-circle" size={20} color="#6B7280" />
-          <Text style={styles.customTopicText}>
-            Custom topics coming soon! Create your own conversation topics.
-          </Text>
-        </View>
       </ScrollView>
 
       {/* Continue Button */}
@@ -224,6 +486,83 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
+
+      {/* Custom Topic Modal */}
+      <Modal
+        visible={showCustomTopicModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCustomTopicModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowCustomTopicModal(false)}
+          >
+            <View
+              style={styles.modalContent}
+              onStartShouldSetResponder={() => true}
+            >
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Create Your Topic</Text>
+                <Text style={styles.modalSubtitle}>
+                  What would you like to talk about?
+                </Text>
+              </View>
+
+              {/* Text Input */}
+              <TextInput
+                style={styles.textInput}
+                placeholder="Describe your topic here..."
+                placeholderTextColor="#9CA3AF"
+                value={customTopicText}
+                onChangeText={setCustomTopicText}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                autoFocus
+              />
+
+              {/* Action Buttons */}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => {
+                    setShowCustomTopicModal(false);
+                    setCustomTopicText('');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.modalSubmitButton,
+                    !customTopicText.trim() && styles.modalSubmitButtonDisabled,
+                  ]}
+                  onPress={handleCustomTopicSubmit}
+                  disabled={!customTopicText.trim()}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalSubmitText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Loading Modal */}
+      <LoadingModal
+        isOpen={isResearching}
+        message="Your taalcoach knowledge is being extended. Hold on please!"
+      />
     </SafeAreaView>
   );
 };
@@ -339,20 +678,155 @@ const styles = StyleSheet.create({
   checkmark: {
     marginLeft: 12,
   },
-  customTopicNote: {
+  // Custom Topic Card Styles
+  customTopicCard: {
+    width: '100%',
+    marginBottom: 24,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#4ECFBF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  customTopicGradient: {
+    backgroundColor: '#4ECFBF',
+    padding: 24,
+    position: 'relative',
+    minHeight: 180,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    borderRadius: 20,
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 214, 58, 0.15)',
+    borderRadius: 17,
+  },
+  // Sparkle decorations
+  sparkleTopLeft: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    opacity: 0.9,
+  },
+  sparkleTopRight: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    opacity: 0.8,
+  },
+  sparkleBottomLeft: {
+    position: 'absolute',
+    bottom: 16,
+    left: 20,
+    opacity: 0.7,
+  },
+  sparkleBottomRight: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    opacity: 0.9,
+  },
+  customTopicIconContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 24,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  customTopicIconInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255, 214, 58, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FFD63A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  customTopicContent: {
+    marginLeft: 100,
+    paddingRight: 40,
+  },
+  customTopicBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    padding: 16,
+    backgroundColor: 'rgba(255, 169, 85, 0.95)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
-    marginTop: 24,
-    gap: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+    gap: 4,
+    shadowColor: '#FFA955',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  customTopicText: {
-    flex: 1,
+  customTopicBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  customTopicTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  customTopicDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#FFFFFF',
     lineHeight: 20,
+    fontWeight: '500',
+    opacity: 0.95,
+  },
+  customTopicArrow: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    padding: 4,
+  },
+  // Divider styles
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    paddingHorizontal: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    marginHorizontal: 16,
+    letterSpacing: 1,
   },
   footer: {
     paddingHorizontal: 20,
@@ -374,6 +848,90 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBackdrop: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  textInput: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 16,
+    fontSize: 16,
+    color: '#1F2937',
+    minHeight: 120,
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  modalSubmitButton: {
+    flex: 1,
+    backgroundColor: '#14B8A6',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSubmitButtonDisabled: {
+    backgroundColor: '#D1D5DB',
+  },
+  modalSubmitText: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
   },

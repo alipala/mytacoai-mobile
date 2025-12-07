@@ -19,7 +19,7 @@ const ConversationLoadingScreen: React.FC<ConversationLoadingScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { mode, language, topic, level } = route.params;
+  const { mode, language, topic, level, customTopicText, researchData } = route.params;
   const [loadingStep, setLoadingStep] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
@@ -65,6 +65,8 @@ const ConversationLoadingScreen: React.FC<ConversationLoadingScreenProps> = ({
         language,
         topic,
         level,
+        customTopicText,
+        researchData,
       });
     }, 5000); // Total loading time: 5 seconds
 
@@ -159,7 +161,11 @@ const ConversationLoadingScreen: React.FC<ConversationLoadingScreenProps> = ({
             <Ionicons name="chatbubbles" size={18} color="#6B7280" />
             <Text style={styles.detailLabel}>Topic:</Text>
             <Text style={styles.detailValue}>
-              {topic.charAt(0).toUpperCase() + topic.slice(1)}
+              {topic === 'custom' && customTopicText
+                ? customTopicText.length > 30
+                  ? customTopicText.substring(0, 30) + '...'
+                  : customTopicText
+                : topic.charAt(0).toUpperCase() + topic.slice(1)}
             </Text>
           </View>
           <View style={styles.detailRow}>

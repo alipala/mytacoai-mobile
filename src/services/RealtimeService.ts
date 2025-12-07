@@ -86,6 +86,7 @@ export class RealtimeService {
           voice: this.config.voice || 'alloy',
           user_prompt: this.config.userPrompt,
           assessment_data: this.config.assessmentData,
+          research_data: this.config.researchData,
         },
       });
 

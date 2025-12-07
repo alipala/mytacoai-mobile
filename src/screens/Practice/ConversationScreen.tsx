@@ -239,7 +239,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { mode, language, topic, level, planId } = route.params;
+  const { mode, language, topic, level, planId, customTopicText, researchData } = route.params;
 
   // Add state for the fetched learning plan
   const [learningPlan, setLearningPlan] = useState<LearningPlan | null>(null);
@@ -252,7 +252,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       topic,
       level,
       planId,
+      customTopicText,
+      hasResearchData: !!researchData,
     });
+
+    // Log custom topic details if present
+    if (topic === 'custom' && customTopicText) {
+      console.log('[CONVERSATION] 📝 Custom topic detected:', customTopicText);
+      if (researchData) {
+        console.log('[CONVERSATION] 🔍 Research data available for custom topic');
+      }
+    }
   }, []);
 
   // Log when learning plan changes
@@ -679,6 +689,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         topic: plan ? null : topic, // Topic is only for practice mode
         assessmentData: assessmentData || undefined,
         voice: selectedVoice,
+        userPrompt: topic === 'custom' ? customTopicText : undefined,
+        researchData: topic === 'custom' && researchData ? JSON.stringify(researchData) : undefined,
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);

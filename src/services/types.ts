@@ -29,6 +29,7 @@ export interface RealtimeServiceConfig {
   voice?: string;
   userPrompt?: string;
   assessmentData?: any;
+  researchData?: string;
   onEvent?: (event: RealtimeEvent) => void;
   onTranscript?: (transcript: string, role: 'user' | 'assistant') => void;
   onError?: (error: Error) => void;
