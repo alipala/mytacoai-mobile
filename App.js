@@ -42,13 +42,10 @@ import { CheckoutScreen, CheckoutSuccessScreen } from './src/screens/Subscriptio
 // Services & Utils
 import { authService } from './src/api/services/auth';
 import { hasCompletedOnboarding } from './src/utils/storage';
-import {
-  initializeNotifications,
-  // setupNotificationReceivedHandler,
-  // setupNotificationResponseHandler,
-  // setBadgeCount,
-  // cleanupNotifications,
-} from './src/services/notificationService';
+// NOTIFICATION SERVICE DISABLED - Uncomment when Apple Developer entitlements configured
+// import {
+//   initializeNotifications,
+// } from './src/services/notificationService';
 
 import './src/api/config'; // Initialize API config
 
@@ -152,14 +149,15 @@ export default function App() {
         console.log('✅ Auth status:', authenticated);
         setIsAuthenticated(authenticated);
 
-        // Initialize notifications if authenticated
-        if (authenticated) {
-          const authToken = await authService.getToken();
-          if (authToken) {
-            console.log('🔔 Initializing notifications...');
-            await initializeNotifications(authToken);
-          }
-        }
+        // NOTIFICATION INITIALIZATION DISABLED
+        // TODO: Re-enable when Apple Developer entitlements configured
+        // if (authenticated) {
+        //   const authToken = await authService.getToken();
+        //   if (authToken) {
+        //     console.log('🔔 Initializing notifications...');
+        //     await initializeNotifications(authToken);
+        //   }
+        // }
       } catch (error) {
         console.error('❌ Error checking app status:', error);
         setIsAuthenticated(false);
