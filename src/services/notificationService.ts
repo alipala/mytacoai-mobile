@@ -20,7 +20,9 @@ const TOKEN_REGISTERED_KEY = '@token_registered';
  */
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,      // Show notification banner
+    shouldShowAlert: true,      // Show notification banner (legacy)
+    shouldShowBanner: true,     // Show banner notification (iOS 14+)
+    shouldShowList: true,       // Show in notification list
     shouldPlaySound: true,       // Play notification sound
     shouldSetBadge: true,        // Update badge count
     priority: Notifications.AndroidNotificationPriority.HIGH,
