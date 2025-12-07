@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet, Alert } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 // Onboarding Screens
 import { SplashScreen, OnboardingSlider, WelcomeScreen } from './src/screens/Onboarding';
@@ -41,6 +42,13 @@ import { CheckoutScreen, CheckoutSuccessScreen } from './src/screens/Subscriptio
 // Services & Utils
 import { authService } from './src/api/services/auth';
 import { hasCompletedOnboarding } from './src/utils/storage';
+import {
+  initializeNotifications,
+  setupNotificationReceivedHandler,
+  setupNotificationResponseHandler,
+  setBadgeCount,
+  cleanupNotifications,
+} from './src/services/notificationService';
 
 import './src/api/config'; // Initialize API config
 
@@ -124,6 +132,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+  const navigationRef = useRef();
 
   // Check authentication and onboarding status on app startup
   useEffect(() => {
@@ -140,6 +151,15 @@ export default function App() {
         const authenticated = await authService.isAuthenticated();
         console.log('✅ Auth status:', authenticated);
         setIsAuthenticated(authenticated);
+
+        // Initialize notifications if authenticated
+        if (authenticated) {
+          const authToken = await authService.getAuthToken();
+          if (authToken) {
+            console.log('🔔 Initializing notifications...');
+            await initializeNotifications(authToken);
+          }
+        }
       } catch (error) {
         console.error('❌ Error checking app status:', error);
         setIsAuthenticated(false);
@@ -151,6 +171,64 @@ export default function App() {
 
     checkAppStatus();
   }, []);
+
+  // Setup notification handlers
+  useEffect(() => {
+    // Handler for notifications received while app is in foreground
+    notificationListener.current = setupNotificationReceivedHandler((notification) => {
+      console.log('🔔 Notification received (foreground):', notification);
+
+      // Show alert for important notifications
+      const notifData = notification.request.content;
+      if (notifData.data?.priority === 'high') {
+        Alert.alert(
+          notifData.title || 'Notification',
+          notifData.body || '',
+          [{ text: 'OK' }]
+        );
+      }
+    });
+
+    // Handler for notification interactions (user tapped notification)
+    responseListener.current = setupNotificationResponseHandler((response) => {
+      console.log('👆 Notification tapped:', response);
+
+      const notification = response.notification;
+      const data = notification.request.content.data;
+
+      // Navigate based on notification data
+      if (data?.screen) {
+        // Navigate to specific screen if provided
+        navigationRef.current?.navigate(data.screen, data.params);
+      } else {
+        // Default: navigate to Profile notifications tab
+        navigationRef.current?.navigate('Main', {
+          screen: 'Profile',
+          params: { tab: 'notifications' }
+        });
+      }
+
+      // Clear badge count
+      setBadgeCount(0);
+    });
+
+    // Cleanup handlers on unmount
+    return () => {
+      if (notificationListener.current) {
+        Notifications.removeNotificationSubscription(notificationListener.current);
+      }
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+    };
+  }, []);
+
+  // Cleanup notifications on logout
+  useEffect(() => {
+    if (!isAuthenticated) {
+      cleanupNotifications();
+    }
+  }, [isAuthenticated]);
 
   // Show loading screen while checking status
   if (isLoading) {
@@ -190,7 +268,11 @@ export default function App() {
   };
 
   return (
-    <NavigationContainer linking={linking} fallback={<LoadingScreen />}>
+    <NavigationContainer
+      ref={navigationRef}
+      linking={linking}
+      fallback={<LoadingScreen />}
+    >
       <Stack.Navigator
         initialRouteName={getInitialRouteName()}
         screenOptions={{
