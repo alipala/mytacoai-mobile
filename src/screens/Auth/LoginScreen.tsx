@@ -345,27 +345,42 @@ export const LoginScreen = ({ navigation }: any) => {
    */
   const handleGoogleSignIn = async () => {
     try {
+      console.log('🚀 Starting Google Sign-In...');
       setLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
+      console.log('⚙️ Configuring Google Sign-In...');
       await GoogleSignin.configure({
         webClientId: '41687548204-0go9lqlnve4llpv3vdl48jujddlt2kp5.apps.googleusercontent.com',
         iosClientId: '41687548204-2gm0vhfjqub78lm5pqd7qh5drj6vmmrb.apps.googleusercontent.com',
         offlineAccess: true,
       });
 
+      console.log('✅ Checking Play Services...');
       await GoogleSignin.hasPlayServices();
-      await GoogleSignin.signIn();
-      const tokens = await GoogleSignin.getTokens();
 
+      console.log('🔐 Initiating sign-in...');
+      await GoogleSignin.signIn();
+
+      console.log('🎫 Getting tokens...');
+      const tokens = await GoogleSignin.getTokens();
+      console.log('✅ Got tokens:', tokens.idToken ? 'idToken present' : 'NO idToken');
+
+      console.log('📡 Calling backend API...');
       const response = await AuthenticationService.googleLoginApiAuthGoogleLoginPost({
         requestBody: {
           token: tokens.idToken,
         },
       });
+      console.log('✅ Backend response received:', response.access_token ? 'token present' : 'NO token');
 
+      console.log('💾 Storing auth token...');
       await AsyncStorage.setItem('auth_token', response.access_token);
+
+      console.log('👤 Fetching user info...');
       const user = await AuthenticationService.getUserMeApiAuthMeGet();
+      console.log('✅ User info received:', user.email);
+
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('auth_provider', 'google');
 
@@ -378,24 +393,33 @@ export const LoginScreen = ({ navigation }: any) => {
         duration: 3000,
       });
 
+      console.log('🧭 Navigating to Main screen...');
       setTimeout(() => {
         navigation.replace('Main');
+        console.log('✅ Navigation complete');
       }, 500);
 
     } catch (error: any) {
+      console.error('❌ Google Sign-In Error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('ℹ️ User cancelled sign-in');
         // User cancelled - no error message needed
       } else {
         showToast({
           type: 'error',
           text1: 'Google Sign-In Failed',
-          text2: 'Please try again or use email sign-in.',
+          text2: error.message || 'Please try again or use email sign-in.',
           duration: 3000,
         });
       }
     } finally {
+      console.log('🏁 Google Sign-In flow finished');
       setLoading(false);
     }
   };

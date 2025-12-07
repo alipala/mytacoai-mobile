@@ -2,6 +2,9 @@
  * Notification Service
  * Handles push notifications via Expo Push Notifications
  * Supports iOS and Android with proper permission handling
+ *
+ * IMPORTANT: This service must be initialized explicitly by calling initializeNotifications()
+ * No module-level code execution to prevent app hang on startup
  */
 
 import * as Notifications from 'expo-notifications';
@@ -14,20 +17,33 @@ import { API_BASE_URL } from '../api/config';
 const PUSH_TOKEN_KEY = '@push_token';
 const TOKEN_REGISTERED_KEY = '@token_registered';
 
+let isNotificationHandlerConfigured = false;
+
 /**
  * Configure how notifications are handled when app is in foreground
  * For iOS: Show notifications even when app is open (beautiful native design)
+ *
+ * IMPORTANT: This is called inside initializeNotifications(), NOT at module level
  */
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,      // Show notification banner (legacy)
-    shouldShowBanner: true,     // Show banner notification (iOS 14+)
-    shouldShowList: true,       // Show in notification list
-    shouldPlaySound: true,       // Play notification sound
-    shouldSetBadge: true,        // Update badge count
-    priority: Notifications.AndroidNotificationPriority.HIGH,
-  }),
-});
+function configureNotificationHandler() {
+  if (isNotificationHandlerConfigured) {
+    return; // Already configured, skip
+  }
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,      // Show notification banner (legacy)
+      shouldShowBanner: true,     // Show banner notification (iOS 14+)
+      shouldShowList: true,       // Show in notification list
+      shouldPlaySound: true,       // Play notification sound
+      shouldSetBadge: true,        // Update badge count
+      priority: Notifications.AndroidNotificationPriority.HIGH,
+    }),
+  });
+
+  isNotificationHandlerConfigured = true;
+  console.log('✅ Notification handler configured');
+}
 
 /**
  * Configure iOS-specific notification settings for beautiful presentation
@@ -134,8 +150,17 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
     await AsyncStorage.setItem(PUSH_TOKEN_KEY, token);
 
     return token;
-  } catch (error) {
-    console.error('❌ Error registering for push notifications:', error);
+  } catch (error: any) {
+    // Check if this is the "no valid aps-environment" error (missing Apple entitlements)
+    if (error.message?.includes('aps-environment')) {
+      console.log('⚠️ Push notifications not configured for this build');
+      console.log('ℹ️ To enable push notifications:');
+      console.log('   1. Run: eas build --profile development --platform ios');
+      console.log('   2. Install the built app on your device');
+      console.log('ℹ️ For now, the app will work without push notifications');
+    } else {
+      console.error('❌ Error registering for push notifications:', error);
+    }
     return null;
   }
 }
@@ -187,37 +212,39 @@ export async function registerPushTokenWithBackend(
 /**
  * Initialize notification system
  * Call this when user logs in or app starts with authenticated user
+ *
+ * IMPORTANT: This is where we configure the notification handler (not at module level)
  */
 export async function initializeNotifications(authToken: string): Promise<void> {
   try {
     console.log('🔔 Initializing notification system...');
 
-    // Skip push notification registration in development
-    // Push notifications require Apple Developer entitlements
-    console.log('⚠️ Push notifications disabled in development mode');
-    console.log('ℹ️ Notifications will still appear in Profile → Alerts tab');
-    return;
+    // Configure notification handler FIRST (before any other operations)
+    configureNotificationHandler();
 
     // Register for push notifications
-    // const pushToken = await registerForPushNotificationsAsync();
-    //
-    // if (!pushToken) {
-    //   console.log('⚠️ Could not get push token');
-    //   return;
-    // }
-    //
-    // // Check if token is already registered
-    // const isRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
-    //
-    // if (isRegistered === 'true') {
-    //   console.log('✅ Push token already registered with backend');
-    //   return;
-    // }
-    //
-    // // Register with backend
-    // await registerPushTokenWithBackend(pushToken, authToken);
+    const pushToken = await registerForPushNotificationsAsync();
+
+    if (!pushToken) {
+      console.log('⚠️ Could not get push token - push notifications will not work');
+      console.log('ℹ️ This is normal in development. For production, build with EAS Build.');
+      console.log('ℹ️ You can still use the app and view in-app notifications.');
+      return;
+    }
+
+    // Check if token is already registered
+    const isRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
+
+    if (isRegistered === 'true') {
+      console.log('✅ Push token already registered with backend');
+      return;
+    }
+
+    // Register with backend
+    await registerPushTokenWithBackend(pushToken, authToken);
   } catch (error) {
     console.error('❌ Error initializing notifications:', error);
+    console.log('ℹ️ Push notifications unavailable, but app will continue to work normally');
   }
 }
 
