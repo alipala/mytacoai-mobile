@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,13 @@ import {
   Platform,
   Animated,
   Pressable,
+  Easing,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { COLORS } from '../constants/colors';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -29,39 +32,93 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
   onSelectQuickPractice,
   onSelectAssessment,
 }) => {
-  const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  // Main animations
+  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
-  React.useEffect(() => {
+  // Card animations
+  const card1Scale = useRef(new Animated.Value(0.9)).current;
+  const card2Scale = useRef(new Animated.Value(0.9)).current;
+  const card1Slide = useRef(new Animated.Value(50)).current;
+  const card2Slide = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
     if (visible) {
+      // Entrance animations
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
-          tension: 50,
+          tension: 40,
           friction: 7,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200,
+          duration: 300,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
           useNativeDriver: true,
         }),
       ]).start();
+
+      // Staggered card animations
+      Animated.stagger(100, [
+        Animated.parallel([
+          Animated.spring(card1Scale, {
+            toValue: 1,
+            tension: 50,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+          Animated.timing(card1Slide, {
+            toValue: 0,
+            duration: 400,
+            easing: Easing.bezier(0.4, 0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.spring(card2Scale, {
+            toValue: 1,
+            tension: 50,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+          Animated.timing(card2Slide, {
+            toValue: 0,
+            duration: 400,
+            easing: Easing.bezier(0.4, 0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
     } else {
+      // Exit animations
       Animated.parallel([
         Animated.timing(scaleAnim, {
-          toValue: 0.9,
-          duration: 150,
+          toValue: 0.85,
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 150,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
     }
   }, [visible]);
+
+  const rotateInterpolate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['-5deg', '0deg'],
+  });
 
   const handleSelectQuickPractice = () => {
     if (Platform.OS === 'ios') {
@@ -94,95 +151,173 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
       onRequestClose={handleClose}
       statusBarTranslucent
     >
-      <BlurView intensity={20} style={styles.blurContainer} tint="dark">
+      <BlurView intensity={80} style={styles.blurContainer} tint="dark">
         <Pressable style={styles.overlay} onPress={handleClose}>
           <Animated.View
             style={[
               styles.modalContainer,
               {
                 opacity: fadeAnim,
-                transform: [{ scale: scaleAnim }],
+                transform: [
+                  { scale: scaleAnim },
+                  { rotate: rotateInterpolate },
+                ],
               },
             ]}
           >
             <Pressable onPress={(e) => e.stopPropagation()}>
-              {/* Header */}
-              <View style={styles.header}>
-                <View style={styles.headerContent}>
-                  <Ionicons name="layers" size={28} color="#4FD1C5" />
-                  <View style={styles.headerTextContainer}>
-                    <Text style={styles.headerTitle}>Choose Session Type</Text>
-                    <Text style={styles.headerSubtitle}>
-                      Select how you want to practice today
-                    </Text>
+              {/* Glassmorphism container with gradient border */}
+              <View style={styles.glassContainer}>
+                {/* Header with gradient background */}
+                <LinearGradient
+                  colors={['rgba(78, 207, 191, 0.1)', 'rgba(78, 207, 191, 0.05)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.header}
+                >
+                  <View style={styles.headerContent}>
+                    <View style={styles.iconBadge}>
+                      <LinearGradient
+                        colors={[COLORS.turquoise, '#3DA89D']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.iconBadgeGradient}
+                      >
+                        <Ionicons name="layers" size={24} color="#FFFFFF" />
+                      </LinearGradient>
+                    </View>
+                    <View style={styles.headerTextContainer}>
+                      <Text style={styles.headerTitle}>Choose Your Session</Text>
+                      <Text style={styles.headerSubtitle}>
+                        Select the perfect way to practice
+                      </Text>
+                    </View>
                   </View>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={handleClose}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.closeButtonBg}>
+                      <Ionicons name="close" size={20} color="#6B7280" />
+                    </View>
+                  </TouchableOpacity>
+                </LinearGradient>
+
+                {/* Session Options */}
+                <View style={styles.optionsContainer}>
+                  {/* Quick Practice Option - Animated Card */}
+                  <Animated.View
+                    style={[
+                      {
+                        transform: [
+                          { scale: card1Scale },
+                          { translateY: card1Slide },
+                        ],
+                      },
+                    ]}
+                  >
+                    <TouchableOpacity
+                      style={styles.optionCard}
+                      onPress={handleSelectQuickPractice}
+                      activeOpacity={0.9}
+                    >
+                      <LinearGradient
+                        colors={[COLORS.turquoise, '#3DA89D']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.optionGradient}
+                      >
+                        {/* Content */}
+                        <View style={styles.optionCardContent}>
+                          <View style={styles.optionHeader}>
+                            <View style={styles.optionIconContainer}>
+                              <Ionicons name="chatbubbles" size={28} color="#FFFFFF" />
+                            </View>
+                            <View style={styles.recommendedBadge}>
+                              <Ionicons name="star" size={10} color="#FFD63A" />
+                              <Text style={styles.recommendedText}>POPULAR</Text>
+                            </View>
+                          </View>
+
+                          <Text style={styles.optionTitle}>Quick Practice</Text>
+                          <Text style={styles.optionDescription}>
+                            Start a real conversation to improve your skills
+                          </Text>
+
+                          <View style={styles.optionFeatures}>
+                            <View style={styles.featureItem}>
+                              <Ionicons name="time" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.featureText}>Flexible</Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                              <Ionicons name="chatbox-ellipses" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.featureText}>Real-time</Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                              <Ionicons name="rocket" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.featureText}>Instant start</Text>
+                            </View>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </Animated.View>
+
+                  {/* Speaking Assessment Option - Animated Card */}
+                  <Animated.View
+                    style={[
+                      {
+                        transform: [
+                          { scale: card2Scale },
+                          { translateY: card2Slide },
+                        ],
+                      },
+                    ]}
+                  >
+                    <TouchableOpacity
+                      style={styles.optionCard}
+                      onPress={handleSelectAssessment}
+                      activeOpacity={0.9}
+                    >
+                      <LinearGradient
+                        colors={['#8B5CF6', '#7C3AED']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.optionGradient}
+                      >
+                        {/* Content */}
+                        <View style={styles.optionCardContent}>
+                          <View style={styles.optionHeader}>
+                            <View style={styles.optionIconContainer}>
+                              <Ionicons name="mic" size={28} color="#FFFFFF" />
+                            </View>
+                          </View>
+
+                          <Text style={styles.optionTitle}>Speaking Assessment</Text>
+                          <Text style={styles.optionDescription}>
+                            Get detailed feedback on your speaking proficiency
+                          </Text>
+
+                          <View style={styles.optionFeatures}>
+                            <View style={styles.featureItem}>
+                              <Ionicons name="analytics" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.featureText}>Analysis</Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                              <Ionicons name="ribbon" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.featureText}>CEFR rated</Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                              <Ionicons name="trophy" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.featureText}>Progress</Text>
+                            </View>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </Animated.View>
                 </View>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={handleClose}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="close-circle" size={28} color="#9CA3AF" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Session Options */}
-              <View style={styles.optionsContainer}>
-                {/* Quick Practice Option */}
-                <TouchableOpacity
-                  style={styles.optionCard}
-                  onPress={handleSelectQuickPractice}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.iconContainer, styles.iconQuickPractice]}>
-                    <Ionicons name="chatbubbles" size={32} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.optionContent}>
-                    <Text style={styles.optionTitle}>Quick Practice</Text>
-                    <Text style={styles.optionDescription}>
-                      Start a conversation session to practice your skills
-                    </Text>
-                    <View style={styles.optionFeatures}>
-                      <View style={styles.featureItem}>
-                        <Ionicons name="time-outline" size={14} color="#6B7280" />
-                        <Text style={styles.featureText}>Flexible duration</Text>
-                      </View>
-                      <View style={styles.featureItem}>
-                        <Ionicons name="chatbox-ellipses-outline" size={14} color="#6B7280" />
-                        <Text style={styles.featureText}>Real conversations</Text>
-                      </View>
-                    </View>
-                  </View>
-                  <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
-                </TouchableOpacity>
-
-                {/* Speaking Assessment Option */}
-                <TouchableOpacity
-                  style={styles.optionCard}
-                  onPress={handleSelectAssessment}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.iconContainer, styles.iconAssessment]}>
-                    <Ionicons name="mic" size={32} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.optionContent}>
-                    <Text style={styles.optionTitle}>Speaking Assessment</Text>
-                    <Text style={styles.optionDescription}>
-                      Get detailed feedback on your speaking proficiency
-                    </Text>
-                    <View style={styles.optionFeatures}>
-                      <View style={styles.featureItem}>
-                        <Ionicons name="analytics-outline" size={14} color="#6B7280" />
-                        <Text style={styles.featureText}>Detailed analysis</Text>
-                      </View>
-                      <View style={styles.featureItem}>
-                        <Ionicons name="ribbon-outline" size={14} color="#6B7280" />
-                        <Text style={styles.featureText}>CEFR level rating</Text>
-                      </View>
-                    </View>
-                  </View>
-                  <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
-                </TouchableOpacity>
               </View>
             </Pressable>
           </Animated.View>
@@ -207,15 +342,19 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: SCREEN_WIDTH - 40,
     maxWidth: 500,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+  },
+  glassContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 32,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#4ECFBF',
         shadowOffset: { width: 0, height: 20 },
-        shadowOpacity: 0.3,
-        shadowRadius: 30,
+        shadowOpacity: 0.4,
+        shadowRadius: 40,
       },
       android: {
         elevation: 24,
@@ -229,7 +368,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 20,
-    backgroundColor: '#F9FAFB',
   },
   headerContent: {
     flexDirection: 'row',
@@ -237,87 +375,150 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 16,
   },
+  iconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: COLORS.turquoise,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  iconBadgeGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTextContainer: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
-    lineHeight: 20,
+    fontWeight: '500',
   },
   closeButton: {
     padding: 4,
   },
-  optionsContainer: {
-    padding: 20,
-    gap: 16,
-  },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+  closeButtonBg: {
+    width: 32,
+    height: 32,
     borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    gap: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconQuickPractice: {
-    backgroundColor: '#4FD1C5',
+  optionsContainer: {
+    padding: 20,
+    gap: 12,
   },
-  iconAssessment: {
-    backgroundColor: '#8B5CF6',
+  optionCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
-  optionContent: {
-    flex: 1,
-    gap: 8,
+  optionGradient: {
+    padding: 20,
+    minHeight: 160,
+    position: 'relative',
+  },
+  optionCardContent: {
+    position: 'relative',
+    zIndex: 1,
+  },
+  optionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  optionIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  recommendedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 214, 58, 0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 214, 58, 0.4)',
+  },
+  recommendedText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 1,
   },
   optionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   optionDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.95)',
     lineHeight: 20,
+    fontWeight: '500',
+    marginBottom: 12,
   },
   optionFeatures: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 4,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    gap: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   featureText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });

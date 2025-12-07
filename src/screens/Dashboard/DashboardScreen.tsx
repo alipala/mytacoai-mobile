@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,9 @@ import {
   Modal,
   Animated,
   Pressable,
+  Easing,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -24,6 +26,7 @@ import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsMo
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
 import { SessionTypeModal } from '../../components/SessionTypeModal';
+import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -54,8 +57,47 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // Animation refs for Start New Session button
+  const buttonFloatAnim = useRef(new Animated.Value(0)).current;
+  const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     loadDashboardData();
+
+    // Start button animations
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonFloatAnim, {
+          toValue: -6,
+          duration: 2500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonFloatAnim, {
+          toValue: 0,
+          duration: 2500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonScaleAnim, {
+          toValue: 1.02,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonScaleAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   const loadDashboardData = async () => {
@@ -531,23 +573,59 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Start New Session Button - Premium Design */}
-        <TouchableOpacity
-          style={styles.newSessionButton}
-          onPress={handleStartNewSession}
-          activeOpacity={0.8}
+        {/* Start New Session Button - Modern Animated Gradient Design */}
+        <Animated.View
+          style={[
+            styles.newSessionButtonContainer,
+            {
+              transform: [
+                { translateY: buttonFloatAnim },
+                { scale: buttonScaleAnim },
+              ],
+            },
+          ]}
         >
-          <View style={styles.newSessionContent}>
-            <View style={styles.newSessionIconContainer}>
-              <Ionicons name="add-circle" size={24} color="#4FD1C5" />
-            </View>
-            <View style={styles.newSessionTextContainer}>
-              <Text style={styles.newSessionTitle}>Start New Session</Text>
-              <Text style={styles.newSessionSubtitle}>Quick Practice or Assessment</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.newSessionButton}
+            onPress={handleStartNewSession}
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={[COLORS.turquoise, '#3DA89D', '#2D9E93']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.newSessionGradient}
+            >
+              {/* Content */}
+              <View style={styles.newSessionContent}>
+                <View style={styles.newSessionIconContainer}>
+                  <LinearGradient
+                    colors={['#FFFFFF', '#F0FDFA']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.iconGradientBg}
+                  >
+                    <Ionicons name="add-circle" size={28} color={COLORS.turquoise} />
+                  </LinearGradient>
+                </View>
+                <View style={styles.newSessionTextContainer}>
+                  <View style={styles.titleRow}>
+                    <Text style={styles.newSessionTitle}>Start New Session</Text>
+                    <View style={styles.newBadge}>
+                      <Ionicons name="sparkles" size={10} color="#FFD63A" />
+                    </View>
+                  </View>
+                  <Text style={styles.newSessionSubtitle}>
+                    Choose Quick Practice or Assessment
+                  </Text>
+                </View>
+                <View style={styles.arrowContainer}>
+                  <Ionicons name="arrow-forward-circle" size={32} color="rgba(255,255,255,0.95)" />
+                </View>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
 
       {/* Learning Plan Details Modal */}
