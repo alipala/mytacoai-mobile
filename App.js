@@ -172,63 +172,64 @@ export default function App() {
     checkAppStatus();
   }, []);
 
-  // Setup notification handlers
-  useEffect(() => {
-    // Handler for notifications received while app is in foreground
-    notificationListener.current = setupNotificationReceivedHandler((notification) => {
-      console.log('🔔 Notification received (foreground):', notification);
+  // Setup notification handlers (DISABLED IN DEVELOPMENT)
+  // TODO: Re-enable when Apple Developer entitlements are configured
+  // useEffect(() => {
+  //   // Handler for notifications received while app is in foreground
+  //   notificationListener.current = setupNotificationReceivedHandler((notification) => {
+  //     console.log('🔔 Notification received (foreground):', notification);
+  //
+  //     // Show alert for important notifications
+  //     const notifData = notification.request.content;
+  //     if (notifData.data?.priority === 'high') {
+  //       Alert.alert(
+  //         notifData.title || 'Notification',
+  //         notifData.body || '',
+  //         [{ text: 'OK' }]
+  //       );
+  //     }
+  //   });
+  //
+  //   // Handler for notification interactions (user tapped notification)
+  //   responseListener.current = setupNotificationResponseHandler((response) => {
+  //     console.log('👆 Notification tapped:', response);
+  //
+  //     const notification = response.notification;
+  //     const data = notification.request.content.data;
+  //
+  //     // Navigate based on notification data
+  //     if (data?.screen) {
+  //       // Navigate to specific screen if provided
+  //       navigationRef.current?.navigate(data.screen, data.params);
+  //     } else {
+  //       // Default: navigate to Profile notifications tab
+  //       navigationRef.current?.navigate('Main', {
+  //         screen: 'Profile',
+  //         params: { tab: 'notifications' }
+  //       });
+  //     }
+  //
+  //     // Clear badge count
+  //     setBadgeCount(0);
+  //   });
+  //
+  //   // Cleanup handlers on unmount
+  //   return () => {
+  //     if (notificationListener.current) {
+  //       Notifications.removeNotificationSubscription(notificationListener.current);
+  //     }
+  //     if (responseListener.current) {
+  //       Notifications.removeNotificationSubscription(responseListener.current);
+  //     }
+  //   };
+  // }, []);
 
-      // Show alert for important notifications
-      const notifData = notification.request.content;
-      if (notifData.data?.priority === 'high') {
-        Alert.alert(
-          notifData.title || 'Notification',
-          notifData.body || '',
-          [{ text: 'OK' }]
-        );
-      }
-    });
-
-    // Handler for notification interactions (user tapped notification)
-    responseListener.current = setupNotificationResponseHandler((response) => {
-      console.log('👆 Notification tapped:', response);
-
-      const notification = response.notification;
-      const data = notification.request.content.data;
-
-      // Navigate based on notification data
-      if (data?.screen) {
-        // Navigate to specific screen if provided
-        navigationRef.current?.navigate(data.screen, data.params);
-      } else {
-        // Default: navigate to Profile notifications tab
-        navigationRef.current?.navigate('Main', {
-          screen: 'Profile',
-          params: { tab: 'notifications' }
-        });
-      }
-
-      // Clear badge count
-      setBadgeCount(0);
-    });
-
-    // Cleanup handlers on unmount
-    return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
-      }
-    };
-  }, []);
-
-  // Cleanup notifications on logout
-  useEffect(() => {
-    if (!isAuthenticated) {
-      cleanupNotifications();
-    }
-  }, [isAuthenticated]);
+  // Cleanup notifications on logout (DISABLED IN DEVELOPMENT)
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     cleanupNotifications();
+  //   }
+  // }, [isAuthenticated]);
 
   // Show loading screen while checking status
   if (isLoading) {

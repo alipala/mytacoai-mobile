@@ -190,24 +190,30 @@ export async function initializeNotifications(authToken: string): Promise<void> 
   try {
     console.log('🔔 Initializing notification system...');
 
+    // Skip push notification registration in development
+    // Push notifications require Apple Developer entitlements
+    console.log('⚠️ Push notifications disabled in development mode');
+    console.log('ℹ️ Notifications will still appear in Profile → Alerts tab');
+    return;
+
     // Register for push notifications
-    const pushToken = await registerForPushNotificationsAsync();
-
-    if (!pushToken) {
-      console.log('⚠️ Could not get push token');
-      return;
-    }
-
-    // Check if token is already registered
-    const isRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
-
-    if (isRegistered === 'true') {
-      console.log('✅ Push token already registered with backend');
-      return;
-    }
-
-    // Register with backend
-    await registerPushTokenWithBackend(pushToken, authToken);
+    // const pushToken = await registerForPushNotificationsAsync();
+    //
+    // if (!pushToken) {
+    //   console.log('⚠️ Could not get push token');
+    //   return;
+    // }
+    //
+    // // Check if token is already registered
+    // const isRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
+    //
+    // if (isRegistered === 'true') {
+    //   console.log('✅ Push token already registered with backend');
+    //   return;
+    // }
+    //
+    // // Register with backend
+    // await registerPushTokenWithBackend(pushToken, authToken);
   } catch (error) {
     console.error('❌ Error initializing notifications:', error);
   }
