@@ -269,7 +269,13 @@ const ProfileScreen: React.FC = () => {
     try {
       // Note: The notifications endpoint is literally /api/ (base path)
       const data = await fetchWithAuth('/api/');
-      setNotifications(data.notifications || []);
+
+      // Filter and validate notifications to ensure they have required fields
+      const validNotifications = (data.notifications || []).filter((notif: Notification) => {
+        return notif && (notif.id || notif.notification_id) && notif.notification;
+      });
+
+      setNotifications(validNotifications);
       setUnreadCount(data.unread_count || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -844,9 +850,9 @@ const ProfileScreen: React.FC = () => {
 
       {notifications.length > 0 ? (
         <View style={styles.notificationList}>
-          {notifications.map((notification) => (
+          {notifications.map((notification, index) => (
             <TouchableOpacity
-              key={notification.id}
+              key={notification.id || `notification-${notification.notification_id || index}`}
               style={[
                 styles.notificationCard,
                 !notification.is_read && styles.notificationCardUnread,
