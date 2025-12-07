@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, ActivityIndicator, Text, StyleSheet, Alert } from 'react-native';
-import * as Notifications from 'expo-notifications';
+// import * as Notifications from 'expo-notifications'; // Disabled in development
 
 // Onboarding Screens
 import { SplashScreen, OnboardingSlider, WelcomeScreen } from './src/screens/Onboarding';
@@ -44,10 +44,10 @@ import { authService } from './src/api/services/auth';
 import { hasCompletedOnboarding } from './src/utils/storage';
 import {
   initializeNotifications,
-  setupNotificationReceivedHandler,
-  setupNotificationResponseHandler,
-  setBadgeCount,
-  cleanupNotifications,
+  // setupNotificationReceivedHandler,
+  // setupNotificationResponseHandler,
+  // setBadgeCount,
+  // cleanupNotifications,
 } from './src/services/notificationService';
 
 import './src/api/config'; // Initialize API config
@@ -132,8 +132,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
-  const notificationListener = useRef();
-  const responseListener = useRef();
+  // const notificationListener = useRef(); // Disabled in development
+  // const responseListener = useRef(); // Disabled in development
   const navigationRef = useRef();
 
   // Check authentication and onboarding status on app startup
