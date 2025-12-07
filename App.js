@@ -154,7 +154,7 @@ export default function App() {
 
         // Initialize notifications if authenticated
         if (authenticated) {
-          const authToken = await authService.getAuthToken();
+          const authToken = await authService.getToken();
           if (authToken) {
             console.log('🔔 Initializing notifications...');
             await initializeNotifications(authToken);
