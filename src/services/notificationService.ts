@@ -27,48 +27,68 @@ let isNotificationHandlerConfigured = false;
  *
  * NOTE: This only affects foreground notifications. Background/lock screen notifications
  * are controlled by iOS system settings and push notification payload.
+ *
+ * CRITICAL: Never throws - safe to call during initialization
  */
 function configureNotificationHandler() {
   if (isNotificationHandlerConfigured) {
     return; // Already configured, skip
   }
 
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,      // Show notification banner (legacy)
-      shouldShowBanner: true,     // Show banner notification (iOS 14+)
-      shouldShowList: true,       // Show in notification list
-      shouldPlaySound: true,       // Play notification sound
-      shouldSetBadge: true,        // Update badge count
-      priority: Notifications.AndroidNotificationPriority.HIGH,
-    }),
-  });
+  try {
+    if (Notifications.setNotificationHandler && typeof Notifications.setNotificationHandler === 'function') {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,      // Show notification banner (legacy)
+          shouldShowBanner: true,     // Show banner notification (iOS 14+)
+          shouldShowList: true,       // Show in notification list
+          shouldPlaySound: true,       // Play notification sound
+          shouldSetBadge: true,        // Update badge count
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        }),
+      });
 
-  isNotificationHandlerConfigured = true;
-  console.log('✅ Notification handler configured (affects foreground only)');
+      isNotificationHandlerConfigured = true;
+      console.log('✅ Notification handler configured (affects foreground only)');
+    } else {
+      console.log('⚠️ setNotificationHandler not available in this build');
+    }
+  } catch (error) {
+    console.log('⚠️ Error configuring notification handler (non-critical):', error);
+  }
 }
 
 /**
  * Configure iOS-specific notification settings for beautiful presentation
+ * CRITICAL: Never throws - safe to call during registration
  */
 async function configureIOSNotifications() {
   if (Platform.OS === 'ios') {
-    await Notifications.setNotificationCategoryAsync('default', [
-      {
-        identifier: 'mark_read',
-        buttonTitle: 'Mark as Read',
-        options: {
-          opensAppToForeground: false,
-        },
-      },
-      {
-        identifier: 'open',
-        buttonTitle: 'Open',
-        options: {
-          opensAppToForeground: true,
-        },
-      },
-    ]);
+    try {
+      if (Notifications.setNotificationCategoryAsync && typeof Notifications.setNotificationCategoryAsync === 'function') {
+        await Notifications.setNotificationCategoryAsync('default', [
+          {
+            identifier: 'mark_read',
+            buttonTitle: 'Mark as Read',
+            options: {
+              opensAppToForeground: false,
+            },
+          },
+          {
+            identifier: 'open',
+            buttonTitle: 'Open',
+            options: {
+              opensAppToForeground: true,
+            },
+          },
+        ]);
+        console.log('✅ iOS notification categories configured');
+      } else {
+        console.log('⚠️ setNotificationCategoryAsync not available in this build');
+      }
+    } catch (error) {
+      console.log('⚠️ Error configuring iOS notifications (non-critical):', error);
+    }
   }
 }
 
@@ -262,74 +282,135 @@ export async function initializeNotifications(authToken: string): Promise<void> 
 /**
  * Set up notification received handler (foreground)
  * Called when a notification is received while app is open
+ * CRITICAL: Never throws - returns null if unavailable
  */
 export function setupNotificationReceivedHandler(
   handler: (notification: Notifications.Notification) => void
-) {
-  return Notifications.addNotificationReceivedListener(handler);
+): any {
+  try {
+    if (Notifications.addNotificationReceivedListener && typeof Notifications.addNotificationReceivedListener === 'function') {
+      return Notifications.addNotificationReceivedListener(handler);
+    }
+    console.log('⚠️ addNotificationReceivedListener not available in this build');
+  } catch (error) {
+    console.log('⚠️ Error setting up notification received handler (non-critical):', error);
+  }
+  return null;
 }
 
 /**
  * Set up notification response handler (user interaction)
  * Called when user taps on a notification
+ * CRITICAL: Never throws - returns null if unavailable
  */
 export function setupNotificationResponseHandler(
   handler: (response: Notifications.NotificationResponse) => void
-) {
-  return Notifications.addNotificationResponseReceivedListener(handler);
+): any {
+  try {
+    if (Notifications.addNotificationResponseReceivedListener && typeof Notifications.addNotificationResponseReceivedListener === 'function') {
+      return Notifications.addNotificationResponseReceivedListener(handler);
+    }
+    console.log('⚠️ addNotificationResponseReceivedListener not available in this build');
+  } catch (error) {
+    console.log('⚠️ Error setting up notification response handler (non-critical):', error);
+  }
+  return null;
 }
 
 /**
  * Get badge count (iOS)
+ * CRITICAL: Never throws - safe to call anywhere
  */
 export async function getBadgeCount(): Promise<number> {
   if (Platform.OS === 'ios') {
-    return await Notifications.getBadgeCountAsync();
+    try {
+      // Check if the method exists before calling it (production build safety)
+      if (Notifications.getBadgeCountAsync && typeof Notifications.getBadgeCountAsync === 'function') {
+        return await Notifications.getBadgeCountAsync();
+      }
+      console.log('⚠️ getBadgeCountAsync not available in this build');
+    } catch (error) {
+      console.log('⚠️ Error getting badge count (non-critical):', error);
+    }
   }
   return 0;
 }
 
 /**
  * Set badge count (iOS)
+ * CRITICAL: Never throws - safe to call anywhere, including error handlers
  */
 export async function setBadgeCount(count: number): Promise<void> {
   if (Platform.OS === 'ios') {
-    await Notifications.setBadgeCountAsync(count);
+    try {
+      // Check if the method exists before calling it (production build safety)
+      if (Notifications.setBadgeCountAsync && typeof Notifications.setBadgeCountAsync === 'function') {
+        await Notifications.setBadgeCountAsync(count);
+        console.log(`✅ Badge count set to: ${count}`);
+      } else {
+        console.log('⚠️ setBadgeCountAsync not available in this build (app continues normally)');
+      }
+    } catch (error) {
+      console.log('⚠️ Error setting badge count (non-critical):', error);
+      // Never throw - this is critical for preventing crashes in error handlers
+    }
   }
 }
 
 /**
  * Clear all notifications
+ * CRITICAL: Never throws - safe to call anywhere
  */
 export async function clearAllNotifications(): Promise<void> {
-  await Notifications.dismissAllNotificationsAsync();
+  try {
+    if (Notifications.dismissAllNotificationsAsync && typeof Notifications.dismissAllNotificationsAsync === 'function') {
+      await Notifications.dismissAllNotificationsAsync();
+      console.log('✅ All notifications dismissed');
+    } else {
+      console.log('⚠️ dismissAllNotificationsAsync not available in this build');
+    }
+  } catch (error) {
+    console.log('⚠️ Error dismissing notifications (non-critical):', error);
+  }
+
+  // Always try to clear badge (this function never throws)
   await setBadgeCount(0);
 }
 
 /**
  * Schedule a local notification (for testing)
+ * CRITICAL: Never throws - returns empty string if unavailable
  */
 export async function scheduleLocalNotification(
   title: string,
   body: string,
   data?: any
 ): Promise<string> {
-  return await Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body,
-      data,
-      sound: true,
-      priority: Notifications.AndroidNotificationPriority.HIGH,
-      categoryIdentifier: 'default',
-    },
-    trigger: null, // Send immediately
-  });
+  try {
+    if (Notifications.scheduleNotificationAsync && typeof Notifications.scheduleNotificationAsync === 'function') {
+      return await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data,
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+          categoryIdentifier: 'default',
+        },
+        trigger: null, // Send immediately
+      });
+    }
+    console.log('⚠️ scheduleNotificationAsync not available in this build');
+  } catch (error) {
+    console.log('⚠️ Error scheduling notification (non-critical):', error);
+  }
+  return '';
 }
 
 /**
  * Cleanup notification system
  * Call this when user logs out
+ * CRITICAL: Never throws - safe to call in logout flows
  */
 export async function cleanupNotifications(): Promise<void> {
   try {
@@ -337,37 +418,66 @@ export async function cleanupNotifications(): Promise<void> {
     await AsyncStorage.removeItem(TOKEN_REGISTERED_KEY);
 
     // Clear all pending notifications
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    try {
+      if (Notifications.cancelAllScheduledNotificationsAsync && typeof Notifications.cancelAllScheduledNotificationsAsync === 'function') {
+        await Notifications.cancelAllScheduledNotificationsAsync();
+        console.log('✅ Scheduled notifications cancelled');
+      } else {
+        console.log('⚠️ cancelAllScheduledNotificationsAsync not available in this build');
+      }
+    } catch (notifError) {
+      console.log('⚠️ Error cancelling notifications (non-critical):', notifError);
+    }
 
-    // Clear badge
+    // Clear badge (this function never throws)
     await setBadgeCount(0);
 
     console.log('✅ Notification system cleaned up');
   } catch (error) {
-    console.error('❌ Error cleaning up notifications:', error);
+    console.error('⚠️ Error cleaning up notifications (non-critical):', error);
+    // Never throw - this is called during logout which should always succeed
   }
 }
 
 /**
  * Check if notifications are enabled
+ * CRITICAL: Never throws - returns false if unavailable
  */
 export async function areNotificationsEnabled(): Promise<boolean> {
-  const { status } = await Notifications.getPermissionsAsync();
-  return status === 'granted';
+  try {
+    if (Notifications.getPermissionsAsync && typeof Notifications.getPermissionsAsync === 'function') {
+      const { status } = await Notifications.getPermissionsAsync();
+      return status === 'granted';
+    }
+    console.log('⚠️ getPermissionsAsync not available in this build');
+  } catch (error) {
+    console.log('⚠️ Error checking notification permissions (non-critical):', error);
+  }
+  return false;
 }
 
 /**
  * Open system settings to enable notifications
+ * CRITICAL: Never throws - safe to call from UI
  */
 export async function openNotificationSettings(): Promise<void> {
-  await Notifications.getPermissionsAsync();
-  // On iOS, this will prompt to open settings if denied
-  await Notifications.requestPermissionsAsync();
+  try {
+    if (Notifications.getPermissionsAsync && typeof Notifications.getPermissionsAsync === 'function') {
+      await Notifications.getPermissionsAsync();
+    }
+    if (Notifications.requestPermissionsAsync && typeof Notifications.requestPermissionsAsync === 'function') {
+      // On iOS, this will prompt to open settings if denied
+      await Notifications.requestPermissionsAsync();
+    }
+  } catch (error) {
+    console.log('⚠️ Error opening notification settings (non-critical):', error);
+  }
 }
 
 /**
  * Debug function to check push notification status
  * Returns current push token and registration status
+ * CRITICAL: Never throws - returns safe defaults if unavailable
  */
 export async function getNotificationDebugInfo(): Promise<{
   hasToken: boolean;
@@ -377,12 +487,21 @@ export async function getNotificationDebugInfo(): Promise<{
 }> {
   const token = await AsyncStorage.getItem(PUSH_TOKEN_KEY);
   const isRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
-  const permissions = await Notifications.getPermissionsAsync();
+
+  let permissionsGranted = false;
+  try {
+    if (Notifications.getPermissionsAsync && typeof Notifications.getPermissionsAsync === 'function') {
+      const permissions = await Notifications.getPermissionsAsync();
+      permissionsGranted = permissions.status === 'granted';
+    }
+  } catch (error) {
+    console.log('⚠️ Error getting permissions in debug info (non-critical):', error);
+  }
 
   return {
     hasToken: !!token,
     token: token,
     isRegistered: isRegistered === 'true',
-    permissionsGranted: permissions.status === 'granted',
+    permissionsGranted,
   };
 }

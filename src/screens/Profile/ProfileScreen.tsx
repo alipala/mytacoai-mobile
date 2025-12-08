@@ -394,12 +394,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
     try {
       console.log('📖 Marking notification as read:', notificationId);
 
+      // Check if already marked as read locally (avoid unnecessary API call)
+      const notification = notifications.find(n => n.notification_id === notificationId);
+      if (notification?.is_read) {
+        console.log('ℹ️ Notification already marked as read locally');
+        // Still close the swipeable for good UX
+        const swipeableRef = swipeableRefs.current[notificationId];
+        if (swipeableRef) {
+          swipeableRef.close();
+        }
+        return;
+      }
+
       // Mark as read on backend
-      await fetchWithAuth('/api/mark-read', {
-        method: 'POST',
-        body: JSON.stringify({ notification_id: notificationId }),
-      });
-      console.log('✅ Notification marked as read successfully');
+      try {
+        await fetchWithAuth('/api/mark-read', {
+          method: 'POST',
+          body: JSON.stringify({ notification_id: notificationId }),
+        });
+        console.log('✅ Notification marked as read successfully');
+      } catch (backendError: any) {
+        // If already read on backend (404 with specific message), treat as success
+        if (backendError.message?.includes('already read') || backendError.message?.includes('not found')) {
+          console.log('ℹ️ Notification already marked as read on backend (idempotent operation)');
+          // Continue to update local state for consistency
+        } else {
+          // Other errors - rethrow
+          throw backendError;
+        }
+      }
 
       // Update local state
       setNotifications(prev =>
@@ -410,13 +433,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
         )
       );
 
-      // Update unread count
-      const newUnreadCount = Math.max(0, unreadCount - 1);
-      setUnreadCount(newUnreadCount);
+      // Update unread count (only if notification was unread)
+      if (!notification?.is_read) {
+        const newUnreadCount = Math.max(0, unreadCount - 1);
+        setUnreadCount(newUnreadCount);
 
-      // Update iOS badge count
-      await setBadgeCount(newUnreadCount);
-      console.log('✅ Badge count updated to:', newUnreadCount);
+        // Update iOS badge count
+        await setBadgeCount(newUnreadCount);
+        console.log('✅ Badge count updated to:', newUnreadCount);
+      }
 
       // Close the swipeable with animation
       const swipeableRef = swipeableRefs.current[notificationId];
@@ -425,6 +450,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
       }
     } catch (error) {
       console.error('❌ Error marking notification as read:', error);
+      // Don't show alert - fail silently for better UX
     }
   };
 
@@ -436,17 +462,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      // TODO: Add backend API endpoint for user notification deletion
-      // For now, remove from local state only
-      // await fetchWithAuth(`/api/notifications/${notificationId}`, {
-      //   method: 'DELETE',
-      // });
-
       // Check if notification was unread before deleting
       const notification = notifications.find(n => n.notification_id === notificationId);
       const wasUnread = notification && !notification.is_read;
 
-      // Remove from local state
+      // Delete from backend - this will hide the notification for this user permanently
+      try {
+        await fetchWithAuth('/api/notifications/delete', {
+          method: 'POST',
+          body: JSON.stringify({ notification_id: notificationId }),
+        });
+        console.log('✅ Notification deleted on backend');
+      } catch (backendError: any) {
+        console.error('❌ Backend deletion failed:', backendError);
+
+        // Check if endpoint doesn't exist (404) - inform user
+        if (backendError.message?.includes('404') || backendError.message?.includes('not found')) {
+          Alert.alert(
+            'Feature Not Available',
+            'Notification deletion is not yet supported by the server. The notification will be hidden locally but may reappear after refresh.',
+            [{ text: 'OK' }]
+          );
+        } else {
+          // Other errors - inform and continue
+          Alert.alert('Warning', 'Failed to delete from server, but will remove locally.');
+        }
+      }
+
+      // Remove from local state (always do this for good UX, even if backend fails)
       setNotifications(prev => prev.filter(notif => notif.notification_id !== notificationId));
 
       // Update unread count and badge if notification was unread

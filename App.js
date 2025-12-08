@@ -178,7 +178,7 @@ export default function App() {
     // Set up handlers (these can be set up immediately, they'll work when notifications arrive)
     try {
       // Handler for notifications received while app is in foreground
-      notificationListener.current = setupNotificationReceivedHandler((notification) => {
+      const receivedListener = setupNotificationReceivedHandler((notification) => {
         console.log('🔔 Notification received (foreground):', notification);
 
         // Show alert for important notifications
@@ -192,8 +192,14 @@ export default function App() {
         }
       });
 
+      // Only store listener if it was successfully created
+      if (receivedListener) {
+        notificationListener.current = receivedListener;
+        console.log('✅ Notification received handler set up');
+      }
+
       // Handler for notification interactions (user tapped notification)
-      responseListener.current = setupNotificationResponseHandler((response) => {
+      const responseListenerRef = setupNotificationResponseHandler((response) => {
         console.log('👆 Notification tapped:', response);
 
         const notification = response.notification;
@@ -217,13 +223,19 @@ export default function App() {
           });
         }
 
-        // Clear badge count
+        // Clear badge count (this function never throws)
         setBadgeCount(0).catch(err =>
-          console.log('⚠️ Badge count error:', err)
+          console.log('⚠️ Badge count error (non-critical):', err)
         );
       });
 
-      console.log('✅ Notification handlers set up successfully');
+      // Only store listener if it was successfully created
+      if (responseListenerRef) {
+        responseListener.current = responseListenerRef;
+        console.log('✅ Notification response handler set up');
+      }
+
+      console.log('✅ Notification handlers setup complete');
     } catch (error) {
       console.log('⚠️ Error setting up notification handlers (non-critical):', error);
     }
@@ -246,11 +258,17 @@ export default function App() {
 
     // Cleanup handlers on unmount or logout
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+      try {
+        if (notificationListener.current && Notifications.removeNotificationSubscription) {
+          Notifications.removeNotificationSubscription(notificationListener.current);
+          console.log('✅ Notification listener cleaned up');
+        }
+        if (responseListener.current && Notifications.removeNotificationSubscription) {
+          Notifications.removeNotificationSubscription(responseListener.current);
+          console.log('✅ Response listener cleaned up');
+        }
+      } catch (error) {
+        console.log('⚠️ Error cleaning up notification listeners (non-critical):', error);
       }
     };
   }, [isAuthenticated, isLoading]);
