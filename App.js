@@ -225,10 +225,14 @@ export default function App() {
 
   // Cleanup notifications on logout
   useEffect(() => {
-    if (!isAuthenticated) {
-      cleanupNotifications();
+    // Only cleanup if user was previously authenticated and is now logging out
+    // Don't cleanup on initial mount or app close
+    if (!isAuthenticated && !isLoading) {
+      cleanupNotifications().catch(err =>
+        console.log('⚠️ Notification cleanup error (non-critical):', err)
+      );
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   // Show loading screen while checking status
   if (isLoading) {

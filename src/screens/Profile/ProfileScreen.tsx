@@ -351,11 +351,13 @@ const ProfileScreen: React.FC = () => {
 
   const markNotificationAsRead = async (notificationId: string) => {
     try {
-      await fetchWithAuth('/api/notifications/mark-read', {
+      console.log('📖 Marking notification as read:', notificationId);
+      await fetchWithAuth('/api/mark-read', {
         method: 'POST',
         body: JSON.stringify({ notification_id: notificationId }),
       });
-      
+      console.log('✅ Notification marked as read successfully');
+
       setNotifications(prev =>
         prev.map(notif =>
           notif.notification_id === notificationId
@@ -365,7 +367,7 @@ const ProfileScreen: React.FC = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error('❌ Error marking notification as read:', error);
     }
   };
 
