@@ -172,47 +172,60 @@ export default function App() {
     checkAppStatus();
   }, []);
 
-  // Setup notification handlers
+  // Setup notification handlers only when authenticated
   useEffect(() => {
-    // Handler for notifications received while app is in foreground
-    notificationListener.current = setupNotificationReceivedHandler((notification) => {
-      console.log('🔔 Notification received (foreground):', notification);
+    // Only set up handlers if user is authenticated
+    if (!isAuthenticated) {
+      return;
+    }
 
-      // Show alert for important notifications
-      const notifData = notification.request.content;
-      if (notifData.data?.priority === 'high') {
-        Alert.alert(
-          notifData.title || 'Notification',
-          notifData.body || '',
-          [{ text: 'OK' }]
-        );
-      }
-    });
+    console.log('📲 Setting up notification handlers...');
 
-    // Handler for notification interactions (user tapped notification)
-    responseListener.current = setupNotificationResponseHandler((response) => {
-      console.log('👆 Notification tapped:', response);
+    try {
+      // Handler for notifications received while app is in foreground
+      notificationListener.current = setupNotificationReceivedHandler((notification) => {
+        console.log('🔔 Notification received (foreground):', notification);
 
-      const notification = response.notification;
-      const data = notification.request.content.data;
+        // Show alert for important notifications
+        const notifData = notification.request.content;
+        if (notifData.data?.priority === 'high') {
+          Alert.alert(
+            notifData.title || 'Notification',
+            notifData.body || '',
+            [{ text: 'OK' }]
+          );
+        }
+      });
 
-      // Navigate based on notification data
-      if (data?.screen) {
-        // Navigate to specific screen if provided
-        navigationRef.current?.navigate(data.screen, data.params);
-      } else {
-        // Default: navigate to Profile notifications tab
-        navigationRef.current?.navigate('Main', {
-          screen: 'Profile',
-          params: { tab: 'notifications' }
-        });
-      }
+      // Handler for notification interactions (user tapped notification)
+      responseListener.current = setupNotificationResponseHandler((response) => {
+        console.log('👆 Notification tapped:', response);
 
-      // Clear badge count
-      setBadgeCount(0);
-    });
+        const notification = response.notification;
+        const data = notification.request.content.data;
 
-    // Cleanup handlers on unmount
+        // Navigate based on notification data
+        if (data?.screen) {
+          // Navigate to specific screen if provided
+          navigationRef.current?.navigate(data.screen, data.params);
+        } else {
+          // Default: navigate to Profile notifications tab
+          navigationRef.current?.navigate('Main', {
+            screen: 'Profile',
+            params: { tab: 'notifications' }
+          });
+        }
+
+        // Clear badge count
+        setBadgeCount(0);
+      });
+
+      console.log('✅ Notification handlers set up successfully');
+    } catch (error) {
+      console.log('⚠️ Error setting up notification handlers (non-critical):', error);
+    }
+
+    // Cleanup handlers on unmount or logout
     return () => {
       if (notificationListener.current) {
         Notifications.removeNotificationSubscription(notificationListener.current);
@@ -221,7 +234,7 @@ export default function App() {
         Notifications.removeNotificationSubscription(responseListener.current);
       }
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // Cleanup notifications on logout
   useEffect(() => {
