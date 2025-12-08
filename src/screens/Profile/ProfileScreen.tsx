@@ -16,8 +16,10 @@ import {
   Platform,
   Dimensions,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -156,6 +158,7 @@ const ProfileScreen: React.FC = () => {
 
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const [expandedConversations, setExpandedConversations] = useState<Record<string, boolean>>({});
+  const [expandedNotifications, setExpandedNotifications] = useState<Record<string, boolean>>({});
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
@@ -369,6 +372,56 @@ const ProfileScreen: React.FC = () => {
     } catch (error) {
       console.error('❌ Error marking notification as read:', error);
     }
+  };
+
+  const toggleNotificationExpanded = (notificationId: string) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setExpandedNotifications(prev => ({
+      ...prev,
+      [notificationId]: !prev[notificationId],
+    }));
+  };
+
+  const renderRightActions = (notification: Notification, dragX: Animated.AnimatedInterpolation<number>) => {
+    const trans = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [0, 100],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <Animated.View
+        style={{
+          transform: [{ translateX: trans }],
+          flexDirection: 'row',
+          alignItems: 'stretch',
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#10B981',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: 100,
+            borderTopRightRadius: 12,
+            borderBottomRightRadius: 12,
+          }}
+          onPress={() => {
+            if (Platform.OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            markNotificationAsRead(notification.notification_id);
+          }}
+        >
+          <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+          <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
+            Mark Read
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
   };
 
   const toggleConversationExpanded = (conversationId: string) => {
@@ -852,39 +905,64 @@ const ProfileScreen: React.FC = () => {
 
       {notifications.length > 0 ? (
         <View style={styles.notificationList}>
-          {notifications.map((notification, index) => (
-            <TouchableOpacity
-              key={notification.id || `notification-${notification.notification_id || index}`}
-              style={[
-                styles.notificationCard,
-                !notification.is_read && styles.notificationCardUnread,
-              ]}
-              onPress={() => {
-                if (!notification.is_read) {
-                  markNotificationAsRead(notification.notification_id);
-                }
-              }}
-            >
-              <View style={styles.notificationHeader}>
-                <View style={[styles.notificationIcon, { backgroundColor: `${getNotificationColor(notification.notification.notification_type)}20` }]}>
-                  <Ionicons
-                    name={getNotificationIcon(notification.notification.notification_type) as any}
-                    size={20}
-                    color={getNotificationColor(notification.notification.notification_type)}
-                  />
-                </View>
-                <View style={styles.notificationHeaderInfo}>
-                  <Text style={styles.notificationTitle}>
-                    {notification.notification.title}
+          {notifications.map((notification, index) => {
+            const isExpanded = expandedNotifications[notification.notification_id];
+            const contentPreview = notification.notification.content.length > 100
+              ? notification.notification.content.substring(0, 100) + '...'
+              : notification.notification.content;
+
+            return (
+              <Swipeable
+                key={notification.id || `notification-${notification.notification_id || index}`}
+                renderRightActions={(_, dragX) => renderRightActions(notification, dragX)}
+                enabled={!notification.is_read}
+                overshootRight={false}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.notificationCard,
+                    !notification.is_read && styles.notificationCardUnread,
+                  ]}
+                  onPress={() => toggleNotificationExpanded(notification.notification_id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.notificationHeader}>
+                    <View style={[styles.notificationIcon, { backgroundColor: `${getNotificationColor(notification.notification.notification_type)}20` }]}>
+                      <Ionicons
+                        name={getNotificationIcon(notification.notification.notification_type) as any}
+                        size={20}
+                        color={getNotificationColor(notification.notification.notification_type)}
+                      />
+                    </View>
+                    <View style={styles.notificationHeaderInfo}>
+                      <Text style={styles.notificationTitle}>
+                        {notification.notification.title}
+                      </Text>
+                      <Text style={styles.notificationDate}>
+                        {formatDate(notification.notification.created_at)}
+                      </Text>
+                    </View>
+                    {notification.notification.content.length > 100 && (
+                      <Ionicons
+                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color="#9CA3AF"
+                        style={{ marginLeft: 8 }}
+                      />
+                    )}
+                  </View>
+                  <Text style={styles.notificationContent} numberOfLines={isExpanded ? undefined : 3}>
+                    {isExpanded ? notification.notification.content : contentPreview}
                   </Text>
-                  <Text style={styles.notificationDate}>
-                    {formatDate(notification.notification.created_at)}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.notificationContent}>{notification.notification.content}</Text>
-            </TouchableOpacity>
-          ))}
+                  {!notification.is_read && (
+                    <Text style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8, fontStyle: 'italic' }}>
+                      Swipe left to mark as read
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </Swipeable>
+            );
+          })}
         </View>
       ) : (
         <View style={styles.emptyState}>
