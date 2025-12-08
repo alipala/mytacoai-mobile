@@ -176,7 +176,7 @@ export async function registerPushTokenWithBackend(
   try {
     console.log('📤 Registering push token with backend...');
 
-    const response = await fetch(`${API_BASE_URL}/user/push-token`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/push-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
