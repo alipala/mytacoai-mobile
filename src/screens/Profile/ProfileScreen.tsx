@@ -2,7 +2,7 @@
  * ProfileScreen.tsx
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
 import { styles } from './styles/ProfileScreen.styles';
+import { setBadgeCount } from '../../services/notificationService';
 
 const API_URL = API_BASE_URL;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -166,12 +167,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
     if (route?.params?.tab === 'notifications') {
       console.log('📬 Navigating to notifications tab from push notification');
       setActiveTab('notifications');
-      // Clear the param to avoid re-triggering
+
+      // Auto-expand the notification if ID is provided
+      const notificationId = route?.params?.notificationId;
+      if (notificationId) {
+        console.log('📌 Auto-expanding notification:', notificationId);
+        setExpandedNotifications(prev => ({
+          ...prev,
+          [notificationId]: true
+        }));
+      }
+
+      // Clear the params to avoid re-triggering
       if (route.params) {
         route.params.tab = undefined;
+        route.params.notificationId = undefined;
       }
     }
-  }, [route?.params?.tab]);
+  }, [route?.params?.tab, route?.params?.notificationId]);
 
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const [expandedConversations, setExpandedConversations] = useState<Record<string, boolean>>({});
@@ -180,6 +193,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
   const [flashcardFilter, setFlashcardFilter] = useState<'all' | 'practice' | 'learning_plan'>('all');
+
+  // Refs for Swipeable components to programmatically close them
+  const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
 
   // Tab Navigation Helpers
   const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
@@ -295,12 +311,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
         return notif && (notif.id || notif.notification_id) && notif.notification;
       });
 
+      const newUnreadCount = data.unread_count || 0;
       setNotifications(validNotifications);
-      setUnreadCount(data.unread_count || 0);
+      setUnreadCount(newUnreadCount);
+
+      // Update iOS badge count to match unread count
+      await setBadgeCount(newUnreadCount);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setNotifications([]);
       setUnreadCount(0);
+      await setBadgeCount(0);
     }
   };
 
@@ -372,12 +393,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
   const markNotificationAsRead = async (notificationId: string) => {
     try {
       console.log('📖 Marking notification as read:', notificationId);
+
+      // Mark as read on backend
       await fetchWithAuth('/api/mark-read', {
         method: 'POST',
         body: JSON.stringify({ notification_id: notificationId }),
       });
       console.log('✅ Notification marked as read successfully');
 
+      // Update local state
       setNotifications(prev =>
         prev.map(notif =>
           notif.notification_id === notificationId
@@ -385,7 +409,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
             : notif
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+
+      // Update unread count
+      const newUnreadCount = Math.max(0, unreadCount - 1);
+      setUnreadCount(newUnreadCount);
+
+      // Update iOS badge count
+      await setBadgeCount(newUnreadCount);
+      console.log('✅ Badge count updated to:', newUnreadCount);
+
+      // Close the swipeable with animation
+      const swipeableRef = swipeableRefs.current[notificationId];
+      if (swipeableRef) {
+        swipeableRef.close();
+      }
     } catch (error) {
       console.error('❌ Error marking notification as read:', error);
     }
@@ -405,13 +442,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
       //   method: 'DELETE',
       // });
 
+      // Check if notification was unread before deleting
+      const notification = notifications.find(n => n.notification_id === notificationId);
+      const wasUnread = notification && !notification.is_read;
+
       // Remove from local state
       setNotifications(prev => prev.filter(notif => notif.notification_id !== notificationId));
 
-      // Update unread count if notification was unread
-      const notification = notifications.find(n => n.notification_id === notificationId);
-      if (notification && !notification.is_read) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+      // Update unread count and badge if notification was unread
+      if (wasUnread) {
+        const newUnreadCount = Math.max(0, unreadCount - 1);
+        setUnreadCount(newUnreadCount);
+        await setBadgeCount(newUnreadCount);
+        console.log('✅ Badge count updated to:', newUnreadCount);
+      }
+
+      // Close the swipeable
+      const swipeableRef = swipeableRefs.current[notificationId];
+      if (swipeableRef) {
+        swipeableRef.close();
       }
 
       console.log('✅ Notification deleted successfully');
@@ -452,8 +501,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
             justifyContent: 'center',
             alignItems: 'center',
             width: 100,
-            borderTopLeftRadius: 12,
-            borderBottomLeftRadius: 12,
+            borderRadius: 12,
+            marginRight: 8,
           }}
           onPress={() => {
             Alert.alert(
@@ -500,8 +549,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
             justifyContent: 'center',
             alignItems: 'center',
             width: 100,
-            borderTopRightRadius: 12,
-            borderBottomRightRadius: 12,
+            borderRadius: 12,
+            marginLeft: 8,
           }}
           onPress={() => {
             if (Platform.OS === 'ios') {
@@ -1009,6 +1058,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
             return (
               <Swipeable
                 key={notification.id || `notification-${notification.notification_id || index}`}
+                ref={(ref) => {
+                  if (ref) {
+                    swipeableRefs.current[notification.notification_id] = ref;
+                  }
+                }}
                 renderLeftActions={(_, dragX) => renderLeftActions(notification, dragX)}
                 renderRightActions={(_, dragX) => renderRightActions(notification, dragX)}
                 overshootLeft={false}

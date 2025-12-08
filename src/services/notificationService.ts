@@ -24,6 +24,9 @@ let isNotificationHandlerConfigured = false;
  * For iOS: Show notifications even when app is open (beautiful native design)
  *
  * IMPORTANT: This is called inside initializeNotifications(), NOT at module level
+ *
+ * NOTE: This only affects foreground notifications. Background/lock screen notifications
+ * are controlled by iOS system settings and push notification payload.
  */
 function configureNotificationHandler() {
   if (isNotificationHandlerConfigured) {
@@ -42,7 +45,7 @@ function configureNotificationHandler() {
   });
 
   isNotificationHandlerConfigured = true;
-  console.log('✅ Notification handler configured');
+  console.log('✅ Notification handler configured (affects foreground only)');
 }
 
 /**
@@ -175,6 +178,8 @@ export async function registerPushTokenWithBackend(
 ): Promise<boolean> {
   try {
     console.log('📤 Registering push token with backend...');
+    console.log('📱 Device:', Platform.OS, Device.brand, Device.modelName);
+    console.log('🔑 Token preview:', token.substring(0, 30) + '...');
 
     const response = await fetch(`${API_BASE_URL}/api/auth/push-token`, {
       method: 'POST',
@@ -195,16 +200,19 @@ export async function registerPushTokenWithBackend(
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('❌ Failed to register push token:', error);
+      console.error('❌ Failed to register push token (HTTP', response.status, '):', error.substring(0, 200));
       return false;
     }
 
+    const responseData = await response.json();
+    console.log('✅ Push token registered successfully:', responseData);
+
     // Mark token as registered
     await AsyncStorage.setItem(TOKEN_REGISTERED_KEY, 'true');
-    console.log('✅ Push token registered with backend successfully');
+    console.log('✅ Token registration marked in local storage');
     return true;
-  } catch (error) {
-    console.error('❌ Error registering push token with backend:', error);
+  } catch (error: any) {
+    console.error('❌ Error registering push token with backend:', error?.message || error);
     return false;
   }
 }
@@ -232,16 +240,19 @@ export async function initializeNotifications(authToken: string): Promise<void> 
       return;
     }
 
-    // Check if token is already registered
-    const isRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
+    console.log('📱 Push token available, proceeding to register with backend...');
 
-    if (isRegistered === 'true') {
-      console.log('✅ Push token already registered with backend');
-      return;
+    // ALWAYS register with backend on initialization to ensure token is associated
+    // with the CURRENT user (important for multi-user devices)
+    console.log('📤 Registering push token with backend for current user...');
+    const success = await registerPushTokenWithBackend(pushToken, authToken);
+
+    if (success) {
+      console.log('🎉 Push notification setup complete! User will receive notifications.');
+    } else {
+      console.log('⚠️ Push token registration failed. User may not receive notifications.');
+      console.log('ℹ️ This could be due to network issues or backend problems.');
     }
-
-    // Register with backend
-    await registerPushTokenWithBackend(pushToken, authToken);
   } catch (error) {
     console.error('❌ Error initializing notifications:', error);
     console.log('ℹ️ Push notifications unavailable, but app will continue to work normally');
@@ -352,4 +363,26 @@ export async function openNotificationSettings(): Promise<void> {
   await Notifications.getPermissionsAsync();
   // On iOS, this will prompt to open settings if denied
   await Notifications.requestPermissionsAsync();
+}
+
+/**
+ * Debug function to check push notification status
+ * Returns current push token and registration status
+ */
+export async function getNotificationDebugInfo(): Promise<{
+  hasToken: boolean;
+  token: string | null;
+  isRegistered: boolean;
+  permissionsGranted: boolean;
+}> {
+  const token = await AsyncStorage.getItem(PUSH_TOKEN_KEY);
+  const isRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
+  const permissions = await Notifications.getPermissionsAsync();
+
+  return {
+    hasToken: !!token,
+    token: token,
+    isRegistered: isRegistered === 'true',
+    permissionsGranted: permissions.status === 'granted',
+  };
 }

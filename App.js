@@ -152,14 +152,8 @@ export default function App() {
         console.log('✅ Auth status:', authenticated);
         setIsAuthenticated(authenticated);
 
-        // Initialize notifications if authenticated
-        if (authenticated) {
-          const authToken = await authService.getToken();
-          if (authToken) {
-            console.log('🔔 Initializing notifications...');
-            await initializeNotifications(authToken);
-          }
-        }
+        // NOTE: Notification initialization is handled by separate useEffect below
+        // This ensures notifications are re-initialized when any user logs in/out
       } catch (error) {
         console.error('❌ Error checking app status:', error);
         setIsAuthenticated(false);
@@ -172,15 +166,16 @@ export default function App() {
     checkAppStatus();
   }, []);
 
-  // Setup notification handlers only when authenticated
+  // Initialize notifications and setup handlers when authentication changes (handles multi-user login)
   useEffect(() => {
-    // Only set up handlers if user is authenticated
-    if (!isAuthenticated) {
+    // Skip if loading or not authenticated
+    if (isLoading || !isAuthenticated) {
       return;
     }
 
-    console.log('📲 Setting up notification handlers...');
+    console.log('🔄 Starting notification setup for current user...');
 
+    // Set up handlers (these can be set up immediately, they'll work when notifications arrive)
     try {
       // Handler for notifications received while app is in foreground
       notificationListener.current = setupNotificationReceivedHandler((notification) => {
@@ -209,21 +204,45 @@ export default function App() {
           // Navigate to specific screen if provided
           navigationRef.current?.navigate(data.screen, data.params);
         } else {
-          // Default: navigate to Profile notifications tab
+          // Default: navigate to Profile notifications tab with notification_id
+          const notificationId = data?.notification_id || data?.notificationId;
+          console.log('📬 Navigating to alerts with notification ID:', notificationId);
+
           navigationRef.current?.navigate('Main', {
             screen: 'Profile',
-            params: { tab: 'notifications' }
+            params: {
+              tab: 'notifications',
+              notificationId: notificationId // Pass the notification ID to expand it
+            }
           });
         }
 
         // Clear badge count
-        setBadgeCount(0);
+        setBadgeCount(0).catch(err =>
+          console.log('⚠️ Badge count error:', err)
+        );
       });
 
       console.log('✅ Notification handlers set up successfully');
     } catch (error) {
       console.log('⚠️ Error setting up notification handlers (non-critical):', error);
     }
+
+    // Initialize notifications (async, registers push token with backend)
+    const initNotifications = async () => {
+      try {
+        console.log('🔔 Initializing notification system...');
+        const authToken = await authService.getToken();
+        if (authToken) {
+          await initializeNotifications(authToken);
+        }
+        console.log('✅ Notification system initialized');
+      } catch (error) {
+        console.log('⚠️ Error initializing notifications:', error);
+      }
+    };
+
+    initNotifications();
 
     // Cleanup handlers on unmount or logout
     return () => {
@@ -234,7 +253,7 @@ export default function App() {
         Notifications.removeNotificationSubscription(responseListener.current);
       }
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   // Cleanup notifications on logout
   useEffect(() => {
