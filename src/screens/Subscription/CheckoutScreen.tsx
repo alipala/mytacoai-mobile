@@ -24,15 +24,15 @@ interface CheckoutScreenProps {
   };
 }
 
-// Price IDs mapping (these should match your Stripe price IDs)
+// Price IDs mapping (must match backend Stripe configuration)
 const PRICE_IDS = {
   fluency_builder: {
-    monthly: 'price_1RdxNjJcquSiYwWN2XQMwwYW', // From the API call example
-    annual: 'price_fluency_builder_annual', // You need to add this
+    monthly: 'price_1RdxNjJcquSiYwWN2XQMwwYW',
+    annual: 'price_1RdxNjJcquSiYwWNIpmYrKSE',
   },
   team_mastery: {
-    monthly: 'price_team_mastery_monthly', // You need to add this
-    annual: 'price_team_mastery_annual', // You need to add this
+    monthly: 'price_1RdxlGJcquSiYwWNWvyEgmgL',
+    annual: 'price_1RdxmRJcquSiYwWN7Oc6NnNe',
   },
 };
 
