@@ -307,7 +307,7 @@ export default function App() {
 
   // Deep linking configuration
   const linking = {
-    prefixes: ['mytacoai://', 'com.anonymous.MyTacoAIMobile://'],
+    prefixes: ['mytacoai://', 'com.bigdavinci.MyTacoAI://'],
     config: {
       screens: {
         CheckoutSuccess: 'checkout-success',
