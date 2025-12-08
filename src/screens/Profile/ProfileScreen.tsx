@@ -141,20 +141,37 @@ interface Notification {
   created_at: string;
 }
 
-const ProfileScreen: React.FC = () => {
+interface ProfileScreenProps {
+  route?: any;
+  navigation?: any;
+}
+
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const [conversationHistory, setConversationHistory] = useState<ConversationSession[]>([]);
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
   const [dueFlashcards, setDueFlashcards] = useState<Flashcard[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  
+
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'flashcards' | 'notifications'>('overview');
   const scrollViewRef = React.useRef<ScrollView>(null);
+
+  // Handle navigation from push notification tap
+  useEffect(() => {
+    if (route?.params?.tab === 'notifications') {
+      console.log('📬 Navigating to notifications tab from push notification');
+      setActiveTab('notifications');
+      // Clear the param to avoid re-triggering
+      if (route.params) {
+        route.params.tab = undefined;
+      }
+    }
+  }, [route?.params?.tab]);
 
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const [expandedConversations, setExpandedConversations] = useState<Record<string, boolean>>({});
@@ -374,6 +391,36 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      console.log('🗑️ Deleting notification:', notificationId);
+
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      // TODO: Add backend API endpoint for user notification deletion
+      // For now, remove from local state only
+      // await fetchWithAuth(`/api/notifications/${notificationId}`, {
+      //   method: 'DELETE',
+      // });
+
+      // Remove from local state
+      setNotifications(prev => prev.filter(notif => notif.notification_id !== notificationId));
+
+      // Update unread count if notification was unread
+      const notification = notifications.find(n => n.notification_id === notificationId);
+      if (notification && !notification.is_read) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+
+      console.log('✅ Notification deleted successfully');
+    } catch (error) {
+      console.error('❌ Error deleting notification:', error);
+      Alert.alert('Error', 'Failed to delete notification. Please try again.');
+    }
+  };
+
   const toggleNotificationExpanded = (notificationId: string) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -382,6 +429,54 @@ const ProfileScreen: React.FC = () => {
       ...prev,
       [notificationId]: !prev[notificationId],
     }));
+  };
+
+  const renderLeftActions = (notification: Notification, dragX: Animated.AnimatedInterpolation<number>) => {
+    const trans = dragX.interpolate({
+      inputRange: [0, 100],
+      outputRange: [-100, 0],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <Animated.View
+        style={{
+          transform: [{ translateX: trans }],
+          flexDirection: 'row',
+          alignItems: 'stretch',
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#EF4444',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: 100,
+            borderTopLeftRadius: 12,
+            borderBottomLeftRadius: 12,
+          }}
+          onPress={() => {
+            Alert.alert(
+              'Delete Notification',
+              'Are you sure you want to delete this notification?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: () => deleteNotification(notification.notification_id),
+                },
+              ]
+            );
+          }}
+        >
+          <Ionicons name="trash" size={24} color="#FFFFFF" />
+          <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
+            Delete
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
   };
 
   const renderRightActions = (notification: Notification, dragX: Animated.AnimatedInterpolation<number>) => {
@@ -914,8 +1009,9 @@ const ProfileScreen: React.FC = () => {
             return (
               <Swipeable
                 key={notification.id || `notification-${notification.notification_id || index}`}
+                renderLeftActions={(_, dragX) => renderLeftActions(notification, dragX)}
                 renderRightActions={(_, dragX) => renderRightActions(notification, dragX)}
-                enabled={!notification.is_read}
+                overshootLeft={false}
                 overshootRight={false}
               >
                 <TouchableOpacity
@@ -954,11 +1050,11 @@ const ProfileScreen: React.FC = () => {
                   <Text style={styles.notificationContent} numberOfLines={isExpanded ? undefined : 3}>
                     {isExpanded ? notification.notification.content : contentPreview}
                   </Text>
-                  {!notification.is_read && (
-                    <Text style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8, fontStyle: 'italic' }}>
-                      Swipe left to mark as read
-                    </Text>
-                  )}
+                  <Text style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8, fontStyle: 'italic' }}>
+                    {notification.is_read
+                      ? 'Swipe right to delete'
+                      : 'Swipe left: mark read • Swipe right: delete'}
+                  </Text>
                 </TouchableOpacity>
               </Swipeable>
             );
