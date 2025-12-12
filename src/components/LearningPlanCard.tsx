@@ -117,7 +117,7 @@ const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
         
         {/* Percentage Text - CENTERED */}
         <View style={styles.progressTextContainer}>
-          <Text style={styles.progressPercentage}>{showApprox ? '≈' : ''}{percentage}%</Text>
+          <Text style={styles.progressPercentage}>{percentage}%</Text>
         </View>
         
         {/* Checkmark Badge - OUTSIDE circle */}
