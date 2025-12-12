@@ -1120,13 +1120,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const handleViewAnalysis = () => {
     setShowSavingModal(false);
 
-    // Navigate to Sentence Analysis screen
-    navigation.navigate('SentenceAnalysis', {
-      analyses: backgroundAnalyses,
-      sessionSummary: sessionSummary,
-      duration: formatDuration(sessionDuration),
-      messageCount: messages.filter(m => m.role === 'user').length,
-    });
+    // Check if we have analyses to show
+    if (backgroundAnalyses && backgroundAnalyses.length > 0) {
+      // Navigate to Sentence Analysis screen
+      navigation.navigate('SentenceAnalysis', {
+        analyses: backgroundAnalyses,
+        sessionSummary: sessionSummary,
+        duration: formatDuration(sessionDuration),
+        messageCount: messages.filter(m => m.role === 'user').length,
+      });
+    } else {
+      // If no analyses available, show alert and go to dashboard
+      Alert.alert(
+        'No Analysis Available',
+        'No sentences were analyzed during this session. This can happen if the conversation was too short or no quality sentences were detected.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+              });
+            },
+          },
+        ]
+      );
+    }
   };
 
   // Handle go to dashboard after session save
@@ -1443,6 +1463,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         sessionStats={sessionStats}
         comparison={sessionComparison}
         overallProgress={overallProgress}
+        hasAnalyses={backgroundAnalyses.length > 0}
       />
 
       {/* Conversation Help Modal */}

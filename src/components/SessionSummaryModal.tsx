@@ -30,6 +30,8 @@ interface SessionSummaryModalProps {
   sessionStats?: SessionStats;
   comparison?: SessionComparison;
   overallProgress?: OverallProgress;
+  // Analysis availability
+  hasAnalyses?: boolean;
 }
 
 const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
@@ -45,6 +47,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   sessionStats,
   comparison,
   overallProgress,
+  hasAnalyses = true,
 }) => {
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   const [progressAnim] = useState(new Animated.Value(0));
@@ -164,35 +167,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
 
           {/* Content */}
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Checklist */}
-            <View style={styles.checklist}>
-              <ChecklistItem
-                completed={stage === 'analyzing' || stage === 'finalizing' || stage === 'success'}
-                active={stage === 'saving'}
-                text="Conversation saved"
-                color="#4ECFBF"
-              />
-              <ChecklistItem
-                completed={stage === 'finalizing' || stage === 'success'}
-                active={stage === 'analyzing'}
-                text="Speech analyzed"
-                color="#4ECFBF"
-              />
-              <ChecklistItem
-                completed={stage === 'success'}
-                active={stage === 'finalizing'}
-                text="Feedback generated"
-                color="#4ECFBF"
-              />
-              <ChecklistItem
-                completed={stage === 'success'}
-                active={false}
-                text="Flashcards created"
-                color="#9333EA"
-              />
-            </View>
-
-            {/* Conversation Highlights */}
+            {/* Conversation Highlights - show during processing */}
             {stage !== 'success' && conversationHighlights.length > 0 && (
               <View style={styles.highlightsContainer}>
                 <View style={styles.highlightCard}>
@@ -324,21 +299,25 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                 )}
 
                 <View style={styles.buttonsContainer}>
-                  <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={onViewAnalysis}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="clipboard-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.primaryButtonText}>View Analysis</Text>
-                  </TouchableOpacity>
+                  {hasAnalyses && (
+                    <TouchableOpacity
+                      style={styles.primaryButton}
+                      onPress={onViewAnalysis}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="clipboard-outline" size={20} color="#FFFFFF" />
+                      <Text style={styles.primaryButtonText}>View Analysis</Text>
+                    </TouchableOpacity>
+                  )}
 
                   <TouchableOpacity
-                    style={styles.secondaryButton}
+                    style={hasAnalyses ? styles.secondaryButton : styles.primaryButton}
                     onPress={onGoDashboard}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.secondaryButtonText}>Go Dashboard</Text>
+                    <Text style={hasAnalyses ? styles.secondaryButtonText : styles.primaryButtonText}>
+                      Go Dashboard
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -347,41 +326,6 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
         </View>
       </View>
     </Modal>
-  );
-};
-
-// Checklist Item Component
-const ChecklistItem: React.FC<{
-  completed: boolean;
-  active: boolean;
-  text: string;
-  color: string;
-}> = ({ completed, active, text, color }) => {
-  return (
-    <View style={styles.checklistItem}>
-      <View
-        style={[
-          styles.checklistIcon,
-          { backgroundColor: completed || active ? color : '#D1D5DB' },
-        ]}
-      >
-        {completed ? (
-          <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-        ) : active ? (
-          <View style={styles.spinner} />
-        ) : (
-          <View style={styles.emptyCircle} />
-        )}
-      </View>
-      <Text
-        style={[
-          styles.checklistText,
-          { color: completed || active ? '#1F2937' : '#9CA3AF' },
-        ]}
-      >
-        {text}
-      </Text>
-    </View>
   );
 };
 
@@ -491,40 +435,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
-  },
-  checklist: {
-    marginBottom: 24,
-  },
-  checklistItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  checklistIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  spinner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    borderTopColor: 'transparent',
-  },
-  emptyCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  checklistText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   highlightsContainer: {
     marginBottom: 24,
