@@ -301,9 +301,9 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                       <ProgressStatItemCompact
                         icon="time"
                         iconColor="#F59E0B"
-                        label="Practice Time"
-                        value={`${Math.round(overallProgress.total_minutes)}`}
-                        subValue="min total"
+                        label={overallProgress.plan_total_minutes ? "Plan Time" : "Practice Time"}
+                        value={`${Math.round(overallProgress.plan_total_minutes || overallProgress.total_minutes)}`}
+                        subValue="min"
                       />
                       <ProgressStatItemCompact
                         icon="trophy"

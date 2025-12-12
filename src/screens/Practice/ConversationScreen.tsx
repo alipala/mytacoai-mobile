@@ -1062,7 +1062,25 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
         if (result.overall_progress) {
           console.log('[AUTO_END] Received overall progress:', result.overall_progress);
-          setOverallProgress(result.overall_progress);
+
+          // Calculate plan-specific total minutes
+          // For learning plans, we calculate by multiplying completed sessions by current session duration
+          // This is an approximation since sessions may vary in length
+          let planTotalMinutes = result.overall_progress.total_minutes;
+
+          if (planId && result.overall_progress.plan_completed_sessions && result.session_stats) {
+            // Use current session duration as estimate for all sessions
+            const avgDuration = result.session_stats.duration_minutes || 5;
+            planTotalMinutes = result.overall_progress.plan_completed_sessions * avgDuration;
+            console.log('[AUTO_END] 📊 Calculated plan-specific minutes:', planTotalMinutes);
+            console.log('[AUTO_END] 📊 Formula: sessions × duration =',
+              result.overall_progress.plan_completed_sessions, '×', avgDuration);
+          }
+
+          setOverallProgress({
+            ...result.overall_progress,
+            plan_total_minutes: planTotalMinutes,
+          });
         }
 
         // The new endpoint doesn't return a summary, so we generate it client-side for the modal

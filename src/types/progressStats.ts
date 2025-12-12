@@ -28,6 +28,7 @@ export interface OverallProgress {
   plan_progress_percentage?: number;
   plan_completed_sessions?: number;
   plan_total_sessions?: number;
+  plan_total_minutes?: number; // Calculated in frontend: sessions × duration
 }
 
 export interface ProgressStatsResponse {
