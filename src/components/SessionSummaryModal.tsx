@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SessionStats, SessionComparison, OverallProgress } from '../types/progressStats';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -25,6 +26,10 @@ interface SessionSummaryModalProps {
   onComplete: () => void;
   onViewAnalysis: () => void;
   onGoDashboard: () => void;
+  // New progress tracking props
+  sessionStats?: SessionStats;
+  comparison?: SessionComparison;
+  overallProgress?: OverallProgress;
 }
 
 const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
@@ -37,6 +42,9 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   onComplete,
   onViewAnalysis,
   onGoDashboard,
+  sessionStats,
+  comparison,
+  overallProgress,
 }) => {
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   const [progressAnim] = useState(new Animated.Value(0));
@@ -198,11 +206,122 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
             {/* Success Stats */}
             {stage === 'success' && (
               <>
-                <View style={styles.statsContainer}>
-                  <StatCard icon="📊" label="Duration" value={duration} />
-                  <StatCard icon="💬" label="Messages" value={messageCount.toString()} />
-                  <StatCard icon="🎯" label="Analyzed" value={sentenceCount.toString()} />
-                </View>
+                {/* Learning Plan Session Header */}
+                {sessionStats?.session_number && sessionStats?.week_number && (
+                  <View style={styles.sessionHeader}>
+                    <Text style={styles.sessionTitle}>
+                      Session {sessionStats.session_number} Complete!
+                    </Text>
+                    <Text style={styles.sessionSubtitle}>
+                      Week {sessionStats.week_number}
+                      {sessionStats.week_focus && ` • ${sessionStats.week_focus}`}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Session Statistics */}
+                {sessionStats ? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionTitle}>SESSION STATS</Text>
+                    </View>
+                    <View style={styles.statsGrid}>
+                      <StatCard icon="📊" label="Duration" value={duration} />
+                      <StatCard icon="💬" label="Words Spoken" value={sessionStats.words_spoken.toString()} />
+                      <StatCard icon="🎯" label="Speaking Speed" value={`${Math.round(sessionStats.speaking_speed_wpm)} wpm`} />
+                      <StatCard icon="📚" label="Vocabulary" value={`${sessionStats.unique_vocabulary} unique`} />
+                      <StatCard icon="🔄" label="Turns" value={sessionStats.conversation_turns.toString()} />
+                      {sessionStats.grammar_score !== null && sessionStats.grammar_score !== undefined && (
+                        <StatCard icon="✍️" label="Grammar" value={`${Math.round(sessionStats.grammar_score)}%`} />
+                      )}
+                      {sessionStats.fluency_score !== null && sessionStats.fluency_score !== undefined && (
+                        <StatCard icon="💨" label="Fluency" value={`${Math.round(sessionStats.fluency_score)}%`} />
+                      )}
+                      <StatCard icon="🎯" label="Analyzed" value={sentenceCount.toString()} />
+                    </View>
+                  </>
+                ) : (
+                  <View style={styles.statsContainer}>
+                    <StatCard icon="📊" label="Duration" value={duration} />
+                    <StatCard icon="💬" label="Messages" value={messageCount.toString()} />
+                    <StatCard icon="🎯" label="Analyzed" value={sentenceCount.toString()} />
+                  </View>
+                )}
+
+                {/* Comparison Stats */}
+                {comparison && comparison.has_previous_session && (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionTitle}>IMPROVEMENTS</Text>
+                    </View>
+                    <View style={styles.comparisonContainer}>
+                      {comparison.words_improvement !== undefined && comparison.words_improvement !== 0 && (
+                        <ComparisonCard
+                          icon={comparison.words_improvement > 0 ? '📈' : '📉'}
+                          label="Words"
+                          value={`${comparison.words_improvement > 0 ? '+' : ''}${comparison.words_improvement}`}
+                          isPositive={comparison.words_improvement > 0}
+                        />
+                      )}
+                      {comparison.speed_improvement !== undefined && comparison.speed_improvement !== 0 && (
+                        <ComparisonCard
+                          icon={comparison.speed_improvement > 0 ? '🚀' : '🐌'}
+                          label="Speed"
+                          value={`${comparison.speed_improvement > 0 ? '+' : ''}${comparison.speed_improvement.toFixed(1)} wpm`}
+                          isPositive={comparison.speed_improvement > 0}
+                        />
+                      )}
+                      {comparison.vocabulary_growth !== undefined && comparison.vocabulary_growth !== 0 && (
+                        <ComparisonCard
+                          icon={comparison.vocabulary_growth > 0 ? '📚' : '📖'}
+                          label="Vocabulary"
+                          value={`${comparison.vocabulary_growth > 0 ? '+' : ''}${comparison.vocabulary_growth}`}
+                          isPositive={comparison.vocabulary_growth > 0}
+                        />
+                      )}
+                    </View>
+                  </>
+                )}
+
+                {/* Overall Progress */}
+                {overallProgress && (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionTitle}>YOUR PROGRESS</Text>
+                    </View>
+                    <View style={styles.progressStatsContainer}>
+                      <ProgressStatItem
+                        icon="✓"
+                        label="Sessions"
+                        value={overallProgress.plan_total_sessions
+                          ? `${overallProgress.plan_completed_sessions} of ${overallProgress.plan_total_sessions}`
+                          : overallProgress.total_sessions.toString()}
+                        subValue={overallProgress.plan_progress_percentage
+                          ? `${overallProgress.plan_progress_percentage.toFixed(1)}% complete`
+                          : undefined}
+                      />
+                      <ProgressStatItem
+                        icon="⏱️"
+                        label="Total Time"
+                        value={`${Math.round(overallProgress.total_minutes)} min`}
+                      />
+                      {overallProgress.current_streak > 0 && (
+                        <ProgressStatItem
+                          icon="🔥"
+                          label="Current Streak"
+                          value={`${overallProgress.current_streak} day${overallProgress.current_streak !== 1 ? 's' : ''}`}
+                        />
+                      )}
+                      {overallProgress.longest_streak > 0 && (
+                        <ProgressStatItem
+                          icon="🏆"
+                          label="Best Streak"
+                          value={`${overallProgress.longest_streak} day${overallProgress.longest_streak !== 1 ? 's' : ''}`}
+                        />
+                      )}
+                    </View>
+                  </>
+                )}
 
                 <View style={styles.buttonsContainer}>
                   <TouchableOpacity
@@ -277,6 +396,45 @@ const StatCard: React.FC<{ icon: string; label: string; value: string }> = ({
       <Text style={styles.statIcon}>{icon}</Text>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
+    </View>
+  );
+};
+
+// Comparison Card Component
+const ComparisonCard: React.FC<{
+  icon: string;
+  label: string;
+  value: string;
+  isPositive: boolean;
+}> = ({ icon, label, value, isPositive }) => {
+  return (
+    <View style={styles.comparisonCard}>
+      <Text style={styles.comparisonIcon}>{icon}</Text>
+      <Text style={styles.comparisonLabel}>{label}</Text>
+      <Text style={[styles.comparisonValue, isPositive ? styles.positiveValue : styles.negativeValue]}>
+        {value}
+      </Text>
+    </View>
+  );
+};
+
+// Progress Stat Item Component
+const ProgressStatItem: React.FC<{
+  icon: string;
+  label: string;
+  value: string;
+  subValue?: string;
+}> = ({ icon, label, value, subValue }) => {
+  return (
+    <View style={styles.progressStatItem}>
+      <View style={styles.progressStatIconContainer}>
+        <Text style={styles.progressStatIcon}>{icon}</Text>
+      </View>
+      <View style={styles.progressStatContent}>
+        <Text style={styles.progressStatLabel}>{label}</Text>
+        <Text style={styles.progressStatValue}>{value}</Text>
+        {subValue && <Text style={styles.progressStatSubValue}>{subValue}</Text>}
+      </View>
     </View>
   );
 };
@@ -435,6 +593,115 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     textAlign: 'center',
+  },
+  // New styles for progress tracking
+  sessionHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  sessionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  sessionSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  sectionHeader: {
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    letterSpacing: 0.5,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  comparisonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  comparisonCard: {
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 12,
+    minWidth: 100,
+    marginBottom: 8,
+  },
+  comparisonIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  comparisonLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  comparisonValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  positiveValue: {
+    color: '#10B981',
+  },
+  negativeValue: {
+    color: '#EF4444',
+  },
+  progressStatsContainer: {
+    marginBottom: 8,
+  },
+  progressStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  progressStatIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#4ECFBF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  progressStatIcon: {
+    fontSize: 18,
+    color: '#FFFFFF',
+  },
+  progressStatContent: {
+    flex: 1,
+  },
+  progressStatLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  progressStatValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  progressStatSubValue: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 2,
   },
 });
 

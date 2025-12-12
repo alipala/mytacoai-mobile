@@ -21,6 +21,7 @@ import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisRespo
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
+import { SessionStats, SessionComparison, OverallProgress } from '../../types/progressStats';
 import ConversationHelpModal from '../../components/ConversationHelpModal';
 import ConversationHelpButton from '../../components/ConversationHelpButton';
 import { useConversationHelp } from '../../hooks/useConversationHelp';
@@ -296,6 +297,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [sessionSummary, setSessionSummary] = useState<string>('');
   const [sessionCompletedNaturally, setSessionCompletedNaturally] = useState(false);
   const [autoSavePending, setAutoSavePending] = useState(false);
+
+  // New progress tracking states
+  const [sessionStats, setSessionStats] = useState<SessionStats | undefined>(undefined);
+  const [sessionComparison, setSessionComparison] = useState<SessionComparison | undefined>(undefined);
+  const [overallProgress, setOverallProgress] = useState<OverallProgress | undefined>(undefined);
 
   // Realtime service ref
   const realtimeServiceRef = useRef<RealtimeService | null>(null);
@@ -1038,6 +1044,20 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           setBackgroundAnalyses(result.background_analyses);
         }
 
+        // Store new progress tracking data
+        if (result.session_stats) {
+          console.log('[AUTO_END] Received session stats:', result.session_stats);
+          setSessionStats(result.session_stats);
+        }
+        if (result.comparison) {
+          console.log('[AUTO_END] Received comparison data:', result.comparison);
+          setSessionComparison(result.comparison);
+        }
+        if (result.overall_progress) {
+          console.log('[AUTO_END] Received overall progress:', result.overall_progress);
+          setOverallProgress(result.overall_progress);
+        }
+
         // The new endpoint doesn't return a summary, so we generate it client-side for the modal
         if (planId) {
           const summaryText = `Session completed: ${Math.round(sessionDuration / 60 * 10) / 10} minutes, ${messages.length} messages exchanged.`;
@@ -1420,6 +1440,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         onComplete={() => setShowSavingModal(false)}
         onViewAnalysis={handleViewAnalysis}
         onGoDashboard={handleGoDashboard}
+        sessionStats={sessionStats}
+        comparison={sessionComparison}
+        overallProgress={overallProgress}
       />
 
       {/* Conversation Help Modal */}
