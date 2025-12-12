@@ -286,36 +286,32 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                     <View style={styles.sectionHeader}>
                       <Text style={styles.sectionTitle}>YOUR PROGRESS</Text>
                     </View>
-                    <View style={styles.progressStatsContainer}>
-                      <ProgressStatItem
-                        icon="✓"
+                    <View style={styles.progressStatsGrid}>
+                      <ProgressStatItemCompact
+                        icon="checkmark-circle"
+                        iconColor="#4ECFBF"
                         label="Sessions"
                         value={overallProgress.plan_total_sessions
-                          ? `${overallProgress.plan_completed_sessions} of ${overallProgress.plan_total_sessions}`
+                          ? `${overallProgress.plan_completed_sessions}/${overallProgress.plan_total_sessions}`
                           : overallProgress.total_sessions.toString()}
                         subValue={overallProgress.plan_progress_percentage
-                          ? `${overallProgress.plan_progress_percentage.toFixed(1)}% complete`
+                          ? `${overallProgress.plan_progress_percentage.toFixed(0)}%`
                           : undefined}
                       />
-                      <ProgressStatItem
-                        icon="⏱️"
+                      <ProgressStatItemCompact
+                        icon="time"
+                        iconColor="#F59E0B"
                         label="Total Time"
-                        value={`${Math.round(overallProgress.total_minutes)} min`}
+                        value={`${Math.round(overallProgress.total_minutes)}`}
+                        subValue="min"
                       />
-                      {overallProgress.current_streak > 0 && (
-                        <ProgressStatItem
-                          icon="🔥"
-                          label="Current Streak"
-                          value={`${overallProgress.current_streak} day${overallProgress.current_streak !== 1 ? 's' : ''}`}
-                        />
-                      )}
-                      {overallProgress.longest_streak > 0 && (
-                        <ProgressStatItem
-                          icon="🏆"
-                          label="Best Streak"
-                          value={`${overallProgress.longest_streak} day${overallProgress.longest_streak !== 1 ? 's' : ''}`}
-                        />
-                      )}
+                      <ProgressStatItemCompact
+                        icon="trophy"
+                        iconColor="#EF4444"
+                        label="Best Streak"
+                        value={`${overallProgress.longest_streak}`}
+                        subValue={`day${overallProgress.longest_streak !== 1 ? 's' : ''}`}
+                      />
                     </View>
                   </>
                 )}
@@ -397,23 +393,20 @@ const ComparisonCard: React.FC<{
   );
 };
 
-// Progress Stat Item Component
-const ProgressStatItem: React.FC<{
+// Compact Progress Stat Item Component (3-column layout)
+const ProgressStatItemCompact: React.FC<{
   icon: string;
+  iconColor: string;
   label: string;
   value: string;
   subValue?: string;
-}> = ({ icon, label, value, subValue }) => {
+}> = ({ icon, iconColor, label, value, subValue }) => {
   return (
-    <View style={styles.progressStatItem}>
-      <View style={styles.progressStatIconContainer}>
-        <Text style={styles.progressStatIcon}>{icon}</Text>
-      </View>
-      <View style={styles.progressStatContent}>
-        <Text style={styles.progressStatLabel}>{label}</Text>
-        <Text style={styles.progressStatValue}>{value}</Text>
-        {subValue && <Text style={styles.progressStatSubValue}>{subValue}</Text>}
-      </View>
+    <View style={styles.progressStatItemCompact}>
+      <Ionicons name={icon as any} size={32} color={iconColor} />
+      <Text style={styles.progressStatLabel}>{label}</Text>
+      <Text style={styles.progressStatValueCompact}>{value}</Text>
+      {subValue && <Text style={styles.progressStatSubValueCompact}>{subValue}</Text>}
     </View>
   );
 };
@@ -608,47 +601,39 @@ const styles = StyleSheet.create({
   negativeValue: {
     color: '#EF4444',
   },
-  progressStatsContainer: {
-    marginBottom: 8,
-  },
-  progressStatItem: {
+  progressStatsGrid: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+    gap: 12,
+  },
+  progressStatItemCompact: {
+    flex: 1,
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-  },
-  progressStatIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#4ECFBF',
+    borderRadius: 16,
+    padding: 16,
+    minHeight: 120,
     justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  progressStatIcon: {
-    fontSize: 18,
-    color: '#FFFFFF',
-  },
-  progressStatContent: {
-    flex: 1,
   },
   progressStatLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginBottom: 2,
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: 'center',
   },
-  progressStatValue: {
-    fontSize: 16,
+  progressStatValueCompact: {
+    fontSize: 24,
     fontWeight: '700',
     color: '#1F2937',
+    textAlign: 'center',
   },
-  progressStatSubValue: {
-    fontSize: 12,
+  progressStatSubValueCompact: {
+    fontSize: 11,
     color: '#9CA3AF',
     marginTop: 2,
+    textAlign: 'center',
   },
 });
 
