@@ -255,8 +255,8 @@ export const styles = StyleSheet.create({
   // Session Node
   sessionNodeContainer: {
     position: 'absolute',
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 20,
@@ -277,23 +277,41 @@ export const styles = StyleSheet.create({
     borderRadius: 60,
   },
 
-  // Session Node Circle
-  sessionNode: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  // Node Shadow (3D effect)
+  nodeShadow: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    zIndex: -1,
+  },
+
+  // Node Outer Border
+  nodeOuter: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    borderWidth: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    backgroundColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 10,
+  },
+
+  // Session Node Circle
+  sessionNode: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   nodeInner: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -301,39 +319,40 @@ export const styles = StyleSheet.create({
   // Session Badge
   sessionBadge: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    top: -4,
+    right: -4,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
+    borderWidth: 4,
     borderColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 8,
   },
   sessionBadgeText: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
 
   // Session Label
   sessionLabel: {
     position: 'absolute',
-    top: 90,
-    width: 140,
+    top: 105,
+    width: 160,
     alignItems: 'center',
+    paddingHorizontal: 8,
   },
   sessionLabelText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4B5563',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#3F3F46',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 20,
   },
 });

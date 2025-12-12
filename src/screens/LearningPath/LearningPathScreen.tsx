@@ -11,14 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-  withSequence,
-  Easing,
-} from 'react-native-reanimated';
 import Svg, { Path, Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -52,32 +44,8 @@ const LearningPathScreen: React.FC<LearningPathScreenProps> = ({ navigation }) =
   const [sessionNodes, setSessionNodes] = useState<SessionNode[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Animation values
-  const glowOpacity = useSharedValue(0.3);
-  const pulseScale = useSharedValue(1);
-
   useEffect(() => {
     loadLearningPlans();
-
-    // Start glow animation for current lesson
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.3, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-
-    // Start pulse animation
-    pulseScale.value = withRepeat(
-      withSequence(
-        withTiming(1.1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
   }, []);
 
   const loadLearningPlans = async () => {
@@ -117,15 +85,36 @@ const LearningPathScreen: React.FC<LearningPathScreenProps> = ({ navigation }) =
     weeklySchedule.forEach((week, weekIndex) => {
       const sessionDetails = week.session_details || [];
 
-      sessionDetails.forEach((session, sessionIndex) => {
+      // Group sessions by session_number to handle duplicates
+      const sessionMap = new Map();
+
+      sessionDetails.forEach((session) => {
+        const sessionNum = session.session_number;
+        const existing = sessionMap.get(sessionNum);
+
+        // Prefer completed over pending
+        if (!existing || session.status === 'completed') {
+          sessionMap.set(sessionNum, session);
+        }
+      });
+
+      // Convert map to sorted array
+      const mergedSessions = Array.from(sessionMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([_, session]) => session);
+
+      mergedSessions.forEach((session, sessionIndex) => {
         globalSessionNumber++;
 
-        // Determine status
+        // Determine status based on completed_sessions count
         let status: 'completed' | 'current' | 'locked' = 'locked';
-        if (session.status === 'completed') {
+
+        if (globalSessionNumber <= (plan.completed_sessions || 0)) {
           status = 'completed';
-        } else if (session.status === 'pending' && globalSessionNumber === (plan.completed_sessions || 0) + 1) {
+        } else if (globalSessionNumber === (plan.completed_sessions || 0) + 1) {
           status = 'current';
+        } else {
+          status = 'locked';
         }
 
         // Zigzag positioning
@@ -135,7 +124,7 @@ const LearningPathScreen: React.FC<LearningPathScreenProps> = ({ navigation }) =
         else position = 'center';
 
         nodes.push({
-          id: `${plan.id}-week${week.week}-session${session.session_number}`,
+          id: `${plan.id}-session${globalSessionNumber}`,
           sessionNumber: globalSessionNumber,
           weekNumber: week.week,
           focus: session.focus || week.focus,
@@ -220,39 +209,36 @@ const LearningPathScreen: React.FC<LearningPathScreenProps> = ({ navigation }) =
     const nodeX = getXPosition(node.position);
     const nextNodeX = nextNode ? getXPosition(nextNode.position) : nodeX;
 
-    // Animated styles for current node
-    const glowAnimatedStyle = useAnimatedStyle(() => ({
-      opacity: node.status === 'current' ? glowOpacity.value : 0,
-    }));
-
-    const pulseAnimatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: node.status === 'current' ? pulseScale.value : 1 }],
-    }));
-
-    // Colors based on status
+    // Colors based on status - VIBRANT DUOLINGO STYLE
     const getNodeColors = () => {
       switch (node.status) {
         case 'completed':
           return {
-            primary: '#10B981',
-            secondary: '#34D399',
-            bg: '#ECFDF5',
+            primary: '#58CC02', // Duolingo green
+            secondary: '#89E219',
+            bg: '#FFFFFF',
             icon: 'checkmark-circle',
+            shadow: '#58CC02',
+            borderColor: '#46A302',
           };
         case 'current':
           return {
-            primary: '#4FD1C5',
-            secondary: '#7DE3D8',
-            bg: '#F0FDFA',
-            icon: 'play-circle',
+            primary: '#1CB0F6', // Duolingo blue
+            secondary: '#58D4FF',
+            bg: '#FFFFFF',
+            icon: 'star',
+            shadow: '#1CB0F6',
+            borderColor: '#0E8CC8',
           };
         case 'locked':
         default:
           return {
-            primary: '#D1D5DB',
-            secondary: '#E5E7EB',
-            bg: '#F9FAFB',
+            primary: '#E5E5E5',
+            secondary: '#AFAFAF',
+            bg: '#F7F7F7',
             icon: 'lock-closed',
+            shadow: '#AFAFAF',
+            borderColor: '#CECECE',
           };
       }
     };
@@ -273,9 +259,9 @@ const LearningPathScreen: React.FC<LearningPathScreenProps> = ({ navigation }) =
               </Defs>
               <Path
                 d={`M ${nodeX} 0 Q ${(nodeX + nextNodeX) / 2} ${(nextNode.yPosition - node.yPosition) / 2} ${nextNodeX} ${nextNode.yPosition - node.yPosition}`}
-                stroke={node.status === 'locked' ? '#E5E7EB' : 'url(#lineGradient)'}
-                strokeWidth="3"
-                strokeDasharray={node.status === 'locked' ? '8,8' : '0'}
+                stroke={node.status === 'completed' ? '#58CC02' : node.status === 'current' ? '#1CB0F6' : '#E5E5E5'}
+                strokeWidth="6"
+                strokeDasharray={node.status === 'locked' ? '12,8' : '0'}
                 fill="none"
                 strokeLinecap="round"
               />
@@ -296,33 +282,34 @@ const LearningPathScreen: React.FC<LearningPathScreenProps> = ({ navigation }) =
           activeOpacity={node.status === 'locked' ? 1 : 0.7}
           disabled={node.status === 'locked'}
         >
-          {/* Glow effect for current node */}
-          {node.status === 'current' && (
-            <Animated.View style={[styles.glowCircle, glowAnimatedStyle]}>
-              <LinearGradient
-                colors={[`${colors.primary}40`, `${colors.secondary}20`, 'transparent']}
-                style={styles.glowGradient}
-              />
-            </Animated.View>
-          )}
+          {/* Shadow layer for 3D effect */}
+          <View style={[styles.nodeShadow, {
+            backgroundColor: colors.shadow,
+            opacity: node.status === 'locked' ? 0.2 : 0.3,
+            top: 6,
+          }]} />
 
-          {/* Main node circle */}
-          <Animated.View style={[pulseAnimatedStyle]}>
+          {/* Main node circle with border */}
+          <View style={[styles.nodeOuter, {
+            borderColor: colors.borderColor,
+            shadowColor: colors.shadow,
+            shadowOpacity: node.status === 'locked' ? 0.1 : 0.4,
+          }]}>
             <LinearGradient
               colors={[colors.primary, colors.secondary]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              end={{ x: 0.5, y: 1 }}
               style={styles.sessionNode}
             >
               <View style={[styles.nodeInner, { backgroundColor: colors.bg }]}>
                 <Ionicons
                   name={colors.icon as any}
-                  size={36}
+                  size={node.status === 'locked' ? 32 : 40}
                   color={colors.primary}
                 />
               </View>
             </LinearGradient>
-          </Animated.View>
+          </View>
 
           {/* Session number badge */}
           <View style={[styles.sessionBadge, { backgroundColor: colors.primary }]}>
