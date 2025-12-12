@@ -54,11 +54,15 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   const [progressAnim] = useState(new Animated.Value(0));
   const confettiRef = useRef<any>(null);
 
-  // Trigger confetti when success stage is reached
+  // Trigger confetti with delay when success stage is reached
   useEffect(() => {
     if (stage === 'success' && confettiRef.current) {
       console.log('[SESSION_MODAL] 🎉 Success stage reached - triggering confetti');
-      confettiRef.current.start();
+      // Delay confetti by 300ms to ensure modal is visible
+      const timer = setTimeout(() => {
+        confettiRef.current?.start();
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [stage]);
 
@@ -123,8 +127,8 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
       case 'success':
         return {
           icon: '🎉',
-          title: 'Session Saved Successfully!',
-          subtitle: 'Your progress has been saved and analyzed',
+          title: 'Session Summary',
+          subtitle: '',
           color: '#4ECFBF',
         };
       default:
@@ -149,24 +153,24 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
       onRequestClose={stage === 'success' ? onComplete : undefined}
     >
       <View style={styles.overlay}>
-        {/* Confetti Animation */}
-        {stage === 'success' && (
-          <ConfettiCannon
-            ref={confettiRef}
-            count={200}
-            origin={{x: SCREEN_WIDTH / 2, y: 0}}
-            autoStart={false}
-            fadeOut={true}
-            fallSpeed={3000}
-          />
-        )}
-
         <View style={styles.modalContainer}>
+          {/* Confetti Animation - render inside modal container */}
+          {stage === 'success' && (
+            <ConfettiCannon
+              ref={confettiRef}
+              count={200}
+              origin={{x: SCREEN_WIDTH / 2, y: -100}}
+              autoStart={false}
+              fadeOut={true}
+              fallSpeed={2500}
+            />
+          )}
+
           {/* Header */}
           <View style={[styles.header, { backgroundColor: config.color }]}>
             {stage !== 'success' && <Text style={styles.icon}>{config.icon}</Text>}
             <Text style={styles.title}>{config.title}</Text>
-            <Text style={styles.subtitle}>{config.subtitle}</Text>
+            {config.subtitle !== '' && <Text style={styles.subtitle}>{config.subtitle}</Text>}
           </View>
 
           {/* Progress Bar */}
@@ -204,14 +208,10 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
             {stage === 'success' && (
               <>
                 {/* Learning Plan Session Header */}
-                {sessionStats?.session_number && sessionStats?.week_number && (
+                {sessionStats?.week_focus && (
                   <View style={styles.sessionHeader}>
-                    <Text style={styles.sessionTitle}>
-                      Session {sessionStats.session_number} Complete!
-                    </Text>
-                    <Text style={styles.sessionSubtitle} numberOfLines={1}>
-                      Week {sessionStats.week_number}
-                      {sessionStats.week_focus && ` • ${sessionStats.week_focus}`}
+                    <Text style={styles.sessionSubtitle} numberOfLines={2}>
+                      Week {sessionStats.week_number}: {sessionStats.week_focus}
                     </Text>
                   </View>
                 )}
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     width: '100%',
     maxWidth: 500,
-    maxHeight: '85%',
+    maxHeight: '90%',
     overflow: 'hidden',
   },
   header: {
@@ -464,7 +464,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   content: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   highlightsContainer: {
     marginBottom: 24,
@@ -537,8 +539,8 @@ const styles = StyleSheet.create({
   // New styles for progress tracking
   sessionHeader: {
     alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 16,
+    marginBottom: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -553,8 +555,8 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   sectionHeader: {
-    marginTop: 20,
-    marginBottom: 12,
+    marginTop: 16,
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 12,
