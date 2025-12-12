@@ -1039,9 +1039,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.log('[AUTO_END] Session saved successfully:', result);
 
         // Store the results (compatible with both responses)
+        console.log('[AUTO_END] 🔍 Full result:', JSON.stringify(result, null, 2));
+        console.log('[AUTO_END] 🔍 Background analyses:', result.background_analyses);
+        console.log('[AUTO_END] 🔍 Analyses length:', result.background_analyses?.length);
+
         if (result.background_analyses && result.background_analyses.length > 0) {
-          console.log('[AUTO_END] Received', result.background_analyses.length, 'analyses');
+          console.log('[AUTO_END] ✅ Received', result.background_analyses.length, 'analyses');
           setBackgroundAnalyses(result.background_analyses);
+        } else {
+          console.log('[AUTO_END] ⚠️ No background analyses in response!');
+          console.log('[AUTO_END] 🔍 Collected sentences:', collectedSentences);
         }
 
         // Store new progress tracking data
@@ -1458,7 +1465,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         duration={formatDuration(sessionDuration)}
         messageCount={messages.filter(m => m.role === 'user').length}
         onComplete={() => setShowSavingModal(false)}
-        onViewAnalysis={handleViewAnalysis}
+        onViewAnalysis={() => {
+          console.log('[VIEW_ANALYSIS] 🎯 Button clicked');
+          console.log('[VIEW_ANALYSIS] 📊 Background analyses count:', backgroundAnalyses.length);
+          console.log('[VIEW_ANALYSIS] 📊 Background analyses:', backgroundAnalyses);
+          handleViewAnalysis();
+        }}
         onGoDashboard={handleGoDashboard}
         sessionStats={sessionStats}
         comparison={sessionComparison}

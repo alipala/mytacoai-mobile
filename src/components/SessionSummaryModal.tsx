@@ -52,6 +52,15 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   const [progressAnim] = useState(new Animated.Value(0));
 
+  // Debug logging
+  useEffect(() => {
+    if (stage === 'success') {
+      console.log('[SESSION_MODAL] 🎉 Success stage reached');
+      console.log('[SESSION_MODAL] 📊 hasAnalyses:', hasAnalyses);
+      console.log('[SESSION_MODAL] 📊 sentenceCount:', sentenceCount);
+    }
+  }, [stage, hasAnalyses, sentenceCount]);
+
   // Rotate conversation highlights
   useEffect(() => {
     if (conversationHighlights.length > 0 && stage !== 'success') {
@@ -458,7 +467,8 @@ const styles = StyleSheet.create({
   },
   statCard: {
     alignItems: 'center',
-    flex: 1,
+    minWidth: '30%',
+    marginBottom: 16,
   },
   statIcon: {
     fontSize: 24,
@@ -535,8 +545,8 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    gap: 12,
+    marginBottom: 12,
   },
   comparisonContainer: {
     flexDirection: 'row',
