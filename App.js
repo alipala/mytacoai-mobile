@@ -17,6 +17,7 @@ import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen.tsx';
 // Main Screens
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
 import ProfileScreen from './src/screens/Profile/ProfileScreen.tsx';
+import LearningPathScreen from './src/screens/LearningPath/LearningPathScreen.tsx';
 
 // Practice Flow Screens
 import {
@@ -85,6 +86,8 @@ function MainTabs() {
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Progress') {
+            iconName = focused ? 'map' : 'map-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -99,6 +102,16 @@ function MainTabs() {
         component={DashboardScreen}
         options={{
           tabBarLabel: 'Home',
+          headerShown: false,
+        }}
+      />
+
+      {/* Progress Tab - Duolingo-style Learning Path */}
+      <Tab.Screen
+        name="Progress"
+        component={LearningPathScreen}
+        options={{
+          tabBarLabel: 'Progress',
           headerShown: false,
         }}
       />
@@ -314,6 +327,7 @@ export default function App() {
         Main: {
           screens: {
             Dashboard: 'dashboard',
+            Progress: 'progress',
             Profile: 'profile',
           },
         },
