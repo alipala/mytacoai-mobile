@@ -21,6 +21,7 @@ import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisRespo
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
+import { SessionStats, SessionComparison, OverallProgress } from '../../types/progressStats';
 import ConversationHelpModal from '../../components/ConversationHelpModal';
 import ConversationHelpButton from '../../components/ConversationHelpButton';
 import { useConversationHelp } from '../../hooks/useConversationHelp';
@@ -296,6 +297,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [sessionSummary, setSessionSummary] = useState<string>('');
   const [sessionCompletedNaturally, setSessionCompletedNaturally] = useState(false);
   const [autoSavePending, setAutoSavePending] = useState(false);
+
+  // New progress tracking states
+  const [sessionStats, setSessionStats] = useState<SessionStats | undefined>(undefined);
+  const [sessionComparison, setSessionComparison] = useState<SessionComparison | undefined>(undefined);
+  const [overallProgress, setOverallProgress] = useState<OverallProgress | undefined>(undefined);
 
   // Realtime service ref
   const realtimeServiceRef = useRef<RealtimeService | null>(null);
@@ -1033,9 +1039,48 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.log('[AUTO_END] Session saved successfully:', result);
 
         // Store the results (compatible with both responses)
+        console.log('[AUTO_END] 🔍 Full result:', JSON.stringify(result, null, 2));
+        console.log('[AUTO_END] 🔍 Background analyses:', result.background_analyses);
+        console.log('[AUTO_END] 🔍 Analyses length:', result.background_analyses?.length);
+
         if (result.background_analyses && result.background_analyses.length > 0) {
-          console.log('[AUTO_END] Received', result.background_analyses.length, 'analyses');
+          console.log('[AUTO_END] ✅ Received', result.background_analyses.length, 'analyses');
           setBackgroundAnalyses(result.background_analyses);
+        } else {
+          console.log('[AUTO_END] ⚠️ No background analyses in response!');
+          console.log('[AUTO_END] 🔍 Collected sentences:', collectedSentences);
+        }
+
+        // Store new progress tracking data
+        if (result.session_stats) {
+          console.log('[AUTO_END] Received session stats:', result.session_stats);
+          setSessionStats(result.session_stats);
+        }
+        if (result.comparison) {
+          console.log('[AUTO_END] Received comparison data:', result.comparison);
+          setSessionComparison(result.comparison);
+        }
+        if (result.overall_progress) {
+          console.log('[AUTO_END] Received overall progress:', result.overall_progress);
+
+          // Calculate plan-specific total minutes
+          // For learning plans, we calculate by multiplying completed sessions by current session duration
+          // This is an approximation since sessions may vary in length
+          let planTotalMinutes = result.overall_progress.total_minutes;
+
+          if (planId && result.overall_progress.plan_completed_sessions && result.session_stats) {
+            // Use current session duration as estimate for all sessions
+            const avgDuration = result.session_stats.duration_minutes || 5;
+            planTotalMinutes = result.overall_progress.plan_completed_sessions * avgDuration;
+            console.log('[AUTO_END] 📊 Calculated plan-specific minutes:', planTotalMinutes);
+            console.log('[AUTO_END] 📊 Formula: sessions × duration =',
+              result.overall_progress.plan_completed_sessions, '×', avgDuration);
+          }
+
+          setOverallProgress({
+            ...result.overall_progress,
+            plan_total_minutes: planTotalMinutes,
+          });
         }
 
         // The new endpoint doesn't return a summary, so we generate it client-side for the modal
@@ -1100,13 +1145,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const handleViewAnalysis = () => {
     setShowSavingModal(false);
 
-    // Navigate to Sentence Analysis screen
-    navigation.navigate('SentenceAnalysis', {
-      analyses: backgroundAnalyses,
-      sessionSummary: sessionSummary,
-      duration: formatDuration(sessionDuration),
-      messageCount: messages.filter(m => m.role === 'user').length,
-    });
+    // Check if we have analyses to show
+    if (backgroundAnalyses && backgroundAnalyses.length > 0) {
+      // Navigate to Sentence Analysis screen
+      navigation.navigate('SentenceAnalysis', {
+        analyses: backgroundAnalyses,
+        sessionSummary: sessionSummary,
+        duration: formatDuration(sessionDuration),
+        messageCount: messages.filter(m => m.role === 'user').length,
+      });
+    } else {
+      // If no analyses available, show alert and go to dashboard
+      Alert.alert(
+        'No Analysis Available',
+        'No sentences were analyzed during this session. This can happen if the conversation was too short or no quality sentences were detected.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+              });
+            },
+          },
+        ]
+      );
+    }
   };
 
   // Handle go to dashboard after session save
@@ -1418,8 +1483,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         duration={formatDuration(sessionDuration)}
         messageCount={messages.filter(m => m.role === 'user').length}
         onComplete={() => setShowSavingModal(false)}
-        onViewAnalysis={handleViewAnalysis}
+        onViewAnalysis={() => {
+          console.log('[VIEW_ANALYSIS] 🎯 Button clicked');
+          console.log('[VIEW_ANALYSIS] 📊 Background analyses count:', backgroundAnalyses.length);
+          console.log('[VIEW_ANALYSIS] 📊 Background analyses:', backgroundAnalyses);
+          handleViewAnalysis();
+        }}
         onGoDashboard={handleGoDashboard}
+        sessionStats={sessionStats}
+        comparison={sessionComparison}
+        overallProgress={overallProgress}
+        hasAnalyses={backgroundAnalyses.length > 0}
       />
 
       {/* Conversation Help Modal */}

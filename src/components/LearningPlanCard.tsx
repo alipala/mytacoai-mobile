@@ -117,7 +117,7 @@ const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
         
         {/* Percentage Text - CENTERED */}
         <View style={styles.progressTextContainer}>
-          <Text style={styles.progressPercentage}>{Math.round(percentage)}%</Text>
+          <Text style={styles.progressPercentage}>{percentage}%</Text>
         </View>
         
         {/* Checkmark Badge - OUTSIDE circle */}
@@ -148,7 +148,8 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
   const level = plan.proficiency_level || plan.target_cefr_level || 'B1';
   const completedSessions = plan.completed_sessions || 0;
   const totalSessions = plan.total_sessions || 16;
-  const percentage = plan.progress_percentage || Math.round((completedSessions / totalSessions) * 100);
+  const rawPercentage = plan.progress_percentage || (completedSessions / totalSessions) * 100;
+  const percentage = Math.round(rawPercentage);
   const isCompleted = percentage >= 100;
   const levelColors = getLevelColor(level);
 
@@ -196,16 +197,9 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
           <Text style={styles.statValue}>{completedSessions}</Text>
           <Text style={styles.statLabel}>Sessions</Text>
         </View>
-        
+
         <View style={styles.statDivider} />
-        
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{percentage}%</Text>
-          <Text style={styles.statLabel}>Complete</Text>
-        </View>
-        
-        <View style={styles.statDivider} />
-        
+
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{totalSessions}</Text>
           <Text style={styles.statLabel}>Total</Text>
