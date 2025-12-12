@@ -112,9 +112,9 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
         };
       case 'analyzing':
         return {
-          icon: '🔍',
-          title: 'Analyzing Your Speech...',
-          subtitle: `Processing ${sentenceCount} sentences`,
+          icon: 'pulse', // Using Ionicons waveform icon
+          title: 'Analyzing Your Speech',
+          subtitle: `Processing ${sentenceCount} sentence${sentenceCount !== 1 ? 's' : ''}`,
           color: '#4ECFBF',
         };
       case 'finalizing':
@@ -168,7 +168,15 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
 
           {/* Header */}
           <View style={[styles.header, { backgroundColor: config.color }]}>
-            {stage !== 'success' && <Text style={styles.icon}>{config.icon}</Text>}
+            {stage !== 'success' && (
+              config.icon === 'pulse' ? (
+                <View style={styles.modernIconContainer}>
+                  <Ionicons name="pulse" size={56} color="#FFFFFF" />
+                </View>
+              ) : (
+                <Text style={styles.icon}>{config.icon}</Text>
+              )
+            )}
             <Text style={styles.title}>{config.title}</Text>
             {config.subtitle !== '' && <Text style={styles.subtitle}>{config.subtitle}</Text>}
           </View>
@@ -436,6 +444,9 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 48,
     marginBottom: 12,
+  },
+  modernIconContainer: {
+    marginBottom: 16,
   },
   title: {
     fontSize: 20,
