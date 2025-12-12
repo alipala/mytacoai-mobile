@@ -57,6 +57,7 @@ interface AnimatedProgressCircleProps {
   percentage: number;
   size?: number;
   strokeWidth?: number;
+  showApprox?: boolean;
 }
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -65,6 +66,7 @@ const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
   percentage,
   size = 110, // OPTIMIZED: 110px (was 120px)
   strokeWidth = 10, // OPTIMIZED: 10px (was 12px)
+  showApprox = false,
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const radius = (size - strokeWidth) / 2;
@@ -189,7 +191,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 
       {/* Progress Section - Premium */}
       <View style={styles.progressSection}>
-        <AnimatedProgressCircle percentage={percentage} size={110} strokeWidth={10} />
+        <AnimatedProgressCircle percentage={percentage} size={110} strokeWidth={10} showApprox={showApprox} />
       </View>
 
       {/* Stats Row - Premium */}
