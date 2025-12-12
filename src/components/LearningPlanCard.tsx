@@ -197,16 +197,9 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
           <Text style={styles.statValue}>{completedSessions}</Text>
           <Text style={styles.statLabel}>Sessions</Text>
         </View>
-        
+
         <View style={styles.statDivider} />
-        
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{percentage}%</Text>
-          <Text style={styles.statLabel}>Complete</Text>
-        </View>
-        
-        <View style={styles.statDivider} />
-        
+
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{totalSessions}</Text>
           <Text style={styles.statLabel}>Total</Text>
