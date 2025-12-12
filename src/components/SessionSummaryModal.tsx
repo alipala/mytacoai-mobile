@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import ConfettiCannon from 'react-native-confetti-cannon';
 import { SessionStats, SessionComparison, OverallProgress } from '../types/progressStats';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export type SavingStage = 'saving' | 'analyzing' | 'finalizing' | 'success';
 
@@ -51,15 +52,15 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
 }) => {
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   const [progressAnim] = useState(new Animated.Value(0));
+  const confettiRef = useRef<any>(null);
 
-  // Debug logging
+  // Trigger confetti when success stage is reached
   useEffect(() => {
-    if (stage === 'success') {
-      console.log('[SESSION_MODAL] 🎉 Success stage reached');
-      console.log('[SESSION_MODAL] 📊 hasAnalyses:', hasAnalyses);
-      console.log('[SESSION_MODAL] 📊 sentenceCount:', sentenceCount);
+    if (stage === 'success' && confettiRef.current) {
+      console.log('[SESSION_MODAL] 🎉 Success stage reached - triggering confetti');
+      confettiRef.current.start();
     }
-  }, [stage, hasAnalyses, sentenceCount]);
+  }, [stage]);
 
   // Rotate conversation highlights
   useEffect(() => {
@@ -148,10 +149,22 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
       onRequestClose={stage === 'success' ? onComplete : undefined}
     >
       <View style={styles.overlay}>
+        {/* Confetti Animation */}
+        {stage === 'success' && (
+          <ConfettiCannon
+            ref={confettiRef}
+            count={200}
+            origin={{x: SCREEN_WIDTH / 2, y: 0}}
+            autoStart={false}
+            fadeOut={true}
+            fallSpeed={3000}
+          />
+        )}
+
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={[styles.header, { backgroundColor: config.color }]}>
-            <Text style={styles.icon}>{config.icon}</Text>
+            {stage !== 'success' && <Text style={styles.icon}>{config.icon}</Text>}
             <Text style={styles.title}>{config.title}</Text>
             <Text style={styles.subtitle}>{config.subtitle}</Text>
           </View>
@@ -196,7 +209,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                     <Text style={styles.sessionTitle}>
                       Session {sessionStats.session_number} Complete!
                     </Text>
-                    <Text style={styles.sessionSubtitle}>
+                    <Text style={styles.sessionSubtitle} numberOfLines={1}>
                       Week {sessionStats.week_number}
                       {sessionStats.week_focus && ` • ${sessionStats.week_focus}`}
                     </Text>
@@ -210,18 +223,18 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                       <Text style={styles.sectionTitle}>SESSION STATS</Text>
                     </View>
                     <View style={styles.statsGrid}>
-                      <StatCard icon="📊" label="Duration" value={duration} />
-                      <StatCard icon="💬" label="Words Spoken" value={sessionStats.words_spoken.toString()} />
-                      <StatCard icon="🎯" label="Speaking Speed" value={`${Math.round(sessionStats.speaking_speed_wpm)} wpm`} />
-                      <StatCard icon="📚" label="Vocabulary" value={`${sessionStats.unique_vocabulary} unique`} />
-                      <StatCard icon="🔄" label="Turns" value={sessionStats.conversation_turns.toString()} />
+                      <StatCard icon="timer-outline" label="Duration" value={duration} iconColor="#4ECFBF" />
+                      <StatCard icon="chatbox-ellipses-outline" label="Words Spoken" value={sessionStats.words_spoken.toString()} iconColor="#8B5CF6" />
+                      <StatCard icon="speedometer-outline" label="Speaking Speed" value={`${Math.round(sessionStats.speaking_speed_wpm)} wpm`} iconColor="#F59E0B" />
+                      <StatCard icon="book-outline" label="Vocabulary" value={`${sessionStats.unique_vocabulary} unique`} iconColor="#10B981" />
+                      <StatCard icon="swap-horizontal-outline" label="Turns" value={sessionStats.conversation_turns.toString()} iconColor="#3B82F6" />
                       {sessionStats.grammar_score !== null && sessionStats.grammar_score !== undefined && (
-                        <StatCard icon="✍️" label="Grammar" value={`${Math.round(sessionStats.grammar_score)}%`} />
+                        <StatCard icon="create-outline" label="Grammar" value={`${Math.round(sessionStats.grammar_score)}%`} iconColor="#EC4899" />
                       )}
                       {sessionStats.fluency_score !== null && sessionStats.fluency_score !== undefined && (
-                        <StatCard icon="💨" label="Fluency" value={`${Math.round(sessionStats.fluency_score)}%`} />
+                        <StatCard icon="flash-outline" label="Fluency" value={`${Math.round(sessionStats.fluency_score)}%`} iconColor="#EF4444" />
                       )}
-                      <StatCard icon="🎯" label="Analyzed" value={sentenceCount.toString()} />
+                      <StatCard icon="analytics-outline" label="Analyzed" value={sentenceCount.toString()} iconColor="#6366F1" />
                     </View>
                   </>
                 ) : (
@@ -236,7 +249,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                 {comparison && comparison.has_previous_session && (
                   <>
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle}>IMPROVEMENTS</Text>
+                      <Text style={styles.sectionTitle}>VS PREVIOUS SESSION</Text>
                     </View>
                     <View style={styles.comparisonContainer}>
                       {comparison.words_improvement !== undefined && comparison.words_improvement !== 0 && (
@@ -339,14 +352,27 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
 };
 
 // Stat Card Component
-const StatCard: React.FC<{ icon: string; label: string; value: string }> = ({
+const StatCard: React.FC<{
+  icon: string;
+  label: string;
+  value: string;
+  iconColor?: string;
+}> = ({
   icon,
   label,
   value,
+  iconColor = '#4ECFBF',
 }) => {
+  // Check if icon is an Ionicon name or emoji
+  const isIonicon = icon.includes('-');
+
   return (
     <View style={styles.statCard}>
-      <Text style={styles.statIcon}>{icon}</Text>
+      {isIonicon ? (
+        <Ionicons name={icon as any} size={28} color={iconColor} style={styles.statIcon} />
+      ) : (
+        <Text style={styles.statIcon}>{icon}</Text>
+      )}
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
     </View>
@@ -409,7 +435,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   header: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 24,
     alignItems: 'center',
   },
   icon: {
@@ -471,7 +499,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statIcon: {
-    fontSize: 24,
     marginBottom: 8,
   },
   statLabel: {
