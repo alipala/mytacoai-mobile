@@ -151,7 +151,6 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
   const rawPercentage = plan.progress_percentage || (completedSessions / totalSessions) * 100;
   const percentage = Math.round(rawPercentage);
   const isCompleted = percentage >= 100;
-  const showApprox = rawPercentage !== percentage && percentage < 100; // Show ≈ if rounded and not completed
   const levelColors = getLevelColor(level);
 
   const handleContinuePress = () => {
@@ -202,7 +201,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         <View style={styles.statDivider} />
         
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{showApprox ? '≈ ' : ''}{percentage}%</Text>
+          <Text style={styles.statValue}>{percentage}%</Text>
           <Text style={styles.statLabel}>Complete</Text>
         </View>
         
