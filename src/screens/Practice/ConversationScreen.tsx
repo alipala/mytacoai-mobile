@@ -1369,6 +1369,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       {sessionStartTime && (
         <AnimatedCountdownTimer
           duration={sessionDuration}
+          maxDuration={maxDuration}
           pulseAnim={timerPulseAnim}
           colorAnim={timerColorAnim}
           scaleAnim={timerScaleAnim}
@@ -1646,6 +1647,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 // Animated Countdown Timer Component - Modern Floating Design
 interface AnimatedCountdownTimerProps {
   duration: number;
+  maxDuration: number;
   pulseAnim: Animated.Value;
   colorAnim: Animated.Value;
   scaleAnim: Animated.Value;
@@ -1654,12 +1656,13 @@ interface AnimatedCountdownTimerProps {
 
 const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
   duration,
+  maxDuration,
   pulseAnim,
   colorAnim,
   scaleAnim,
   formatDuration,
 }) => {
-  const secondsRemaining = 300 - duration;
+  const secondsRemaining = maxDuration - duration;
   const isCountingDown = secondsRemaining <= 10 && secondsRemaining >= 0;
 
   // Color interpolation: gradient colors
