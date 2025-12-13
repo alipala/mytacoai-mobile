@@ -51,7 +51,7 @@ export const LoginScreen = ({ navigation }: any) => {
   // Tab state
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
-  // Sign In form state
+  // Login form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -438,7 +438,7 @@ export const LoginScreen = ({ navigation }: any) => {
   };
 
   /**
-   * Handle Email Blur - Sign In
+   * Handle Email Blur - Login
    */
   const handleEmailBlur = () => {
     if (email.trim() && !validateEmailFormat(email)) {
@@ -525,7 +525,7 @@ export const LoginScreen = ({ navigation }: any) => {
                         activeTab === 'signin' && styles.activeTabText,
                       ]}
                     >
-                      Sign In
+                      Login
                     </Text>
                   </TouchableOpacity>
 
@@ -545,12 +545,12 @@ export const LoginScreen = ({ navigation }: any) => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Sign In Form */}
+                {/* Login Form */}
                 {activeTab === 'signin' && (
                   <View style={styles.formContainer}>
                     <Text style={styles.formTitle}>Welcome Back</Text>
                     <Text style={styles.formSubtitle}>
-                      Sign in to continue your language learning journey
+                      Log in to continue your language learning journey
                     </Text>
 
                     {/* Email Input */}
@@ -638,7 +638,7 @@ export const LoginScreen = ({ navigation }: any) => {
                         <ActivityIndicator color="white" />
                       ) : (
                         <>
-                          <Text style={styles.buttonText}>Sign In</Text>
+                          <Text style={styles.buttonText}>Login</Text>
                           <Ionicons name="arrow-forward" size={20} color="white" />
                         </>
                       )}
