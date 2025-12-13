@@ -1558,7 +1558,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             <Ionicons name="warning-outline" size={48} color="#F59E0B" style={{ marginBottom: 16, textAlign: 'center' }} />
             <Text style={styles.endModalTitle}>End Early?</Text>
             <Text style={styles.endModalText}>
-              You haven't completed the full 5-minute session yet. If you end now, your progress won't be saved and you won't receive analysis or flashcards.
+              You haven't completed the full {Math.round(maxDuration / 60)}-minute session yet. If you end now, your progress won't be saved and you won't receive analysis or flashcards.
             </Text>
 
             <View style={styles.endModalStats}>
