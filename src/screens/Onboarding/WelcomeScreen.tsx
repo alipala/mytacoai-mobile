@@ -199,12 +199,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                 <Text style={styles.guestButtonText}>START FREE PRACTICE</Text>
               </TouchableOpacity>
 
-              {/* Create Account Button */}
+              {/* Login Button */}
               <TouchableOpacity
                 style={styles.createAccountButton}
                 onPress={handleCreateAccount}
               >
-                <Text style={styles.createAccountButtonText}>CREATE ACCOUNT</Text>
+                <Text style={styles.createAccountButtonText}>LOGIN</Text>
               </TouchableOpacity>
 
               {/* Reassurance Text */}
