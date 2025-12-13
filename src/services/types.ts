@@ -3,6 +3,14 @@
  * Based on the web application's types.
  */
 
+// Session configuration from backend (controls duration, guest status, etc.)
+export interface SessionConfig {
+  max_duration_seconds: number;
+  is_guest: boolean;
+  duration_minutes: number;
+  assessment_duration_seconds: number;
+}
+
 // Event types that can be sent/received through the WebRTC data channel
 export type RealtimeEvent =
   | { type: 'session.created'; session: any }
@@ -36,4 +44,5 @@ export interface RealtimeServiceConfig {
   onConnectionStateChange?: (state: string) => void;
   onConnected?: () => void;
   onDisconnected?: () => void;
+  onSessionConfigReceived?: (config: SessionConfig) => void;
 }

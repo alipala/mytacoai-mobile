@@ -27,6 +27,7 @@ import {
   ConversationScreen,
 } from './src/screens/Practice';
 import SentenceAnalysisScreen from './src/screens/Practice/SentenceAnalysisScreen';
+import GuestSessionResultsScreen from './src/screens/Practice/GuestSessionResultsScreen';
 
 // Assessment Flow Screens
 import {
@@ -292,7 +293,7 @@ export default function App() {
   /**
    * Determine initial route based on app state:
    * 1. If authenticated -> Main app
-   * 2. If onboarding completed but not authenticated -> Login
+   * 2. If onboarding completed but not authenticated -> Welcome (with guest option)
    * 3. If onboarding not completed -> Splash (will show onboarding)
    */
   const getInitialRouteName = () => {
@@ -300,7 +301,7 @@ export default function App() {
       return 'Main';
     }
     if (onboardingCompleted) {
-      return 'Login';
+      return 'Welcome';
     }
     return 'Splash';
   };
@@ -354,6 +355,7 @@ export default function App() {
         <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
         <Stack.Screen name="Conversation" component={ConversationScreen} />
         <Stack.Screen name="SentenceAnalysis" component={SentenceAnalysisScreen} />
+        <Stack.Screen name="GuestSessionResults" component={GuestSessionResultsScreen} />
 
         {/* Assessment Flow Screens */}
         <Stack.Screen name="AssessmentLanguageSelection" component={AssessmentLanguageSelectionScreen} />

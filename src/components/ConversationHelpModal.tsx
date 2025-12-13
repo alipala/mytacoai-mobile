@@ -373,7 +373,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
               /* Help Content */
               <View style={styles.contentContainer}>
                 {/* AI Response Summary */}
-                {helpData.ai_response_summary && (
+                {helpData?.ai_response_summary && (
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Ionicons name="chatbubble-outline" size={18} color="#3B82F6" />
@@ -386,7 +386,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                 )}
 
                 {/* Suggested Responses */}
-                {helpData.suggested_responses && helpData.suggested_responses.length > 0 && (
+                {helpData?.suggested_responses && helpData.suggested_responses.length > 0 && (
                   <View style={styles.section}>
                     <TouchableOpacity
                       style={styles.sectionHeader}
@@ -403,7 +403,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 
                     {expandedSections.has('responses') && (
                       <View style={styles.responsesContainer}>
-                        {helpData.suggested_responses.map((response, index) => (
+                        {helpData.suggested_responses?.map((response, index) => (
                           <TouchableOpacity
                             key={index}
                             style={styles.responseCard}
@@ -439,7 +439,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                 )}
 
                 {/* Vocabulary Highlights */}
-                {helpData.vocabulary_highlights && helpData.vocabulary_highlights.length > 0 && (
+                {helpData?.vocabulary_highlights && helpData.vocabulary_highlights.length > 0 && (
                   <View style={styles.section}>
                     <TouchableOpacity
                       style={styles.sectionHeader}
@@ -456,7 +456,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 
                     {expandedSections.has('vocabulary') && (
                       <View style={styles.vocabularyContainer}>
-                        {helpData.vocabulary_highlights.slice(0, 3).map((vocab, index) => (
+                        {helpData.vocabulary_highlights?.slice(0, 3).map((vocab, index) => (
                           <View key={index} style={styles.vocabularyCard}>
                             <View style={styles.vocabularyHeader}>
                               <Text style={styles.vocabularyWord}>{vocab.word}</Text>
@@ -479,7 +479,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                 )}
 
                 {/* Grammar Tips */}
-                {helpData.grammar_tips && helpData.grammar_tips.length > 0 && (
+                {helpData?.grammar_tips && helpData.grammar_tips.length > 0 && (
                   <View style={styles.section}>
                     <TouchableOpacity
                       style={styles.sectionHeader}
@@ -496,7 +496,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 
                     {expandedSections.has('grammar') && (
                       <View style={styles.grammarContainer}>
-                        {helpData.grammar_tips.map((tip, index) => (
+                        {helpData.grammar_tips?.map((tip, index) => (
                           <View key={index} style={styles.grammarCard}>
                             <Text style={styles.grammarPattern}>{tip.pattern}</Text>
                             <Text style={styles.grammarExplanation}>{tip.explanation}</Text>
@@ -511,14 +511,14 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                 )}
 
                 {/* Cultural Context */}
-                {helpData.cultural_context && (
+                {helpData?.cultural_context && (
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Ionicons name="globe-outline" size={18} color="#EC4899" />
                       <Text style={styles.sectionTitle}>{uiText.culturalNote}</Text>
                     </View>
                     <View style={styles.culturalCard}>
-                      <Text style={styles.culturalText}>{helpData.cultural_context.explanation}</Text>
+                      <Text style={styles.culturalText}>{helpData.cultural_context?.explanation}</Text>
                     </View>
                   </View>
                 )}

@@ -105,6 +105,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setLoading(true);
       setError(null);
 
+      // Check if user is authenticated (guest users shouldn't be on dashboard)
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) {
+        console.log('⚠️ [DASHBOARD] Guest user detected - redirecting to Welcome');
+        setLoading(false);
+        navigation.replace('Welcome');
+        return;
+      }
+
       // Get user info from storage and determine language/level preferences
       let finalLanguage = 'english';
       let finalLevel = 'intermediate';

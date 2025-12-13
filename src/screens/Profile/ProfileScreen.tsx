@@ -147,7 +147,7 @@ interface ProfileScreenProps {
   navigation?: any;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -327,6 +327,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
 
   const fetchAllData = async () => {
     try {
+      // Check if user is authenticated (guest users shouldn't be on profile)
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) {
+        console.log('⚠️ [PROFILE] Guest user detected - redirecting to Welcome');
+        navigation.replace('Welcome');
+        return;
+      }
+
       await Promise.all([
         fetchUserData(),
         fetchConversationHistory(),

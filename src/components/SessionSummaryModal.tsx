@@ -51,8 +51,68 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   hasAnalyses = true,
 }) => {
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
+  const [currentAnalyzingStep, setCurrentAnalyzingStep] = useState(0);
   const [progressAnim] = useState(new Animated.Value(0));
+  const [rotateAnim] = useState(new Animated.Value(0));
+  const [pulseAnim] = useState(new Animated.Value(1));
   const confettiRef = useRef<any>(null);
+
+  // Analyzing steps to cycle through
+  const analyzingSteps = [
+    { icon: 'document-text', text: `Analyzing ${sentenceCount} sentence${sentenceCount !== 1 ? 's' : ''}...`, color: '#6366F1' },
+    { icon: 'sparkles', text: 'Generating session summary...', color: '#8B5CF6' },
+    { icon: 'albums', text: 'Creating flashcards...', color: '#EC4899' },
+    { icon: 'bulb', text: 'Generating insights...', color: '#F59E0B' },
+  ];
+
+  // Rotation animation for analyzing icon
+  useEffect(() => {
+    if (stage === 'analyzing') {
+      Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      rotateAnim.setValue(0);
+    }
+  }, [stage]);
+
+  // Pulse animation for analyzing icon
+  useEffect(() => {
+    if (stage === 'analyzing') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.15,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [stage]);
+
+  // Cycle through analyzing steps
+  useEffect(() => {
+    if (stage === 'analyzing') {
+      const interval = setInterval(() => {
+        setCurrentAnalyzingStep((prev) => (prev + 1) % analyzingSteps.length);
+      }, 2000); // Change step every 2 seconds
+      return () => clearInterval(interval);
+    } else {
+      setCurrentAnalyzingStep(0);
+    }
+  }, [stage, analyzingSteps.length]);
 
   // Trigger confetti with delay when success stage is reached
   useEffect(() => {
@@ -109,13 +169,16 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
           title: 'Saving Your Conversation...',
           subtitle: 'Preserving your progress',
           color: '#FFA955',
+          iconType: 'emoji',
         };
       case 'analyzing':
+        const currentStep = analyzingSteps[currentAnalyzingStep];
         return {
-          icon: 'pulse', // Using Ionicons waveform icon
-          title: 'Analyzing Your Speech',
-          subtitle: `Processing ${sentenceCount} sentence${sentenceCount !== 1 ? 's' : ''}`,
-          color: '#4ECFBF',
+          icon: currentStep.icon,
+          title: 'Analyzing Your Session',
+          subtitle: currentStep.text,
+          color: currentStep.color,
+          iconType: 'animated',
         };
       case 'finalizing':
         return {
@@ -123,6 +186,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
           title: 'Finalizing Your Session...',
           subtitle: 'Almost done',
           color: '#FFD63A',
+          iconType: 'emoji',
         };
       case 'success':
         return {
@@ -130,6 +194,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
           title: 'Session Summary',
           subtitle: '',
           color: '#4ECFBF',
+          iconType: 'emoji',
         };
       default:
         return {
@@ -137,6 +202,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
           title: 'Saving...',
           subtitle: 'Please wait',
           color: '#4ECFBF',
+          iconType: 'emoji',
         };
     }
   };
@@ -169,10 +235,25 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
           {/* Header */}
           <View style={[styles.header, { backgroundColor: config.color }]}>
             {stage !== 'success' && (
-              config.icon === 'pulse' ? (
-                <View style={styles.modernIconContainer}>
-                  <Ionicons name="pulse" size={56} color="#FFFFFF" />
-                </View>
+              config.iconType === 'animated' ? (
+                <Animated.View
+                  style={[
+                    styles.animatedIconContainer,
+                    {
+                      transform: [
+                        {
+                          rotate: rotateAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: ['0deg', '360deg'],
+                          })
+                        },
+                        { scale: pulseAnim }
+                      ],
+                    },
+                  ]}
+                >
+                  <Ionicons name={config.icon as any} size={64} color="#FFFFFF" />
+                </Animated.View>
               ) : (
                 <Text style={styles.icon}>{config.icon}</Text>
               )
@@ -447,6 +528,13 @@ const styles = StyleSheet.create({
   },
   modernIconContainer: {
     marginBottom: 16,
+  },
+  animatedIconContainer: {
+    marginBottom: 16,
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 20,

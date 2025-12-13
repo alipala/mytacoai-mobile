@@ -17,7 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService } from '../../api/generated';
+import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, GuestService, GuestAnalysisResponse } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
@@ -287,6 +287,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
+  const [maxDuration, setMaxDuration] = useState(300); // Default 5 minutes, backend will override
   const [userVoice, setUserVoice] = useState<string>('alloy'); // Track user's selected voice
 
   // Session saving states
@@ -452,8 +453,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
       setSessionDuration(duration);
 
-      // Update progress bar (0 to 1 over 5 minutes)
-      const progress = Math.min(duration / 300, 1);
+      // Update progress bar (0 to 1 over max duration)
+      const progress = Math.min(duration / maxDuration, 1);
       Animated.timing(progressAnim, {
         toValue: progress,
         duration: 500,
@@ -461,16 +462,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       }).start();
 
       // Calculate seconds remaining
-      const secondsRemaining = 300 - duration;
+      const secondsRemaining = maxDuration - duration;
 
       // Trigger countdown effects for last 10 seconds
       if (secondsRemaining <= 10 && secondsRemaining >= 0) {
         await triggerCountdownEffects(secondsRemaining);
       }
 
-      // Check if 5 minutes (300 seconds) completed
-      if (duration >= 300 && !autoSaveTriggeredRef.current) {
-        console.log('[TIMER] ⏰ 5 minutes completed - triggering automatic session save');
+      // Check if max duration completed
+      if (duration >= maxDuration && !autoSaveTriggeredRef.current) {
+        console.log(`[TIMER] ⏰ ${maxDuration} seconds (${Math.round(maxDuration/60)} minutes) completed - triggering automatic session save`);
         clearInterval(interval);
 
         // Mark as triggered to prevent double-firing
@@ -744,6 +745,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             }
           }
         },
+        onSessionConfigReceived: (config) => {
+          console.log('[CONVERSATION] 📋 Session config received from backend:',{
+            maxDuration: config.max_duration_seconds,
+            isGuest: config.is_guest,
+            durationMinutes: config.duration_minutes,
+          });
+          // Update max duration with backend-provided value
+          setMaxDuration(config.max_duration_seconds);
+        },
         onEvent: (event) => {
           console.log('[CONVERSATION] Event:', event.type);
           // Pass events to conversation state machine
@@ -934,6 +944,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     try {
       setShowEndSessionModal(false);
 
+      // Check if user is guest
+      const authToken = await AsyncStorage.getItem('auth_token');
+      const isGuest = !authToken;
+
       // Disconnect realtime service
       if (realtimeServiceRef.current) {
         console.log('[MANUAL_END] User ended session early - disconnecting without saving');
@@ -941,19 +955,116 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         realtimeServiceRef.current = null;
       }
 
-      // Navigate back to dashboard without saving
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
-      });
+      // Navigate based on user type
+      if (isGuest) {
+        console.log('[MANUAL_END] Guest user - navigating to Welcome');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Welcome' }],
+        });
+      } else {
+        console.log('[MANUAL_END] Authenticated user - navigating to Dashboard');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+        });
+      }
     } catch (error) {
       console.error('[MANUAL_END] Error disconnecting:', error);
 
-      // Navigate back anyway
+      // Navigate based on user type (even on error)
+      const authToken = await AsyncStorage.getItem('auth_token');
+      const isGuest = !authToken;
+
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+        routes: isGuest ? [{ name: 'Welcome' }] : [{ name: 'Main', params: { screen: 'Dashboard' } }],
       });
+    }
+  };
+
+  // Handle guest session end - call guest analysis API
+  const handleGuestSessionEnd = async () => {
+    try {
+      console.log('[GUEST_END] 🎯 Starting guest session analysis...');
+
+      // Show analyzing modal
+      setShowSavingModal(true);
+      setSavingStage('analyzing');
+
+      // Disconnect realtime service first
+      if (realtimeServiceRef.current) {
+        console.log('[GUEST_END] Disconnecting realtime service');
+        await realtimeServiceRef.current.disconnect();
+        realtimeServiceRef.current = null;
+      }
+
+      if (messages.length > 0) {
+        console.log('[GUEST_END] Analyzing conversation with', collectedSentences.length, 'sentences');
+
+        // Prepare guest analysis request
+        const guestAnalysisRequest = {
+          messages: messages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp,
+          })),
+          duration_minutes: sessionDuration / 60,
+          sentences_for_analysis: collectedSentences.map(sentence => ({
+            text: sentence.text,
+            timestamp: sentence.timestamp,
+            messageIndex: sentence.messageIndex,
+          })),
+          language: language,
+          level: level,
+          topic: topic || 'general conversation',
+        };
+
+        // Call guest analysis API
+        const analysis: GuestAnalysisResponse = await GuestService.analyzeGuestSessionApiGuestAnalyzeSessionPost({
+          requestBody: guestAnalysisRequest,
+        });
+
+        console.log('[GUEST_END] ✅ Guest analysis complete:', analysis);
+
+        // Close saving modal
+        setShowSavingModal(false);
+
+        // Navigate to GuestSessionResults screen
+        navigation.navigate('GuestSessionResults', {
+          analysis: analysis,
+        });
+      } else {
+        // No messages, just navigate back to welcome
+        setShowSavingModal(false);
+        navigation.navigate('Welcome');
+      }
+    } catch (error) {
+      console.error('[GUEST_END] Error analyzing guest session:', error);
+
+      // Close saving modal
+      setShowSavingModal(false);
+
+      // Disconnect service even on error
+      if (realtimeServiceRef.current) {
+        realtimeServiceRef.current.disconnect();
+        realtimeServiceRef.current = null;
+      }
+
+      Alert.alert(
+        'Analysis Error',
+        'Failed to analyze your session. You can still sign up to save your progress!',
+        [
+          {
+            text: 'Sign Up',
+            onPress: () => navigation.navigate('Welcome'),
+          },
+          {
+            text: 'Try Again',
+            onPress: () => handleGuestSessionEnd(),
+          },
+        ]
+      );
     }
   };
 
@@ -961,6 +1072,18 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const handleAutomaticSessionEnd = async () => {
     try {
       console.log('[AUTO_END] 💾 Starting automatic session save...');
+
+      // Check if user is guest (no auth token)
+      const authToken = await AsyncStorage.getItem('auth_token');
+      const isGuest = !authToken;
+
+      console.log('[AUTO_END] User type:', isGuest ? 'GUEST' : 'AUTHENTICATED');
+
+      // Handle guest users differently
+      if (isGuest) {
+        await handleGuestSessionEnd();
+        return;
+      }
 
       // Show saving modal
       setShowSavingModal(true);
@@ -1216,7 +1339,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           <View style={styles.timerBadge}>
             <Ionicons name="time-outline" size={16} color="#14B8A6" />
             <Text style={styles.timerText}>{formatDuration(sessionDuration)}</Text>
-            <Text style={styles.timerLabel}>/ 5:00</Text>
+            <Text style={styles.timerLabel}>/ {formatDuration(maxDuration)}</Text>
           </View>
         </View>
       )}
@@ -1246,6 +1369,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       {sessionStartTime && (
         <AnimatedCountdownTimer
           duration={sessionDuration}
+          maxDuration={maxDuration}
           pulseAnim={timerPulseAnim}
           colorAnim={timerColorAnim}
           scaleAnim={timerScaleAnim}
@@ -1435,7 +1559,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             <Ionicons name="warning-outline" size={48} color="#F59E0B" style={{ marginBottom: 16, textAlign: 'center' }} />
             <Text style={styles.endModalTitle}>End Early?</Text>
             <Text style={styles.endModalText}>
-              You haven't completed the full 5-minute session yet. If you end now, your progress won't be saved and you won't receive analysis or flashcards.
+              You haven't completed the full {Math.round(maxDuration / 60)}-minute session yet. If you end now, your progress won't be saved and you won't receive analysis or flashcards.
             </Text>
 
             <View style={styles.endModalStats}>
@@ -1445,7 +1569,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{formatDuration(300 - sessionDuration)}</Text>
+                <Text style={styles.statValue}>{formatDuration(maxDuration - sessionDuration)}</Text>
                 <Text style={styles.statLabel}>Remaining</Text>
               </View>
             </View>
@@ -1523,6 +1647,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 // Animated Countdown Timer Component - Modern Floating Design
 interface AnimatedCountdownTimerProps {
   duration: number;
+  maxDuration: number;
   pulseAnim: Animated.Value;
   colorAnim: Animated.Value;
   scaleAnim: Animated.Value;
@@ -1531,12 +1656,13 @@ interface AnimatedCountdownTimerProps {
 
 const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
   duration,
+  maxDuration,
   pulseAnim,
   colorAnim,
   scaleAnim,
   formatDuration,
 }) => {
-  const secondsRemaining = 300 - duration;
+  const secondsRemaining = maxDuration - duration;
   const isCountingDown = secondsRemaining <= 10 && secondsRemaining >= 0;
 
   // Color interpolation: gradient colors
