@@ -17,7 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService } from '../../api/generated';
+import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, GuestService, GuestAnalysisResponse } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
@@ -957,10 +957,107 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
+  // Handle guest session end - call guest analysis API
+  const handleGuestSessionEnd = async () => {
+    try {
+      console.log('[GUEST_END] 🎯 Starting guest session analysis...');
+
+      // Show analyzing modal
+      setShowSavingModal(true);
+      setSavingStage('analyzing');
+
+      // Disconnect realtime service first
+      if (realtimeServiceRef.current) {
+        console.log('[GUEST_END] Disconnecting realtime service');
+        await realtimeServiceRef.current.disconnect();
+        realtimeServiceRef.current = null;
+      }
+
+      if (messages.length > 0) {
+        console.log('[GUEST_END] Analyzing conversation with', collectedSentences.length, 'sentences');
+
+        // Prepare guest analysis request
+        const guestAnalysisRequest = {
+          messages: messages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp,
+          })),
+          duration_minutes: sessionDuration / 60,
+          sentences_for_analysis: collectedSentences.map(sentence => ({
+            text: sentence.text,
+            timestamp: sentence.timestamp,
+            messageIndex: sentence.messageIndex,
+          })),
+          language: language,
+          level: level,
+          topic: topic || 'general conversation',
+        };
+
+        // Call guest analysis API
+        const analysis: GuestAnalysisResponse = await GuestService.analyzeGuestSessionApiGuestAnalyzeSessionPost({
+          requestBody: guestAnalysisRequest,
+        });
+
+        console.log('[GUEST_END] ✅ Guest analysis complete:', analysis);
+
+        // Close saving modal
+        setShowSavingModal(false);
+
+        // Navigate to GuestSessionResults screen
+        navigation.navigate('GuestSessionResults', {
+          analysis: analysis,
+        });
+      } else {
+        // No messages, just navigate back to welcome
+        setShowSavingModal(false);
+        navigation.navigate('Welcome');
+      }
+    } catch (error) {
+      console.error('[GUEST_END] Error analyzing guest session:', error);
+
+      // Close saving modal
+      setShowSavingModal(false);
+
+      // Disconnect service even on error
+      if (realtimeServiceRef.current) {
+        realtimeServiceRef.current.disconnect();
+        realtimeServiceRef.current = null;
+      }
+
+      Alert.alert(
+        'Analysis Error',
+        'Failed to analyze your session. You can still sign up to save your progress!',
+        [
+          {
+            text: 'Sign Up',
+            onPress: () => navigation.navigate('Welcome'),
+          },
+          {
+            text: 'Try Again',
+            onPress: () => handleGuestSessionEnd(),
+          },
+        ]
+      );
+    }
+  };
+
   // Automatic session end when 5 minutes completed - WITH SAVING
   const handleAutomaticSessionEnd = async () => {
     try {
       console.log('[AUTO_END] 💾 Starting automatic session save...');
+
+      // Check if user is guest (no auth token)
+      const authToken = await AsyncStorage.getItem('auth_token');
+      const isGuest = !authToken;
+
+      console.log('[AUTO_END] User type:', isGuest ? 'GUEST' : 'AUTHENTICATED');
+
+      // Handle guest users differently
+      if (isGuest) {
+        await handleGuestSessionEnd();
+        return;
+      }
 
       // Show saving modal
       setShowSavingModal(true);

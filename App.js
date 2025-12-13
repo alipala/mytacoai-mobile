@@ -27,6 +27,7 @@ import {
   ConversationScreen,
 } from './src/screens/Practice';
 import SentenceAnalysisScreen from './src/screens/Practice/SentenceAnalysisScreen';
+import GuestSessionResultsScreen from './src/screens/Practice/GuestSessionResultsScreen';
 
 // Assessment Flow Screens
 import {
@@ -354,6 +355,7 @@ export default function App() {
         <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
         <Stack.Screen name="Conversation" component={ConversationScreen} />
         <Stack.Screen name="SentenceAnalysis" component={SentenceAnalysisScreen} />
+        <Stack.Screen name="GuestSessionResults" component={GuestSessionResultsScreen} />
 
         {/* Assessment Flow Screens */}
         <Stack.Screen name="AssessmentLanguageSelection" component={AssessmentLanguageSelectionScreen} />
