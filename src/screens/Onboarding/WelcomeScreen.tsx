@@ -54,12 +54,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   }, []);
 
   /**
-   * Navigate to Login screen with smooth transition
+   * Navigate to Login screen with smooth cross-fade transition
    */
   const handleLogin = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 300,
+      duration: 200,
       useNativeDriver: true,
     }).start(() => {
       navigation.replace('Login');
@@ -67,12 +67,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   };
 
   /**
-   * Navigate to Signup (Login screen with signup tab active) with smooth transition
+   * Navigate to Signup (Login screen with signup tab active) with smooth cross-fade transition
    */
   const handleCreateAccount = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 300,
+      duration: 200,
       useNativeDriver: true,
     }).start(() => {
       navigation.replace('Login');
@@ -85,7 +85,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const handleTryAsGuest = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 300,
+      duration: 200,
       useNativeDriver: true,
     }).start(() => {
       // Navigate to language selection to start practice flow
@@ -96,7 +96,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#FFFFFF', '#FFF5F5']}
+        colors={['#FFFFFF', '#F0FDFC']}
         style={styles.gradient}
       >
         <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
@@ -107,7 +107,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
               <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }] }]}>
                 <Animated.View style={[styles.iconPulse, { transform: [{ scale: pulseAnim }] }]}>
                   <View style={styles.iconCircle}>
-                    <Ionicons name="mic-outline" size={64} color="#F75A5A" />
+                    {/* Chat Bubbles */}
+                    <View style={styles.chatBubblesContainer}>
+                      {/* First bubble - "Hello!" */}
+                      <View style={[styles.chatBubble, styles.chatBubble1]}>
+                        <Text style={styles.chatBubbleText}>Hello!</Text>
+                      </View>
+                      {/* Second bubble - "¡Hola!" */}
+                      <View style={[styles.chatBubble, styles.chatBubble2]}>
+                        <Text style={styles.chatBubbleText}>¡Hola!</Text>
+                      </View>
+                    </View>
                   </View>
                 </Animated.View>
               </Animated.View>
@@ -124,16 +134,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
               {/* Benefit Pills */}
               <View style={styles.benefitsContainer}>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="time-outline" size={16} color="#F75A5A" />
-                  <Text style={styles.benefitText}>2-Min Sessions</Text>
+                  <Ionicons name="time-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>5-Min Practice</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="sparkles-outline" size={16} color="#F75A5A" />
-                  <Text style={styles.benefitText}>AI Feedback</Text>
+                  <Ionicons name="sparkles-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>Instant Feedback</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="gift-outline" size={16} color="#F75A5A" />
-                  <Text style={styles.benefitText}>100% Free</Text>
+                  <Ionicons name="person-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>No Sign-Up Needed</Text>
                 </View>
               </View>
             </View>
@@ -200,14 +210,46 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#FFF0F0',
+    backgroundColor: '#E6FFFA',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#F75A5A',
+    shadowColor: '#4ECFBF',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 8,
+  },
+  chatBubblesContainer: {
+    width: 80,
+    height: 60,
+    position: 'relative',
+  },
+  chatBubble: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  chatBubble1: {
+    top: 0,
+    left: 0,
+    transform: [{ rotate: '-5deg' }],
+  },
+  chatBubble2: {
+    bottom: 0,
+    right: 0,
+    transform: [{ rotate: '5deg' }],
+  },
+  chatBubbleText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4ECFBF',
   },
   textContent: {
     alignItems: 'center',
@@ -215,7 +257,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F75A5A',
+    color: '#4ECFBF',
     textAlign: 'center',
     marginBottom: 8,
     letterSpacing: 0.5,
@@ -264,12 +306,12 @@ const styles = StyleSheet.create({
   guestButton: {
     width: '100%',
     height: 56,
-    backgroundColor: '#F75A5A',
+    backgroundColor: '#4ECFBF',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    shadowColor: '#F75A5A',
+    shadowColor: '#4ECFBF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -289,14 +331,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#F75A5A',
+    borderColor: '#4ECFBF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   createAccountButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F75A5A',
+    color: '#4ECFBF',
   },
   reassurance: {
     fontSize: 12,
