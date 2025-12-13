@@ -161,120 +161,143 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
 
     const currentAnalysis = analysis.background_analyses[currentAnalysisIndex];
 
+    // Filter out empty suggestions and alternatives
+    const validSuggestions = currentAnalysis.improvement_suggestions?.filter(
+      s => s.suggestion && s.suggestion.trim().length > 0
+    ) || [];
+
+    const validAlternatives = currentAnalysis.level_appropriate_alternatives?.filter(
+      a => a.alternative && a.alternative.trim().length > 0
+    ) || [];
+
+    const validGrammarIssues = currentAnalysis.grammar_issues?.filter(
+      g => g.issue && g.issue.trim().length > 0
+    ) || [];
+
     return (
       <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-        {/* Header with pagination */}
-        <View style={styles.analysisHeader}>
-          <Text style={styles.analysisTitle}>Sentence Analysis</Text>
-          <Text style={styles.analysisPagination}>
-            {currentAnalysisIndex + 1} of {analysis.background_analyses.length}
-          </Text>
-        </View>
-
-        {/* Your Sentence */}
-        <View style={styles.sentenceCard}>
-          <Text style={styles.sentenceLabel}>Your Sentence</Text>
-          <Text style={styles.sentenceText}>{currentAnalysis.recognized_text}</Text>
-        </View>
-
-        {/* Corrected Version (if different) */}
-        {currentAnalysis.corrected_text !== currentAnalysis.recognized_text && (
-          <View style={[styles.sentenceCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
-            <Text style={[styles.sentenceLabel, { color: '#166534' }]}>Corrected Version</Text>
-            <Text style={[styles.sentenceText, { color: '#166534' }]}>{currentAnalysis.corrected_text}</Text>
-          </View>
-        )}
-
-        {/* Quality Score */}
-        <View style={styles.scoreCard}>
-          <Text style={styles.scoreLabel}>Overall Score</Text>
-          <View style={styles.scoreBar}>
-            <View
-              style={[
-                styles.scoreBarFill,
-                { width: `${currentAnalysis.overall_score}%` },
-                { backgroundColor: getScoreColor(currentAnalysis.overall_score) },
-              ]}
-            />
-          </View>
-          <Text style={styles.scoreValue}>{currentAnalysis.overall_score}%</Text>
-        </View>
-
-        {/* Detailed Scores */}
-        <View style={styles.detailedScoresCard}>
-          <Text style={styles.cardTitle}>Detailed Breakdown</Text>
-          <View style={styles.scoreRow}>
-            <Text style={styles.scoreRowLabel}>Grammar</Text>
-            <Text style={styles.scoreRowValue}>{currentAnalysis.grammatical_score}%</Text>
-          </View>
-          <View style={styles.scoreRow}>
-            <Text style={styles.scoreRowLabel}>Vocabulary</Text>
-            <Text style={styles.scoreRowValue}>{currentAnalysis.vocabulary_score}%</Text>
-          </View>
-          <View style={styles.scoreRow}>
-            <Text style={styles.scoreRowLabel}>Complexity</Text>
-            <Text style={styles.scoreRowValue}>{currentAnalysis.complexity_score}%</Text>
-          </View>
-          <View style={styles.scoreRow}>
-            <Text style={styles.scoreRowLabel}>Appropriateness</Text>
-            <Text style={styles.scoreRowValue}>{currentAnalysis.appropriateness_score}%</Text>
+        {/* Modern Header */}
+        <View style={styles.modernAnalysisHeader}>
+          <View style={styles.headerBadge}>
+            <Text style={styles.headerBadgeText}>
+              {currentAnalysisIndex + 1} / {analysis.background_analyses.length}
+            </Text>
           </View>
         </View>
 
-        {/* Grammar Issues */}
-        {currentAnalysis.grammar_issues.length > 0 && (
-          <View style={styles.issuesCard}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="alert-circle-outline" size={20} color="#EF4444" />
-              <Text style={styles.cardTitle}>Grammar Issues</Text>
+        {/* Sentence Comparison Card */}
+        <View style={styles.comparisonCard}>
+          <View style={styles.comparisonSection}>
+            <View style={styles.comparisonHeader}>
+              <Ionicons name="mic-outline" size={16} color="#6B7280" />
+              <Text style={styles.comparisonLabel}>What you said</Text>
             </View>
-            {currentAnalysis.grammar_issues.map((grammarIssue, idx) => (
-              <View key={idx} style={styles.issueItem}>
-                <Text style={styles.issueLabel}>Issue:</Text>
-                <Text style={styles.issueText}>{grammarIssue.issue}</Text>
-                <Text style={styles.issueCorrectionLabel}>Correction:</Text>
-                <Text style={styles.issueCorrectionText}>{grammarIssue.correction}</Text>
+            <Text style={styles.comparisonText}>{currentAnalysis.recognized_text}</Text>
+          </View>
+
+          {currentAnalysis.corrected_text !== currentAnalysis.recognized_text && (
+            <>
+              <View style={styles.arrowContainer}>
+                <Ionicons name="arrow-down" size={20} color="#10B981" />
+              </View>
+              <View style={[styles.comparisonSection, styles.correctedSection]}>
+                <View style={styles.comparisonHeader}>
+                  <Ionicons name="checkmark-circle-outline" size={16} color="#10B981" />
+                  <Text style={[styles.comparisonLabel, { color: '#10B981' }]}>Corrected version</Text>
+                </View>
+                <Text style={[styles.comparisonText, { color: '#166534' }]}>{currentAnalysis.corrected_text}</Text>
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* Compact Score Grid */}
+        <View style={styles.compactScoreGrid}>
+          <View style={styles.scoreGridItem}>
+            <Text style={styles.scoreGridValue}>{currentAnalysis.overall_score}%</Text>
+            <Text style={styles.scoreGridLabel}>Overall</Text>
+            <View style={[styles.scoreGridBar, { backgroundColor: getScoreColor(currentAnalysis.overall_score) }]}
+                  opacity={currentAnalysis.overall_score / 100} />
+          </View>
+          <View style={styles.scoreGridItem}>
+            <Text style={styles.scoreGridValue}>{currentAnalysis.grammatical_score}%</Text>
+            <Text style={styles.scoreGridLabel}>Grammar</Text>
+            <View style={[styles.scoreGridBar, { backgroundColor: '#6366F1' }]}
+                  opacity={currentAnalysis.grammatical_score / 100} />
+          </View>
+          <View style={styles.scoreGridItem}>
+            <Text style={styles.scoreGridValue}>{currentAnalysis.vocabulary_score}%</Text>
+            <Text style={styles.scoreGridLabel}>Vocabulary</Text>
+            <View style={[styles.scoreGridBar, { backgroundColor: '#8B5CF6' }]}
+                  opacity={currentAnalysis.vocabulary_score / 100} />
+          </View>
+          <View style={styles.scoreGridItem}>
+            <Text style={styles.scoreGridValue}>{currentAnalysis.appropriateness_score}%</Text>
+            <Text style={styles.scoreGridLabel}>Natural</Text>
+            <View style={[styles.scoreGridBar, { backgroundColor: '#14B8A6' }]}
+                  opacity={currentAnalysis.appropriateness_score / 100} />
+          </View>
+        </View>
+
+        {/* Feedback Sections - Only show if has content */}
+        {validGrammarIssues.length > 0 && (
+          <View style={styles.modernFeedbackCard}>
+            <View style={styles.feedbackHeader}>
+              <View style={styles.feedbackIconContainer}>
+                <Ionicons name="alert-circle" size={18} color="#EF4444" />
+              </View>
+              <Text style={styles.feedbackTitle}>Grammar Issues</Text>
+            </View>
+            {validGrammarIssues.map((grammarIssue, idx) => (
+              <View key={idx} style={styles.modernIssueItem}>
+                <View style={styles.issueTopRow}>
+                  <Ionicons name="close-circle" size={16} color="#EF4444" />
+                  <Text style={styles.modernIssueText}>{grammarIssue.issue}</Text>
+                </View>
+                <View style={styles.issueCorrectionRow}>
+                  <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                  <Text style={styles.modernCorrectionText}>{grammarIssue.correction}</Text>
+                </View>
                 {grammarIssue.explanation && (
-                  <>
-                    <Text style={styles.issueExplanationLabel}>Explanation:</Text>
-                    <Text style={styles.issueExplanationText}>{grammarIssue.explanation}</Text>
-                  </>
+                  <Text style={styles.modernExplanation}>{grammarIssue.explanation}</Text>
                 )}
               </View>
             ))}
           </View>
         )}
 
-        {/* Improvement Suggestions */}
-        {currentAnalysis.improvement_suggestions && currentAnalysis.improvement_suggestions.length > 0 && (
-          <View style={styles.explanationCard}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="bulb-outline" size={20} color="#6366F1" />
-              <Text style={styles.cardTitle}>Improvement Suggestions</Text>
+        {validSuggestions.length > 0 && (
+          <View style={styles.modernFeedbackCard}>
+            <View style={styles.feedbackHeader}>
+              <View style={styles.feedbackIconContainer}>
+                <Ionicons name="bulb" size={18} color="#F59E0B" />
+              </View>
+              <Text style={styles.feedbackTitle}>How to Improve</Text>
             </View>
-            {currentAnalysis.improvement_suggestions.map((suggestionItem, idx) => (
-              <View key={idx} style={styles.suggestionItem}>
-                <Text style={styles.suggestionText}>• {suggestionItem.suggestion}</Text>
+            {validSuggestions.map((suggestionItem, idx) => (
+              <View key={idx} style={styles.modernSuggestionItem}>
+                <Text style={styles.modernSuggestionText}>{suggestionItem.suggestion}</Text>
                 {suggestionItem.explanation && (
-                  <Text style={styles.suggestionExplanation}>  {suggestionItem.explanation}</Text>
+                  <Text style={styles.modernExplanation}>{suggestionItem.explanation}</Text>
                 )}
               </View>
             ))}
           </View>
         )}
 
-        {/* Level-Appropriate Alternatives */}
-        {currentAnalysis.level_appropriate_alternatives && currentAnalysis.level_appropriate_alternatives.length > 0 && (
-          <View style={styles.alternativesCard}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="repeat-outline" size={20} color="#10B981" />
-              <Text style={styles.cardTitle}>Alternative Ways to Say This</Text>
+        {validAlternatives.length > 0 && (
+          <View style={styles.modernFeedbackCard}>
+            <View style={styles.feedbackHeader}>
+              <View style={styles.feedbackIconContainer}>
+                <Ionicons name="repeat" size={18} color="#8B5CF6" />
+              </View>
+              <Text style={styles.feedbackTitle}>Better Ways to Say This</Text>
             </View>
-            {currentAnalysis.level_appropriate_alternatives.map((altItem, idx) => (
-              <View key={idx} style={styles.alternativeItem}>
-                <Text style={styles.alternativeText}>✓ {altItem.alternative}</Text>
+            {validAlternatives.map((altItem, idx) => (
+              <View key={idx} style={styles.modernAlternativeItem}>
+                <Text style={styles.modernAlternativeText}>{altItem.alternative}</Text>
                 {altItem.explanation && (
-                  <Text style={styles.alternativeExplanation}>  {altItem.explanation}</Text>
+                  <Text style={styles.modernExplanation}>{altItem.explanation}</Text>
                 )}
               </View>
             ))}
@@ -1305,6 +1328,197 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  // Modern Analysis Tab Styles
+  modernAnalysisHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  headerBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6366F1',
+  },
+  comparisonCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  comparisonSection: {
+    paddingVertical: 12,
+  },
+  correctedSection: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+  },
+  comparisonHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  comparisonLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  comparisonText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#1F2937',
+  },
+  arrowContainer: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  compactScoreGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 16,
+  },
+  scoreGridItem: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  scoreGridValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  scoreGridLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  scoreGridBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+  },
+  modernFeedbackCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  feedbackHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  feedbackIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedbackTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  modernIssueItem: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  issueTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 8,
+  },
+  issueCorrectionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 6,
+  },
+  modernIssueText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#EF4444',
+    fontWeight: '500',
+  },
+  modernCorrectionText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#10B981',
+    fontWeight: '500',
+  },
+  modernExplanation: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#6B7280',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  modernSuggestionItem: {
+    marginBottom: 10,
+    paddingLeft: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#F59E0B',
+  },
+  modernSuggestionText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#1F2937',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  modernAlternativeItem: {
+    marginBottom: 10,
+    paddingLeft: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#8B5CF6',
+  },
+  modernAlternativeText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#1F2937',
+    fontWeight: '500',
+    marginBottom: 4,
   },
 });
 
