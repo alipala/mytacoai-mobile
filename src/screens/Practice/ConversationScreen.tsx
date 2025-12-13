@@ -934,6 +934,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     try {
       setShowEndSessionModal(false);
 
+      // Check if user is guest
+      const authToken = await AsyncStorage.getItem('auth_token');
+      const isGuest = !authToken;
+
       // Disconnect realtime service
       if (realtimeServiceRef.current) {
         console.log('[MANUAL_END] User ended session early - disconnecting without saving');
@@ -941,18 +945,30 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         realtimeServiceRef.current = null;
       }
 
-      // Navigate back to dashboard without saving
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
-      });
+      // Navigate based on user type
+      if (isGuest) {
+        console.log('[MANUAL_END] Guest user - navigating to Welcome');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Welcome' }],
+        });
+      } else {
+        console.log('[MANUAL_END] Authenticated user - navigating to Dashboard');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+        });
+      }
     } catch (error) {
       console.error('[MANUAL_END] Error disconnecting:', error);
 
-      // Navigate back anyway
+      // Navigate based on user type (even on error)
+      const authToken = await AsyncStorage.getItem('auth_token');
+      const isGuest = !authToken;
+
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+        routes: isGuest ? [{ name: 'Welcome' }] : [{ name: 'Main', params: { screen: 'Dashboard' } }],
       });
     }
   };
