@@ -13,7 +13,7 @@ import {
 } from 'react-native-webrtc';
 import InCallManager from 'react-native-incall-manager';
 import { DefaultService } from '../api/generated';
-import { RealtimeEvent, RealtimeServiceConfig } from './types';
+import { RealtimeEvent, RealtimeServiceConfig, SessionConfig } from './types';
 import { SemanticMuteController } from './semanticMuteController';
 
 export class RealtimeService {
@@ -26,6 +26,7 @@ export class RealtimeService {
   private ephemeralKey: string | null = null;
   private sessionId: string | null = null;
   private model: string | null = null;
+  private sessionConfig: SessionConfig | null = null;
   private isConnected: boolean = false;
 
   // Muting and audio control
@@ -97,6 +98,22 @@ export class RealtimeService {
       this.sessionId = response.id;
       this.ephemeralKey = response.client_secret.value;
       this.model = response.model; // <-- Store the model from backend
+
+      // Extract session config from response (backend-controlled duration)
+      if ((response as any).session_config) {
+        this.sessionConfig = (response as any).session_config as SessionConfig;
+        console.log(`[RealtimeService] Session config received:`, {
+          max_duration: this.sessionConfig.max_duration_seconds,
+          is_guest: this.sessionConfig.is_guest,
+          duration_minutes: this.sessionConfig.duration_minutes,
+        });
+
+        // Notify ConversationScreen of the session config
+        this.config.onSessionConfigReceived?.(this.sessionConfig);
+      } else {
+        console.warn('[RealtimeService] ⚠️ No session_config in response - using defaults');
+      }
+
       console.log(`[RealtimeService] Session created: ${this.sessionId} with model ${this.model}`);
     } catch (error) {
       console.error('[RealtimeService] Failed to create session:', error);

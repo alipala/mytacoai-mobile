@@ -287,6 +287,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
+  const [maxDuration, setMaxDuration] = useState(300); // Default 5 minutes, backend will override
   const [userVoice, setUserVoice] = useState<string>('alloy'); // Track user's selected voice
 
   // Session saving states
@@ -452,8 +453,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
       setSessionDuration(duration);
 
-      // Update progress bar (0 to 1 over 5 minutes)
-      const progress = Math.min(duration / 300, 1);
+      // Update progress bar (0 to 1 over max duration)
+      const progress = Math.min(duration / maxDuration, 1);
       Animated.timing(progressAnim, {
         toValue: progress,
         duration: 500,
@@ -461,16 +462,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       }).start();
 
       // Calculate seconds remaining
-      const secondsRemaining = 300 - duration;
+      const secondsRemaining = maxDuration - duration;
 
       // Trigger countdown effects for last 10 seconds
       if (secondsRemaining <= 10 && secondsRemaining >= 0) {
         await triggerCountdownEffects(secondsRemaining);
       }
 
-      // Check if 5 minutes (300 seconds) completed
-      if (duration >= 300 && !autoSaveTriggeredRef.current) {
-        console.log('[TIMER] ⏰ 5 minutes completed - triggering automatic session save');
+      // Check if max duration completed
+      if (duration >= maxDuration && !autoSaveTriggeredRef.current) {
+        console.log(`[TIMER] ⏰ ${maxDuration} seconds (${Math.round(maxDuration/60)} minutes) completed - triggering automatic session save`);
         clearInterval(interval);
 
         // Mark as triggered to prevent double-firing
@@ -743,6 +744,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               setConnectionError('Connection failed. Please try again.');
             }
           }
+        },
+        onSessionConfigReceived: (config) => {
+          console.log('[CONVERSATION] 📋 Session config received from backend:',{
+            maxDuration: config.max_duration_seconds,
+            isGuest: config.is_guest,
+            durationMinutes: config.duration_minutes,
+          });
+          // Update max duration with backend-provided value
+          setMaxDuration(config.max_duration_seconds);
         },
         onEvent: (event) => {
           console.log('[CONVERSATION] Event:', event.type);
@@ -1558,7 +1568,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{formatDuration(300 - sessionDuration)}</Text>
+                <Text style={styles.statValue}>{formatDuration(maxDuration - sessionDuration)}</Text>
                 <Text style={styles.statLabel}>Remaining</Text>
               </View>
             </View>
