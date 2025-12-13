@@ -293,7 +293,7 @@ export default function App() {
   /**
    * Determine initial route based on app state:
    * 1. If authenticated -> Main app
-   * 2. If onboarding completed but not authenticated -> Login
+   * 2. If onboarding completed but not authenticated -> Welcome (with guest option)
    * 3. If onboarding not completed -> Splash (will show onboarding)
    */
   const getInitialRouteName = () => {
@@ -301,7 +301,7 @@ export default function App() {
       return 'Main';
     }
     if (onboardingCompleted) {
-      return 'Login';
+      return 'Welcome';
     }
     return 'Splash';
   };
