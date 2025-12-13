@@ -104,22 +104,22 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       {/* Session Stats Grid */}
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
-          <Ionicons name="chatbubbles-outline" size={24} color="#6366F1" />
+          <Ionicons name="chatbubbles-outline" size={20} color="#6366F1" />
           <Text style={styles.statValue}>{analysis.session_stats.total_messages}</Text>
           <Text style={styles.statLabel}>Messages</Text>
         </View>
         <View style={styles.statCard}>
-          <Ionicons name="text-outline" size={24} color="#10B981" />
+          <Ionicons name="text-outline" size={20} color="#10B981" />
           <Text style={styles.statValue}>{analysis.session_stats.user_words}</Text>
           <Text style={styles.statLabel}>Words Spoken</Text>
         </View>
         <View style={styles.statCard}>
-          <Ionicons name="speedometer-outline" size={24} color="#F59E0B" />
+          <Ionicons name="speedometer-outline" size={20} color="#F59E0B" />
           <Text style={styles.statValue}>{analysis.session_stats.speaking_speed_wpm}</Text>
           <Text style={styles.statLabel}>WPM</Text>
         </View>
         <View style={styles.statCard}>
-          <Ionicons name="time-outline" size={24} color="#8B5CF6" />
+          <Ionicons name="time-outline" size={20} color="#8B5CF6" />
           <Text style={styles.statValue}>{Math.round(analysis.session_stats.duration_minutes * 10) / 10}</Text>
           <Text style={styles.statLabel}>Minutes</Text>
         </View>
@@ -129,7 +129,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
           <Ionicons name="sparkles" size={20} color="#6366F1" />
-          <Text style={styles.summaryTitle}>AI Summary</Text>
+          <Text style={styles.summaryTitle}>MyTaco AI Summary</Text>
         </View>
         <Text style={styles.summaryText}>{analysis.session_summary}</Text>
       </View>
@@ -570,12 +570,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Welcome')}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
         <Text style={styles.headerTitle}>Session Results</Text>
         <View style={{ width: 40 }} />
       </View>
@@ -722,14 +717,14 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
     marginBottom: 16,
   },
   statCard: {
     flex: 1,
     minWidth: (SCREEN_WIDTH - 52) / 2,
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
     alignItems: 'center',
     shadowColor: '#000',
@@ -739,15 +734,15 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1F2937',
-    marginTop: 8,
+    marginTop: 6,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginTop: 4,
+    marginTop: 3,
   },
   summaryCard: {
     backgroundColor: '#FFFFFF',
