@@ -17,6 +17,22 @@ export type GuestSessionStats = {
     duration_minutes: number;
 };
 
+export type GrammarIssue = {
+    issue: string;
+    correction: string;
+    explanation: string;
+};
+
+export type ImprovementSuggestion = {
+    suggestion: string;
+    explanation: string;
+};
+
+export type LevelAppropriateAlternative = {
+    alternative: string;
+    explanation: string;
+};
+
 export type GuestBackgroundAnalysis = {
     analysis_id: string;
     recognized_text: string;
@@ -26,9 +42,9 @@ export type GuestBackgroundAnalysis = {
     vocabulary_score: number;
     complexity_score: number;
     appropriateness_score: number;
-    grammar_issues: Array<string>;
-    improvement_suggestions: Array<string>;
-    level_appropriate_alternatives: Array<string>;
+    grammar_issues: Array<GrammarIssue>;
+    improvement_suggestions: Array<ImprovementSuggestion>;
+    level_appropriate_alternatives: Array<LevelAppropriateAlternative>;
     timestamp: string;
 };
 

@@ -228,9 +228,18 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               <Ionicons name="alert-circle-outline" size={20} color="#EF4444" />
               <Text style={styles.cardTitle}>Grammar Issues</Text>
             </View>
-            {currentAnalysis.grammar_issues.map((issue, idx) => (
+            {currentAnalysis.grammar_issues.map((grammarIssue, idx) => (
               <View key={idx} style={styles.issueItem}>
-                <Text style={styles.issueText}>• {issue}</Text>
+                <Text style={styles.issueLabel}>Issue:</Text>
+                <Text style={styles.issueText}>{grammarIssue.issue}</Text>
+                <Text style={styles.issueCorrectionLabel}>Correction:</Text>
+                <Text style={styles.issueCorrectionText}>{grammarIssue.correction}</Text>
+                {grammarIssue.explanation && (
+                  <>
+                    <Text style={styles.issueExplanationLabel}>Explanation:</Text>
+                    <Text style={styles.issueExplanationText}>{grammarIssue.explanation}</Text>
+                  </>
+                )}
               </View>
             ))}
           </View>
@@ -243,8 +252,13 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               <Ionicons name="bulb-outline" size={20} color="#6366F1" />
               <Text style={styles.cardTitle}>Improvement Suggestions</Text>
             </View>
-            {currentAnalysis.improvement_suggestions.map((suggestion, idx) => (
-              <Text key={idx} style={styles.explanationText}>• {suggestion}</Text>
+            {currentAnalysis.improvement_suggestions.map((suggestionItem, idx) => (
+              <View key={idx} style={styles.suggestionItem}>
+                <Text style={styles.suggestionText}>• {suggestionItem.suggestion}</Text>
+                {suggestionItem.explanation && (
+                  <Text style={styles.suggestionExplanation}>  {suggestionItem.explanation}</Text>
+                )}
+              </View>
             ))}
           </View>
         )}
@@ -256,9 +270,12 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               <Ionicons name="repeat-outline" size={20} color="#10B981" />
               <Text style={styles.cardTitle}>Alternative Ways to Say This</Text>
             </View>
-            {currentAnalysis.level_appropriate_alternatives.map((alt, idx) => (
+            {currentAnalysis.level_appropriate_alternatives.map((altItem, idx) => (
               <View key={idx} style={styles.alternativeItem}>
-                <Text style={styles.alternativeText}>✓ {alt}</Text>
+                <Text style={styles.alternativeText}>✓ {altItem.alternative}</Text>
+                {altItem.explanation && (
+                  <Text style={styles.alternativeExplanation}>  {altItem.explanation}</Text>
+                )}
               </View>
             ))}
           </View>
@@ -872,12 +889,46 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   issueItem: {
-    marginBottom: 8,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FEE2E2',
+  },
+  issueLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#991B1B',
+    marginBottom: 4,
   },
   issueText: {
     fontSize: 14,
     color: '#991B1B',
     lineHeight: 20,
+    marginBottom: 8,
+  },
+  issueCorrectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#065F46',
+    marginBottom: 4,
+  },
+  issueCorrectionText: {
+    fontSize: 14,
+    color: '#065F46',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  issueExplanationLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  issueExplanationText: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
   explanationCard: {
     backgroundColor: '#EEF2FF',
@@ -891,6 +942,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3730A3',
     lineHeight: 20,
+  },
+  suggestionItem: {
+    marginBottom: 8,
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: '#3730A3',
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  suggestionExplanation: {
+    fontSize: 13,
+    color: '#6366F1',
+    lineHeight: 18,
+    marginTop: 4,
+    fontStyle: 'italic',
   },
   alternativesCard: {
     backgroundColor: '#F0FDF4',
@@ -907,6 +974,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#065F46',
     lineHeight: 20,
+    fontWeight: '500',
+  },
+  alternativeExplanation: {
+    fontSize: 13,
+    color: '#10B981',
+    lineHeight: 18,
+    marginTop: 4,
+    fontStyle: 'italic',
   },
   vocabularyCard: {
     backgroundColor: '#F5F3FF',
