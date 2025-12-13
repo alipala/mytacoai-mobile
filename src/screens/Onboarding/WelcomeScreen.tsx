@@ -51,6 +51,20 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   };
 
   /**
+   * Start practice session as guest (no login required)
+   */
+  const handleTryAsGuest = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      // Navigate to language selection to start practice flow
+      navigation.replace('LanguageSelection');
+    });
+  };
+
+  /**
    * Go back to onboarding (optional - allows users to review)
    */
   const handleBack = () => {
@@ -72,7 +86,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
         {/* Subtitle */}
         <Text style={styles.subtitle}>
-          Please login to your account or create new account to continue
+          Start your free 2-minute practice session or create an account to save your progress
         </Text>
 
         {/* Spacer */}
@@ -80,6 +94,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
         {/* Buttons Container */}
         <View style={styles.buttonContainer}>
+          {/* Try as Guest Button */}
+          <TouchableOpacity style={styles.guestButton} onPress={handleTryAsGuest}>
+            <Ionicons name="play-circle" size={24} color={COLORS.white} style={styles.buttonIcon} />
+            <Text style={styles.guestButtonText}>START FREE PRACTICE</Text>
+          </TouchableOpacity>
+
           {/* Login Button */}
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
             <Text style={styles.loginButtonText}>LOGIN</Text>
@@ -144,6 +164,28 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     gap: 16,
+  },
+  guestButton: {
+    width: '100%',
+    height: 56,
+    backgroundColor: '#6366F1',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  guestButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
   loginButton: {
     width: '100%',
