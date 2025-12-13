@@ -57,7 +57,7 @@ export const LoginScreen = ({ navigation }: any) => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Sign Up form state
+  // Create Account form state
   const [fullName, setFullName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
@@ -447,7 +447,7 @@ export const LoginScreen = ({ navigation }: any) => {
   };
 
   /**
-   * Handle Email Blur - Sign Up
+   * Handle Email Blur - Create Account
    */
   const handleSignupEmailBlur = () => {
     if (signupEmail.trim() && !validateEmailFormat(signupEmail)) {
@@ -540,7 +540,7 @@ export const LoginScreen = ({ navigation }: any) => {
                         activeTab === 'signup' && styles.activeTabText,
                       ]}
                     >
-                      Sign Up
+                      Create Account
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -664,7 +664,7 @@ export const LoginScreen = ({ navigation }: any) => {
                   </View>
                 )}
 
-                {/* Sign Up Form */}
+                {/* Create Account Form */}
                 {activeTab === 'signup' && (
                   <View style={styles.formContainer}>
                     <Text style={styles.formTitle}>Create Your Account</Text>
