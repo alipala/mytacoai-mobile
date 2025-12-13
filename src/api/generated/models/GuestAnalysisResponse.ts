@@ -62,6 +62,7 @@ export type GuestFlashcard = {
     category: string;
     difficulty: string;
     hint?: string;
+    explanation?: string;
 };
 
 export type GuestAnalysisResponse = {

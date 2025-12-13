@@ -376,6 +376,12 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             <Animated.View style={[styles.flashcardBack, backAnimatedStyle]}>
               <Text style={[styles.flashcardLabel, { color: '#E0E7FF' }]}>Answer</Text>
               <Text style={[styles.flashcardText, { color: '#FFFFFF' }]}>{currentFlashcard.back}</Text>
+              {currentFlashcard.explanation && (
+                <View style={styles.explanationContainer}>
+                  <Ionicons name="information-circle-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.explanationFlashcardText}>{currentFlashcard.explanation}</Text>
+                </View>
+              )}
               {currentFlashcard.hint && (
                 <View style={styles.hintContainer}>
                   <Ionicons name="bulb-outline" size={16} color="#FFFFFF" />
@@ -1121,6 +1127,26 @@ const styles = StyleSheet.create({
   tapHintText: {
     fontSize: 12,
     color: '#9CA3AF',
+  },
+  explanationContainer: {
+    position: 'absolute',
+    bottom: 64,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 8,
+  },
+  explanationFlashcardText: {
+    fontSize: 11,
+    color: '#E0E7FF',
+    flex: 1,
+    lineHeight: 16,
+    fontStyle: 'italic',
   },
   hintContainer: {
     position: 'absolute',
