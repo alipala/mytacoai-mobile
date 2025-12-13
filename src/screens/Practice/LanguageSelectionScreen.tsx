@@ -100,24 +100,11 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
     });
   };
 
-  const handleBack = () => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    navigation.goBack();
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        <View style={styles.placeholder} />
         <Text style={styles.headerTitle}>Select Language</Text>
         <View style={styles.placeholder} />
       </View>
@@ -201,9 +188,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-  },
-  backButton: {
-    padding: 8,
   },
   headerTitle: {
     fontSize: 17,
