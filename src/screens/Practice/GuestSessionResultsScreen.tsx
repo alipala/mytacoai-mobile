@@ -405,10 +405,10 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
                   <Text style={styles.explanationFlashcardText}>{currentFlashcard.explanation}</Text>
                 </View>
               )}
-              {currentFlashcard.hint && (
+              {getHintText(currentFlashcard.hint) && (
                 <View style={styles.hintContainer}>
                   <Ionicons name="bulb-outline" size={16} color="#FFFFFF" />
-                  <Text style={styles.hintText}>{currentFlashcard.hint}</Text>
+                  <Text style={styles.hintText}>{getHintText(currentFlashcard.hint)}</Text>
                 </View>
               )}
             </Animated.View>
@@ -532,6 +532,22 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
     if (score >= 80) return '#10B981'; // Green
     if (score >= 60) return '#F59E0B'; // Yellow
     return '#EF4444'; // Red
+  };
+
+  const getHintText = (hint: string | { issue: string; correction: string; explanation: string } | undefined): string | null => {
+    if (!hint) return null;
+
+    // If it's already a string, return it
+    if (typeof hint === 'string') {
+      return hint;
+    }
+
+    // If it's a grammar issue object, extract the issue text
+    if (typeof hint === 'object' && 'issue' in hint) {
+      return hint.issue || hint.explanation || 'Check the grammar';
+    }
+
+    return null;
   };
 
   const getDifficultyColor = (difficulty: string) => {

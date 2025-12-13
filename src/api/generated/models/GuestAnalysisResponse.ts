@@ -61,7 +61,7 @@ export type GuestFlashcard = {
     back: string;
     category: string;
     difficulty: string;
-    hint?: string;
+    hint?: string | GrammarIssue;
     explanation?: string;
 };
 
