@@ -64,21 +64,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     });
   };
 
-  /**
-   * Go back to onboarding (optional - allows users to review)
-   */
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="chevron-back" size={24} color={COLORS.textDark} />
-        </TouchableOpacity>
-
         {/* Content */}
         <View style={styles.content}>
         {/* Title */}
@@ -121,16 +109,6 @@ const styles = StyleSheet.create({
   },
   animatedContainer: {
     flex: 1,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   content: {
     flex: 1,
