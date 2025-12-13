@@ -399,18 +399,6 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             <Animated.View style={[styles.flashcardBack, backAnimatedStyle]}>
               <Text style={[styles.flashcardLabel, { color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Answer</Text>
               <Text style={[styles.flashcardText, { color: '#FFFFFF' }]}>{currentFlashcard.back}</Text>
-              {currentFlashcard.explanation && (
-                <View style={styles.explanationContainer}>
-                  <Ionicons name="information-circle-outline" size={16} color="#FFFFFF" />
-                  <Text style={styles.explanationFlashcardText}>{currentFlashcard.explanation}</Text>
-                </View>
-              )}
-              {getHintText(currentFlashcard.hint) && (
-                <View style={styles.hintContainer}>
-                  <Ionicons name="bulb-outline" size={16} color="#FFFFFF" />
-                  <Text style={styles.hintText}>{getHintText(currentFlashcard.hint)}</Text>
-                </View>
-              )}
             </Animated.View>
           </View>
         </TouchableOpacity>
