@@ -5,7 +5,7 @@
  * Provides options to login or create a new account.
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(0)).current;
+  const textFadeAnim = useRef(new Animated.Value(1)).current;
+
+  const [currentPairIndex, setCurrentPairIndex] = useState(0);
+
+  // Greeting pairs for 6 languages
+  const greetingPairs = [
+    { first: 'Hello!', second: '¡Hola!' },      // English / Spanish
+    { first: 'Bonjour!', second: 'Olá!' },      // French / Portuguese
+    { first: 'Hallo!', second: 'Hoi!' },        // German / Dutch
+  ];
 
   useEffect(() => {
     // Pulse animation for hero icon
@@ -51,6 +61,28 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       tension: 40,
       useNativeDriver: true,
     }).start();
+
+    // Cycle through greeting pairs
+    const interval = setInterval(() => {
+      // Fade out
+      Animated.timing(textFadeAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }).start(() => {
+        // Change text
+        setCurrentPairIndex((prev) => (prev + 1) % greetingPairs.length);
+
+        // Fade in
+        Animated.timing(textFadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      });
+    }, 2500);
+
+    return () => clearInterval(interval);
   }, []);
 
   /**
@@ -109,14 +141,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                   <View style={styles.iconCircle}>
                     {/* Chat Bubbles */}
                     <View style={styles.chatBubblesContainer}>
-                      {/* First bubble - "Hello!" */}
-                      <View style={[styles.chatBubble, styles.chatBubble1]}>
-                        <Text style={styles.chatBubbleText}>Hello!</Text>
-                      </View>
-                      {/* Second bubble - "¡Hola!" */}
-                      <View style={[styles.chatBubble, styles.chatBubble2]}>
-                        <Text style={styles.chatBubbleText}>¡Hola!</Text>
-                      </View>
+                      {/* First bubble - cycling greeting */}
+                      <Animated.View style={[styles.chatBubble, styles.chatBubble1, { opacity: textFadeAnim }]}>
+                        <Text style={styles.chatBubbleText}>{greetingPairs[currentPairIndex].first}</Text>
+                      </Animated.View>
+                      {/* Second bubble - cycling greeting */}
+                      <Animated.View style={[styles.chatBubble, styles.chatBubble2, { opacity: textFadeAnim }]}>
+                        <Text style={styles.chatBubbleText}>{greetingPairs[currentPairIndex].second}</Text>
+                      </Animated.View>
                     </View>
                   </View>
                 </Animated.View>
@@ -134,16 +166,24 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
               {/* Benefit Pills */}
               <View style={styles.benefitsContainer}>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="time-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>5-Min Practice</Text>
+                  <Ionicons name="albums-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>Smart Flashcards</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="sparkles-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>Instant Feedback</Text>
+                  <Ionicons name="ribbon-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>Personalised Learning</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="person-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>No Sign-Up Needed</Text>
+                  <Ionicons name="analytics-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>Adaptive AI</Text>
+                </View>
+                <View style={styles.benefitPill}>
+                  <Ionicons name="list-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>Custom Topics</Text>
+                </View>
+                <View style={styles.benefitPill}>
+                  <Ionicons name="trending-up-outline" size={16} color="#4ECFBF" />
+                  <Text style={styles.benefitText}>Progress Tracking</Text>
                 </View>
               </View>
             </View>
@@ -273,18 +313,19 @@ const styles = StyleSheet.create({
   },
   benefitsContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
     flexWrap: 'wrap',
     justifyContent: 'center',
+    maxWidth: '100%',
   },
   benefitPill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 20,
-    gap: 6,
+    gap: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -292,7 +333,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   benefitText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#1F2937',
   },
