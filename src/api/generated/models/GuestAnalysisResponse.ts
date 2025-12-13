@@ -18,14 +18,18 @@ export type GuestSessionStats = {
 };
 
 export type GuestBackgroundAnalysis = {
-    sentence: string;
-    is_worth_analyzing: boolean;
+    analysis_id: string;
+    recognized_text: string;
+    corrected_text: string;
+    overall_score: number;
+    grammatical_score: number;
+    vocabulary_score: number;
+    complexity_score: number;
+    appropriateness_score: number;
     grammar_issues: Array<string>;
-    vocabulary_suggestions: Array<string>;
-    alternative_phrasings: Array<string>;
-    difficulty_level: string;
-    quality_score: number;
-    explanation: string;
+    improvement_suggestions: Array<string>;
+    level_appropriate_alternatives: Array<string>;
+    timestamp: string;
 };
 
 export type GuestInsights = {

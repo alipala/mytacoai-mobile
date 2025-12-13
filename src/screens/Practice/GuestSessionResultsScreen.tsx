@@ -174,22 +174,51 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         {/* Your Sentence */}
         <View style={styles.sentenceCard}>
           <Text style={styles.sentenceLabel}>Your Sentence</Text>
-          <Text style={styles.sentenceText}>{currentAnalysis.sentence}</Text>
+          <Text style={styles.sentenceText}>{currentAnalysis.recognized_text}</Text>
         </View>
+
+        {/* Corrected Version (if different) */}
+        {currentAnalysis.corrected_text !== currentAnalysis.recognized_text && (
+          <View style={[styles.sentenceCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
+            <Text style={[styles.sentenceLabel, { color: '#166534' }]}>Corrected Version</Text>
+            <Text style={[styles.sentenceText, { color: '#166534' }]}>{currentAnalysis.corrected_text}</Text>
+          </View>
+        )}
 
         {/* Quality Score */}
         <View style={styles.scoreCard}>
-          <Text style={styles.scoreLabel}>Quality Score</Text>
+          <Text style={styles.scoreLabel}>Overall Score</Text>
           <View style={styles.scoreBar}>
             <View
               style={[
                 styles.scoreBarFill,
-                { width: `${currentAnalysis.quality_score}%` },
-                { backgroundColor: getScoreColor(currentAnalysis.quality_score) },
+                { width: `${currentAnalysis.overall_score}%` },
+                { backgroundColor: getScoreColor(currentAnalysis.overall_score) },
               ]}
             />
           </View>
-          <Text style={styles.scoreValue}>{currentAnalysis.quality_score}%</Text>
+          <Text style={styles.scoreValue}>{currentAnalysis.overall_score}%</Text>
+        </View>
+
+        {/* Detailed Scores */}
+        <View style={styles.detailedScoresCard}>
+          <Text style={styles.cardTitle}>Detailed Breakdown</Text>
+          <View style={styles.scoreRow}>
+            <Text style={styles.scoreRowLabel}>Grammar</Text>
+            <Text style={styles.scoreRowValue}>{currentAnalysis.grammatical_score}%</Text>
+          </View>
+          <View style={styles.scoreRow}>
+            <Text style={styles.scoreRowLabel}>Vocabulary</Text>
+            <Text style={styles.scoreRowValue}>{currentAnalysis.vocabulary_score}%</Text>
+          </View>
+          <View style={styles.scoreRow}>
+            <Text style={styles.scoreRowLabel}>Complexity</Text>
+            <Text style={styles.scoreRowValue}>{currentAnalysis.complexity_score}%</Text>
+          </View>
+          <View style={styles.scoreRow}>
+            <Text style={styles.scoreRowLabel}>Appropriateness</Text>
+            <Text style={styles.scoreRowValue}>{currentAnalysis.appropriateness_score}%</Text>
+          </View>
         </View>
 
         {/* Grammar Issues */}
@@ -207,42 +236,29 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
           </View>
         )}
 
-        {/* Explanation */}
-        {currentAnalysis.explanation && (
+        {/* Improvement Suggestions */}
+        {currentAnalysis.improvement_suggestions && currentAnalysis.improvement_suggestions.length > 0 && (
           <View style={styles.explanationCard}>
             <View style={styles.cardHeader}>
               <Ionicons name="bulb-outline" size={20} color="#6366F1" />
-              <Text style={styles.cardTitle}>Explanation</Text>
+              <Text style={styles.cardTitle}>Improvement Suggestions</Text>
             </View>
-            <Text style={styles.explanationText}>{currentAnalysis.explanation}</Text>
+            {currentAnalysis.improvement_suggestions.map((suggestion, idx) => (
+              <Text key={idx} style={styles.explanationText}>• {suggestion}</Text>
+            ))}
           </View>
         )}
 
-        {/* Alternative Phrasings */}
-        {currentAnalysis.alternative_phrasings.length > 0 && (
+        {/* Level-Appropriate Alternatives */}
+        {currentAnalysis.level_appropriate_alternatives && currentAnalysis.level_appropriate_alternatives.length > 0 && (
           <View style={styles.alternativesCard}>
             <View style={styles.cardHeader}>
               <Ionicons name="repeat-outline" size={20} color="#10B981" />
               <Text style={styles.cardTitle}>Alternative Ways to Say This</Text>
             </View>
-            {currentAnalysis.alternative_phrasings.map((alt, idx) => (
+            {currentAnalysis.level_appropriate_alternatives.map((alt, idx) => (
               <View key={idx} style={styles.alternativeItem}>
                 <Text style={styles.alternativeText}>✓ {alt}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Vocabulary Suggestions */}
-        {currentAnalysis.vocabulary_suggestions.length > 0 && (
-          <View style={styles.vocabularyCard}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="book-outline" size={20} color="#8B5CF6" />
-              <Text style={styles.cardTitle}>Vocabulary Suggestions</Text>
-            </View>
-            {currentAnalysis.vocabulary_suggestions.map((suggestion, idx) => (
-              <View key={idx} style={styles.vocabularyItem}>
-                <Text style={styles.vocabularyText}>• {suggestion}</Text>
               </View>
             ))}
           </View>
@@ -807,6 +823,34 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 12,
     color: '#6B7280',
+  },
+  detailedScoresCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  scoreRowLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  scoreRowValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
   },
   issuesCard: {
     backgroundColor: '#FEF2F2',
