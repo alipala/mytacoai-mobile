@@ -41,8 +41,8 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
   };
 
   const handleSignUp = () => {
-    // Navigate to signup screen
-    navigation.navigate('Welcome');
+    // Navigate directly to signup/login screen
+    navigation.navigate('Login');
   };
 
   const handleFlipFlashcard = () => {
@@ -388,16 +388,16 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         >
           <View style={styles.flashcard}>
             <Animated.View style={[styles.flashcardFront, frontAnimatedStyle]}>
-              <Text style={styles.flashcardLabel}>Question</Text>
-              <Text style={[styles.flashcardText, { color: '#1F2937' }]}>{currentFlashcard.front}</Text>
+              <Text style={[styles.flashcardLabel, { color: '#000000', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Question</Text>
+              <Text style={[styles.flashcardText, { color: '#000000' }]}>{currentFlashcard.front}</Text>
               <View style={styles.tapHint}>
-                <Ionicons name="hand-left-outline" size={16} color="#9CA3AF" />
-                <Text style={styles.tapHintText}>Tap to reveal answer</Text>
+                <Ionicons name="hand-left-outline" size={16} color="#000000" />
+                <Text style={[styles.tapHintText, { color: '#000000' }]}>Tap to reveal answer</Text>
               </View>
             </Animated.View>
 
             <Animated.View style={[styles.flashcardBack, backAnimatedStyle]}>
-              <Text style={[styles.flashcardLabel, { color: '#E0E7FF' }]}>Answer</Text>
+              <Text style={[styles.flashcardLabel, { color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Answer</Text>
               <Text style={[styles.flashcardText, { color: '#FFFFFF' }]}>{currentFlashcard.back}</Text>
               {currentFlashcard.explanation && (
                 <View style={styles.explanationContainer}>
@@ -421,7 +421,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             style={styles.flashcardNavButton}
             onPress={handlePreviousFlashcard}
           >
-            <Ionicons name="chevron-back-circle" size={40} color="#6366F1" />
+            <Ionicons name="chevron-back-circle" size={40} color="#14B8A6" />
           </TouchableOpacity>
 
           <View style={styles.paginationDots}>
@@ -440,7 +440,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             style={styles.flashcardNavButton}
             onPress={handleNextFlashcard}
           >
-            <Ionicons name="chevron-forward-circle" size={40} color="#6366F1" />
+            <Ionicons name="chevron-forward-circle" size={40} color="#14B8A6" />
           </TouchableOpacity>
         </View>
 
@@ -1100,18 +1100,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   flashcardTouchable: {
-    flex: 1,
+    height: 320,
     marginBottom: 24,
   },
   flashcard: {
-    flex: 1,
+    height: '100%',
     position: 'relative',
   },
   flashcardFront: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFD63A',
     borderRadius: 16,
     padding: 24,
     justifyContent: 'center',
@@ -1127,7 +1127,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundColor: '#6366F1',
+    backgroundColor: '#4ECFBF',
     borderRadius: 16,
     padding: 24,
     justifyContent: 'center',
@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
   flashcardLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#000000',
     marginBottom: 16,
   },
   flashcardText: {

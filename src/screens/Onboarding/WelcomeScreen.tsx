@@ -100,11 +100,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             <Text style={styles.guestButtonText}>START FREE PRACTICE</Text>
           </TouchableOpacity>
 
-          {/* Login Button */}
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>LOGIN</Text>
-          </TouchableOpacity>
-
           {/* Create Account Button */}
           <TouchableOpacity
             style={styles.createAccountButton}
@@ -168,12 +163,12 @@ const styles = StyleSheet.create({
   guestButton: {
     width: '100%',
     height: 56,
-    backgroundColor: '#6366F1',
+    backgroundColor: '#F75A5A',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    shadowColor: '#6366F1',
+    shadowColor: '#F75A5A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -187,32 +182,19 @@ const styles = StyleSheet.create({
   buttonIcon: {
     marginRight: 8,
   },
-  loginButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: COLORS.turquoise,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
   createAccountButton: {
     width: '100%',
     height: 56,
     backgroundColor: COLORS.white,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: COLORS.turquoise,
+    borderColor: '#F75A5A',
     justifyContent: 'center',
     alignItems: 'center',
   },
   createAccountButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.darkNavy,
+    color: '#F75A5A',
   },
 });
