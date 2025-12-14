@@ -58,12 +58,16 @@ const getAccentColor = (type: ChallengeType): string => {
 };
 
 export function ChallengeCard({ challenge, onPress, index }: ChallengeCardProps) {
+  console.log('🎴 [ChallengeCard] Rendering card:', challenge.id, 'index:', index);
+
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   const colors = getChallengeColors(challenge.type);
   const accentColor = getAccentColor(challenge.type);
+
+  console.log('🎨 [ChallengeCard] Colors:', colors, 'Accent:', accentColor);
 
   // Entry animation with stagger
   useEffect(() => {
@@ -125,16 +129,10 @@ export function ChallengeCard({ challenge, onPress, index }: ChallengeCardProps)
     onPress();
   };
 
+  console.log('🔄 [ChallengeCard] About to return JSX');
+
   return (
-    <Animated.View
-      style={[
-        styles.cardWrapper,
-        {
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
-        },
-      ]}
-    >
+    <View style={styles.cardWrapper}>
       <TouchableOpacity
         activeOpacity={0.9}
         onPressIn={handlePressIn}
@@ -189,7 +187,7 @@ export function ChallengeCard({ challenge, onPress, index }: ChallengeCardProps)
           </View>
         </LinearGradient>
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 

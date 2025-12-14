@@ -190,31 +190,20 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
 
         {/* Challenge Cards */}
         {!isLoading && challenges.length > 0 && (
-          <Animated.View
-            style={[
-              styles.cardsContainer,
-              {
-                opacity: fadeAnim,
-                transform: [
-                  {
-                    translateY: fadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [10, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            {challenges.map((challenge, index) => (
-              <ChallengeCard
-                key={challenge.id}
-                challenge={challenge}
-                onPress={() => handleChallengePress(challenge)}
-                index={index}
-              />
-            ))}
-          </Animated.View>
+          <View style={styles.cardsContainer}>
+            {console.log('📦 [Explore] Rendering', challenges.length, 'challenge cards')}
+            {challenges.map((challenge, index) => {
+              console.log('🎴 [Explore] Rendering card:', challenge.id, challenge.type);
+              return (
+                <ChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  onPress={() => handleChallengePress(challenge)}
+                  index={index}
+                />
+              );
+            })}
+          </View>
         )}
 
         {/* Empty State */}
