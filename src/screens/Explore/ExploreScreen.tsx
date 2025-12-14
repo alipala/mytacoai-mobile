@@ -4,12 +4,9 @@ import {
   Text,
   ScrollView,
   RefreshControl,
-  TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import { styles } from './styles/ExploreScreen.styles';
@@ -37,12 +34,9 @@ interface ExploreScreenProps {
 export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   const [userName, setUserName] = useState<string>('');
   const [userLevel, setUserLevel] = useState<CEFRLevel>('B1');
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [dataSource, setDataSource] = useState<'api' | 'mock' | 'cache'>('mock');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [challengeCounts, setChallengeCounts] = useState<Record<string, number>>({});
 
@@ -66,23 +60,12 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
     initCompletions();
   }, []);
 
-  // Load user data and challenges
+  // Load user data and challenge counts
   useEffect(() => {
     if (isFocused) {
       loadExploreData();
     }
   }, [isFocused]);
-
-  // Entry animation
-  useEffect(() => {
-    if (!isLoading && challenges.length > 0) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isLoading, challenges]);
 
   const loadExploreData = async () => {
     try {
@@ -104,32 +87,14 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         setUserLevel('B1');
       }
 
-      // Fetch challenges using hybrid service
-      console.log('📚 Loading challenges for level:', level);
-      const result: ChallengeResult = await ChallengeService.getDailyChallenges(level);
+      console.log('📚 Loading challenge pool for level:', level);
 
-      setChallenges(result.challenges);
-      setDataSource(result.source);
-
-      // Show error message if there was an issue (but we have fallback data)
-      if (result.error) {
-        setErrorMessage(result.error);
-        console.warn('⚠️ Challenge loading warning:', result.error);
-      }
-
-      // Log the data source for debugging
-      const sourceLabel = result.source === 'api' ? '🌐 API' :
-                         result.source === 'cache' ? '💾 Cache' :
-                         '📦 Mock Data';
-      console.log(`✅ Loaded ${result.challenges.length} challenges from ${sourceLabel}`);
-
-      // Load challenge counts for categories
-      loadChallengeCounts();
+      // Load challenge counts for categories (pool system)
+      await loadChallengeCounts();
 
     } catch (error) {
       console.error('❌ Error loading explore data:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to load challenges');
-      // Don't set challenges to empty - keep whatever was there before
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to load challenge pool');
     } finally {
       setIsLoading(false);
     }
@@ -156,13 +121,6 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   };
 
   const handleChallengeComplete = async (challengeId: string, correct?: boolean, timeSpent?: number) => {
-    // Mark challenge as completed locally
-    setChallenges((prev) =>
-      prev.map((c) =>
-        c.id === challengeId ? { ...c, completed: true } : c
-      )
-    );
-
     // Mark as completed today in AsyncStorage
     await markChallengeCompleted(challengeId);
     setCompletedToday((prev) => new Set(prev).add(challengeId));
