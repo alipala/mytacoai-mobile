@@ -126,15 +126,7 @@ export function ChallengeCard({ challenge, onPress, index }: ChallengeCardProps)
   };
 
   return (
-    <Animated.View
-      style={[
-        styles.cardWrapper,
-        {
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
-        },
-      ]}
-    >
+    <View style={styles.cardWrapper}>
       <TouchableOpacity
         activeOpacity={0.9}
         onPressIn={handlePressIn}
@@ -189,7 +181,7 @@ export function ChallengeCard({ challenge, onPress, index }: ChallengeCardProps)
           </View>
         </LinearGradient>
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 
