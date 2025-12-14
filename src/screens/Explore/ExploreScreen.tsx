@@ -63,9 +63,34 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   // Load user data and challenge counts
   useEffect(() => {
     if (isFocused) {
-      loadExploreData();
+      checkForLevelChange();
     }
   }, [isFocused]);
+
+  // Check if user changed their level in settings
+  const checkForLevelChange = async () => {
+    const levelChanged = await AsyncStorage.getItem('levelChanged');
+
+    if (levelChanged === 'true') {
+      const newLevel = await AsyncStorage.getItem('newLevel');
+      console.log('🔄 Level change detected! Reloading challenges with level:', newLevel);
+
+      // Clear the flags
+      await AsyncStorage.removeItem('levelChanged');
+      await AsyncStorage.removeItem('newLevel');
+
+      // Clear cached challenges to force fresh fetch
+      setCachedChallenges({});
+      setExpandedCardType(null);
+
+      // Force reload
+      setIsLoading(true);
+      await loadExploreData();
+    } else {
+      // Normal load
+      await loadExploreData();
+    }
+  };
 
   const loadExploreData = async () => {
     try {

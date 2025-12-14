@@ -141,11 +141,16 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         await AsyncStorage.setItem('user', JSON.stringify(user));
       }
 
+      // IMPORTANT: Set flag to force Explore tab to refresh
+      await AsyncStorage.setItem('levelChanged', 'true');
+      await AsyncStorage.setItem('newLevel', level);
+
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
       console.log('✅ Proficiency level updated to:', level);
+      console.log('🔄 Explore tab will refresh with new level on next focus');
       Alert.alert('Success', `Proficiency level updated to ${level}`);
     } catch (error: any) {
       console.error('Error updating level:', error);
