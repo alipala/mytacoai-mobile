@@ -16,6 +16,7 @@ import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen.tsx';
 
 // Main Screens
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
+import ExploreScreen from './src/screens/Explore/ExploreScreen.tsx';
 import ProfileScreen from './src/screens/Profile/ProfileScreen.tsx';
 
 // Practice Flow Screens
@@ -86,6 +87,8 @@ function MainTabs() {
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Explore') {
+            iconName = focused ? 'compass' : 'compass-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -100,6 +103,16 @@ function MainTabs() {
         component={DashboardScreen}
         options={{
           tabBarLabel: 'Home',
+          headerShown: false,
+        }}
+      />
+
+      {/* Explore Tab */}
+      <Tab.Screen
+        name="Explore"
+        component={ExploreScreen}
+        options={{
+          tabBarLabel: 'Explore',
           headerShown: false,
         }}
       />
@@ -315,6 +328,7 @@ export default function App() {
         Main: {
           screens: {
             Dashboard: 'dashboard',
+            Explore: 'explore',
             Profile: 'profile',
           },
         },
