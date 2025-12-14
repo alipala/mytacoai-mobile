@@ -230,26 +230,8 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
             👋 Hi {userName}, quick wins today
           </Text>
 
-          {/* API Status Indicator (only shown if feature flag enabled) */}
-          {isFeatureEnabled('SHOW_API_STATUS_INDICATOR') && !isLoading && (
-            <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: dataSource === 'api' ? '#4ECFBF' : '#FFA500',
-                marginRight: 6
-              }} />
-              <Text style={{ fontSize: 12, color: '#666' }}>
-                {dataSource === 'api' ? 'Personalized by AI' :
-                 dataSource === 'cache' ? 'Cached challenges' :
-                 'Practice mode'}
-              </Text>
-            </View>
-          )}
-
-          {/* Error Message (subtle warning, not blocking) */}
-          {errorMessage && dataSource === 'mock' && (
+          {/* Error Message (if any) */}
+          {errorMessage && (
             <View style={{
               marginTop: 8,
               paddingHorizontal: 12,
@@ -260,7 +242,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
               borderLeftColor: '#FFA500',
             }}>
               <Text style={{ fontSize: 12, color: '#856404' }}>
-                ℹ️ Using offline challenges
+                ⚠️ {errorMessage}
               </Text>
             </View>
           )}
