@@ -181,22 +181,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
 
         {/* Challenge Cards */}
         {!isLoading && challenges.length > 0 && (
-          <Animated.View
-            style={[
-              styles.cardsContainer,
-              {
-                opacity: fadeAnim,
-                transform: [
-                  {
-                    translateY: fadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [10, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
+          <View style={styles.cardsContainer}>
             {challenges.map((challenge, index) => (
               <ChallengeCard
                 key={challenge.id}
@@ -205,7 +190,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
                 index={index}
               />
             ))}
-          </Animated.View>
+          </View>
         )}
 
         {/* Empty State */}
