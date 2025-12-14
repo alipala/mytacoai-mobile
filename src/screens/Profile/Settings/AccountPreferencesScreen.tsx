@@ -26,16 +26,6 @@ interface AccountPreferencesScreenProps {
   onBack: () => void;
 }
 
-// Supported Languages
-const LANGUAGES: Record<string, string> = {
-  english: 'English',
-  spanish: 'Spanish',
-  french: 'French',
-  german: 'German',
-  dutch: 'Dutch',
-  portuguese: 'Portuguese',
-};
-
 // CEFR Levels with descriptions
 const CEFR_LEVELS = [
   { value: 'A1', label: 'A1 - Beginner', description: 'Can understand and use basic phrases' },
@@ -56,7 +46,6 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
   // Profile fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [preferredLanguage, setPreferredLanguage] = useState<string>('english');
   const [preferredLevel, setPreferredLevel] = useState('B1');
   const [showLevelPicker, setShowLevelPicker] = useState(false);
 
@@ -75,7 +64,6 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
       const userData = await AuthenticationService.getUserMeApiAuthMeGet();
       setName(userData.name || '');
       setEmail(userData.email || '');
-      setPreferredLanguage(userData.preferred_language || 'english');
       setPreferredLevel(userData.preferred_level || 'B1');
 
       // Check authentication provider
@@ -89,7 +77,6 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
       }
 
       console.log('🔐 Auth provider loaded:', provider, 'for user:', userData.email);
-      console.log('🌍 Preferred language:', userData.preferred_language || 'english (default)');
       console.log('📚 Preferred level loaded:', userData.preferred_level || 'B1 (default)');
       setAuthProvider(provider);
     } catch (error) {
@@ -158,8 +145,8 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      console.log('✅ English level updated to:', level);
-      Alert.alert('Success', `English level updated to ${level}`);
+      console.log('✅ Proficiency level updated to:', level);
+      Alert.alert('Success', `Proficiency level updated to ${level}`);
     } catch (error: any) {
       console.error('Error updating level:', error);
       Alert.alert('Error', error.message || 'Failed to update level');
@@ -324,13 +311,11 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
           </TouchableOpacity>
         </View>
 
-        {/* Language Proficiency Level Section */}
+        {/* Proficiency Level Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="school" size={20} color="#4ECFBF" />
-            <Text style={styles.sectionTitle}>
-              {LANGUAGES[preferredLanguage] || 'Language'} Proficiency
-            </Text>
+            <Text style={styles.sectionTitle}>Proficiency Level</Text>
           </View>
 
           <View style={styles.field}>
@@ -357,7 +342,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
             <Text style={styles.fieldNote}>
-              Your proficiency level in {LANGUAGES[preferredLanguage] || 'the target language'}
+              Your defined level
             </Text>
           </View>
         </View>
@@ -559,11 +544,9 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
           <Pressable style={styles.levelPickerContainer} onPress={(e) => e.stopPropagation()}>
             {/* Header */}
             <View style={styles.levelPickerHeader}>
-              <Text style={styles.levelPickerTitle}>
-                Select Your {LANGUAGES[preferredLanguage] || 'Language'} Level
-              </Text>
+              <Text style={styles.levelPickerTitle}>Select Your Proficiency Level</Text>
               <Text style={styles.levelPickerSubtitle}>
-                Choose the CEFR level that best matches your current proficiency
+                Choose the CEFR level that best matches your ability
               </Text>
             </View>
 
