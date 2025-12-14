@@ -62,30 +62,39 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
 
   const loadExploreData = async () => {
     try {
+      console.log('🔍 [Explore] Loading explore data...');
       // Get user data from AsyncStorage
       const userStr = await AsyncStorage.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
+        console.log('👤 [Explore] User found:', user.name);
         setUserName(user.name || 'there');
         // Get user's CEFR level from preferred_level or default to B1
         const level = (user.preferred_level || 'B1') as CEFRLevel;
+        console.log('📊 [Explore] User CEFR level:', level);
         setUserLevel(level);
 
         // Generate challenges based on user level
         const dailyChallenges = getDailyChallenges(level);
+        console.log('🎯 [Explore] Generated challenges:', dailyChallenges.length);
+        console.log('🎯 [Explore] Challenge types:', dailyChallenges.map(c => c.type));
         setChallenges(dailyChallenges);
       } else {
         // Guest user - default to B1
+        console.log('👤 [Explore] No user found, using guest defaults');
         setUserName('there');
         const dailyChallenges = getDailyChallenges('B1');
+        console.log('🎯 [Explore] Generated challenges for guest:', dailyChallenges.length);
         setChallenges(dailyChallenges);
       }
     } catch (error) {
-      console.error('Error loading explore data:', error);
+      console.error('❌ [Explore] Error loading explore data:', error);
       // Fallback to default challenges
       const dailyChallenges = getDailyChallenges('B1');
+      console.log('🔄 [Explore] Fallback challenges:', dailyChallenges.length);
       setChallenges(dailyChallenges);
     } finally {
+      console.log('✅ [Explore] Loading complete, isLoading set to false');
       setIsLoading(false);
     }
   };

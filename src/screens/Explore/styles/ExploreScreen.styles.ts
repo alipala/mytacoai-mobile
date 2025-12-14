@@ -38,7 +38,6 @@ export const styles = StyleSheet.create({
   },
   cardsContainer: {
     paddingHorizontal: 20,
-    gap: 16,
   },
   emptyContainer: {
     paddingVertical: 80,

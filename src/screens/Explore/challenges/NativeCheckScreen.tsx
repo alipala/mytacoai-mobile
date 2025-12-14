@@ -235,7 +235,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   answerContainer: {
-    gap: 16,
   },
   answerButton: {
     flexDirection: 'row',
@@ -244,7 +243,7 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 20,
     borderWidth: 3,
-    gap: 12,
+    marginBottom: 16,
   },
   yesButton: {
     backgroundColor: '#F0FDF4',
@@ -265,6 +264,7 @@ const styles = StyleSheet.create({
   },
   answerEmoji: {
     fontSize: 28,
+    marginRight: 12,
   },
   answerText: {
     fontSize: 18,

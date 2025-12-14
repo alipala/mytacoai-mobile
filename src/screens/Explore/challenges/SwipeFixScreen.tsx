@@ -254,13 +254,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
     marginBottom: 20,
   },
   swipeHintText: {
     fontSize: 14,
     color: COLORS.textLight,
     fontWeight: '600',
+    marginHorizontal: 12,
   },
   cardContainer: {
     flex: 1,
@@ -319,7 +319,6 @@ const styles = StyleSheet.create({
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
     marginBottom: 24,
   },
   paginationDot: {
@@ -327,6 +326,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: COLORS.border,
+    marginHorizontal: 4,
   },
   paginationDotActive: {
     backgroundColor: COLORS.turquoise,

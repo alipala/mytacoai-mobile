@@ -216,7 +216,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   optionsContainer: {
-    gap: 12,
   },
   optionButton: {
     flexDirection: 'row',
@@ -231,6 +230,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+    marginBottom: 12,
   },
   optionSelected: {
     borderColor: COLORS.turquoise,

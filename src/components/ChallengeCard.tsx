@@ -223,7 +223,6 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
   },
   emojiContainer: {
     width: 56,
@@ -237,6 +236,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     elevation: 2,
+    marginRight: 16,
   },
   emoji: {
     fontSize: 28,
@@ -257,13 +257,13 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
-    gap: 8,
   },
   timeBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    marginRight: 8,
   },
   timeText: {
     fontSize: 12,
@@ -286,6 +286,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     backgroundColor: '#FFFFFF',
+    marginLeft: 12,
   },
   ctaText: {
     fontSize: 15,

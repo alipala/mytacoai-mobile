@@ -206,7 +206,6 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   optionsContainer: {
-    gap: 12,
   },
   optionButton: {
     backgroundColor: '#FFFFFF',
@@ -219,6 +218,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+    marginBottom: 12,
   },
   optionSelected: {
     borderColor: COLORS.orange,
