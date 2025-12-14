@@ -26,6 +26,16 @@ interface AccountPreferencesScreenProps {
   onBack: () => void;
 }
 
+// CEFR Levels with descriptions
+const CEFR_LEVELS = [
+  { value: 'A1', label: 'A1 - Beginner', description: 'Can understand and use basic phrases' },
+  { value: 'A2', label: 'A2 - Elementary', description: 'Can communicate in simple routine tasks' },
+  { value: 'B1', label: 'B1 - Intermediate', description: 'Can deal with most situations while traveling' },
+  { value: 'B2', label: 'B2 - Upper Intermediate', description: 'Can interact with native speakers fluently' },
+  { value: 'C1', label: 'C1 - Advanced', description: 'Can express ideas fluently and spontaneously' },
+  { value: 'C2', label: 'C2 - Proficient', description: 'Can understand virtually everything with ease' },
+];
+
 const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,6 +46,8 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
   // Profile fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [preferredLevel, setPreferredLevel] = useState('B1');
+  const [showLevelPicker, setShowLevelPicker] = useState(false);
 
   // Password fields
   const [currentPassword, setCurrentPassword] = useState('');
@@ -52,6 +64,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
       const userData = await AuthenticationService.getUserMeApiAuthMeGet();
       setName(userData.name || '');
       setEmail(userData.email || '');
+      setPreferredLevel(userData.preferred_level || 'B1');
 
       // Check authentication provider
       let provider = await AsyncStorage.getItem('auth_provider');
@@ -64,6 +77,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
       }
 
       console.log('🔐 Auth provider loaded:', provider, 'for user:', userData.email);
+      console.log('📚 Preferred level loaded:', userData.preferred_level || 'B1 (default)');
       setAuthProvider(provider);
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -85,6 +99,14 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         requestBody: { name: name.trim() },
       });
 
+      // Update local storage
+      const userStr = await AsyncStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        user.name = name.trim();
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+      }
+
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
@@ -93,6 +115,43 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
     } catch (error: any) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', error.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLevelChange = async (level: string) => {
+    try {
+      setSaving(true);
+      setShowLevelPicker(false);
+
+      // Update on backend
+      await AuthenticationService.updateProfileApiAuthUpdateProfilePut({
+        requestBody: { preferred_level: level },
+      });
+
+      // Update local state
+      setPreferredLevel(level);
+
+      // Update local storage so Explore tab uses it immediately
+      const userStr = await AsyncStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        user.preferred_level = level;
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+      }
+
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      console.log('✅ English level updated to:', level);
+      Alert.alert('Success', `English level updated to ${level}`);
+    } catch (error: any) {
+      console.error('Error updating level:', error);
+      Alert.alert('Error', error.message || 'Failed to update level');
+      // Revert on error
+      await loadUserData();
     } finally {
       setSaving(false);
     }
@@ -250,6 +309,42 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
               </>
             )}
           </TouchableOpacity>
+        </View>
+
+        {/* English Level Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="school" size={20} color="#4ECFBF" />
+            <Text style={styles.sectionTitle}>English Level</Text>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>My Current Level</Text>
+            <TouchableOpacity
+              style={styles.levelSelector}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setShowLevelPicker(true);
+              }}
+              disabled={saving}
+              activeOpacity={0.7}
+            >
+              <View style={styles.levelSelectorContent}>
+                <Text style={styles.levelSelectorText}>
+                  {CEFR_LEVELS.find(l => l.value === preferredLevel)?.label || 'B1 - Intermediate'}
+                </Text>
+                <Text style={styles.levelSelectorDescription}>
+                  {CEFR_LEVELS.find(l => l.value === preferredLevel)?.description || 'Can deal with most situations while traveling'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+            <Text style={styles.fieldNote}>
+              Challenges in Explore tab will match your level
+            </Text>
+          </View>
         </View>
 
         {/* Password & Security Section - Disabled for Google users */}
@@ -434,6 +529,86 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
                 )}
               </TouchableOpacity>
             </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Level Picker Modal */}
+      <Modal
+        visible={showLevelPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLevelPicker(false)}
+      >
+        <Pressable style={styles.levelPickerOverlay} onPress={() => setShowLevelPicker(false)}>
+          <Pressable style={styles.levelPickerContainer} onPress={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <View style={styles.levelPickerHeader}>
+              <Text style={styles.levelPickerTitle}>Select Your English Level</Text>
+              <Text style={styles.levelPickerSubtitle}>
+                Choose the level that best matches your current ability
+              </Text>
+            </View>
+
+            {/* Level Options */}
+            <ScrollView style={styles.levelPickerScroll} showsVerticalScrollIndicator={false}>
+              {CEFR_LEVELS.map((level) => {
+                const isSelected = level.value === preferredLevel;
+                return (
+                  <TouchableOpacity
+                    key={level.value}
+                    style={[
+                      styles.levelOption,
+                      isSelected && styles.levelOptionSelected,
+                    ]}
+                    onPress={() => {
+                      if (Platform.OS === 'ios') {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }
+                      handleLevelChange(level.value);
+                    }}
+                    disabled={saving}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.levelOptionContent}>
+                      <View style={styles.levelOptionHeader}>
+                        <Text style={[
+                          styles.levelOptionLabel,
+                          isSelected && styles.levelOptionLabelSelected,
+                        ]}>
+                          {level.label}
+                        </Text>
+                        {isSelected && (
+                          <View style={styles.levelOptionCheck}>
+                            <Ionicons name="checkmark-circle" size={24} color="#4ECFBF" />
+                          </View>
+                        )}
+                      </View>
+                      <Text style={[
+                        styles.levelOptionDescription,
+                        isSelected && styles.levelOptionDescriptionSelected,
+                      ]}>
+                        {level.description}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* Cancel Button */}
+            <TouchableOpacity
+              style={styles.levelPickerCancelButton}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setShowLevelPicker(false);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.levelPickerCancelText}>Cancel</Text>
+            </TouchableOpacity>
           </Pressable>
         </Pressable>
       </Modal>
@@ -728,6 +903,124 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // Level Selector Styles
+  levelSelector: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  levelSelectorContent: {
+    flex: 1,
+    marginRight: 12,
+  },
+  levelSelectorText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  levelSelectorDescription: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 18,
+  },
+  // Level Picker Modal Styles
+  levelPickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  levelPickerContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingHorizontal: 20,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  levelPickerHeader: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  levelPickerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  levelPickerSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  levelPickerScroll: {
+    marginBottom: 16,
+  },
+  levelOption: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+  },
+  levelOptionSelected: {
+    backgroundColor: '#E6F7F5',
+    borderColor: '#4ECFBF',
+  },
+  levelOptionContent: {
+    flex: 1,
+  },
+  levelOptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  levelOptionLabel: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  levelOptionLabelSelected: {
+    color: '#0D9488',
+  },
+  levelOptionCheck: {
+    marginLeft: 8,
+  },
+  levelOptionDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+  levelOptionDescriptionSelected: {
+    color: '#0F766E',
+  },
+  levelPickerCancelButton: {
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  levelPickerCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
   },
 });
 
