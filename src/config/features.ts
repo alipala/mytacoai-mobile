@@ -17,7 +17,7 @@ export const FeatureFlags = {
    *
    * Set to false by default for safety - enable when backend is ready
    */
-  USE_CHALLENGE_API: false,
+  USE_CHALLENGE_API: true, // ✅ ENABLED for production
 
   /**
    * Enable API fallback to mock data on failure
@@ -45,7 +45,7 @@ export const FeatureFlags = {
    * When true: Sends completion data to backend API
    * When false: Only tracks locally
    */
-  ENABLE_COMPLETION_TRACKING: false,
+  ENABLE_COMPLETION_TRACKING: true, // ✅ ENABLED for production
 
   /**
    * Enable challenge statistics
@@ -53,7 +53,7 @@ export const FeatureFlags = {
    * When true: Fetches and displays user stats from API
    * When false: No stats displayed
    */
-  ENABLE_CHALLENGE_STATS: false,
+  ENABLE_CHALLENGE_STATS: true, // ✅ ENABLED for production
 } as const;
 
 /**
