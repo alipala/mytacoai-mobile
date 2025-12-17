@@ -129,7 +129,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
 
       // Get user data from AsyncStorage
       const userStr = await AsyncStorage.getItem('user');
-      const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem('auth_token'); // FIXED: Use correct AsyncStorage key
       let level: CEFRLevel = 'B1';
       let language: Language = 'english';
 
