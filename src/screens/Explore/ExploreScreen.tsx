@@ -19,9 +19,8 @@ import {
 import { ChallengeService, ChallengeResult, CHALLENGE_TYPES } from '../../services/challengeService';
 import { isFeatureEnabled } from '../../config/features';
 import { loadTodayCompletions, markChallengeCompleted, cleanupOldCompletions } from '../../services/completionTracker';
-import { LanguageLevelPicker } from '../../components/LanguageLevelPicker';
-import { LearningPlanBanner } from '../../components/LearningPlanBanner';
-import { BackToLearningPlanButton } from '../../components/BackToLearningPlanButton';
+import { CompactLanguageSelector } from '../../components/CompactLanguageSelector';
+import { LanguageSelectionModal } from '../../components/LanguageSelectionModal';
 
 // Import challenge screens (will be created next)
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -55,6 +54,9 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
     level: CEFRLevel;
   } | null>(null);
   const [isExploringOtherLanguages, setIsExploringOtherLanguages] = useState(false);
+
+  // Modal state
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   // Accordion state
   const [expandedCardType, setExpandedCardType] = useState<string | null>(null);
@@ -207,21 +209,27 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
     setRefreshing(false);
   };
 
-  const handleExploreOtherLanguages = () => {
-    console.log('🌍 User clicked "Try Another Language"');
-    setIsExploringOtherLanguages(true);
-    // User will manually select language/level via picker
+  const handleLanguageChange = (language: Language) => {
+    console.log('🌍 Language changed to:', language);
+    setSelectedLanguage(language);
+    // If changing away from learning plan, mark as exploring
+    if (userLearningPlan && language !== userLearningPlan.language) {
+      setIsExploringOtherLanguages(true);
+    } else if (userLearningPlan && language === userLearningPlan.language && selectedLevel === userLearningPlan.level) {
+      // Returning to plan language and level
+      setIsExploringOtherLanguages(false);
+    }
   };
 
-  const handleBackToMyPlan = () => {
-    if (userLearningPlan) {
-      console.log('← Returning to learning plan:', userLearningPlan);
+  const handleLevelChange = (level: CEFRLevel) => {
+    console.log('📊 Level changed to:', level);
+    setSelectedLevel(level);
+    // If changing away from learning plan, mark as exploring
+    if (userLearningPlan && level !== userLearningPlan.level) {
+      setIsExploringOtherLanguages(true);
+    } else if (userLearningPlan && level === userLearningPlan.level && selectedLanguage === userLearningPlan.language) {
+      // Returning to plan language and level
       setIsExploringOtherLanguages(false);
-      setSelectedLanguage(userLearningPlan.language);
-      setSelectedLevel(userLearningPlan.level);
-      // Clear cached challenges to force reload
-      setCachedChallenges({});
-      setExpandedCardType(null);
     }
   };
 
@@ -362,49 +370,28 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
           )}
         </View>
 
-        {/* Back to My Plan Button (when exploring) */}
-        {!isLoading && userLearningPlan && isExploringOtherLanguages && (
-          <BackToLearningPlanButton
-            onPress={handleBackToMyPlan}
-            languageName={userLearningPlan.language.charAt(0).toUpperCase() + userLearningPlan.language.slice(1)}
-          />
-        )}
-
-        {/* Learning Plan Banner (user has plan and not exploring) */}
-        {!isLoading && userLearningPlan && !isExploringOtherLanguages && (
-          <LearningPlanBanner
-            language={userLearningPlan.language}
-            level={userLearningPlan.level}
-            onExploreOther={handleExploreOtherLanguages}
-            totalChallengeCount={totalChallengeCount}
-            completedChallenges={completedToday.size}
-          />
-        )}
-
-        {/* Language/Level Picker (no plan OR exploring other languages) */}
-        {!isLoading && (!userLearningPlan || isExploringOtherLanguages) && (
+        {/* Compact Language Selector */}
+        {!isLoading && (
           <>
-            <LanguageLevelPicker
+            <CompactLanguageSelector
               selectedLanguage={selectedLanguage}
               selectedLevel={selectedLevel}
-              onLanguageChange={setSelectedLanguage}
-              onLevelChange={setSelectedLevel}
+              onPress={() => setShowLanguageModal(true)}
+              hasLearningPlan={userLearningPlan !== null && !isExploringOtherLanguages}
             />
 
-            {/* Total Challenge Count */}
+            {/* Challenge Count Info */}
             {totalChallengeCount > 0 && (
               <View style={{
                 marginHorizontal: 20,
-                marginTop: 8,
+                marginTop: 4,
                 paddingHorizontal: 12,
                 paddingVertical: 6,
-                backgroundColor: '#F0FDFA',
-                borderRadius: 6,
-                borderLeftWidth: 3,
-                borderLeftColor: '#4ECFBF',
+                backgroundColor: '#F9FAFB',
+                borderRadius: 8,
               }}>
-                <Text style={{ fontSize: 13, color: '#0F766E', fontWeight: '600' }}>
-                  🎯 {totalChallengeCount} challenges available for {selectedLanguage} {selectedLevel}!
+                <Text style={{ fontSize: 12, color: '#6B7280', textAlign: 'center' }}>
+                  🎯 {totalChallengeCount} challenges available
                 </Text>
               </View>
             )}
@@ -486,6 +473,20 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Language Selection Modal */}
+      <LanguageSelectionModal
+        visible={showLanguageModal}
+        selectedLanguage={selectedLanguage}
+        selectedLevel={selectedLevel}
+        onLanguageChange={handleLanguageChange}
+        onLevelChange={handleLevelChange}
+        onClose={() => setShowLanguageModal(false)}
+        hasLearningPlan={userLearningPlan !== null}
+        learningPlanLanguage={userLearningPlan?.language}
+        learningPlanLevel={userLearningPlan?.level}
+        totalChallenges={totalChallengeCount}
+      />
     </SafeAreaView>
   );
 }
