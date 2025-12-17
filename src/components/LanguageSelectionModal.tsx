@@ -59,13 +59,26 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
   const [tempLanguage, setTempLanguage] = useState(selectedLanguage);
   const [tempLevel, setTempLevel] = useState(selectedLevel);
 
+  // Debug logging
+  React.useEffect(() => {
+    if (visible) {
+      console.log('🎨 Modal opened with:');
+      console.log(`   - Learning plans: ${learningPlans.length}`);
+      console.log(`   - Active plan: ${activePlan?.language} ${activePlan?.proficiency_level}`);
+      console.log(`   - Selected: ${selectedLanguage} ${selectedLevel}`);
+      console.log(`   - Total challenges: ${totalChallenges}`);
+    }
+  }, [visible, learningPlans, activePlan, selectedLanguage, selectedLevel, totalChallenges]);
+
   const handleApply = () => {
+    console.log(`✅ Applying selection: ${tempLanguage} ${tempLevel}`);
     onLanguageChange(tempLanguage);
     onLevelChange(tempLevel);
     onClose();
   };
 
   const handleSelectPlan = (plan: LearningPlan) => {
+    console.log(`📚 Plan selected: ${plan.language} ${plan.proficiency_level}`);
     if (onSelectPlan) {
       onSelectPlan(plan);
       onClose();
@@ -152,7 +165,7 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
 
             {/* Language Selection */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Language</Text>
+              <Text style={styles.sectionTitle}>🌍 LANGUAGE</Text>
               <View style={styles.languageGrid}>
                 {LANGUAGES.map((lang) => (
                   <TouchableOpacity
@@ -180,7 +193,7 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
 
             {/* Level Selection */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>CEFR Level</Text>
+              <Text style={styles.sectionTitle}>📊 CEFR LEVEL</Text>
               <View style={styles.levelGrid}>
                 {LEVELS.map((level) => (
                   <TouchableOpacity
@@ -255,6 +268,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: height * 0.85,
+    minHeight: height * 0.5,
     paddingBottom: 20,
   },
   header: {

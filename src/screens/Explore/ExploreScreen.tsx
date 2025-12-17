@@ -141,10 +141,13 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         setUserLevel(level);
 
         // Fetch user's learning plans from API if authenticated
+        console.log('🔍 Checking for learning plans... Token exists:', !!token);
         if (token) {
           try {
+            console.log('📡 Fetching learning plans from API...');
             const plans = await LearningService.getUserLearningPlansApiLearningPlansGet();
-            console.log(`📚 Found ${plans.length} learning plan(s) for user`);
+            console.log(`✅ Found ${plans.length} learning plan(s) for user`);
+            console.log('📚 Plans:', JSON.stringify(plans.map(p => ({ id: p.id, lang: p.language, level: p.proficiency_level }))));
             setUserLearningPlans(plans);
 
             // If user has plans, set the first one as active (or keep existing active plan)
@@ -155,6 +158,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
               );
               const defaultActivePlan = activeLearningPlan || sortedPlans[0];
               setActiveLearningPlan(defaultActivePlan);
+              console.log(`🎯 Active plan set to: ${defaultActivePlan.language} ${defaultActivePlan.proficiency_level}`);
 
               // If in learning plan mode, use the active plan's settings
               if (isInLearningPlanMode && defaultActivePlan) {
@@ -166,10 +170,11 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
               // No learning plans
               setActiveLearningPlan(null);
               setIsInLearningPlanMode(false);
-              console.log('📚 No learning plans found, switching to freestyle mode');
+              console.log('ℹ️ No learning plans found, using freestyle mode');
             }
-          } catch (planError) {
+          } catch (planError: any) {
             console.error('❌ Error fetching learning plans:', planError);
+            console.error('❌ Error details:', planError.message, planError.stack);
             // Continue with default settings if plan fetch fails
             setUserLearningPlans([]);
             setActiveLearningPlan(null);
@@ -177,6 +182,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
           }
         } else {
           // Not authenticated
+          console.log('⚠️ No token found, skipping learning plan fetch');
           setUserLearningPlans([]);
           setActiveLearningPlan(null);
           setIsInLearningPlanMode(false);
@@ -458,20 +464,108 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
           </>
         )}
 
-        {/* Loading State */}
+        {/* Loading State - Modern Design */}
         {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4ECFBF" />
-            <Text style={[styles.loadingText, { marginTop: 16 }]}>
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 40,
+            paddingTop: 60,
+          }}>
+            {/* Custom Loading Animation */}
+            <View style={{
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              backgroundColor: '#F0FDFA',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 32,
+              shadowColor: '#4ECFBF',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.15,
+              shadowRadius: 16,
+              elevation: 8,
+            }}>
+              <View style={{
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                backgroundColor: '#FFFFFF',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <ActivityIndicator size="large" color="#4ECFBF" />
+              </View>
+            </View>
+
+            {/* Main Text */}
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: '#1F2937',
+              textAlign: 'center',
+              marginBottom: 12,
+            }}>
               {isFeatureEnabled('USE_CHALLENGE_API')
-                ? 'Generating your personalized challenges...'
-                : 'Loading challenges...'}
+                ? 'Crafting Your Challenges'
+                : 'Loading Challenges'}
             </Text>
+
+            {/* Subtitle */}
+            <Text style={{
+              fontSize: 14,
+              color: '#6B7280',
+              textAlign: 'center',
+              lineHeight: 20,
+              marginBottom: 8,
+            }}>
+              {isFeatureEnabled('USE_CHALLENGE_API')
+                ? 'Preparing personalized exercises\njust for you...'
+                : 'Almost there...'}
+            </Text>
+
+            {/* Timer hint */}
             {isFeatureEnabled('USE_CHALLENGE_API') && (
-              <Text style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8, textAlign: 'center' }}>
-                First time may take up to 30 seconds
-              </Text>
+              <View style={{
+                marginTop: 24,
+                paddingHorizontal: 16,
+                paddingVertical: 10,
+                backgroundColor: '#FFF7ED',
+                borderRadius: 10,
+                borderLeftWidth: 3,
+                borderLeftColor: '#F59E0B',
+              }}>
+                <Text style={{
+                  fontSize: 12,
+                  color: '#92400E',
+                  textAlign: 'center',
+                }}>
+                  ⏱️ First time setup: up to 30 seconds
+                </Text>
+              </View>
             )}
+
+            {/* Progress dots */}
+            <View style={{
+              flexDirection: 'row',
+              gap: 8,
+              marginTop: 32,
+            }}>
+              {[0, 1, 2].map((i) => (
+                <View
+                  key={i}
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#4ECFBF',
+                    opacity: 0.3 + (i * 0.25),
+                  }}
+                />
+              ))}
+            </View>
           </View>
         )}
 
