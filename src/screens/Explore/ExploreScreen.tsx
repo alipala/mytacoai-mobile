@@ -6,6 +6,7 @@ import {
   RefreshControl,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
@@ -21,6 +22,8 @@ import { isFeatureEnabled } from '../../config/features';
 import { loadTodayCompletions, markChallengeCompleted, cleanupOldCompletions } from '../../services/completionTracker';
 import { CompactLanguageSelector } from '../../components/CompactLanguageSelector';
 import { LanguageSelectionModal } from '../../components/LanguageSelectionModal';
+import { LearningService } from '../../api/generated/services/LearningService';
+import type { LearningPlan } from '../../api/generated';
 
 // Import challenge screens (will be created next)
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -49,11 +52,9 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   const [totalChallengeCount, setTotalChallengeCount] = useState<number>(0);
 
   // Learning Plan state
-  const [userLearningPlan, setUserLearningPlan] = useState<{
-    language: Language;
-    level: CEFRLevel;
-  } | null>(null);
-  const [isExploringOtherLanguages, setIsExploringOtherLanguages] = useState(false);
+  const [userLearningPlans, setUserLearningPlans] = useState<LearningPlan[]>([]);
+  const [activeLearningPlan, setActiveLearningPlan] = useState<LearningPlan | null>(null);
+  const [isInLearningPlanMode, setIsInLearningPlanMode] = useState(true); // Default to plan mode if user has plans
 
   // Modal state
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -128,6 +129,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
 
       // Get user data from AsyncStorage
       const userStr = await AsyncStorage.getItem('user');
+      const token = await AsyncStorage.getItem('token');
       let level: CEFRLevel = 'B1';
       let language: Language = 'english';
 
@@ -138,37 +140,59 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         level = (user.preferred_level || 'B1') as CEFRLevel;
         setUserLevel(level);
 
-        // Check for active learning plan
-        if (user.active_learning_plan?.language) {
-          language = user.active_learning_plan.language as Language;
-          const planLevel = (user.active_learning_plan.level || level) as CEFRLevel;
+        // Fetch user's learning plans from API if authenticated
+        if (token) {
+          try {
+            const plans = await LearningService.getUserLearningPlansApiLearningPlansGet();
+            console.log(`📚 Found ${plans.length} learning plan(s) for user`);
+            setUserLearningPlans(plans);
 
-          // Store learning plan for later reference
-          setUserLearningPlan({
-            language: language,
-            level: planLevel,
-          });
+            // If user has plans, set the first one as active (or keep existing active plan)
+            if (plans.length > 0) {
+              // Find active plan (most recently created by default)
+              const sortedPlans = [...plans].sort((a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              );
+              const defaultActivePlan = activeLearningPlan || sortedPlans[0];
+              setActiveLearningPlan(defaultActivePlan);
 
-          // If not exploring other languages, use learning plan
-          if (!isExploringOtherLanguages) {
-            level = planLevel;
+              // If in learning plan mode, use the active plan's settings
+              if (isInLearningPlanMode && defaultActivePlan) {
+                language = defaultActivePlan.language as Language;
+                level = defaultActivePlan.proficiency_level as CEFRLevel;
+                console.log(`📚 Using active learning plan: ${language} ${level}`);
+              }
+            } else {
+              // No learning plans
+              setActiveLearningPlan(null);
+              setIsInLearningPlanMode(false);
+              console.log('📚 No learning plans found, switching to freestyle mode');
+            }
+          } catch (planError) {
+            console.error('❌ Error fetching learning plans:', planError);
+            // Continue with default settings if plan fetch fails
+            setUserLearningPlans([]);
+            setActiveLearningPlan(null);
+            setIsInLearningPlanMode(false);
           }
         } else {
-          // No learning plan
-          setUserLearningPlan(null);
+          // Not authenticated
+          setUserLearningPlans([]);
+          setActiveLearningPlan(null);
+          setIsInLearningPlanMode(false);
         }
       } else {
         // Guest user - default to B1 and english
         setUserName('there');
         setUserLevel('B1');
-        setUserLearningPlan(null);
+        setUserLearningPlans([]);
+        setActiveLearningPlan(null);
+        setIsInLearningPlanMode(false);
       }
 
-      // Initialize selected language and level (only if not already exploring)
-      if (!isExploringOtherLanguages) {
-        setSelectedLanguage(language);
-        setSelectedLevel(level);
-      }
+      // Initialize selected language and level
+      setSelectedLanguage(language);
+      setSelectedLevel(level);
 
       console.log('📚 Loading challenge pool for level:', level, 'language:', language);
 
@@ -212,25 +236,38 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   const handleLanguageChange = (language: Language) => {
     console.log('🌍 Language changed to:', language);
     setSelectedLanguage(language);
-    // If changing away from learning plan, mark as exploring
-    if (userLearningPlan && language !== userLearningPlan.language) {
-      setIsExploringOtherLanguages(true);
-    } else if (userLearningPlan && language === userLearningPlan.language && selectedLevel === userLearningPlan.level) {
-      // Returning to plan language and level
-      setIsExploringOtherLanguages(false);
+
+    // Check if this matches the active learning plan
+    if (activeLearningPlan &&
+        language === activeLearningPlan.language &&
+        selectedLevel === activeLearningPlan.proficiency_level) {
+      setIsInLearningPlanMode(true);
+    } else {
+      setIsInLearningPlanMode(false);
     }
   };
 
   const handleLevelChange = (level: CEFRLevel) => {
     console.log('📊 Level changed to:', level);
     setSelectedLevel(level);
-    // If changing away from learning plan, mark as exploring
-    if (userLearningPlan && level !== userLearningPlan.level) {
-      setIsExploringOtherLanguages(true);
-    } else if (userLearningPlan && level === userLearningPlan.level && selectedLanguage === userLearningPlan.language) {
-      // Returning to plan language and level
-      setIsExploringOtherLanguages(false);
+
+    // Check if this matches the active learning plan
+    if (activeLearningPlan &&
+        selectedLanguage === activeLearningPlan.language &&
+        level === activeLearningPlan.proficiency_level) {
+      setIsInLearningPlanMode(true);
+    } else {
+      setIsInLearningPlanMode(false);
     }
+  };
+
+  const handleSelectLearningPlan = (plan: LearningPlan) => {
+    console.log('📚 Selected learning plan:', plan.language, plan.proficiency_level);
+    setActiveLearningPlan(plan);
+    setIsInLearningPlanMode(true);
+    setSelectedLanguage(plan.language as Language);
+    setSelectedLevel(plan.proficiency_level as CEFRLevel);
+    // Modal will close automatically, challenges will reload via useEffect
   };
 
   const handleChallengePress = (challenge: Challenge) => {
@@ -377,8 +414,31 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
               selectedLanguage={selectedLanguage}
               selectedLevel={selectedLevel}
               onPress={() => setShowLanguageModal(true)}
-              hasLearningPlan={userLearningPlan !== null && !isExploringOtherLanguages}
+              hasLearningPlan={activeLearningPlan !== null && isInLearningPlanMode}
             />
+
+            {/* Empty Challenges Warning */}
+            {totalChallengeCount === 0 && (
+              <View style={{
+                marginHorizontal: 20,
+                marginTop: 8,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                backgroundColor: '#FFF7ED',
+                borderRadius: 12,
+                borderLeftWidth: 4,
+                borderLeftColor: '#F59E0B',
+              }}>
+                <Text style={{ fontSize: 15, color: '#92400E', fontWeight: '600', marginBottom: 4 }}>
+                  ⏳ No challenges available yet
+                </Text>
+                <Text style={{ fontSize: 13, color: '#B45309', lineHeight: 18 }}>
+                  {activeLearningPlan && isInLearningPlanMode
+                    ? 'Challenges for your learning plan are being generated. Try selecting a different language or level, or check back in a few minutes.'
+                    : 'Challenges for this combination are being generated. Try selecting a different language or level, or check back in a few minutes.'}
+                </Text>
+              </View>
+            )}
 
             {/* Challenge Count Info */}
             {totalChallengeCount > 0 && (
@@ -401,13 +461,14 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         {/* Loading State */}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>
+            <ActivityIndicator size="large" color="#4ECFBF" />
+            <Text style={[styles.loadingText, { marginTop: 16 }]}>
               {isFeatureEnabled('USE_CHALLENGE_API')
-                ? '🎯 Generating your personalized challenges...'
-                : '📚 Loading challenges...'}
+                ? 'Generating your personalized challenges...'
+                : 'Loading challenges...'}
             </Text>
             {isFeatureEnabled('USE_CHALLENGE_API') && (
-              <Text style={{ fontSize: 12, color: '#999', marginTop: 8, textAlign: 'center' }}>
+              <Text style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8, textAlign: 'center' }}>
                 First time may take up to 30 seconds
               </Text>
             )}
@@ -417,21 +478,52 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         {/* Expandable Challenge Categories */}
         {!isLoading && Object.keys(challengeCounts).length > 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
-            <Text style={{
-              fontSize: 20,
-              fontWeight: '700',
-              color: '#1F2937',
-              marginBottom: 4,
-            }}>
-              📚 Practice Challenges
-            </Text>
-            <Text style={{
-              fontSize: 14,
-              color: '#6B7280',
-              marginBottom: 16,
-            }}>
-              Tap to expand and start practicing
-            </Text>
+            {/* Section Header - Learning Plan vs Freestyle */}
+            {isInLearningPlanMode && activeLearningPlan ? (
+              <View style={{
+                marginBottom: 16,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                backgroundColor: '#F0FDFA',
+                borderRadius: 12,
+                borderLeftWidth: 4,
+                borderLeftColor: '#14B8A6',
+              }}>
+                <Text style={{
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: '#0F766E',
+                  marginBottom: 4,
+                }}>
+                  📚 Your Learning Plan
+                </Text>
+                <Text style={{
+                  fontSize: 13,
+                  color: '#14B8A6',
+                }}>
+                  Practicing {activeLearningPlan.language} · {activeLearningPlan.proficiency_level}
+                </Text>
+              </View>
+            ) : (
+              <View style={{
+                marginBottom: 16,
+              }}>
+                <Text style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                  color: '#1F2937',
+                  marginBottom: 4,
+                }}>
+                  🌍 Freestyle Practice
+                </Text>
+                <Text style={{
+                  fontSize: 14,
+                  color: '#6B7280',
+                }}>
+                  Tap to expand and start practicing
+                </Text>
+              </View>
+            )}
 
             {CHALLENGE_TYPES.map((category) => {
               const count = challengeCounts[category.type] || 0;
@@ -482,9 +574,9 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         onLanguageChange={handleLanguageChange}
         onLevelChange={handleLevelChange}
         onClose={() => setShowLanguageModal(false)}
-        hasLearningPlan={userLearningPlan !== null}
-        learningPlanLanguage={userLearningPlan?.language}
-        learningPlanLevel={userLearningPlan?.level}
+        learningPlans={userLearningPlans}
+        activePlan={activeLearningPlan}
+        onSelectPlan={handleSelectLearningPlan}
         totalChallenges={totalChallengeCount}
       />
     </SafeAreaView>

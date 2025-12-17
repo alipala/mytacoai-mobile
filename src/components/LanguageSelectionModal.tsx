@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Language, CEFRLevel } from '../services/mockChallengeData';
+import type { LearningPlan } from '../api/generated';
 
 interface LanguageSelectionModalProps {
   visible: boolean;
@@ -17,9 +18,9 @@ interface LanguageSelectionModalProps {
   onLanguageChange: (language: Language) => void;
   onLevelChange: (level: CEFRLevel) => void;
   onClose: () => void;
-  hasLearningPlan?: boolean;
-  learningPlanLanguage?: Language;
-  learningPlanLevel?: CEFRLevel;
+  learningPlans?: LearningPlan[];
+  activePlan?: LearningPlan | null;
+  onSelectPlan?: (plan: LearningPlan) => void;
   totalChallenges?: number;
 }
 
@@ -50,9 +51,9 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
   onLanguageChange,
   onLevelChange,
   onClose,
-  hasLearningPlan = false,
-  learningPlanLanguage,
-  learningPlanLevel,
+  learningPlans = [],
+  activePlan = null,
+  onSelectPlan,
   totalChallenges = 0,
 }) => {
   const [tempLanguage, setTempLanguage] = useState(selectedLanguage);
@@ -64,14 +65,23 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
     onClose();
   };
 
-  const handleReturnToPlan = () => {
-    if (learningPlanLanguage && learningPlanLevel) {
-      setTempLanguage(learningPlanLanguage);
-      setTempLevel(learningPlanLevel);
-      onLanguageChange(learningPlanLanguage);
-      onLevelChange(learningPlanLevel);
+  const handleSelectPlan = (plan: LearningPlan) => {
+    if (onSelectPlan) {
+      onSelectPlan(plan);
       onClose();
     }
+  };
+
+  const getLanguageFlag = (language: string): string => {
+    const flags: Record<string, string> = {
+      english: '🇬🇧',
+      spanish: '🇪🇸',
+      dutch: '🇳🇱',
+      german: '🇩🇪',
+      french: '🇫🇷',
+      portuguese: '🇵🇹',
+    };
+    return flags[language.toLowerCase()] || '🌍';
   };
 
   return (
@@ -100,23 +110,43 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
           >
-            {/* Return to Plan (if applicable) */}
-            {hasLearningPlan && learningPlanLanguage && learningPlanLevel && (
+            {/* My Learning Plans Section */}
+            {learningPlans.length > 0 && (
               <View style={styles.section}>
-                <TouchableOpacity
-                  style={styles.planButton}
-                  onPress={handleReturnToPlan}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.planButtonIcon}>📚</Text>
-                  <View style={styles.planButtonContent}>
-                    <Text style={styles.planButtonTitle}>Back to My Learning Plan</Text>
-                    <Text style={styles.planButtonSubtitle}>
-                      {LANGUAGES.find(l => l.code === learningPlanLanguage)?.name} {learningPlanLevel}
+                <Text style={styles.sectionTitle}>📚 MY LEARNING PLANS</Text>
+                {learningPlans.map((plan) => (
+                  <TouchableOpacity
+                    key={plan.id}
+                    style={[
+                      styles.planButton,
+                      activePlan?.id === plan.id && styles.planButtonActive
+                    ]}
+                    onPress={() => handleSelectPlan(plan)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.planButtonIcon}>
+                      {getLanguageFlag(plan.language)}
                     </Text>
-                  </View>
-                  <Text style={styles.planButtonChevron}>→</Text>
-                </TouchableOpacity>
+                    <View style={styles.planButtonContent}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.planButtonTitle}>
+                          {plan.language.charAt(0).toUpperCase() + plan.language.slice(1)} · {plan.proficiency_level}
+                        </Text>
+                        {activePlan?.id === plan.id && (
+                          <View style={styles.activeBadge}>
+                            <Text style={styles.activeBadgeText}>Active</Text>
+                          </View>
+                        )}
+                      </View>
+                      {plan.progress_percentage !== undefined && plan.progress_percentage !== null && (
+                        <Text style={styles.planButtonSubtitle}>
+                          {plan.progress_percentage}% Complete · {plan.completed_sessions || 0}/{plan.total_sessions || 0} Sessions
+                        </Text>
+                      )}
+                    </View>
+                    <Text style={styles.planButtonChevron}>→</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             )}
 
@@ -271,10 +301,15 @@ const styles = StyleSheet.create({
   planButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    marginBottom: 10,
+  },
+  planButtonActive: {
+    backgroundColor: '#F0FDFA',
     borderColor: '#4ECFBF',
   },
   planButtonIcon: {
@@ -291,13 +326,26 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   planButtonSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#14B8A6',
+    marginTop: 4,
   },
   planButtonChevron: {
     fontSize: 20,
     color: '#14B8A6',
     fontWeight: '600',
+  },
+  activeBadge: {
+    backgroundColor: '#14B8A6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  activeBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   languageGrid: {
     flexDirection: 'row',
