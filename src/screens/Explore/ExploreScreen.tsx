@@ -14,10 +14,12 @@ import { ExpandableChallengeCard } from '../../components/ExpandableChallengeCar
 import {
   Challenge,
   CEFRLevel,
+  Language,
 } from '../../services/mockChallengeData';
 import { ChallengeService, ChallengeResult, CHALLENGE_TYPES } from '../../services/challengeService';
 import { isFeatureEnabled } from '../../config/features';
 import { loadTodayCompletions, markChallengeCompleted, cleanupOldCompletions } from '../../services/completionTracker';
+import { LanguageLevelPicker } from '../../components/LanguageLevelPicker';
 
 // Import challenge screens (will be created next)
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -39,6 +41,11 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [challengeCounts, setChallengeCounts] = useState<Record<string, number>>({});
+
+  // Language/Level selection state
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>('english');
+  const [selectedLevel, setSelectedLevel] = useState<CEFRLevel>('B1');
+  const [totalChallengeCount, setTotalChallengeCount] = useState<number>(0);
 
   // Accordion state
   const [expandedCardType, setExpandedCardType] = useState<string | null>(null);
@@ -66,6 +73,18 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
       checkForLevelChange();
     }
   }, [isFocused]);
+
+  // Reload challenges when language or level changes
+  useEffect(() => {
+    if (!isLoading) {
+      console.log('🔄 Language/Level changed, reloading challenges...');
+      // Clear cached challenges to force fresh fetch
+      setCachedChallenges({});
+      setExpandedCardType(null);
+      // Reload challenge counts
+      loadChallengeCounts();
+    }
+  }, [selectedLanguage, selectedLevel]);
 
   // Check if user changed their level in settings
   const checkForLevelChange = async () => {
@@ -99,6 +118,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
       // Get user data from AsyncStorage
       const userStr = await AsyncStorage.getItem('user');
       let level: CEFRLevel = 'B1';
+      let language: Language = 'english';
 
       if (userStr) {
         const user = JSON.parse(userStr);
@@ -106,13 +126,22 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         // Get user's CEFR level from preferred_level or default to B1
         level = (user.preferred_level || 'B1') as CEFRLevel;
         setUserLevel(level);
+
+        // Try to get language from learning plan if available
+        if (user.active_learning_plan?.language) {
+          language = user.active_learning_plan.language as Language;
+        }
       } else {
-        // Guest user - default to B1
+        // Guest user - default to B1 and english
         setUserName('there');
         setUserLevel('B1');
       }
 
-      console.log('📚 Loading challenge pool for level:', level);
+      // Initialize selected language and level
+      setSelectedLanguage(language);
+      setSelectedLevel(level);
+
+      console.log('📚 Loading challenge pool for level:', level, 'language:', language);
 
       // Load challenge counts for categories (pool system)
       await loadChallengeCounts();
@@ -127,9 +156,14 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
 
   const loadChallengeCounts = async () => {
     try {
-      const counts = await ChallengeService.getChallengeCounts();
+      const counts = await ChallengeService.getChallengeCounts(selectedLanguage, selectedLevel);
       setChallengeCounts(counts);
-      console.log('📊 Challenge counts loaded:', counts);
+
+      // Calculate total challenge count
+      const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+      setTotalChallengeCount(total);
+
+      console.log('📊 Challenge counts loaded:', counts, 'Total:', total);
     } catch (error) {
       console.error('Failed to load challenge counts:', error);
     }
@@ -186,8 +220,13 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
       if (!cachedChallenges[type]) {
         try {
           setLoadingType(type);
-          console.log(`📚 Fetching challenges for type: ${type}`);
-          const result: ChallengeResult = await ChallengeService.getChallengesByType(type, 10);
+          console.log(`📚 Fetching challenges for type: ${type}, language: ${selectedLanguage}, level: ${selectedLevel}`);
+          const result: ChallengeResult = await ChallengeService.getChallengesByType(
+            type,
+            10,
+            selectedLanguage,
+            selectedLevel
+          );
           setCachedChallenges((prev) => ({ ...prev, [type]: result.challenges }));
           console.log(`✅ Cached ${result.challenges.length} ${type} challenges`);
         } catch (error) {
@@ -255,6 +294,23 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
             👋 Hi {userName}, quick wins today
           </Text>
 
+          {/* Total Challenge Count */}
+          {!isLoading && totalChallengeCount > 0 && (
+            <View style={{
+              marginTop: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              backgroundColor: '#F0FDFA',
+              borderRadius: 6,
+              borderLeftWidth: 3,
+              borderLeftColor: '#4ECFBF',
+            }}>
+              <Text style={{ fontSize: 13, color: '#0F766E', fontWeight: '600' }}>
+                🎯 {totalChallengeCount} challenges available for {selectedLanguage} {selectedLevel}!
+              </Text>
+            </View>
+          )}
+
           {/* Error Message (if any) */}
           {errorMessage && (
             <View style={{
@@ -272,6 +328,16 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
             </View>
           )}
         </View>
+
+        {/* Language/Level Picker */}
+        {!isLoading && (
+          <LanguageLevelPicker
+            selectedLanguage={selectedLanguage}
+            selectedLevel={selectedLevel}
+            onLanguageChange={setSelectedLanguage}
+            onLevelChange={setSelectedLevel}
+          />
+        )}
 
         {/* Loading State */}
         {isLoading && (
