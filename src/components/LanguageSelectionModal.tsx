@@ -267,8 +267,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: height * 0.85,
-    minHeight: height * 0.5,
+    maxHeight: height * 0.9,
     paddingBottom: 20,
   },
   header: {
