@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
@@ -644,6 +645,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
               </View>
             )}
 
+            {/* Challenge Cards */}
             {CHALLENGE_TYPES.map((category) => {
               const count = challengeCounts[category.type] || 0;
               const isExpanded = expandedCardType === category.type;
@@ -667,6 +669,66 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
                 />
               );
             })}
+
+            {/* Freestyle Practice Separator - Only show when in Learning Plan mode */}
+            {isInLearningPlanMode && activeLearningPlan && (
+              <View style={{
+                marginTop: 32,
+                paddingTop: 24,
+                borderTopWidth: 2,
+                borderTopColor: '#E5E7EB',
+              }}>
+                <View style={{
+                  marginBottom: 16,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  backgroundColor: '#F9FAFB',
+                  borderRadius: 12,
+                  borderLeftWidth: 4,
+                  borderLeftColor: '#9CA3AF',
+                }}>
+                  <Text style={{
+                    fontSize: 18,
+                    fontWeight: '700',
+                    color: '#4B5563',
+                    marginBottom: 4,
+                  }}>
+                    🌍 Want to Explore More?
+                  </Text>
+                  <Text style={{
+                    fontSize: 13,
+                    color: '#6B7280',
+                    marginBottom: 12,
+                  }}>
+                    Practice other languages and levels outside your learning plan
+                  </Text>
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: '#4ECFBF',
+                      borderRadius: 10,
+                      paddingVertical: 12,
+                      paddingHorizontal: 16,
+                      alignItems: 'center',
+                      shadowColor: '#4ECFBF',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 6,
+                      elevation: 4,
+                    }}
+                    onPress={() => setShowLanguageModal(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: '#FFFFFF',
+                    }}>
+                      🚀 Explore Freestyle Practice
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
         )}
 
