@@ -144,7 +144,8 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
       console.log('📚 Loading challenge pool for level:', level, 'language:', language);
 
       // Load challenge counts for categories (pool system)
-      await loadChallengeCounts();
+      // Pass language/level directly to avoid state synchronization issues
+      await loadChallengeCounts(language, level);
 
     } catch (error) {
       console.error('❌ Error loading explore data:', error);
@@ -154,9 +155,13 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
     }
   };
 
-  const loadChallengeCounts = async () => {
+  const loadChallengeCounts = async (language?: Language, level?: CEFRLevel) => {
     try {
-      const counts = await ChallengeService.getChallengeCounts(selectedLanguage, selectedLevel);
+      // Use provided params or fall back to state
+      const lang = language || selectedLanguage;
+      const lvl = level || selectedLevel;
+
+      const counts = await ChallengeService.getChallengeCounts(lang, lvl);
       setChallengeCounts(counts);
 
       // Calculate total challenge count

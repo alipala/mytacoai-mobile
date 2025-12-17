@@ -150,7 +150,7 @@ export const ChallengeAPI = {
           method: 'GET',
           headers,
         },
-        5000
+        10000 // 10 seconds timeout (increased for auto-population)
       );
 
       if (!response.ok) {
@@ -453,7 +453,7 @@ export const ChallengeAPI = {
           method: 'GET',
           headers,
         },
-        5000
+        10000 // 10 seconds timeout (increased for language availability checks)
       );
 
       if (!response.ok) {
