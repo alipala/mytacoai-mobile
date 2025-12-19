@@ -12,7 +12,6 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { ErrorSpottingChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
-import { soundService } from '../../../services/soundService';
 
 interface ErrorSpottingScreenProps {
   challenge: ErrorSpottingChallenge;
@@ -36,9 +35,6 @@ export default function ErrorSpottingScreen({
 
     setSelectedOption(optionId);
     setShowFeedback(true);
-
-    // Play sound feedback
-    soundService.play(option.isCorrect ? 'correct' : 'wrong');
 
     // Haptic feedback
     if (Platform.OS === 'ios') {

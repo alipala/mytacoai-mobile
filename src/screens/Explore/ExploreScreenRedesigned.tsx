@@ -21,7 +21,6 @@ import { ChallengeService, CHALLENGE_TYPES } from '../../services/challengeServi
 import { LearningService } from '../../api/generated/services/LearningService';
 import type { LearningPlan } from '../../api/generated';
 import { loadTodayCompletions, markChallengeCompleted } from '../../services/completionTracker';
-import { soundService } from '../../services/soundService';
 
 // Challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -112,11 +111,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
 
-  // Initialize sound service
-  useEffect(() => {
-    soundService.initialize();
-  }, []);
-
   // Load initial data
   useEffect(() => {
     if (isFocused) {
@@ -183,8 +177,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
 
   // Page transition animation
   const transitionToScreen = (newState: NavigationState, callback: () => void) => {
-    soundService.play('swoosh');
-
     Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -219,7 +211,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    soundService.play('tap');
 
     transitionToScreen(
       mode === 'completed_plans' ? 'completed_plans' : 'freestyle_selection',
@@ -270,7 +261,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    soundService.play('tap');
 
     setSelectedPlan(plan);
     setIsLoading(true);
@@ -300,7 +290,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    soundService.play('tap');
 
     setIsLoading(true);
 
@@ -326,7 +315,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    soundService.play('tap');
 
     if (navState === 'completed_plans' || navState === 'freestyle_selection') {
       transitionToScreen('mode_selection', () => {
@@ -351,7 +339,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    soundService.play('tap');
 
     setSelectedCategoryType(categoryType);
     setLoadingChallenges(true);
@@ -379,7 +366,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    soundService.play('tap');
 
     // Animate challenge screen sliding up
     challengeModalAnim.setValue(height);
@@ -395,13 +381,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
 
   const handleChallengeComplete = async (challengeId: string, correct?: boolean, timeSpent?: number) => {
     console.log('🎉 Challenge completed:', challengeId);
-
-    // Play appropriate sound
-    if (correct !== undefined) {
-      soundService.play(correct ? 'correct' : 'wrong');
-    } else {
-      soundService.play('complete');
-    }
 
     // Mark as completed today in AsyncStorage
     await markChallengeCompleted(challengeId);
@@ -886,8 +865,7 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
                     if (Platform.OS === 'ios') {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     }
-                    soundService.play('tap');
-                  }}
+                                  }}
                   activeOpacity={0.7}
                 >
                   <Text style={{ fontSize: 28, marginRight: 12 }}>{lang.flag}</Text>
@@ -942,8 +920,7 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
                         if (Platform.OS === 'ios') {
                           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         }
-                        soundService.play('tap');
-                      }
+                                          }
                     }}
                     activeOpacity={isDisabled ? 1 : 0.7}
                     disabled={isDisabled}

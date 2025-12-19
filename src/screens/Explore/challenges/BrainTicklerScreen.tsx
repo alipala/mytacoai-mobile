@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { BrainTicklerChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
-import { soundService } from '../../../services/soundService';
 
 interface BrainTicklerScreenProps {
   challenge: BrainTicklerChallenge;
@@ -46,17 +45,11 @@ export default function BrainTicklerScreen({
         if (prev <= 1) {
           setTimerActive(false);
           setShowFeedback(true);
-          // Sound feedback when time runs out
-          soundService.play('timeout');
           // Haptic feedback when time runs out
           if (Platform.OS === 'ios') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           }
           return 0;
-        }
-        // Play tick sound for last 5 seconds
-        if (prev <= 5) {
-          soundService.play('tick');
         }
         return prev - 1;
       });
@@ -101,9 +94,6 @@ export default function BrainTicklerScreen({
     setSelectedOption(optionId);
     setShowFeedback(true);
     setTimerActive(false);
-
-    // Play sound feedback
-    soundService.play(option.isCorrect ? 'correct' : 'wrong');
 
     // Haptic feedback
     if (Platform.OS === 'ios') {
