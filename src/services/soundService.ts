@@ -21,6 +21,18 @@ export type SoundType =
 // Sound settings key
 const SOUND_ENABLED_KEY = 'sound_enabled';
 
+// Sound file mappings
+const SOUND_FILES: Record<SoundType, any> = {
+  correct: require('../../assets/sounds/correct.mp3'),
+  wrong: require('../../assets/sounds/wrong.mp3'),
+  timeout: require('../../assets/sounds/timeout.mp3'),
+  tick: require('../../assets/sounds/tick.mp3'),
+  complete: require('../../assets/sounds/complete.mp3'),
+  tap: require('../../assets/sounds/tap.mp3'),
+  swoosh: require('../../assets/sounds/swoosh.mp3'),
+  confetti: require('../../assets/sounds/confetti.mp3'),
+};
+
 class SoundService {
   private sounds: Map<SoundType, Audio.Sound> = new Map();
   private isEnabled: boolean = true;
@@ -45,27 +57,11 @@ class SoundService {
       const enabled = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
       this.isEnabled = enabled !== 'false'; // Enabled by default
 
-      // Preload sounds for instant playback
-      await this.preloadSounds();
-
       this.isInitialized = true;
       console.log('🔊 Sound Service initialized');
     } catch (error) {
       console.error('❌ Error initializing sound service:', error);
     }
-  }
-
-  /**
-   * Preload all sound files for instant playback
-   * Note: You'll need to add actual sound files to /assets/sounds/
-   */
-  private async preloadSounds(): Promise<void> {
-    // For now, we'll use synthesized sounds via the Audio API
-    // In production, you would load actual sound files like this:
-    // const { sound } = await Audio.Sound.createAsync(require('../../assets/sounds/correct.mp3'));
-
-    console.log('🎵 Sound files would be preloaded here');
-    // This will be implemented when actual sound files are added
   }
 
   /**
@@ -75,11 +71,21 @@ class SoundService {
     if (!this.isEnabled) return;
 
     try {
-      // Create a simple sound programmatically
-      // In production, replace with actual sound file loading
+      // Get the sound file for this type
+      const soundFile = SOUND_FILES[type];
+
+      if (!soundFile) {
+        // Silently skip if sound file doesn't exist
+        return;
+      }
+
+      // Create and play the sound
       const { sound } = await Audio.Sound.createAsync(
-        this.getSoundConfig(type),
-        { shouldPlay: true, volume: this.getVolume(type) }
+        soundFile,
+        {
+          shouldPlay: true,
+          volume: this.getVolume(type),
+        }
       );
 
       // Auto-unload after playing
@@ -89,45 +95,11 @@ class SoundService {
         }
       });
     } catch (error) {
-      console.error(`❌ Error playing ${type} sound:`, error);
-    }
-  }
-
-  /**
-   * Get sound configuration for each type
-   * For now returns a simple beep config, but you'd replace with actual sound files
-   */
-  private getSoundConfig(type: SoundType): any {
-    // Placeholder - in production, return actual sound file:
-    // return require('../../assets/sounds/correct.mp3');
-
-    switch (type) {
-      case 'correct':
-        // Happy ascending tone
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' }; // Placeholder
-      case 'wrong':
-        // Descending error tone
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
-      case 'timeout':
-        // Urgent beep
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
-      case 'tick':
-        // Short tick sound for countdown
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
-      case 'complete':
-        // Success fanfare
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
-      case 'tap':
-        // Gentle tap feedback
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
-      case 'swoosh':
-        // Page transition sound
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
-      case 'confetti':
-        // Celebration sound
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
-      default:
-        return { uri: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10...' };
+      // Silently skip sound playback errors (file might not exist)
+      // Only log in development
+      if (__DEV__) {
+        console.log(`⚠️ Sound ${type} not available (file may not exist)`);
+      }
     }
   }
 
@@ -201,23 +173,21 @@ export const useSound = () => {
 };
 
 /**
- * USAGE GUIDE:
+ * SETUP INSTRUCTIONS:
  *
- * 1. Initialize once in your App.tsx:
- *    await soundService.initialize();
+ * 1. Add MP3 sound files to /assets/sounds/:
+ *    - correct.mp3    - Success/correct answer sound
+ *    - wrong.mp3      - Error/wrong answer sound
+ *    - timeout.mp3    - Time's up sound
+ *    - tick.mp3       - Countdown tick sound
+ *    - complete.mp3   - Challenge completion sound
+ *    - tap.mp3        - Button tap sound
+ *    - swoosh.mp3     - Page transition sound
+ *    - confetti.mp3   - Celebration sound
  *
- * 2. Use in components:
- *    import { useSound } from '../services/soundService';
- *    const { playSound } = useSound();
- *    playSound('correct');
+ * 2. The service will silently skip playback if files don't exist
  *
- * 3. Add actual sound files to /assets/sounds/:
- *    - correct.mp3
- *    - wrong.mp3
- *    - timeout.mp3
- *    - tick.mp3
- *    - complete.mp3
- *    - tap.mp3
- *    - swoosh.mp3
- *    - confetti.mp3
+ * 3. Use in components:
+ *    import { soundService } from '../services/soundService';
+ *    soundService.play('correct');
  */
