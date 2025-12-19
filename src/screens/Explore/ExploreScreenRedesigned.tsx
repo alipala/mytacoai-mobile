@@ -1354,12 +1354,19 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
 
                       {isCompleted ? (
                         <View style={{
-                          backgroundColor: `${color1}20`,
-                          paddingHorizontal: 8,
-                          paddingVertical: 4,
-                          borderRadius: 8,
+                          width: 32,
+                          height: 32,
+                          borderRadius: 16,
+                          backgroundColor: '#FFD700',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          shadowColor: '#FFD700',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.4,
+                          shadowRadius: 4,
+                          elevation: 3,
                         }}>
-                          <Text style={{ fontSize: 14 }}>✅</Text>
+                          <Text style={{ fontSize: 18 }}>⭐</Text>
                         </View>
                       ) : (
                         <View style={{

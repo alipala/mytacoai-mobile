@@ -278,6 +278,11 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   feedbackIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
   },
   feedbackEmoji: {

@@ -222,24 +222,27 @@ export default function BrainTicklerScreen({
             <View style={styles.feedbackContainer}>
               {timeLeft === 0 && !selectedOption ? (
                 <>
-                  <View style={styles.feedbackIcon}>
+                  <View style={[styles.feedbackIcon, { backgroundColor: '#EF4444' }]}>
                     <Text style={styles.feedbackEmoji}>⏰</Text>
                   </View>
-                  <Text style={styles.feedbackTitle}>Time's up!</Text>
+                  <Text style={[styles.feedbackTitle, { color: '#DC2626' }]}>Time's up!</Text>
+                  <Text style={styles.feedbackSubtitle}>No worries, let's see the answer</Text>
                 </>
               ) : isCorrectAnswer() ? (
                 <>
-                  <View style={styles.feedbackIcon}>
-                    <Text style={styles.feedbackEmoji}>⚡</Text>
+                  <View style={[styles.feedbackIcon, { backgroundColor: '#8B5CF6' }]}>
+                    <Text style={styles.feedbackEmoji}>🌟</Text>
                   </View>
-                  <Text style={styles.feedbackTitle}>Lightning fast!</Text>
+                  <Text style={[styles.feedbackTitle, { color: '#7C3AED' }]}>Amazing!</Text>
+                  <Text style={styles.feedbackSubtitle}>Lightning fast thinking!</Text>
                 </>
               ) : (
                 <>
-                  <View style={styles.feedbackIcon}>
-                    <Text style={styles.feedbackEmoji}>💡</Text>
+                  <View style={[styles.feedbackIcon, { backgroundColor: '#F59E0B' }]}>
+                    <Text style={styles.feedbackEmoji}>🤔</Text>
                   </View>
-                  <Text style={styles.feedbackTitle}>Not quite!</Text>
+                  <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>Good try!</Text>
+                  <Text style={styles.feedbackSubtitle}>Keep practicing, you'll get it!</Text>
                 </>
               )}
 
@@ -369,16 +372,33 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   feedbackIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   feedbackEmoji: {
-    fontSize: 80,
+    fontSize: 64,
   },
   feedbackTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  feedbackSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textGray,
     marginBottom: 32,
+    textAlign: 'center',
   },
   correctAnswerBox: {
     backgroundColor: '#D1FAE5',

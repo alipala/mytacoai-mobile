@@ -111,17 +111,19 @@ export default function MicroQuizScreen({
             <View style={styles.feedbackContainer}>
               {isCorrectAnswer() ? (
                 <>
-                  <View style={styles.feedbackIcon}>
-                    <Text style={styles.feedbackEmoji}>🎉</Text>
+                  <View style={[styles.feedbackIcon, { backgroundColor: '#3B82F6' }]}>
+                    <Text style={styles.feedbackEmoji}>🎯</Text>
                   </View>
-                  <Text style={styles.feedbackTitle}>Perfect!</Text>
+                  <Text style={[styles.feedbackTitle, { color: '#2563EB' }]}>Perfect!</Text>
+                  <Text style={styles.feedbackSubtitle}>You nailed it!</Text>
                 </>
               ) : (
                 <>
-                  <View style={styles.feedbackIcon}>
-                    <Text style={styles.feedbackEmoji}>💡</Text>
+                  <View style={[styles.feedbackIcon, { backgroundColor: '#F59E0B' }]}>
+                    <Text style={styles.feedbackEmoji}>🤔</Text>
                   </View>
-                  <Text style={styles.feedbackTitle}>Almost there!</Text>
+                  <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>Almost there!</Text>
+                  <Text style={styles.feedbackSubtitle}>Let's review together</Text>
                 </>
               )}
 
@@ -237,16 +239,33 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   feedbackIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   feedbackEmoji: {
-    fontSize: 80,
+    fontSize: 64,
   },
   feedbackTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  feedbackSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textGray,
     marginBottom: 32,
+    textAlign: 'center',
   },
   correctAnswerBox: {
     backgroundColor: '#D1FAE5',
