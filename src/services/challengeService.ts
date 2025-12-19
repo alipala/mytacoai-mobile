@@ -84,37 +84,37 @@ export const CHALLENGE_TYPES = [
   {
     type: 'error_spotting',
     title: 'Spot the Mistake',
-    emoji: '🧩',
+    emoji: '🔍',
     description: 'Find grammar and vocabulary errors',
   },
   {
     type: 'swipe_fix',
     title: 'Swipe to Compare',
-    emoji: '🔄',
+    emoji: '↔️',
     description: 'Learn from your mistakes',
   },
   {
     type: 'micro_quiz',
     title: 'Quick Quiz',
-    emoji: '⚡',
+    emoji: '💡',
     description: 'Fast decision making',
   },
   {
     type: 'smart_flashcard',
     title: 'Smart Flashcard',
-    emoji: '📚',
+    emoji: '🎴',
     description: 'Vocabulary from your practice',
   },
   {
     type: 'native_check',
     title: 'Sounds Natural?',
-    emoji: '🧠',
+    emoji: '🎯',
     description: 'Would a native say this?',
   },
   {
     type: 'brain_tickler',
     title: '10-Second Challenge',
-    emoji: '⏱️',
+    emoji: '⚡',
     description: 'Beat the clock!',
   },
 ] as const;

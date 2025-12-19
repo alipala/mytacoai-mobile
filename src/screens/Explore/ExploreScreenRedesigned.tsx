@@ -296,10 +296,15 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     }
 
     setSelectedPlan(plan);
-    setIsLoading(true);
 
+    // Transition to the screen immediately (optimistic UI for better UX)
+    transitionToScreen('challenge_categories', () => {
+      setNavState('challenge_categories');
+    });
+
+    // Load challenge counts in the background
+    setLoadingChallenges(true);
     try {
-      // Load challenges for this plan using learning_plan source (personalized)
       const lang = plan.language as Language;
       const level = plan.proficiency_level as CEFRLevel;
 
@@ -308,14 +313,10 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
 
       const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
       setTotalChallengeCount(total);
-
-      transitionToScreen('challenge_categories', () => {
-        setNavState('challenge_categories');
-      });
     } catch (error) {
       console.error('❌ Error loading challenges:', error);
     } finally {
-      setIsLoading(false);
+      setLoadingChallenges(false);
     }
   };
 
@@ -324,23 +325,23 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    setIsLoading(true);
+    // Transition to the screen immediately (optimistic UI for better UX)
+    transitionToScreen('challenge_categories', () => {
+      setNavState('challenge_categories');
+    });
 
+    // Load challenge counts in the background
+    setLoadingChallenges(true);
     try {
-      // Use 'reference' source for freestyle - fetches from reference_challenges collection
       const counts = await ChallengeService.getChallengeCounts(selectedLanguage, selectedLevel, 'reference');
       setChallengeCounts(counts);
 
       const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
       setTotalChallengeCount(total);
-
-      transitionToScreen('challenge_categories', () => {
-        setNavState('challenge_categories');
-      });
     } catch (error) {
       console.error('❌ Error loading challenges:', error);
     } finally {
-      setIsLoading(false);
+      setLoadingChallenges(false);
     }
   };
 
@@ -716,55 +717,62 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {completedPlans.map((plan, index) => (
-          <TouchableOpacity
-            key={plan.id}
-            style={{ marginBottom: 16 }}
-            onPress={() => handlePlanSelection(plan)}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={['#A855F7', '#9333EA']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                borderRadius: 20,
-                padding: 20,
-                shadowColor: '#A855F7',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
+        {completedPlans.map((plan, index) => {
+          // Assign different gradient colors to each plan
+          const gradientColors = [
+            { colors: ['#10B981', '#059669'], shadow: '#10B981' }, // Green
+            { colors: ['#3B82F6', '#2563EB'], shadow: '#3B82F6' }, // Blue
+            { colors: ['#F59E0B', '#D97706'], shadow: '#F59E0B' }, // Amber
+            { colors: ['#EF4444', '#DC2626'], shadow: '#EF4444' }, // Red
+            { colors: ['#8B5CF6', '#7C3AED'], shadow: '#8B5CF6' }, // Violet
+            { colors: ['#EC4899', '#DB2777'], shadow: '#EC4899' }, // Pink
+          ];
+          const gradient = gradientColors[index % gradientColors.length];
+
+          return (
+            <TouchableOpacity
+              key={plan.id}
+              style={{ marginBottom: 16 }}
+              onPress={() => handlePlanSelection(plan)}
+              activeOpacity={0.8}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <Text style={{ fontSize: 32, marginRight: 12 }}>
-                  {plan.language === 'english' ? '🇬🇧' :
-                   plan.language === 'spanish' ? '🇪🇸' :
-                   plan.language === 'dutch' ? '🇳🇱' :
-                   plan.language === 'german' ? '🇩🇪' :
-                   plan.language === 'french' ? '🇫🇷' : '🇵🇹'}
+              <LinearGradient
+                colors={gradient.colors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: 20,
+                  padding: 20,
+                  shadowColor: gradient.shadow,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 32, marginRight: 12 }}>
+                    {plan.language === 'english' ? '🇬🇧' :
+                     plan.language === 'spanish' ? '🇪🇸' :
+                     plan.language === 'dutch' ? '🇳🇱' :
+                     plan.language === 'german' ? '🇩🇪' :
+                     plan.language === 'french' ? '🇫🇷' : '🇵🇹'}
+                  </Text>
+                  <Text style={{
+                    fontSize: 20,
+                    fontWeight: '700',
+                    color: '#FFFFFF',
+                  }}>
+                    {plan.language.charAt(0).toUpperCase() + plan.language.slice(1)} · {plan.proficiency_level}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.8)' }}>
+                  {plan.total_sessions || 0} sessions · {plan.completed_sessions || 0} completed
                 </Text>
-                <Text style={{
-                  fontSize: 20,
-                  fontWeight: '700',
-                  color: '#FFFFFF',
-                }}>
-                  {plan.language.charAt(0).toUpperCase() + plan.language.slice(1)} · {plan.proficiency_level}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                <Text style={{ fontSize: 20, marginRight: 6 }}>✅</Text>
-                <Text style={{ fontSize: 15, fontWeight: '600', color: 'rgba(255, 255, 255, 0.9)' }}>
-                  100% Complete
-                </Text>
-              </View>
-              <Text style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.8)' }}>
-                {plan.total_sessions || 0} sessions · {plan.completed_sessions || 0} completed
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        ))}
+              </LinearGradient>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </Animated.View>
   );
