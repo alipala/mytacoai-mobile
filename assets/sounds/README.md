@@ -2,6 +2,16 @@
 
 This directory contains audio feedback files for an immersive gaming experience.
 
+## Current Status
+
+⚠️ **Placeholder files are currently in place** - The MP3 files in this directory are minimal silent placeholders created to allow Metro Bundler to build successfully. **Replace these with actual sound files** from your collection at:
+`/Users/alipala/github/MyTacoAIMobile/assets/sounds/`
+
+To replace the placeholders:
+1. Copy your actual MP3 files to this directory
+2. Restart Metro bundler with: `npx react-native start --reset-cache`
+3. Restart the app
+
 ## Required Sound Files (MP3 format)
 
 Add the following MP3 files to this directory:

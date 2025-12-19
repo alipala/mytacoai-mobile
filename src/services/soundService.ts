@@ -21,17 +21,34 @@ export type SoundType =
 // Sound settings key
 const SOUND_ENABLED_KEY = 'sound_enabled';
 
-// Sound file mappings
-const SOUND_FILES: Record<SoundType, any> = {
-  correct: require('../../assets/sounds/correct.mp3'),
-  wrong: require('../../assets/sounds/wrong.mp3'),
-  timeout: require('../../assets/sounds/timeout.mp3'),
-  tick: require('../../assets/sounds/tick.mp3'),
-  complete: require('../../assets/sounds/complete.mp3'),
-  tap: require('../../assets/sounds/tap.mp3'),
-  swoosh: require('../../assets/sounds/swoosh.mp3'),
-  confetti: require('../../assets/sounds/confetti.mp3'),
-};
+// Safely load sound files - returns null if file doesn't exist
+function loadSoundFile(soundType: SoundType): any | null {
+  try {
+    switch (soundType) {
+      case 'correct':
+        return require('../../assets/sounds/correct.mp3');
+      case 'wrong':
+        return require('../../assets/sounds/wrong.mp3');
+      case 'timeout':
+        return require('../../assets/sounds/timeout.mp3');
+      case 'tick':
+        return require('../../assets/sounds/tick.mp3');
+      case 'complete':
+        return require('../../assets/sounds/complete.mp3');
+      case 'tap':
+        return require('../../assets/sounds/tap.mp3');
+      case 'swoosh':
+        return require('../../assets/sounds/swoosh.mp3');
+      case 'confetti':
+        return require('../../assets/sounds/confetti.mp3');
+      default:
+        return null;
+    }
+  } catch (error) {
+    // File doesn't exist, return null
+    return null;
+  }
+}
 
 class SoundService {
   private sounds: Map<SoundType, Audio.Sound> = new Map();
@@ -71,11 +88,11 @@ class SoundService {
     if (!this.isEnabled) return;
 
     try {
-      // Get the sound file for this type
-      const soundFile = SOUND_FILES[type];
+      // Load the sound file
+      const soundFile = loadSoundFile(type);
 
       if (!soundFile) {
-        // Silently skip if sound file doesn't exist
+        // Sound file doesn't exist, skip silently
         return;
       }
 
@@ -95,10 +112,10 @@ class SoundService {
         }
       });
     } catch (error) {
-      // Silently skip sound playback errors (file might not exist)
+      // Silently skip sound playback errors
       // Only log in development
       if (__DEV__) {
-        console.log(`⚠️ Sound ${type} not available (file may not exist)`);
+        console.log(`⚠️ Sound ${type} not available`);
       }
     }
   }
@@ -185,9 +202,10 @@ export const useSound = () => {
  *    - swoosh.mp3     - Page transition sound
  *    - confetti.mp3   - Celebration sound
  *
- * 2. The service will silently skip playback if files don't exist
+ * 2. After adding files, restart Metro bundler:
+ *    - Stop the app (Ctrl+C)
+ *    - Run: npx react-native start --reset-cache
+ *    - Restart the app
  *
- * 3. Use in components:
- *    import { soundService } from '../services/soundService';
- *    soundService.play('correct');
+ * 3. The service will gracefully skip sounds that don't exist
  */
