@@ -117,17 +117,19 @@ export default function ErrorSpottingScreen({
             <View style={styles.feedbackContainer}>
               {isCorrectAnswer() ? (
                 <>
-                  <View style={styles.feedbackIcon}>
-                    <Text style={styles.feedbackEmoji}>✅</Text>
+                  <View style={[styles.feedbackIcon, { backgroundColor: '#10B981' }]}>
+                    <Text style={styles.feedbackEmoji}>🎉</Text>
                   </View>
-                  <Text style={styles.feedbackTitle}>Nice catch!</Text>
+                  <Text style={[styles.feedbackTitle, { color: '#059669' }]}>Excellent!</Text>
+                  <Text style={styles.feedbackSubtitle}>You spotted the mistake!</Text>
                 </>
               ) : (
                 <>
-                  <View style={styles.feedbackIcon}>
-                    <Text style={styles.feedbackEmoji}>💡</Text>
+                  <View style={[styles.feedbackIcon, { backgroundColor: '#F59E0B' }]}>
+                    <Text style={styles.feedbackEmoji}>🤔</Text>
                   </View>
-                  <Text style={styles.feedbackTitle}>Let's see...</Text>
+                  <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>Almost there!</Text>
+                  <Text style={styles.feedbackSubtitle}>Let's learn from this</Text>
                 </>
               )}
 
@@ -263,16 +265,33 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   feedbackIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   feedbackEmoji: {
-    fontSize: 80,
+    fontSize: 64,
   },
   feedbackTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  feedbackSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textGray,
     marginBottom: 32,
+    textAlign: 'center',
   },
   correctedSentenceContainer: {
     backgroundColor: '#E8F7F5',
