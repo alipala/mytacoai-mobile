@@ -16,7 +16,7 @@ import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen.tsx';
 
 // Main Screens
 import DashboardScreen from './src/screens/Dashboard/DashboardScreen.tsx';
-import ExploreScreen from './src/screens/Explore/ExploreScreen.tsx';
+import ExploreScreen from './src/screens/Explore/ExploreScreenRedesigned.tsx'; // NEW REDESIGNED VERSION
 import ProfileScreen from './src/screens/Profile/ProfileScreen.tsx';
 
 // Practice Flow Screens
