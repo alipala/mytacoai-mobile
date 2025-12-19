@@ -1109,57 +1109,65 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
                     style={{
                       borderRadius: 24,
                       padding: 20,
-                      minHeight: 180,
+                      height: 200,
                       opacity: count === 0 ? 0.5 : 1,
                       shadowColor: count === 0 ? '#000' : color1,
                       shadowOffset: { width: 0, height: 6 },
                       shadowOpacity: count === 0 ? 0.05 : 0.3,
                       shadowRadius: 12,
                       elevation: 6,
+                      justifyContent: 'space-between',
                     }}
                   >
-                    {/* Emoji Icon */}
-                    <View style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 28,
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 16,
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 6,
-                    }}>
-                      <Text style={{ fontSize: 32 }}>{category.emoji}</Text>
+                    <View>
+                      {/* Emoji Icon */}
+                      <View style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 28,
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 12,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 6,
+                      }}>
+                        <Text style={{ fontSize: 32 }}>{category.emoji}</Text>
+                      </View>
+
+                      {/* Title */}
+                      <Text
+                        style={{
+                          fontSize: 17,
+                          fontWeight: '800',
+                          color: '#FFFFFF',
+                          marginBottom: 6,
+                          textShadowColor: 'rgba(0, 0, 0, 0.15)',
+                          textShadowOffset: { width: 0, height: 1 },
+                          textShadowRadius: 2,
+                          lineHeight: 21,
+                        }}
+                        numberOfLines={2}
+                      >
+                        {category.title}
+                      </Text>
+
+                      {/* Description */}
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: 'rgba(255, 255, 255, 0.9)',
+                          lineHeight: 16,
+                        }}
+                        numberOfLines={2}
+                      >
+                        {category.description}
+                      </Text>
                     </View>
 
-                    {/* Title */}
-                    <Text style={{
-                      fontSize: 18,
-                      fontWeight: '800',
-                      color: '#FFFFFF',
-                      marginBottom: 8,
-                      textShadowColor: 'rgba(0, 0, 0, 0.15)',
-                      textShadowOffset: { width: 0, height: 1 },
-                      textShadowRadius: 2,
-                      lineHeight: 22,
-                    }}>
-                      {category.title}
-                    </Text>
-
-                    {/* Description */}
-                    <Text style={{
-                      fontSize: 13,
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      marginBottom: 12,
-                      lineHeight: 18,
-                    }}>
-                      {category.description}
-                    </Text>
-
-                    {/* Count Badge */}
+                    {/* Count Badge - positioned at bottom */}
                     <View style={{
                       backgroundColor: 'rgba(255, 255, 255, 0.25)',
                       paddingHorizontal: 12,
