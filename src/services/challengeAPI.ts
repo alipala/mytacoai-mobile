@@ -9,7 +9,7 @@
  * - Type-safe responses matching mock data structure
  */
 
-import { Challenge } from './mockChallengeData';
+import { Challenge, Language, CEFRLevel } from './mockChallengeData';
 import { OpenAPI } from '../api/generated/core/OpenAPI';
 
 // API timeout configuration
@@ -113,31 +113,47 @@ export const ChallengeAPI = {
   /**
    * Get challenge counts by type
    *
-   * @param token - Authentication token
+   * @param token - Authentication token (optional for guest users)
+   * @param language - Optional language filter
+   * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Object with count per challenge type
    * @throws ChallengeAPIError on failure
    */
-  async getChallengeCounts(token: string): Promise<Record<string, number>> {
-    if (!token) {
-      throw new ChallengeAPIError('Authentication token is required');
-    }
-
+  async getChallengeCounts(
+    token: string | null,
+    language?: Language,
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
+  ): Promise<Record<string, number>> {
     return retryFetch(async () => {
       const baseUrl = getApiBaseUrl();
-      const url = `${baseUrl}/api/challenges/counts`;
+      const params = new URLSearchParams();
 
-      console.log('📊 Fetching challenge counts');
+      if (language) params.append('language', language);
+      if (level) params.append('level', level);
+      if (source) params.append('source', source);
+
+      const queryString = params.toString();
+      const url = `${baseUrl}/api/challenges/counts${queryString ? `?${queryString}` : ''}`;
+
+      console.log('📊 Fetching challenge counts', language ? `for ${language}` : '', level ? `level ${level}` : '');
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       const response = await fetchWithTimeout(
         url,
         {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
-        5000
+        10000 // 10 seconds timeout (increased for auto-population)
       );
 
       if (!response.ok) {
@@ -163,35 +179,49 @@ export const ChallengeAPI = {
   /**
    * Get challenges by specific type
    *
-   * @param token - Authentication token
+   * @param token - Authentication token (optional for guest users)
    * @param challengeType - Type of challenge
    * @param limit - Maximum number of challenges to return
+   * @param language - Optional language filter
+   * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Array of challenges of specified type
    * @throws ChallengeAPIError on failure
    */
   async getChallengesByType(
-    token: string,
+    token: string | null,
     challengeType: string,
-    limit: number = 50
+    limit: number = 50,
+    language?: Language,
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
   ): Promise<Challenge[]> {
-    if (!token) {
-      throw new ChallengeAPIError('Authentication token is required');
-    }
-
     return retryFetch(async () => {
       const baseUrl = getApiBaseUrl();
-      const url = `${baseUrl}/api/challenges/by-type/${challengeType}?limit=${limit}`;
+      const params = new URLSearchParams();
 
-      console.log(`📚 Fetching ${challengeType} challenges`);
+      params.append('limit', limit.toString());
+      if (language) params.append('language', language);
+      if (level) params.append('level', level);
+      if (source) params.append('source', source);
+
+      const url = `${baseUrl}/api/challenges/by-type/${challengeType}?${params.toString()}`;
+
+      console.log(`📚 Fetching ${challengeType} challenges`, language ? `for ${language}` : '', level ? `level ${level}` : '');
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       const response = await fetchWithTimeout(
         url,
         {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
         10000 // 10 second timeout
       );
@@ -221,27 +251,40 @@ export const ChallengeAPI = {
    *
    * Returns one challenge of each type from the pre-generated pool
    *
-   * @param token - Authentication token
+   * @param token - Authentication token (optional for guest users)
+   * @param language - Optional language filter
+   * @param level - Optional CEFR level filter
    * @returns Array of 6 personalized challenges
    * @throws ChallengeAPIError on failure
    */
-  async getDailyChallenge(token: string): Promise<Challenge[]> {
-    if (!token) {
-      throw new ChallengeAPIError('Authentication token is required');
-    }
-
+  async getDailyChallenge(
+    token: string | null,
+    language?: Language,
+    level?: CEFRLevel
+  ): Promise<Challenge[]> {
     return retryFetch(async () => {
       const baseUrl = getApiBaseUrl();
-      const url = `${baseUrl}/api/challenges/daily`;
+      const params = new URLSearchParams();
+
+      if (language) params.append('language', language);
+      if (level) params.append('level', level);
+
+      const queryString = params.toString();
+      const url = `${baseUrl}/api/challenges/daily${queryString ? `?${queryString}` : ''}`;
 
       console.log('🎯 Fetching daily challenges from:', url);
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetchWithTimeout(url, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -366,6 +409,68 @@ export const ChallengeAPI = {
 
       const data = await response.json();
       console.log('✅ Successfully fetched challenge stats');
+      return data;
+    });
+  },
+
+  /**
+   * Get available languages with challenge availability info
+   *
+   * @param token - Authentication token (optional for guest users)
+   * @param level - Optional CEFR level to check availability for
+   * @returns Language availability information
+   * @throws ChallengeAPIError on failure
+   */
+  async getLanguages(
+    token: string | null,
+    level?: CEFRLevel
+  ): Promise<{
+    success: boolean;
+    active_language: string | null;
+    languages: Array<{
+      language: Language;
+      has_learning_plan: boolean;
+      is_active: boolean;
+      available_challenges: number;
+    }>;
+  }> {
+    return retryFetch(async () => {
+      const baseUrl = getApiBaseUrl();
+      const params = new URLSearchParams();
+
+      if (level) params.append('level', level);
+
+      const queryString = params.toString();
+      const url = `${baseUrl}/api/challenges/languages${queryString ? `?${queryString}` : ''}`;
+
+      console.log('🌍 Fetching available languages', level ? `for level ${level}` : '');
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetchWithTimeout(
+        url,
+        {
+          method: 'GET',
+          headers,
+        },
+        10000 // 10 seconds timeout (increased for language availability checks)
+      );
+
+      if (!response.ok) {
+        throw new ChallengeAPIError(
+          `Failed to fetch languages: ${response.statusText}`,
+          response.status
+        );
+      }
+
+      const data = await response.json();
+      console.log('✅ Successfully fetched language availability:', data);
       return data;
     });
   },

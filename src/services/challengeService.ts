@@ -15,6 +15,7 @@
 import {
   Challenge,
   CEFRLevel,
+  Language,
   getDailyChallenges as getMockChallenges,
 } from './mockChallengeData';
 import { ChallengeAPI, ChallengeAPIError } from './challengeAPI';
@@ -132,13 +133,20 @@ export const ChallengeService = {
    * 4. Otherwise → always use mock data
    *
    * @param cefrLevel - User's CEFR level
+   * @param language - Optional language filter
+   * @param level - Optional level override (uses cefrLevel if not provided)
    * @returns Promise with challenges and metadata
    */
-  async getDailyChallenges(cefrLevel: CEFRLevel = 'B1'): Promise<ChallengeResult> {
-    console.log('🎯 Getting daily challenges for level:', cefrLevel);
+  async getDailyChallenges(
+    cefrLevel: CEFRLevel = 'B1',
+    language?: Language,
+    level?: CEFRLevel
+  ): Promise<ChallengeResult> {
+    const effectiveLevel = level || cefrLevel;
+    console.log('🎯 Getting daily challenges for level:', effectiveLevel, language ? `language: ${language}` : '');
 
-    // Check cache first
-    if (isCacheValid(cefrLevel)) {
+    // Check cache first (cache is bypassed if language is specified)
+    if (!language && isCacheValid(effectiveLevel)) {
       console.log('✅ Returning cached challenges');
       return {
         challenges: challengeCache!.challenges,
@@ -151,8 +159,10 @@ export const ChallengeService = {
     // Check if API is enabled
     if (!isFeatureEnabled('USE_CHALLENGE_API')) {
       console.log('📦 API disabled, using mock data');
-      const challenges = getMockChallenges(cefrLevel);
-      setChallengeCache(challenges, cefrLevel);
+      const challenges = getMockChallenges(effectiveLevel);
+      if (!language) {
+        setChallengeCache(challenges, effectiveLevel);
+      }
       return {
         challenges,
         source: 'mock',
@@ -166,17 +176,15 @@ export const ChallengeService = {
       console.log('🌐 Attempting to fetch from API...');
       const token = await authService.getToken();
 
-      if (!token) {
-        throw new ChallengeAPIError('No authentication token found');
-      }
-
-      const challenges = await ChallengeAPI.getDailyChallenge(token);
+      const challenges = await ChallengeAPI.getDailyChallenge(token, language, effectiveLevel);
 
       if (!challenges || challenges.length === 0) {
         throw new ChallengeAPIError('API returned empty challenges array');
       }
 
-      setChallengeCache(challenges, cefrLevel);
+      if (!language) {
+        setChallengeCache(challenges, effectiveLevel);
+      }
 
       return {
         challenges,
@@ -191,8 +199,10 @@ export const ChallengeService = {
       // Check if fallback is enabled
       if (isFeatureEnabled('ENABLE_API_FALLBACK')) {
         console.log('🔄 Falling back to mock data');
-        const challenges = getMockChallenges(cefrLevel);
-        setChallengeCache(challenges, cefrLevel);
+        const challenges = getMockChallenges(effectiveLevel);
+        if (!language) {
+          setChallengeCache(challenges, effectiveLevel);
+        }
 
         return {
           challenges,
@@ -332,9 +342,16 @@ export const ChallengeService = {
   /**
    * Get available challenge counts by type
    *
+   * @param language - Optional language filter
+   * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Object with count per challenge type
    */
-  async getChallengeCounts(): Promise<Record<string, number>> {
+  async getChallengeCounts(
+    language?: Language,
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
+  ): Promise<Record<string, number>> {
     if (!isFeatureEnabled('USE_CHALLENGE_API')) {
       console.log('📊 API disabled, returning default counts');
       // Return default counts for mock data
@@ -350,12 +367,9 @@ export const ChallengeService = {
 
     try {
       const token = await authService.getToken();
+      console.log('📊 Fetching counts with source:', source || 'default');
 
-      if (!token) {
-        throw new ChallengeAPIError('No authentication token found');
-      }
-
-      const counts = await ChallengeAPI.getChallengeCounts(token);
+      const counts = await ChallengeAPI.getChallengeCounts(token, language, level, source);
       console.log('📊 Raw counts from API:', JSON.stringify(counts));
 
       // Validate counts object
@@ -392,18 +406,24 @@ export const ChallengeService = {
    *
    * @param challengeType - Type of challenge to fetch
    * @param limit - Maximum number to return
+   * @param language - Optional language filter
+   * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Array of challenges
    */
   async getChallengesByType(
     challengeType: string,
-    limit: number = 50
+    limit: number = 50,
+    language?: Language,
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
   ): Promise<ChallengeResult> {
-    console.log(`📚 Getting ${challengeType} challenges`);
+    console.log(`📚 Getting ${challengeType} challenges`, language ? `for ${language}` : '', level ? `level ${level}` : '', source ? `source: ${source}` : '');
 
     if (!isFeatureEnabled('USE_CHALLENGE_API')) {
       console.log('📦 API disabled, using mock data');
       // Return mock data of specific type
-      const challenges = getMockChallenges('B1').filter(
+      const challenges = getMockChallenges(level || 'B1').filter(
         c => c.type === challengeType
       );
       return {
@@ -417,14 +437,13 @@ export const ChallengeService = {
     try {
       const token = await authService.getToken();
 
-      if (!token) {
-        throw new ChallengeAPIError('No authentication token found');
-      }
-
       const challenges = await ChallengeAPI.getChallengesByType(
         token,
         challengeType,
-        limit
+        limit,
+        language,
+        level,
+        source
       );
 
       return {
@@ -440,7 +459,7 @@ export const ChallengeService = {
       // Fallback to mock data
       if (isFeatureEnabled('ENABLE_API_FALLBACK')) {
         console.log('🔄 Falling back to mock data');
-        const challenges = getMockChallenges('B1').filter(
+        const challenges = getMockChallenges(level || 'B1').filter(
           c => c.type === challengeType
         );
         return {
@@ -457,6 +476,36 @@ export const ChallengeService = {
         isLoading: false,
         error: errorMessage,
       };
+    }
+  },
+
+  /**
+   * Get available languages with challenge availability info
+   *
+   * @param level - Optional CEFR level to check availability for
+   * @returns Language availability information
+   */
+  async getLanguages(level?: CEFRLevel): Promise<{
+    success: boolean;
+    active_language: string | null;
+    languages: Array<{
+      language: Language;
+      has_learning_plan: boolean;
+      is_active: boolean;
+      available_challenges: number;
+    }>;
+  } | null> {
+    if (!isFeatureEnabled('USE_CHALLENGE_API')) {
+      console.log('📊 API disabled, cannot fetch languages');
+      return null;
+    }
+
+    try {
+      const token = await authService.getToken();
+      return await ChallengeAPI.getLanguages(token, level);
+    } catch (error) {
+      console.error('❌ Failed to fetch languages:', error);
+      return null;
     }
   },
 };
