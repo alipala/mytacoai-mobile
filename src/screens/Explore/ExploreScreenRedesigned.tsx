@@ -101,6 +101,8 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     C1: 0,
     C2: 0,
   });
+  const [loadingLevelCounts, setLoadingLevelCounts] = useState(false);
+  const [countCache, setCountCache] = useState<Record<string, Record<CEFRLevel, number>>>({});
 
   // Challenges
   const [challengeCounts, setChallengeCounts] = useState<Record<string, number>>({});
@@ -227,34 +229,65 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     );
   };
 
-  // Load challenge counts for all CEFR levels
+  // Load challenge counts for all CEFR levels (optimized with caching and parallel requests)
   const loadAllLevelCounts = async () => {
-    const levels: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    const counts: Record<CEFRLevel, number> = {
-      A1: 0,
-      A2: 0,
-      B1: 0,
-      B2: 0,
-      C1: 0,
-      C2: 0,
-    };
+    const cacheKey = selectedLanguage;
 
-    for (const level of levels) {
-      try {
-        const challengeCounts = await ChallengeService.getChallengeCounts(
-          selectedLanguage,
-          level,
-          'reference'
-        );
-        const total = Object.values(challengeCounts).reduce((sum, count) => sum + count, 0);
-        counts[level] = total;
-      } catch (error) {
-        console.error(`Error loading count for ${level}:`, error);
-        counts[level] = 0;
-      }
+    // Check cache first
+    if (countCache[cacheKey]) {
+      console.log(`📦 Using cached counts for ${cacheKey}`);
+      setLevelChallengeCount(countCache[cacheKey]);
+      return;
     }
 
-    setLevelChallengeCount(counts);
+    const levels: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+    setLoadingLevelCounts(true);
+    console.log(`📊 Fetching counts for ${selectedLanguage} (parallel requests)...`);
+
+    try {
+      // Make all API calls in parallel instead of sequential
+      const countPromises = levels.map(async (level) => {
+        try {
+          const challengeCounts = await ChallengeService.getChallengeCounts(
+            selectedLanguage,
+            level,
+            'reference'
+          );
+          const total = Object.values(challengeCounts).reduce((sum, count) => sum + count, 0);
+          return { level, total };
+        } catch (error) {
+          console.error(`Error loading count for ${level}:`, error);
+          return { level, total: 0 };
+        }
+      });
+
+      // Wait for all requests to complete
+      const results = await Promise.all(countPromises);
+
+      // Build counts object from results
+      const counts: Record<CEFRLevel, number> = {
+        A1: 0,
+        A2: 0,
+        B1: 0,
+        B2: 0,
+        C1: 0,
+        C2: 0,
+      };
+
+      results.forEach(({ level, total }) => {
+        counts[level] = total;
+      });
+
+      // Update state and cache
+      setLevelChallengeCount(counts);
+      setCountCache(prev => ({ ...prev, [cacheKey]: counts }));
+      console.log(`✅ Counts loaded and cached for ${cacheKey}`);
+    } catch (error) {
+      console.error('❌ Error loading level counts:', error);
+    } finally {
+      setLoadingLevelCounts(false);
+    }
   };
 
   const handlePlanSelection = async (plan: LearningPlan) => {
@@ -441,45 +474,30 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Animated Header with Gradient */}
+        {/* Clean Modern Header */}
         <Animated.View
           style={{
-            marginBottom: 40,
+            marginBottom: 32,
             opacity: headerOpacityAnim,
             transform: [{ scale: headerScaleAnim }],
           }}
         >
-          <LinearGradient
-            colors={['#4ECFBF', '#14B8A6', '#0F766E']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              paddingVertical: 24,
-              paddingHorizontal: 24,
-              borderRadius: 28,
-              marginBottom: 16,
-            }}
-          >
-            <Text style={{
-              fontSize: 40,
-              fontWeight: '900',
-              color: '#FFFFFF',
-              marginBottom: 12,
-              textShadowColor: 'rgba(0, 0, 0, 0.2)',
-              textShadowOffset: { width: 0, height: 2 },
-              textShadowRadius: 6,
-              letterSpacing: -1,
-            }}>
-              Explore
-            </Text>
-            <Text style={{
-              fontSize: 18,
-              color: '#F0FDFA',
-              fontWeight: '600',
-            }}>
-              👋 Hi {userName}, choose your practice mode
-            </Text>
-          </LinearGradient>
+          <Text style={{
+            fontSize: 34,
+            fontWeight: '700',
+            color: '#1F2937',
+            marginBottom: 8,
+            letterSpacing: -0.5,
+          }}>
+            Explore
+          </Text>
+          <Text style={{
+            fontSize: 17,
+            color: '#6B7280',
+            fontWeight: '500',
+          }}>
+            Hi {userName}, choose your practice mode
+          </Text>
         </Animated.View>
 
         {/* Completed Plans Card - Purple/Pink gradient */}
@@ -830,6 +848,28 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
               </Text>
             </LinearGradient>
 
+            {/* Loading Indicator */}
+            {loadingLevelCounts && (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#FEF3C7',
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 12,
+                marginBottom: 16,
+              }}>
+                <ActivityIndicator size="small" color="#D97706" style={{ marginRight: 12 }} />
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: '#92400E',
+                }}>
+                  Loading challenge counts...
+                </Text>
+              </View>
+            )}
+
             {/* Language Selection */}
             <Text style={{
               fontSize: 13,
@@ -948,14 +988,23 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
                       paddingHorizontal: 10,
                       paddingVertical: 4,
                       borderRadius: 12,
+                      minWidth: 50,
+                      alignItems: 'center',
                     }}>
-                      <Text style={{
-                        fontSize: 12,
-                        fontWeight: '700',
-                        color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#FFFFFF' : '#6B7280'),
-                      }}>
-                        {challengeCount} {isDisabled ? '🔒' : ''}
-                      </Text>
+                      {loadingLevelCounts ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={selectedLevel === level ? '#FFFFFF' : '#6B7280'}
+                        />
+                      ) : (
+                        <Text style={{
+                          fontSize: 12,
+                          fontWeight: '700',
+                          color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#FFFFFF' : '#6B7280'),
+                        }}>
+                          {challengeCount} {isDisabled ? '🔒' : ''}
+                        </Text>
+                      )}
                     </View>
                   </TouchableOpacity>
                 );
