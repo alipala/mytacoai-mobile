@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,21 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  Animated,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { Language, CEFRLevel, Challenge } from '../../services/mockChallengeData';
 import { ChallengeService, CHALLENGE_TYPES } from '../../services/challengeService';
 import { LearningService } from '../../api/generated/services/LearningService';
 import type { LearningPlan } from '../../api/generated';
 import { ExpandableChallengeCard } from '../../components/ExpandableChallengeCard';
 import { loadTodayCompletions, markChallengeCompleted } from '../../services/completionTracker';
+import { soundService } from '../../services/soundService';
 
 // Challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -24,6 +30,8 @@ import MicroQuizScreen from './challenges/MicroQuizScreen';
 import SmartFlashcardScreen from './challenges/SmartFlashcardScreen';
 import NativeCheckScreen from './challenges/NativeCheckScreen';
 import BrainTicklerScreen from './challenges/BrainTicklerScreen';
+
+const { width, height } = Dimensions.get('window');
 
 // Navigation states
 type NavigationState =
@@ -45,6 +53,13 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   const [navState, setNavState] = useState<NavigationState>('mode_selection');
   const [practiceMode, setPracticeMode] = useState<PracticeMode>(null);
 
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const headerScaleAnim = useRef(new Animated.Value(0.9)).current;
+  const headerOpacityAnim = useRef(new Animated.Value(0)).current;
+  const challengeModalAnim = useRef(new Animated.Value(height)).current;
+
   // User data
   const [userName, setUserName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -56,6 +71,14 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   // Freestyle mode
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('english');
   const [selectedLevel, setSelectedLevel] = useState<CEFRLevel>('B1');
+  const [levelChallengeCount, setLevelChallengeCount] = useState<Record<CEFRLevel, number>>({
+    A1: 0,
+    A2: 0,
+    B1: 0,
+    B2: 0,
+    C1: 0,
+    C2: 0,
+  });
 
   // Challenges
   const [challengeCounts, setChallengeCounts] = useState<Record<string, number>>({});
@@ -66,12 +89,35 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
 
+  // Initialize sound service
+  useEffect(() => {
+    soundService.initialize();
+  }, []);
+
   // Load initial data
   useEffect(() => {
     if (isFocused) {
       loadInitialData();
+      animateHeaderIn();
     }
   }, [isFocused]);
+
+  // Animate header when screen loads
+  const animateHeaderIn = () => {
+    Animated.parallel([
+      Animated.spring(headerScaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(headerOpacityAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const loadInitialData = async () => {
     try {
@@ -112,16 +158,97 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     }
   };
 
+  // Page transition animation
+  const transitionToScreen = (newState: NavigationState, callback: () => void) => {
+    soundService.play('swoosh');
+
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: -50,
+        duration: 0,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      callback();
+      slideAnim.setValue(50);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
+
   const handleModeSelection = (mode: PracticeMode) => {
-    setPracticeMode(mode);
-    if (mode === 'completed_plans') {
-      setNavState('completed_plans');
-    } else {
-      setNavState('freestyle_selection');
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    soundService.play('tap');
+
+    transitionToScreen(
+      mode === 'completed_plans' ? 'completed_plans' : 'freestyle_selection',
+      () => {
+        setPracticeMode(mode);
+        if (mode === 'completed_plans') {
+          setNavState('completed_plans');
+        } else {
+          setNavState('freestyle_selection');
+          // Preload challenge counts for all levels
+          loadAllLevelCounts();
+        }
+      }
+    );
+  };
+
+  // Load challenge counts for all CEFR levels
+  const loadAllLevelCounts = async () => {
+    const levels: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    const counts: Record<CEFRLevel, number> = {
+      A1: 0,
+      A2: 0,
+      B1: 0,
+      B2: 0,
+      C1: 0,
+      C2: 0,
+    };
+
+    for (const level of levels) {
+      try {
+        const challengeCounts = await ChallengeService.getChallengeCounts(
+          selectedLanguage,
+          level,
+          'reference'
+        );
+        const total = Object.values(challengeCounts).reduce((sum, count) => sum + count, 0);
+        counts[level] = total;
+      } catch (error) {
+        console.error(`Error loading count for ${level}:`, error);
+        counts[level] = 0;
+      }
+    }
+
+    setLevelChallengeCount(counts);
   };
 
   const handlePlanSelection = async (plan: LearningPlan) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    soundService.play('tap');
+
     setSelectedPlan(plan);
     setIsLoading(true);
 
@@ -136,7 +263,9 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
       setTotalChallengeCount(total);
 
-      setNavState('challenge_list');
+      transitionToScreen('challenge_list', () => {
+        setNavState('challenge_list');
+      });
     } catch (error) {
       console.error('❌ Error loading challenges:', error);
     } finally {
@@ -145,6 +274,11 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   };
 
   const handleFreestyleContinue = async () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    soundService.play('tap');
+
     setIsLoading(true);
 
     try {
@@ -155,7 +289,9 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
       setTotalChallengeCount(total);
 
-      setNavState('challenge_list');
+      transitionToScreen('challenge_list', () => {
+        setNavState('challenge_list');
+      });
     } catch (error) {
       console.error('❌ Error loading challenges:', error);
     } finally {
@@ -164,17 +300,23 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   };
 
   const handleBack = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    soundService.play('tap');
+
     if (navState === 'completed_plans' || navState === 'freestyle_selection') {
-      setNavState('mode_selection');
-      setPracticeMode(null);
+      transitionToScreen('mode_selection', () => {
+        setNavState('mode_selection');
+        setPracticeMode(null);
+      });
     } else if (navState === 'challenge_list') {
-      if (practiceMode === 'completed_plans') {
-        setNavState('completed_plans');
-      } else {
-        setNavState('freestyle_selection');
-      }
-      setExpandedCardType(null);
-      setCachedChallenges({});
+      const targetState = practiceMode === 'completed_plans' ? 'completed_plans' : 'freestyle_selection';
+      transitionToScreen(targetState, () => {
+        setNavState(targetState);
+        setExpandedCardType(null);
+        setCachedChallenges({});
+      });
     }
   };
 
@@ -214,11 +356,32 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
 
   const handleChallengePress = (challenge: Challenge) => {
     console.log('🎯 Opening challenge:', challenge.id, challenge.type);
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    soundService.play('tap');
+
+    // Animate challenge screen sliding up
+    challengeModalAnim.setValue(height);
     setSelectedChallenge(challenge);
+
+    Animated.spring(challengeModalAnim, {
+      toValue: 0,
+      tension: 50,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleChallengeComplete = async (challengeId: string, correct?: boolean, timeSpent?: number) => {
     console.log('🎉 Challenge completed:', challengeId);
+
+    // Play appropriate sound
+    if (correct !== undefined) {
+      soundService.play(correct ? 'correct' : 'wrong');
+    } else {
+      soundService.play('complete');
+    }
 
     // Mark as completed today in AsyncStorage
     await markChallengeCompleted(challengeId);
@@ -237,119 +400,279 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       // Don't block user - just log the error
     }
 
-    // Close challenge screen
-    setSelectedChallenge(null);
+    // Animate challenge screen sliding down
+    Animated.spring(challengeModalAnim, {
+      toValue: height,
+      tension: 50,
+      friction: 10,
+      useNativeDriver: true,
+    }).start(() => {
+      setSelectedChallenge(null);
+    });
   };
 
   const handleChallengeClose = () => {
     console.log('❌ Challenge closed without completion');
-    setSelectedChallenge(null);
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    // Animate challenge screen sliding down
+    Animated.spring(challengeModalAnim, {
+      toValue: height,
+      tension: 50,
+      friction: 10,
+      useNativeDriver: true,
+    }).start(() => {
+      setSelectedChallenge(null);
+    });
   };
 
   // Render functions for each screen
   const renderModeSelection = () => (
-    <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 24 }}>
-      <Text style={{ fontSize: 28, fontWeight: '700', color: '#1F2937', marginBottom: 8 }}>
-        Explore
-      </Text>
-      <Text style={{ fontSize: 16, color: '#6B7280', marginBottom: 32 }}>
-        👋 Hi {userName}, choose your practice mode
-      </Text>
-
-      {/* Completed Plans Card */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 16,
-          padding: 20,
-          marginBottom: 16,
-          borderWidth: 2,
-          borderColor: '#14B8A6',
-          shadowColor: '#14B8A6',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          elevation: 4,
-        }}
-        onPress={() => handleModeSelection('completed_plans')}
-        activeOpacity={0.7}
-        disabled={completedPlans.length === 0}
+    <Animated.View
+      style={{
+        flex: 1,
+        opacity: fadeAnim,
+        transform: [{ translateX: slideAnim }],
+      }}
+    >
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 32, marginRight: 12 }}>🎓</Text>
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#0F766E', flex: 1 }}>
-            Review Completed Plans
-          </Text>
-        </View>
-        <Text style={{ fontSize: 14, color: '#14B8A6', marginBottom: 16, lineHeight: 20 }}>
-          Practice from learning plans you've finished (100% complete)
-        </Text>
-        <View style={{
-          backgroundColor: '#F0FDFA',
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-          borderRadius: 8,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#0F766E' }}>
-            {completedPlans.length > 0
-              ? `${completedPlans.length} completed plan${completedPlans.length > 1 ? 's' : ''} available`
-              : 'No completed plans yet'}
-          </Text>
-          {completedPlans.length > 0 && (
-            <Text style={{ fontSize: 16, color: '#14B8A6' }}>→</Text>
-          )}
-        </View>
-      </TouchableOpacity>
+        {/* Animated Header with Gradient */}
+        <Animated.View
+          style={{
+            marginBottom: 40,
+            opacity: headerOpacityAnim,
+            transform: [{ scale: headerScaleAnim }],
+          }}
+        >
+          <LinearGradient
+            colors={['#4ECFBF', '#14B8A6', '#0F766E']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              paddingVertical: 20,
+              paddingHorizontal: 24,
+              borderRadius: 24,
+              marginBottom: 16,
+            }}
+          >
+            <Text style={{
+              fontSize: 36,
+              fontWeight: '800',
+              color: '#FFFFFF',
+              marginBottom: 8,
+              textShadowColor: 'rgba(0, 0, 0, 0.15)',
+              textShadowOffset: { width: 0, height: 2 },
+              textShadowRadius: 4,
+            }}>
+              Explore
+            </Text>
+            <Text style={{
+              fontSize: 18,
+              color: '#F0FDFA',
+              fontWeight: '600',
+            }}>
+              👋 Hi {userName}, choose your practice mode
+            </Text>
+          </LinearGradient>
+        </Animated.View>
 
-      {/* Freestyle Practice Card */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 16,
-          padding: 20,
-          borderWidth: 2,
-          borderColor: '#4ECFBF',
-          shadowColor: '#4ECFBF',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          elevation: 4,
-        }}
-        onPress={() => handleModeSelection('freestyle')}
-        activeOpacity={0.7}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 32, marginRight: 12 }}>🌍</Text>
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#0F766E', flex: 1 }}>
-            Freestyle Practice
-          </Text>
-        </View>
-        <Text style={{ fontSize: 14, color: '#14B8A6', marginBottom: 16, lineHeight: 20 }}>
-          Choose any language and level from our challenge library
-        </Text>
-        <View style={{
-          backgroundColor: '#F0FDFA',
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-          borderRadius: 8,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#0F766E' }}>
-            6 languages · All CEFR levels
-          </Text>
-          <Text style={{ fontSize: 16, color: '#14B8A6' }}>→</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
+        {/* Completed Plans Card - Full width immersive design */}
+        <TouchableOpacity
+          style={{
+            marginBottom: 20,
+            opacity: completedPlans.length === 0 ? 0.6 : 1,
+          }}
+          onPress={() => handleModeSelection('completed_plans')}
+          activeOpacity={0.8}
+          disabled={completedPlans.length === 0}
+        >
+          <LinearGradient
+            colors={completedPlans.length === 0 ? ['#E5E7EB', '#D1D5DB'] : ['#14B8A6', '#0F766E', '#0D9488']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              borderRadius: 24,
+              padding: 24,
+              minHeight: 180,
+              shadowColor: '#14B8A6',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: completedPlans.length === 0 ? 0 : 0.3,
+              shadowRadius: 16,
+              elevation: 8,
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                <View style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 16,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                }}>
+                  <Text style={{ fontSize: 36 }}>🎓</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
+                    fontSize: 24,
+                    fontWeight: '800',
+                    color: '#FFFFFF',
+                    marginBottom: 4,
+                    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 2,
+                  }}>
+                    Review Completed Plans
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={{
+                fontSize: 15,
+                color: 'rgba(255, 255, 255, 0.9)',
+                marginBottom: 20,
+                lineHeight: 22,
+              }}>
+                Practice from learning plans you've finished (100% complete)
+              </Text>
+
+              <View style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderRadius: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+              }}>
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: '#FFFFFF',
+                }}>
+                  {completedPlans.length > 0
+                    ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} available`
+                    : 'No completed plans yet'}
+                </Text>
+                {completedPlans.length > 0 && (
+                  <Text style={{ fontSize: 20, color: '#FFFFFF' }}>→</Text>
+                )}
+              </View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Freestyle Practice Card - Full width immersive design */}
+        <TouchableOpacity
+          style={{ marginBottom: 20 }}
+          onPress={() => handleModeSelection('freestyle')}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['#4ECFBF', '#14B8A6', '#0D9488']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              borderRadius: 24,
+              padding: 24,
+              minHeight: 180,
+              shadowColor: '#4ECFBF',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.3,
+              shadowRadius: 16,
+              elevation: 8,
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                <View style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 16,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                }}>
+                  <Text style={{ fontSize: 36 }}>🌍</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
+                    fontSize: 24,
+                    fontWeight: '800',
+                    color: '#FFFFFF',
+                    marginBottom: 4,
+                    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 2,
+                  }}>
+                    Freestyle Practice
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={{
+                fontSize: 15,
+                color: 'rgba(255, 255, 255, 0.9)',
+                marginBottom: 20,
+                lineHeight: 22,
+              }}>
+                Choose any language and level from our challenge library
+              </Text>
+
+              <View style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderRadius: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+              }}>
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: '#FFFFFF',
+                }}>
+                  6 languages · All CEFR levels
+                </Text>
+                <Text style={{ fontSize: 20, color: '#FFFFFF' }}>→</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    </Animated.View>
   );
 
   const renderCompletedPlans = () => (
-    <View style={{ flex: 1 }}>
+    <Animated.View
+      style={{
+        flex: 1,
+        opacity: fadeAnim,
+        transform: [{ translateX: slideAnim }],
+      }}
+    >
       {/* Header */}
       <View style={{
         flexDirection: 'row',
@@ -361,58 +684,69 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
         borderBottomColor: '#E5E7EB',
       }}>
         <TouchableOpacity onPress={handleBack} style={{ marginRight: 12 }}>
-          <Text style={{ fontSize: 24, color: '#4ECFBF' }}>←</Text>
+          <Text style={{ fontSize: 28, color: '#4ECFBF' }}>←</Text>
         </TouchableOpacity>
-        <Text style={{ fontSize: 20, fontWeight: '700', color: '#1F2937' }}>
+        <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
           Completed Plans
         </Text>
       </View>
 
-      <ScrollView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 20 }}>
-        {completedPlans.map((plan) => (
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {completedPlans.map((plan, index) => (
           <TouchableOpacity
             key={plan.id}
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 12,
-              padding: 16,
-              marginBottom: 12,
-              borderWidth: 1.5,
-              borderColor: '#14B8A6',
-              shadowColor: '#14B8A6',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
+            style={{ marginBottom: 16 }}
             onPress={() => handlePlanSelection(plan)}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{ fontSize: 24, marginRight: 8 }}>
-                {plan.language === 'english' ? '🇬🇧' :
-                 plan.language === 'spanish' ? '🇪🇸' :
-                 plan.language === 'dutch' ? '🇳🇱' :
-                 plan.language === 'german' ? '🇩🇪' :
-                 plan.language === 'french' ? '🇫🇷' : '🇵🇹'}
+            <LinearGradient
+              colors={['#14B8A6', '#0F766E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 20,
+                padding: 20,
+                shadowColor: '#14B8A6',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                elevation: 4,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={{ fontSize: 32, marginRight: 12 }}>
+                  {plan.language === 'english' ? '🇬🇧' :
+                   plan.language === 'spanish' ? '🇪🇸' :
+                   plan.language === 'dutch' ? '🇳🇱' :
+                   plan.language === 'german' ? '🇩🇪' :
+                   plan.language === 'french' ? '🇫🇷' : '🇵🇹'}
+                </Text>
+                <Text style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                  color: '#FFFFFF',
+                }}>
+                  {plan.language.charAt(0).toUpperCase() + plan.language.slice(1)} · {plan.proficiency_level}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={{ fontSize: 20, marginRight: 6 }}>✅</Text>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: 'rgba(255, 255, 255, 0.9)' }}>
+                  100% Complete
+                </Text>
+              </View>
+              <Text style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.8)' }}>
+                {plan.total_sessions || 0} sessions · {plan.completed_sessions || 0} completed
               </Text>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F766E' }}>
-                {plan.language.charAt(0).toUpperCase() + plan.language.slice(1)} · {plan.proficiency_level}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{ fontSize: 20, marginRight: 6 }}>✅</Text>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: '#14B8A6' }}>
-                100% Complete
-              </Text>
-            </View>
-            <Text style={{ fontSize: 13, color: '#6B7280' }}>
-              {plan.total_sessions || 0} sessions · {plan.completed_sessions || 0} completed
-            </Text>
+            </LinearGradient>
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 
   const renderFreestyleSelection = () => {
@@ -425,10 +759,23 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       { code: 'portuguese' as Language, name: 'Portuguese', flag: '🇵🇹' },
     ];
 
-    const LEVELS: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    const LEVELS: { level: CEFRLevel; name: string }[] = [
+      { level: 'A1', name: 'Beginner' },
+      { level: 'A2', name: 'Elementary' },
+      { level: 'B1', name: 'Intermediate' },
+      { level: 'B2', name: 'Upper Intermediate' },
+      { level: 'C1', name: 'Advanced' },
+      { level: 'C2', name: 'Proficient' },
+    ];
 
     return (
-      <View style={{ flex: 1 }}>
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: fadeAnim,
+          transform: [{ translateX: slideAnim }],
+        }}
+      >
         {/* Header */}
         <View style={{
           flexDirection: 'row',
@@ -440,131 +787,233 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
           borderBottomColor: '#E5E7EB',
         }}>
           <TouchableOpacity onPress={handleBack} style={{ marginRight: 12 }}>
-            <Text style={{ fontSize: 24, color: '#4ECFBF' }}>←</Text>
+            <Text style={{ fontSize: 28, color: '#4ECFBF' }}>←</Text>
           </TouchableOpacity>
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#1F2937' }}>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
             Choose Language & Level
           </Text>
         </View>
 
-        <ScrollView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 20 }}>
-          {/* Selected Summary */}
-          <View style={{
-            backgroundColor: '#F0FDFA',
-            borderRadius: 12,
-            padding: 16,
-            marginBottom: 24,
-            borderLeftWidth: 4,
-            borderLeftColor: '#14B8A6',
-          }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F766E', marginBottom: 4 }}>
-              Selected: {LANGUAGES.find(l => l.code === selectedLanguage)?.name} · {selectedLevel}
-            </Text>
-            <Text style={{ fontSize: 13, color: '#14B8A6' }}>
-              Tap Continue to see challenges
-            </Text>
-          </View>
-
-          {/* Language Selection */}
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#6B7280', marginBottom: 12, textTransform: 'uppercase' }}>
-            🌍 LANGUAGE
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
-            {LANGUAGES.map((lang) => (
-              <TouchableOpacity
-                key={lang.code}
-                style={{
-                  width: '48%',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: selectedLanguage === lang.code ? '#F0FDFA' : '#F9FAFB',
-                  borderRadius: 12,
-                  padding: 14,
-                  borderWidth: 1.5,
-                  borderColor: selectedLanguage === lang.code ? '#4ECFBF' : '#E5E7EB',
-                }}
-                onPress={() => setSelectedLanguage(lang.code)}
-                activeOpacity={0.7}
-              >
-                <Text style={{ fontSize: 24, marginRight: 10 }}>{lang.flag}</Text>
-                <Text style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: selectedLanguage === lang.code ? '#0F766E' : '#6B7280',
-                }}>
-                  {lang.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Level Selection */}
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#6B7280', marginBottom: 12, textTransform: 'uppercase' }}>
-            📊 CEFR LEVEL
-          </Text>
-          <View style={{ gap: 10, marginBottom: 24 }}>
-            {LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  backgroundColor: selectedLevel === level ? '#F0FDFA' : '#F9FAFB',
-                  borderRadius: 12,
-                  padding: 14,
-                  borderWidth: 1.5,
-                  borderColor: selectedLevel === level ? '#4ECFBF' : '#E5E7EB',
-                }}
-                onPress={() => setSelectedLevel(level)}
-                activeOpacity={0.7}
-              >
-                <Text style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  color: selectedLevel === level ? '#0F766E' : '#6B7280',
-                  minWidth: 36,
-                }}>
-                  {level}
-                </Text>
-                <Text style={{
-                  fontSize: 14,
-                  color: selectedLevel === level ? '#14B8A6' : '#9CA3AF',
-                  flex: 1,
-                }}>
-                  {level === 'A1' ? 'Beginner' :
-                   level === 'A2' ? 'Elementary' :
-                   level === 'B1' ? 'Intermediate' :
-                   level === 'B2' ? 'Upper Intermediate' :
-                   level === 'C1' ? 'Advanced' : 'Proficient'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Continue Button */}
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#4ECFBF',
-              borderRadius: 12,
-              paddingVertical: 16,
-              alignItems: 'center',
-              marginBottom: 32,
-              shadowColor: '#4ECFBF',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-            onPress={handleFreestyleContinue}
-            activeOpacity={0.8}
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 120 }}
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF' }}>
-              Continue to Challenges
+            {/* Selected Summary with gradient */}
+            <LinearGradient
+              colors={['#F0FDFA', '#E8F7F5']}
+              style={{
+                borderRadius: 16,
+                padding: 20,
+                marginBottom: 28,
+                borderLeftWidth: 5,
+                borderLeftColor: '#14B8A6',
+                shadowColor: '#14B8A6',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+              }}
+            >
+              <Text style={{
+                fontSize: 18,
+                fontWeight: '800',
+                color: '#0F766E',
+                marginBottom: 6,
+              }}>
+                Selected: {LANGUAGES.find(l => l.code === selectedLanguage)?.name} · {selectedLevel}
+              </Text>
+              <Text style={{ fontSize: 14, color: '#14B8A6', fontWeight: '600' }}>
+                Tap Continue to see challenges
+              </Text>
+            </LinearGradient>
+
+            {/* Language Selection */}
+            <Text style={{
+              fontSize: 13,
+              fontWeight: '800',
+              color: '#6B7280',
+              marginBottom: 16,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+            }}>
+              🌍 LANGUAGE
             </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+              {LANGUAGES.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={{
+                    width: (width - 52) / 2,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: selectedLanguage === lang.code ? '#F0FDFA' : '#F9FAFB',
+                    borderRadius: 16,
+                    padding: 16,
+                    borderWidth: 2,
+                    borderColor: selectedLanguage === lang.code ? '#4ECFBF' : '#E5E7EB',
+                    shadowColor: selectedLanguage === lang.code ? '#4ECFBF' : '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: selectedLanguage === lang.code ? 0.2 : 0.05,
+                    shadowRadius: 4,
+                  }}
+                  onPress={() => {
+                    setSelectedLanguage(lang.code);
+                    loadAllLevelCounts();
+                    if (Platform.OS === 'ios') {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                    soundService.play('tap');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 28, marginRight: 12 }}>{lang.flag}</Text>
+                  <Text style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: selectedLanguage === lang.code ? '#0F766E' : '#6B7280',
+                  }}>
+                    {lang.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Level Selection */}
+            <Text style={{
+              fontSize: 13,
+              fontWeight: '800',
+              color: '#6B7280',
+              marginBottom: 16,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+            }}>
+              📊 CEFR LEVEL
+            </Text>
+            <View style={{ gap: 12, marginBottom: 32 }}>
+              {LEVELS.map(({ level, name }) => {
+                const challengeCount = levelChallengeCount[level] || 0;
+                const isDisabled = challengeCount === 0;
+
+                return (
+                  <TouchableOpacity
+                    key={level}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: isDisabled ? '#F3F4F6' : (selectedLevel === level ? '#F0FDFA' : '#F9FAFB'),
+                      borderRadius: 16,
+                      padding: 16,
+                      borderWidth: 2,
+                      borderColor: isDisabled ? '#D1D5DB' : (selectedLevel === level ? '#4ECFBF' : '#E5E7EB'),
+                      opacity: isDisabled ? 0.5 : 1,
+                      shadowColor: selectedLevel === level && !isDisabled ? '#4ECFBF' : '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: selectedLevel === level && !isDisabled ? 0.2 : 0.05,
+                      shadowRadius: 4,
+                    }}
+                    onPress={() => {
+                      if (!isDisabled) {
+                        setSelectedLevel(level);
+                        if (Platform.OS === 'ios') {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }
+                        soundService.play('tap');
+                      }
+                    }}
+                    activeOpacity={isDisabled ? 1 : 0.7}
+                    disabled={isDisabled}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <Text style={{
+                        fontSize: 18,
+                        fontWeight: '800',
+                        color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#0F766E' : '#6B7280'),
+                        minWidth: 40,
+                      }}>
+                        {level}
+                      </Text>
+                      <Text style={{
+                        fontSize: 15,
+                        color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#14B8A6' : '#9CA3AF'),
+                        marginLeft: 12,
+                        flex: 1,
+                      }}>
+                        {name}
+                      </Text>
+                    </View>
+                    <View style={{
+                      backgroundColor: isDisabled ? '#E5E7EB' : (selectedLevel === level ? '#4ECFBF' : '#D1D5DB'),
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 12,
+                    }}>
+                      <Text style={{
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#FFFFFF' : '#6B7280'),
+                      }}>
+                        {challengeCount} {isDisabled ? '🔒' : ''}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          {/* Sticky Continue Button at bottom */}
+          <View style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 12,
+            elevation: 8,
+          }}>
+            <TouchableOpacity
+              style={{ opacity: levelChallengeCount[selectedLevel] === 0 ? 0.5 : 1 }}
+              onPress={handleFreestyleContinue}
+              activeOpacity={0.8}
+              disabled={levelChallengeCount[selectedLevel] === 0}
+            >
+              <LinearGradient
+                colors={levelChallengeCount[selectedLevel] === 0 ? ['#9CA3AF', '#6B7280'] : ['#4ECFBF', '#14B8A6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  borderRadius: 16,
+                  paddingVertical: 18,
+                  alignItems: 'center',
+                  shadowColor: '#4ECFBF',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: levelChallengeCount[selectedLevel] === 0 ? 0 : 0.3,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                <Text style={{
+                  fontSize: 18,
+                  fontWeight: '800',
+                  color: '#FFFFFF',
+                }}>
+                  Continue to Challenges
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Animated.View>
     );
   };
 
@@ -574,7 +1023,13 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       : `${selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)} ${selectedLevel}`;
 
     return (
-      <View style={{ flex: 1 }}>
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: fadeAnim,
+          transform: [{ translateX: slideAnim }],
+        }}
+      >
         {/* Header */}
         <View style={{
           flexDirection: 'row',
@@ -586,19 +1041,23 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
           borderBottomColor: '#E5E7EB',
         }}>
           <TouchableOpacity onPress={handleBack} style={{ marginRight: 12 }}>
-            <Text style={{ fontSize: 24, color: '#4ECFBF' }}>←</Text>
+            <Text style={{ fontSize: 28, color: '#4ECFBF' }}>←</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 20, fontWeight: '700', color: '#1F2937' }}>
+            <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
               {title} Challenges
             </Text>
-            <Text style={{ fontSize: 13, color: '#6B7280' }}>
+            <Text style={{ fontSize: 14, color: '#6B7280' }}>
               {totalChallengeCount} challenges available
             </Text>
           </View>
         </View>
 
-        <ScrollView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 20 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
           {CHALLENGE_TYPES.map((category) => {
             const count = challengeCounts[category.type] || 0;
             const isExpanded = expandedCardType === category.type;
@@ -623,11 +1082,11 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
             );
           })}
         </ScrollView>
-      </View>
+      </Animated.View>
     );
   };
 
-  // Render challenge screen based on type
+  // Render challenge screen based on type with slide-up animation
   const renderChallengeScreen = () => {
     if (!selectedChallenge) return null;
 
@@ -637,28 +1096,46 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       onClose: handleChallengeClose,
     };
 
+    let ChallengeComponent = null;
+
     switch (selectedChallenge.type) {
       case 'error_spotting':
-        return <ErrorSpottingScreen {...commonProps} />;
+        ChallengeComponent = <ErrorSpottingScreen {...commonProps} />;
+        break;
       case 'swipe_fix':
-        return <SwipeFixScreen {...commonProps} />;
+        ChallengeComponent = <SwipeFixScreen {...commonProps} />;
+        break;
       case 'micro_quiz':
-        return <MicroQuizScreen {...commonProps} />;
+        ChallengeComponent = <MicroQuizScreen {...commonProps} />;
+        break;
       case 'smart_flashcard':
-        return <SmartFlashcardScreen {...commonProps} />;
+        ChallengeComponent = <SmartFlashcardScreen {...commonProps} />;
+        break;
       case 'native_check':
-        return <NativeCheckScreen {...commonProps} />;
+        ChallengeComponent = <NativeCheckScreen {...commonProps} />;
+        break;
       case 'brain_tickler':
-        return <BrainTicklerScreen {...commonProps} />;
-      default:
-        return null;
+        ChallengeComponent = <BrainTicklerScreen {...commonProps} />;
+        break;
     }
-  };
 
-  // Show challenge screen if one is selected
-  if (selectedChallenge) {
-    return renderChallengeScreen();
-  }
+    return (
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          transform: [{ translateY: challengeModalAnim }],
+          backgroundColor: '#FFFFFF',
+          zIndex: 1000,
+        }}
+      >
+        {ChallengeComponent}
+      </Animated.View>
+    );
+  };
 
   // Main render
   if (isLoading && navState === 'mode_selection') {
@@ -682,6 +1159,7 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       {navState === 'completed_plans' && renderCompletedPlans()}
       {navState === 'freestyle_selection' && renderFreestyleSelection()}
       {navState === 'challenge_list' && renderChallengeList()}
+      {selectedChallenge && renderChallengeScreen()}
     </SafeAreaView>
   );
 }
