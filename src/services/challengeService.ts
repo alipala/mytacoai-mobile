@@ -344,9 +344,14 @@ export const ChallengeService = {
    *
    * @param language - Optional language filter
    * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Object with count per challenge type
    */
-  async getChallengeCounts(language?: Language, level?: CEFRLevel): Promise<Record<string, number>> {
+  async getChallengeCounts(
+    language?: Language,
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
+  ): Promise<Record<string, number>> {
     if (!isFeatureEnabled('USE_CHALLENGE_API')) {
       console.log('📊 API disabled, returning default counts');
       // Return default counts for mock data
@@ -362,8 +367,9 @@ export const ChallengeService = {
 
     try {
       const token = await authService.getToken();
+      console.log('📊 Fetching counts with source:', source || 'default');
 
-      const counts = await ChallengeAPI.getChallengeCounts(token, language, level);
+      const counts = await ChallengeAPI.getChallengeCounts(token, language, level, source);
       console.log('📊 Raw counts from API:', JSON.stringify(counts));
 
       // Validate counts object
@@ -402,15 +408,17 @@ export const ChallengeService = {
    * @param limit - Maximum number to return
    * @param language - Optional language filter
    * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Array of challenges
    */
   async getChallengesByType(
     challengeType: string,
     limit: number = 50,
     language?: Language,
-    level?: CEFRLevel
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
   ): Promise<ChallengeResult> {
-    console.log(`📚 Getting ${challengeType} challenges`, language ? `for ${language}` : '', level ? `level ${level}` : '');
+    console.log(`📚 Getting ${challengeType} challenges`, language ? `for ${language}` : '', level ? `level ${level}` : '', source ? `source: ${source}` : '');
 
     if (!isFeatureEnabled('USE_CHALLENGE_API')) {
       console.log('📦 API disabled, using mock data');
@@ -434,7 +442,8 @@ export const ChallengeService = {
         challengeType,
         limit,
         language,
-        level
+        level,
+        source
       );
 
       return {

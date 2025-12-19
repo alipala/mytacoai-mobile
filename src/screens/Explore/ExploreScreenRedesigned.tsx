@@ -126,11 +126,11 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     setIsLoading(true);
 
     try {
-      // Load challenges for this plan
+      // Load challenges for this plan using learning_plan source (personalized)
       const lang = plan.language as Language;
       const level = plan.proficiency_level as CEFRLevel;
 
-      const counts = await ChallengeService.getChallengeCounts(lang, level);
+      const counts = await ChallengeService.getChallengeCounts(lang, level, 'learning_plan');
       setChallengeCounts(counts);
 
       const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -148,7 +148,8 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     setIsLoading(true);
 
     try {
-      const counts = await ChallengeService.getChallengeCounts(selectedLanguage, selectedLevel);
+      // Use 'reference' source for freestyle - fetches from reference_challenges collection
+      const counts = await ChallengeService.getChallengeCounts(selectedLanguage, selectedLevel, 'reference');
       setChallengeCounts(counts);
 
       const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -195,7 +196,10 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       const lang = selectedPlan?.language as Language || selectedLanguage;
       const level = selectedPlan?.proficiency_level as CEFRLevel || selectedLevel;
 
-      const result = await ChallengeService.getChallengesByType(challengeType, 50, lang, level);
+      // Use appropriate source based on practice mode
+      const source = practiceMode === 'completed_plans' ? 'learning_plan' : 'reference';
+
+      const result = await ChallengeService.getChallengesByType(challengeType, 50, lang, level, source);
 
       setCachedChallenges(prev => ({
         ...prev,

@@ -116,13 +116,15 @@ export const ChallengeAPI = {
    * @param token - Authentication token (optional for guest users)
    * @param language - Optional language filter
    * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Object with count per challenge type
    * @throws ChallengeAPIError on failure
    */
   async getChallengeCounts(
     token: string | null,
     language?: Language,
-    level?: CEFRLevel
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
   ): Promise<Record<string, number>> {
     return retryFetch(async () => {
       const baseUrl = getApiBaseUrl();
@@ -130,6 +132,7 @@ export const ChallengeAPI = {
 
       if (language) params.append('language', language);
       if (level) params.append('level', level);
+      if (source) params.append('source', source);
 
       const queryString = params.toString();
       const url = `${baseUrl}/api/challenges/counts${queryString ? `?${queryString}` : ''}`;
@@ -181,6 +184,7 @@ export const ChallengeAPI = {
    * @param limit - Maximum number of challenges to return
    * @param language - Optional language filter
    * @param level - Optional CEFR level filter
+   * @param source - Challenge source: 'reference' for reference_challenges, 'learning_plan' for personalized
    * @returns Array of challenges of specified type
    * @throws ChallengeAPIError on failure
    */
@@ -189,7 +193,8 @@ export const ChallengeAPI = {
     challengeType: string,
     limit: number = 50,
     language?: Language,
-    level?: CEFRLevel
+    level?: CEFRLevel,
+    source?: 'reference' | 'learning_plan'
   ): Promise<Challenge[]> {
     return retryFetch(async () => {
       const baseUrl = getApiBaseUrl();
@@ -198,6 +203,7 @@ export const ChallengeAPI = {
       params.append('limit', limit.toString());
       if (language) params.append('language', language);
       if (level) params.append('level', level);
+      if (source) params.append('source', source);
 
       const url = `${baseUrl}/api/challenges/by-type/${challengeType}?${params.toString()}`;
 
