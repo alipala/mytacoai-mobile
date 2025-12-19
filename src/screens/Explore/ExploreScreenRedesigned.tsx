@@ -15,7 +15,15 @@ import { ChallengeService, CHALLENGE_TYPES } from '../../services/challengeServi
 import { LearningService } from '../../api/generated/services/LearningService';
 import type { LearningPlan } from '../../api/generated';
 import { ExpandableChallengeCard } from '../../components/ExpandableChallengeCard';
-import { loadTodayCompletions } from '../../services/completionTracker';
+import { loadTodayCompletions, markChallengeCompleted } from '../../services/completionTracker';
+
+// Challenge screens
+import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
+import SwipeFixScreen from './challenges/SwipeFixScreen';
+import MicroQuizScreen from './challenges/MicroQuizScreen';
+import SmartFlashcardScreen from './challenges/SmartFlashcardScreen';
+import NativeCheckScreen from './challenges/NativeCheckScreen';
+import BrainTicklerScreen from './challenges/BrainTicklerScreen';
 
 // Navigation states
 type NavigationState =
@@ -201,7 +209,37 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   };
 
   const handleChallengePress = (challenge: Challenge) => {
+    console.log('🎯 Opening challenge:', challenge.id, challenge.type);
     setSelectedChallenge(challenge);
+  };
+
+  const handleChallengeComplete = async (challengeId: string, correct?: boolean, timeSpent?: number) => {
+    console.log('🎉 Challenge completed:', challengeId);
+
+    // Mark as completed today in AsyncStorage
+    await markChallengeCompleted(challengeId);
+    setCompletedToday((prev) => new Set(prev).add(challengeId));
+
+    // Send completion to backend
+    try {
+      await ChallengeService.completeChallenge(
+        challengeId,
+        correct ?? true,
+        timeSpent ?? 0
+      );
+      console.log('✅ Challenge completion tracked on backend');
+    } catch (error) {
+      console.error('❌ Failed to track completion on backend:', error);
+      // Don't block user - just log the error
+    }
+
+    // Close challenge screen
+    setSelectedChallenge(null);
+  };
+
+  const handleChallengeClose = () => {
+    console.log('❌ Challenge closed without completion');
+    setSelectedChallenge(null);
   };
 
   // Render functions for each screen
@@ -585,6 +623,39 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
     );
   };
 
+  // Render challenge screen based on type
+  const renderChallengeScreen = () => {
+    if (!selectedChallenge) return null;
+
+    const commonProps = {
+      challenge: selectedChallenge,
+      onComplete: handleChallengeComplete,
+      onClose: handleChallengeClose,
+    };
+
+    switch (selectedChallenge.type) {
+      case 'error_spotting':
+        return <ErrorSpottingScreen {...commonProps} />;
+      case 'swipe_fix':
+        return <SwipeFixScreen {...commonProps} />;
+      case 'micro_quiz':
+        return <MicroQuizScreen {...commonProps} />;
+      case 'smart_flashcard':
+        return <SmartFlashcardScreen {...commonProps} />;
+      case 'native_check':
+        return <NativeCheckScreen {...commonProps} />;
+      case 'brain_tickler':
+        return <BrainTicklerScreen {...commonProps} />;
+      default:
+        return null;
+    }
+  };
+
+  // Show challenge screen if one is selected
+  if (selectedChallenge) {
+    return renderChallengeScreen();
+  }
+
   // Main render
   if (isLoading && navState === 'mode_selection') {
     return (
@@ -607,9 +678,6 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       {navState === 'completed_plans' && renderCompletedPlans()}
       {navState === 'freestyle_selection' && renderFreestyleSelection()}
       {navState === 'challenge_list' && renderChallengeList()}
-
-      {/* Challenge Modals (if needed) */}
-      {/* Add your challenge screen modals here */}
     </SafeAreaView>
   );
 }
