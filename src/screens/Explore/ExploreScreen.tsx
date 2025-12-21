@@ -46,6 +46,10 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [challengeCounts, setChallengeCounts] = useState<Record<string, number>>({});
+  const [progressStats, setProgressStats] = useState<{
+    completed_by_type: Record<string, number>;
+    total_completed: number;
+  } | null>(null);
 
   // Language/Level selection state
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('english');
@@ -224,11 +228,28 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
       const counts = await ChallengeService.getChallengeCounts(lang, lvl);
       setChallengeCounts(counts);
 
-      // Calculate total challenge count
-      const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+      // Calculate total challenge count (exclude 'total' field to avoid double counting)
+      const total = Object.entries(counts)
+        .filter(([key]) => key !== 'total')
+        .reduce((sum, [, count]) => sum + count, 0);
       setTotalChallengeCount(total);
 
       console.log('📊 Challenge counts loaded:', counts, 'Total:', total);
+
+      // Load user progress stats
+      try {
+        const { getChallengeProgress } = await import('../../services/progressAPI');
+        const progress = await getChallengeProgress(lang, lvl);
+        setProgressStats({
+          completed_by_type: progress.completed_by_type,
+          total_completed: progress.completed_count,
+        });
+        console.log('📈 Progress loaded:', progress.completed_count, '/', progress.total_available);
+      } catch (progressError) {
+        console.warn('Failed to load progress stats:', progressError);
+        // Continue without progress - not critical
+        setProgressStats(null);
+      }
     } catch (error) {
       console.error('Failed to load challenge counts:', error);
     }
@@ -648,6 +669,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
             {/* Challenge Cards */}
             {CHALLENGE_TYPES.map((category) => {
               const count = challengeCounts[category.type] || 0;
+              const completed = progressStats?.completed_by_type[category.type] || 0;
               const isExpanded = expandedCardType === category.type;
               const isLoading = loadingType === category.type;
               const challenges = cachedChallenges[category.type] || [];
@@ -660,6 +682,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
                   emoji={category.emoji}
                   description={category.description}
                   totalCount={count}
+                  completedCount={completed}
                   challenges={challenges}
                   isExpanded={isExpanded}
                   isLoading={isLoading}

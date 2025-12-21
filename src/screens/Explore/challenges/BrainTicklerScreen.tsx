@@ -17,7 +17,7 @@ import { COLORS } from '../../../constants/colors';
 
 interface BrainTicklerScreenProps {
   challenge: BrainTicklerChallenge;
-  onComplete: (challengeId: string) => void;
+  onComplete: (challengeId: string, isCorrect: boolean, details?: any) => void;
   onClose: () => void;
 }
 
@@ -35,6 +35,16 @@ export default function BrainTicklerScreen({
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+
+  // Reset state when challenge changes
+  useEffect(() => {
+    setTimeLeft(challenge.timeLimit);
+    setSelectedOption(null);
+    setShowFeedback(false);
+    setTimerActive(true);
+    progressAnim.setValue(0);
+    pulseAnim.setValue(1);
+  }, [challenge.id]);
 
   // Timer logic
   useEffect(() => {
@@ -106,7 +116,13 @@ export default function BrainTicklerScreen({
   };
 
   const handleDone = () => {
-    onComplete(challenge.id);
+    const isCorrect = isCorrectAnswer();
+    const correctOption = challenge.options.find((o) => o.isCorrect);
+
+    onComplete(challenge.id, isCorrect, {
+      correctAnswer: correctOption?.text || '',
+      explanation: challenge.explanation,
+    });
   };
 
   const isCorrectAnswer = () => {
@@ -127,20 +143,7 @@ export default function BrainTicklerScreen({
   const circumference = 2 * Math.PI * 45; // radius = 45
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Header with close button */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.closeButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close" size={28} color={COLORS.textGray} />
-        </TouchableOpacity>
-      </View>
-
+    <View style={styles.container}>
       {/* Content */}
       <View style={styles.content}>
         {!showFeedback ? (
@@ -274,7 +277,7 @@ export default function BrainTicklerScreen({
           </>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -282,17 +285,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    alignItems: 'flex-end',
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
     flex: 1,

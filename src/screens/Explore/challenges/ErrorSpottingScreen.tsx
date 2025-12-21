@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { COLORS } from '../../../constants/colors';
 
 interface ErrorSpottingScreenProps {
   challenge: ErrorSpottingChallenge;
-  onComplete: (challengeId: string) => void;
+  onComplete: (challengeId: string, isCorrect: boolean, details?: any) => void;
   onClose: () => void;
 }
 
@@ -26,6 +26,12 @@ export default function ErrorSpottingScreen({
 }: ErrorSpottingScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // Reset state when challenge changes
+  useEffect(() => {
+    setSelectedOption(null);
+    setShowFeedback(false);
+  }, [challenge.id]);
 
   const handleOptionSelect = (optionId: string) => {
     if (showFeedback) return; // Prevent selection after answer
@@ -47,7 +53,13 @@ export default function ErrorSpottingScreen({
   };
 
   const handleDone = () => {
-    onComplete(challenge.id);
+    const isCorrect = isCorrectAnswer();
+    const correctOption = challenge.options.find((o) => o.isCorrect);
+
+    onComplete(challenge.id, isCorrect, {
+      correctAnswer: correctOption?.text || challenge.correctedSentence,
+      explanation: challenge.explanation,
+    });
   };
 
   const isCorrectAnswer = () => {
@@ -57,20 +69,7 @@ export default function ErrorSpottingScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Header with close button */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.closeButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close" size={28} color={COLORS.textGray} />
-        </TouchableOpacity>
-      </View>
-
+    <View style={styles.container}>
       {/* Content */}
       <View style={styles.content}>
         {!showFeedback ? (
@@ -146,19 +145,19 @@ export default function ErrorSpottingScreen({
                 <Text style={styles.explanationText}>{challenge.explanation}</Text>
               </View>
 
-              {/* Done Button */}
+              {/* Next Button */}
               <TouchableOpacity
                 style={styles.doneButton}
                 onPress={handleDone}
                 activeOpacity={0.8}
               >
-                <Text style={styles.doneButtonText}>Done</Text>
+                <Text style={styles.doneButtonText}>Next →</Text>
               </TouchableOpacity>
             </View>
           </>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -166,17 +165,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    alignItems: 'flex-end',
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
     flex: 1,

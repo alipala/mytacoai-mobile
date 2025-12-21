@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface SwipeFixScreenProps {
   challenge: SwipeFixChallenge;
-  onComplete: (challengeId: string) => void;
+  onComplete: (challengeId: string, isCorrect: boolean, details?: any) => void;
   onClose: () => void;
 }
 
@@ -32,6 +32,13 @@ export default function SwipeFixScreen({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hasViewed, setHasViewed] = useState(false);
   const translateX = useRef(new Animated.Value(0)).current;
+
+  // Reset state when challenge changes
+  useEffect(() => {
+    setCurrentIndex(0);
+    setHasViewed(false);
+    translateX.setValue(0);
+  }, [challenge.id]);
 
   const currentExample = challenge.examples[currentIndex];
 
@@ -107,24 +114,15 @@ export default function SwipeFixScreen({
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
-    onComplete(challenge.id);
+    // SwipeFixChallenge is educational, not right/wrong, so always mark as correct
+    onComplete(challenge.id, true, {
+      correctAnswer: challenge.concept,
+      explanation: `You reviewed ${challenge.examples.length} examples of: ${challenge.concept}`,
+    });
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Header with close button */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.closeButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close" size={28} color={COLORS.textGray} />
-        </TouchableOpacity>
-      </View>
-
+    <View style={styles.container}>
       {/* Content */}
       <View style={styles.content}>
         {/* Title Section */}
@@ -204,7 +202,7 @@ export default function SwipeFixScreen({
           </TouchableOpacity>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -212,17 +210,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    alignItems: 'flex-end',
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
     flex: 1,

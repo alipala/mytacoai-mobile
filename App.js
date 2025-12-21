@@ -52,6 +52,12 @@ import {
   setBadgeCount,
 } from './src/services/notificationService';
 
+// Context Providers
+import { ChallengeSessionProvider } from './src/contexts/ChallengeSessionContext';
+
+// Challenge Screens
+import ChallengeSessionScreen from './src/screens/Explore/ChallengeSessionScreen';
+
 import './src/api/config'; // Initialize API config
 
 const Stack = createStackNavigator();
@@ -62,7 +68,7 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarActiveTintColor: '#4FD1C5',
+        tabBarActiveTintColor: '#06B6D4', // Modern turquoise - matches app theme
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -83,12 +89,14 @@ function MainTabs() {
         },
         tabBarIcon: ({ focused, color }) => {
           let iconName;
-          let iconSize = 28;
+          const iconSize = 26; // Consistent size for all icons - prevents cutoff
 
           if (route.name === 'Dashboard') {
-            iconName = focused ? 'home' : 'home-outline';
+            // Conversation bubbles - modern, immersive, represents speaking/dialogue
+            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           } else if (route.name === 'Explore') {
-            iconName = focused ? 'compass' : 'compass-outline';
+            // Trophy icon for Challenges
+            iconName = focused ? 'trophy' : 'trophy-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -97,22 +105,22 @@ function MainTabs() {
         },
       })}
     >
-      {/* Dashboard Tab */}
+      {/* Dashboard Tab - Learning Plans & Speaking Practice */}
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: 'Learn',
           headerShown: false,
         }}
       />
 
-      {/* Explore Tab */}
+      {/* Challenges Tab */}
       <Tab.Screen
         name="Explore"
         component={ExploreScreen}
         options={{
-          tabBarLabel: 'Explore',
+          tabBarLabel: 'Challenges',
           headerShown: false,
         }}
       />
@@ -337,50 +345,55 @@ export default function App() {
   };
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      linking={linking}
-      fallback={<LoadingScreen />}
-    >
-      <Stack.Navigator
-        initialRouteName={getInitialRouteName()}
-        screenOptions={{
-          headerShown: false,
-        }}
+    <ChallengeSessionProvider>
+      <NavigationContainer
+        ref={navigationRef}
+        linking={linking}
+        fallback={<LoadingScreen />}
       >
-        {/* Onboarding Flow */}
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingSlider} />
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Navigator
+          initialRouteName={getInitialRouteName()}
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          {/* Onboarding Flow */}
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Onboarding" component={OnboardingSlider} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
 
-        {/* Auth Screens */}
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+          {/* Auth Screens */}
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
 
-        {/* Subscription Screens */}
-        <Stack.Screen name="Checkout" component={CheckoutScreen} />
-        <Stack.Screen name="CheckoutSuccess" component={CheckoutSuccessScreen} />
+          {/* Subscription Screens */}
+          <Stack.Screen name="Checkout" component={CheckoutScreen} />
+          <Stack.Screen name="CheckoutSuccess" component={CheckoutSuccessScreen} />
 
-        {/* Practice Flow Screens */}
-        <Stack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
-        <Stack.Screen name="TopicSelection" component={TopicSelectionScreen} />
-        <Stack.Screen name="LevelSelection" component={LevelSelectionScreen} />
-        <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
-        <Stack.Screen name="Conversation" component={ConversationScreen} />
-        <Stack.Screen name="SentenceAnalysis" component={SentenceAnalysisScreen} />
-        <Stack.Screen name="GuestSessionResults" component={GuestSessionResultsScreen} />
+          {/* Practice Flow Screens */}
+          <Stack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
+          <Stack.Screen name="TopicSelection" component={TopicSelectionScreen} />
+          <Stack.Screen name="LevelSelection" component={LevelSelectionScreen} />
+          <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
+          <Stack.Screen name="Conversation" component={ConversationScreen} />
+          <Stack.Screen name="SentenceAnalysis" component={SentenceAnalysisScreen} />
+          <Stack.Screen name="GuestSessionResults" component={GuestSessionResultsScreen} />
 
-        {/* Assessment Flow Screens */}
-        <Stack.Screen name="AssessmentLanguageSelection" component={AssessmentLanguageSelectionScreen} />
-        <Stack.Screen name="AssessmentTopicSelection" component={AssessmentTopicSelectionScreen} />
-        <Stack.Screen name="SpeakingAssessmentRecording" component={SpeakingAssessmentRecordingScreen} />
-        <Stack.Screen name="SpeakingAssessmentResults" component={SpeakingAssessmentResultsScreen} />
+          {/* Assessment Flow Screens */}
+          <Stack.Screen name="AssessmentLanguageSelection" component={AssessmentLanguageSelectionScreen} />
+          <Stack.Screen name="AssessmentTopicSelection" component={AssessmentTopicSelectionScreen} />
+          <Stack.Screen name="SpeakingAssessmentRecording" component={SpeakingAssessmentRecordingScreen} />
+          <Stack.Screen name="SpeakingAssessmentResults" component={SpeakingAssessmentResultsScreen} />
 
-        {/* Main App (with tabs) */}
-        <Stack.Screen name="Main" component={MainTabs} />
-      </Stack.Navigator>
-    </NavigationContainer>
+          {/* Challenge Session Screen */}
+          <Stack.Screen name="ChallengeSession" component={ChallengeSessionScreen} />
+
+          {/* Main App (with tabs) */}
+          <Stack.Screen name="Main" component={MainTabs} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ChallengeSessionProvider>
   );
 }
 

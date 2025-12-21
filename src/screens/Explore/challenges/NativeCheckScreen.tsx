@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { COLORS } from '../../../constants/colors';
 
 interface NativeCheckScreenProps {
   challenge: NativeCheckChallenge;
-  onComplete: (challengeId: string) => void;
+  onComplete: (challengeId: string, isCorrect: boolean, details?: any) => void;
   onClose: () => void;
 }
 
@@ -26,6 +26,12 @@ export default function NativeCheckScreen({
 }: NativeCheckScreenProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // Reset state when challenge changes
+  useEffect(() => {
+    setSelectedAnswer(null);
+    setShowFeedback(false);
+  }, [challenge.id]);
 
   const handleAnswer = (answer: boolean) => {
     if (showFeedback) return; // Prevent selection after answer
@@ -44,7 +50,12 @@ export default function NativeCheckScreen({
   };
 
   const handleDone = () => {
-    onComplete(challenge.id);
+    const isCorrect = isCorrectAnswer();
+
+    onComplete(challenge.id, isCorrect, {
+      correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
+      explanation: challenge.explanation,
+    });
   };
 
   const isCorrectAnswer = () => {
@@ -52,20 +63,7 @@ export default function NativeCheckScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Header with close button */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.closeButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close" size={28} color={COLORS.textGray} />
-        </TouchableOpacity>
-      </View>
-
+    <View style={styles.container}>
       {/* Content */}
       <View style={styles.content}>
         {!showFeedback ? (
@@ -163,19 +161,19 @@ export default function NativeCheckScreen({
                 </Text>
               </View>
 
-              {/* Done Button */}
+              {/* Next Button */}
               <TouchableOpacity
                 style={styles.doneButton}
                 onPress={handleDone}
                 activeOpacity={0.8}
               >
-                <Text style={styles.doneButtonText}>Done</Text>
+                <Text style={styles.doneButtonText}>Next →</Text>
               </TouchableOpacity>
             </View>
           </>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -183,17 +181,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    alignItems: 'flex-end',
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
     flex: 1,

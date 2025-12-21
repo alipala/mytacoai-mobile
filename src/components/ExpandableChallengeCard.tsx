@@ -22,6 +22,7 @@ interface ExpandableChallengeCardProps {
   emoji: string;
   description: string;
   totalCount: number;
+  completedCount?: number; // Number of challenges completed historically (all-time)
   challenges: Challenge[];
   isExpanded: boolean;
   isLoading: boolean;
@@ -75,6 +76,7 @@ export function ExpandableChallengeCard({
   emoji,
   description,
   totalCount,
+  completedCount = 0,
   challenges,
   isExpanded,
   isLoading,
@@ -210,13 +212,19 @@ export function ExpandableChallengeCard({
 
             {/* Badge & Chevron */}
             <View style={styles.rightSection}>
-              <View style={[styles.countBadge, { backgroundColor: accentColor }]}>
-                <Text style={styles.countText}>{totalCount}</Text>
+              <View style={{ alignItems: 'flex-end', marginRight: 8 }}>
+                <View style={[styles.countBadge, { backgroundColor: accentColor }]}>
+                  <Text style={styles.countText}>{totalCount - completedCount}</Text>
+                </View>
+                {completedCount > 0 && (
+                  <Text style={{ fontSize: 9, color: '#10B981', marginTop: 2, fontWeight: '600' }}>
+                    ✓ {completedCount}
+                  </Text>
+                )}
               </View>
               <Animated.View
                 style={{
                   transform: [{ rotate: chevronRotate }],
-                  marginLeft: 8,
                 }}
               >
                 <Ionicons name="chevron-down" size={24} color={accentColor} />
