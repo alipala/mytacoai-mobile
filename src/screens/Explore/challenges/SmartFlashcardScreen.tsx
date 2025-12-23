@@ -24,6 +24,7 @@ import Animated, {
   withSpring,
   withSequence,
   withTiming,
+  runOnJS,
   interpolate,
   Easing,
 } from 'react-native-reanimated';
@@ -32,7 +33,7 @@ import { SmartFlashcardChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
-import { ParticleBurst } from '../../../components/ParticleBurst';
+import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
@@ -64,14 +65,19 @@ export default function SmartFlashcardScreen({
   // Animation values
   const flipRotation = useSharedValue(0);
   const cardScale = useSharedValue(1);
+  const screenOpacity = useSharedValue(1);
 
   // Breathing animation for card
   useEffect(() => {
     cardScale.value = createBreathingAnimation(1.0);
   }, []);
 
-  // Reset state when challenge changes
+  // Reset state when challenge changes with fade animation
   useEffect(() => {
+    // Fade in animation for new challenge
+    screenOpacity.value = 0;
+    screenOpacity.value = withTiming(1, { duration: 300 });
+
     setIsFlipped(false);
     setShowXPAnimation(false);
     setShowParticleBurst(false);
@@ -134,11 +140,15 @@ export default function SmartFlashcardScreen({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
 
-    // Complete after animations
+    // Auto-advance with fade out after animations
     setTimeout(() => {
-      onComplete(challenge.id, true, {
-        correctAnswer: challenge.word,
-        explanation: challenge.explanation,
+      screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+        if (finished) {
+          runOnJS(onComplete)(challenge.id, true, {
+            correctAnswer: challenge.word,
+            explanation: challenge.explanation,
+          });
+        }
       });
     }, 800);
   };
@@ -182,8 +192,12 @@ export default function SmartFlashcardScreen({
     };
   });
 
+  const screenAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: screenOpacity.value,
+  }));
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, screenAnimatedStyle]}>
       {/* Main Content */}
       <View style={styles.content}>
         {/* Learning Companion */}
@@ -279,11 +293,10 @@ export default function SmartFlashcardScreen({
 
       {/* Particle Burst on Completion */}
       {showParticleBurst && (
-        <ParticleBurst
+        <SkiaParticleBurst
           x={tapPosition.x}
           y={tapPosition.y}
-          particleCount={15}
-          colors={['#FFD700', '#FFA500', '#9333EA', '#7C3AED', '#FF6347']}
+          preset="success"
           onComplete={() => setShowParticleBurst(false)}
         />
       )}
@@ -301,7 +314,7 @@ export default function SmartFlashcardScreen({
           delay={0}
         />
       )}
-    </View>
+    </Animated.View>
   );
 }
 

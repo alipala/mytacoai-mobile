@@ -38,10 +38,6 @@ export default function SessionProgressBar({
     <View style={styles.container}>
       {/* Top stats bar */}
       <View style={styles.statsRow}>
-        <Text style={styles.progressText}>
-          Challenge {progress.current + 1}/{progress.total}
-        </Text>
-
         <View style={styles.rightStats}>
           {/* XP Badge */}
           {showXP && (
@@ -82,7 +78,7 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 8,

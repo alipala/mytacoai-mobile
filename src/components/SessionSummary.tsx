@@ -213,25 +213,10 @@ export default function SessionSummary({
 
           {/* Action Buttons */}
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={onContinue}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#06B6D4', '#0891B2']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.buttonGradient}
-              >
-                <Text style={styles.continueButtonText}>Play Again 🎮</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Review Mistakes Button */}
+            {/* Review Mistakes Button - Redesigned */}
             {stats.incorrectChallenges.length > 0 && onReviewMistakes && (
               <TouchableOpacity
-                style={styles.reviewButton}
+                style={styles.reviewButtonNew}
                 onPress={onReviewMistakes}
                 activeOpacity={0.8}
               >
@@ -241,19 +226,26 @@ export default function SessionSummary({
                   end={{ x: 1, y: 0 }}
                   style={styles.buttonGradient}
                 >
-                  <Text style={styles.reviewButtonText}>
-                    Review {stats.incorrectChallenges.length} Mistake{stats.incorrectChallenges.length > 1 ? 's' : ''} 🔄
+                  <Text style={styles.reviewButtonTextNew}>
+                    Review {stats.incorrectChallenges.length} Mistake{stats.incorrectChallenges.length > 1 ? 's' : ''}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
-              style={styles.exitButton}
+              style={styles.exitButtonNew}
               onPress={onExit}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <Text style={styles.exitButtonText}>Done</Text>
+              <LinearGradient
+                colors={['#06B6D4', '#0891B2']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.exitButtonTextNew}>Go to Challenges</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -542,5 +534,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#6B7280',
+  },
+  // New button styles
+  reviewButtonNew: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 12,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  reviewButtonTextNew: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  exitButtonNew: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#06B6D4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  exitButtonTextNew: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
 });

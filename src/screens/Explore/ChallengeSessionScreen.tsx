@@ -114,9 +114,7 @@ export default function ChallengeSessionScreen({
     if (isLastChallenge) {
       // This was the last challenge - show summary
       console.log('🎊 Last challenge completed, showing summary');
-      setTimeout(() => {
-        handleSessionComplete();
-      }, 300);
+      handleSessionComplete();
     } else {
       // Advance to next challenge
       nextChallenge();

@@ -33,8 +33,9 @@ import {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const NODE_SIZE = 32;
-const NODE_SPACING = 60;
-const CONNECTOR_WIDTH = NODE_SPACING - NODE_SIZE;
+const NODE_SPACING = 80; // Increased spacing for more breathing room
+const GAP_PADDING = 8; // Gap between circle and line
+const CONNECTOR_WIDTH = NODE_SPACING - NODE_SIZE - (GAP_PADDING * 2);
 
 type NodeState = 'completed_correct' | 'completed_incorrect' | 'current' | 'upcoming';
 
@@ -70,24 +71,50 @@ const getChallengeAccentColor = (type: string): string => {
 function ProgressNode({ index, state, challengeType, total, challengeId }: ProgressNodeProps) {
   const scale = useSharedValue(state === 'current' ? 1.2 : 1);
   const opacity = useSharedValue(state === 'upcoming' ? 0.4 : 1);
+  const rotation = useSharedValue(0);
+  const glowScale = useSharedValue(1);
 
   useEffect(() => {
     if (state === 'completed_correct' || state === 'completed_incorrect') {
-      // Burst animation when completing
+      // Gamified burst animation with rotation on completion
       animateNodeComplete(scale, opacity);
+      rotation.value = withSequence(
+        withTiming(0, { duration: 0 }),
+        withSpring(360, { damping: 10, stiffness: 80 })
+      );
+      glowScale.value = 1;
     } else if (state === 'current') {
       // Breathing pulse for current node
       scale.value = createNodePulseAnimation();
+      rotation.value = 0;
+      // Pulsing glow ring
+      glowScale.value = withRepeat(
+        withSequence(
+          withTiming(1.1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      );
     } else {
       // Upcoming - dim and normal size
       scale.value = 1;
       opacity.value = 0.4;
+      rotation.value = 0;
+      glowScale.value = 1;
     }
   }, [state]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [
+      { scale: scale.value },
+      { rotate: `${rotation.value}deg` }
+    ],
     opacity: opacity.value,
+  }));
+
+  const glowAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: glowScale.value }],
   }));
 
   const getNodeColor = () => {
@@ -106,30 +133,53 @@ function ProgressNode({ index, state, challengeType, total, challengeId }: Progr
   const nodeColor = getNodeColor();
 
   return (
-    <Animated.View style={[styles.nodeContainer, animatedStyle]}>
-      <View style={[styles.node, { backgroundColor: nodeColor }]}>
-        {(state === 'completed_correct' || state === 'completed_incorrect') && (
-          <Ionicons
-            name={state === 'completed_correct' ? "checkmark" : "close"}
-            size={18}
-            color="white"
-          />
-        )}
-        {state === 'current' && (
-          <View style={styles.currentNodeInner}>
-            <View style={[styles.currentNodeDot, { backgroundColor: '#FFFFFF' }]} />
-          </View>
-        )}
-        {state === 'upcoming' && (
-          <View style={[styles.upcomingNodeDot, { backgroundColor: '#E5E7EB' }]} />
-        )}
-      </View>
+    <View style={styles.nodeWrapper}>
+      {/* Outer glow ring for current node */}
+      {state === 'current' && (
+        <Animated.View
+          style={[
+            styles.glowRing,
+            {
+              backgroundColor: nodeColor,
+              opacity: 0.2,
+            },
+            glowAnimatedStyle,
+          ]}
+        />
+      )}
 
-      {/* Node label */}
+      <Animated.View style={[styles.nodeContainer, animatedStyle]}>
+        <View style={[styles.node, { backgroundColor: nodeColor }]}>
+          {state === 'completed_correct' && (
+            <Ionicons
+              name="checkmark"
+              size={20}
+              color="white"
+            />
+          )}
+          {state === 'completed_incorrect' && (
+            <Ionicons
+              name="close"
+              size={20}
+              color="white"
+            />
+          )}
+          {state === 'current' && (
+            <View style={styles.currentNodeInner}>
+              <View style={[styles.currentNodeDot, { backgroundColor: '#FFFFFF' }]} />
+            </View>
+          )}
+          {state === 'upcoming' && (
+            <View style={[styles.upcomingNodeDot, { backgroundColor: '#E5E7EB' }]} />
+          )}
+        </View>
+      </Animated.View>
+
+      {/* Node label below */}
       <Text style={[styles.nodeLabel, { color: state === 'upcoming' ? '#9CA3AF' : '#6B7280' }]}>
         {index + 1}
       </Text>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -140,9 +190,15 @@ interface ConnectionLineProps {
 
 function ConnectionLine({ state }: ConnectionLineProps) {
   const opacity = useSharedValue(state === 'lit' ? 1 : 0.3);
+  const scaleX = useSharedValue(state === 'lit' ? 1 : 1);
 
   useEffect(() => {
     if (state === 'lit') {
+      // Gamified fill animation - line grows and glows
+      scaleX.value = withSequence(
+        withTiming(0, { duration: 0 }),
+        withSpring(1, { damping: 12, stiffness: 100 })
+      );
       opacity.value = withSequence(
         withTiming(0.3, { duration: 100 }),
         withTiming(1, { duration: 300 })
@@ -152,18 +208,21 @@ function ConnectionLine({ state }: ConnectionLineProps) {
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
+    transform: [{ scaleX: scaleX.value }],
   }));
 
   return (
-    <Animated.View
-      style={[
-        styles.connector,
-        {
-          backgroundColor: state === 'lit' ? '#10B981' : '#E5E7EB',
-        },
-        animatedStyle,
-      ]}
-    />
+    <View style={styles.connectorWrapper}>
+      <Animated.View
+        style={[
+          styles.connector,
+          {
+            backgroundColor: state === 'lit' ? '#10B981' : '#E5E7EB',
+          },
+          animatedStyle,
+        ]}
+      />
+    </View>
   );
 }
 
@@ -213,6 +272,9 @@ export function ProgressPath({ style }: ProgressPathProps) {
               // Completed - check if it was correct or incorrect
               const wasIncorrect = incorrectChallengeIds.includes(challenge.id);
               state = wasIncorrect ? 'completed_incorrect' : 'completed_correct';
+
+              // Debug logging
+              console.log(`Node ${index + 1} (${challenge.id}): ${state}, wasIncorrect: ${wasIncorrect}, incorrectIds:`, incorrectChallengeIds);
             } else if (index === currentIndex) {
               state = 'current';
             } else {
@@ -253,12 +315,26 @@ const styles = StyleSheet.create({
   },
   pathContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 10,
   },
-  nodeContainer: {
+  nodeWrapper: {
     alignItems: 'center',
-    justifyContent: 'center',
+    position: 'relative',
+  },
+  glowRing: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    width: NODE_SIZE + 8,
+    height: NODE_SIZE + 8,
+    borderRadius: (NODE_SIZE + 8) / 2,
+    zIndex: 0,
+  },
+  nodeContainer: {
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    zIndex: 1,
   },
   node: {
     width: NODE_SIZE,
@@ -266,15 +342,17 @@ const styles = StyleSheet.create({
     borderRadius: NODE_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 4,
+        elevation: 6,
       },
     }),
   },
@@ -299,12 +377,29 @@ const styles = StyleSheet.create({
   nodeLabel: {
     fontSize: 11,
     fontWeight: '600',
-    marginTop: 6,
+    marginTop: 4,
+  },
+  connectorWrapper: {
+    width: NODE_SPACING - NODE_SIZE,
+    height: NODE_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: GAP_PADDING,
   },
   connector: {
     width: CONNECTOR_WIDTH,
-    height: 3,
-    marginHorizontal: 0,
-    borderRadius: 1.5,
+    height: 4, // Slightly thicker for better visibility
+    borderRadius: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
 });

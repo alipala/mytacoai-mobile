@@ -30,12 +30,12 @@ interface LearningCompanionProps {
 
 // Emoji map for different states
 const COMPANION_EMOJIS: Record<CharacterState, string> = {
-  idle: '🌮', // Taco mascot
-  anticipation: '👀',
+  idle: '😊', // Friendly companion
+  anticipation: '🤔',
   celebrate: '🎉',
-  disappointed: '😔',
+  disappointed: '😊', // Stay positive even when wrong
   nervous: '😰',
-  legendary: '👑',
+  legendary: '🌟',
 };
 
 export function LearningCompanion({

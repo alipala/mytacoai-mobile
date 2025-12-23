@@ -23,6 +23,7 @@ import Animated, {
   withSpring,
   withSequence,
   withTiming,
+  runOnJS,
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -30,7 +31,7 @@ import { ErrorSpottingChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
-import { ParticleBurst } from '../../../components/ParticleBurst';
+import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
@@ -63,14 +64,19 @@ export default function ErrorSpottingScreen({
   // Animation values
   const sentenceScale = useSharedValue(1);
   const backgroundOpacity = useSharedValue(0);
+  const screenOpacity = useSharedValue(1);
 
   // Breathing animation for sentence
   useEffect(() => {
     sentenceScale.value = createBreathingAnimation(1.0);
   }, []);
 
-  // Reset state when challenge changes
+  // Reset state when challenge changes with fade animation
   useEffect(() => {
+    // Fade in animation for new challenge
+    screenOpacity.value = 0;
+    screenOpacity.value = withTiming(1, { duration: 300 });
+
     setSelectedOption(null);
     setShowFeedback(false);
     setShowXPAnimation(false);
@@ -130,16 +136,31 @@ export default function ErrorSpottingScreen({
           withTiming(0, { duration: 400 })
         );
       }
+
+      // Auto-advance ONLY for correct answers
+      if (isCorrect) {
+        setTimeout(() => {
+          // Capture the answer status BEFORE the fade animation
+          const finalIsCorrect = isCorrect;
+          const correctAnswerText = challenge.options.find((o) => o.isCorrect)?.text || challenge.correctedSentence;
+          const explanationText = challenge.explanation;
+          const challengeIdToComplete = challenge.id;
+
+          // Fade out before transitioning
+          screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+            if (finished) {
+              runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
+            }
+          });
+        }, 1200);
+      }
     }, 200); // Anticipation delay
   };
 
-  const handleDone = () => {
-    const isCorrect = isCorrectAnswer();
-    const correctOption = challenge.options.find((o) => o.isCorrect);
-
-    onComplete(challenge.id, isCorrect, {
-      correctAnswer: correctOption?.text || challenge.correctedSentence,
-      explanation: challenge.explanation,
+  const handleDone = (challengeId: string, isCorrect: boolean, correctAnswerText: string, explanationText: string) => {
+    onComplete(challengeId, isCorrect, {
+      correctAnswer: correctAnswerText,
+      explanation: explanationText,
     });
   };
 
@@ -158,8 +179,12 @@ export default function ErrorSpottingScreen({
     opacity: backgroundOpacity.value,
   }));
 
+  const screenAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: screenOpacity.value,
+  }));
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, screenAnimatedStyle]}>
       {/* Success background glow */}
       <Animated.View
         style={[styles.successBackground, backgroundAnimatedStyle]}
@@ -254,14 +279,28 @@ export default function ErrorSpottingScreen({
                 <Text style={styles.explanationText}>{challenge.explanation}</Text>
               </View>
 
-              {/* Next Button */}
-              <TouchableOpacity
-                style={styles.doneButton}
-                onPress={handleDone}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.doneButtonText}>Continue →</Text>
-              </TouchableOpacity>
+              {/* Continue Button - Only show for incorrect answers */}
+              {!isCorrectAnswer() && (
+                <TouchableOpacity
+                  style={styles.doneButton}
+                  onPress={() => {
+                    const finalIsCorrect = isCorrectAnswer();
+                    const correctOption = challenge.options.find((o) => o.isCorrect);
+                    const correctAnswerText = correctOption?.text || challenge.correctedSentence;
+                    const explanationText = challenge.explanation;
+                    const challengeIdToComplete = challenge.id;
+
+                    screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+                      if (finished) {
+                        runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
+                      }
+                    });
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.doneButtonText}>Continue →</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </>
         )}
@@ -269,11 +308,10 @@ export default function ErrorSpottingScreen({
 
       {/* Particle Burst on Success */}
       {showParticleBurst && (
-        <ParticleBurst
+        <SkiaParticleBurst
           x={tapPosition.x}
           y={tapPosition.y}
-          particleCount={15}
-          colors={['#FFD700', '#FFA500', '#10B981', '#06B6D4', '#FF6347']}
+          preset="success"
           onComplete={() => setShowParticleBurst(false)}
         />
       )}
@@ -291,7 +329,7 @@ export default function ErrorSpottingScreen({
           delay={0}
         />
       )}
-    </View>
+    </Animated.View>
   );
 }
 
