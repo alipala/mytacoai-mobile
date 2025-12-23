@@ -9,13 +9,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Animated,
   Dimensions,
   ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { useRecentPerformance } from '../hooks/useStats';
 
@@ -24,12 +22,14 @@ const CARD_WIDTH = width - 40; // Assuming 20px padding on each side
 
 interface RecentPerformanceCardProps {
   onRefresh?: () => void;
+  initiallyExpanded?: boolean;
+  maxDays?: number;
 }
 
-export default function RecentPerformanceCard({ onRefresh }: RecentPerformanceCardProps) {
+export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = false, maxDays = 7 }: RecentPerformanceCardProps) {
   const { recent, isLoading, error, refetchRecent } = useRecentPerformance(7, true);
-  const [showDetails, setShowDetails] = useState(false);
-  const expansionAnim = useRef(new Animated.Value(0)).current;
+  const [showDetails, setShowDetails] = useState(initiallyExpanded);
+  const expansionAnim = useRef(new Animated.Value(initiallyExpanded ? 1 : 0)).current;
 
   const handleRefresh = async () => {
     await refetchRecent(true);
@@ -234,11 +234,8 @@ export default function RecentPerformanceCard({ onRefresh }: RecentPerformanceCa
   });
 
   return (
-    <TouchableOpacity style={styles.card} activeOpacity={0.95} onPress={toggleDetails}>
-      <LinearGradient
-        colors={['#FFFFFF', '#F0F9FF']}
-        style={styles.gradient}
-      >
+    <View style={styles.card}>
+      <View style={styles.gradient}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -331,73 +328,55 @@ export default function RecentPerformanceCard({ onRefresh }: RecentPerformanceCa
           </View>
         </View>
 
-        {/* Expand/Collapse Indicator */}
-        <View style={styles.expandIndicator}>
-          <Text style={styles.expandText}>
-            {showDetails ? 'Tap to collapse' : 'Tap for details'}
-          </Text>
-          <Text style={styles.expandArrow}>{showDetails ? '▲' : '▼'}</Text>
-        </View>
-
-        {/* Detailed Breakdown (Expandable) */}
-        <Animated.View
-          style={[
-            styles.detailsContainer,
-            {
-              height: detailsHeight,
-              opacity: detailsOpacity,
-            },
-          ]}
-        >
+        {/* Detailed Breakdown (Always Visible) */}
+        <View style={styles.detailsContainer}>
           <View style={styles.divider} />
 
           {/* Daily Breakdown */}
           <Text style={styles.detailsTitle}>📅 Daily Breakdown</Text>
-          <ScrollView
-            style={styles.dailyScrollView}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled={true}
-          >
-            <View style={styles.dailyGrid}>
-              {recent.daily_breakdown.slice().reverse().map((day, index) => (
-                <View key={index} style={styles.dailyItem}>
-                  <Text style={styles.dailyDate}>
-                    {new Date(day.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </Text>
-                  <Text style={styles.dailyChallenges}>{day.challenges} challenges</Text>
-                  <Text style={styles.dailyAccuracy}>{Math.round(day.accuracy)}% accuracy</Text>
-                </View>
-              ))}
-            </View>
-          </ScrollView>
-        </Animated.View>
-      </LinearGradient>
-    </TouchableOpacity>
+          <View style={styles.dailyGrid}>
+            {recent.daily_breakdown.slice().reverse().slice(0, maxDays).map((day, index) => (
+              <View key={index} style={styles.dailyItem}>
+                <Text style={styles.dailyDate}>
+                  {new Date(day.date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <Text style={styles.dailyChallenges}>{day.challenges} challenges</Text>
+                <Text style={styles.dailyAccuracy}>{Math.round(day.accuracy)}% accuracy</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 20,
-    borderRadius: 22,
+    marginBottom: 0,
+    borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#06B6D4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   gradient: {
     padding: 20,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 14,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -434,14 +413,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chartContainer: {
-    marginBottom: 20,
+    marginBottom: 12,
     alignItems: 'center',
   },
   insightsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   insightItem: {
     flex: 1,
@@ -486,28 +465,26 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#E5E7EB',
-    marginVertical: 16,
+    marginVertical: 12,
   },
   detailsTitle: {
     fontSize: 15,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 12,
-  },
-  dailyScrollView: {
-    maxHeight: 200, // Increased to show more cards
+    marginBottom: 10,
   },
   dailyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginBottom: 0,
   },
   dailyItem: {
     width: '48%',
     backgroundColor: '#F9FAFB',
     borderRadius: 10,
-    padding: 10, // Reduced from 12
-    marginBottom: 6, // Reduced from 8
+    padding: 8,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },

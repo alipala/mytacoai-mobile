@@ -445,7 +445,7 @@ function formatChallengeType(type: string): string {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 0,
-    marginBottom: 16,
+    marginBottom: 0,
     borderRadius: 20,
     overflow: 'hidden',
   },
@@ -455,6 +455,7 @@ const styles = StyleSheet.create({
   whiteCard: {
     backgroundColor: '#FFFFFF',
     padding: 20,
+    paddingBottom: 16,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#E5E7EB',
