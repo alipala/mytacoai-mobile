@@ -1,18 +1,44 @@
-import React, { useState, useRef, useEffect } from 'react';
+/**
+ * Smart Flashcard Screen (REDESIGNED)
+ *
+ * Game-feel challenge experience with:
+ * - Preserved flip mechanic (now with Reanimated)
+ * - Character reactions to flips
+ * - XP flying animations
+ * - Particle bursts on completion
+ * - Breathing animations
+ */
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   StyleSheet,
   Platform,
-  Animated,
+  Dimensions,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withTiming,
+  interpolate,
+  Easing,
+} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
 import { SmartFlashcardChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
+import { LearningCompanion } from '../../../components/LearningCompanion';
+import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
+import { ParticleBurst } from '../../../components/ParticleBurst';
+import { useCharacterState } from '../../../hooks/useCharacterState';
+import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
+import { calculateXP } from '../../../services/xpCalculator';
+import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface SmartFlashcardScreenProps {
   challenge: SmartFlashcardChallenge;
@@ -26,71 +52,151 @@ export default function SmartFlashcardScreen({
   onClose,
 }: SmartFlashcardScreenProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const flipAnim = useRef(new Animated.Value(0)).current;
+  const [tapPosition, setTapPosition] = useState({ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 });
+  const [showXPAnimation, setShowXPAnimation] = useState(false);
+  const [showParticleBurst, setShowParticleBurst] = useState(false);
+  const [xpValue, setXPValue] = useState(0);
+  const [speedBonus, setSpeedBonus] = useState(0);
+
+  const { session } = useChallengeSession();
+  const { characterState, reactToAnswer, setCharacterState } = useCharacterState();
+
+  // Animation values
+  const flipRotation = useSharedValue(0);
+  const cardScale = useSharedValue(1);
+
+  // Breathing animation for card
+  useEffect(() => {
+    cardScale.value = createBreathingAnimation(1.0);
+  }, []);
 
   // Reset state when challenge changes
   useEffect(() => {
     setIsFlipped(false);
-    flipAnim.setValue(0);
+    setShowXPAnimation(false);
+    setShowParticleBurst(false);
+    flipRotation.value = 0;
   }, [challenge.id]);
 
   const handleFlip = () => {
     const toValue = isFlipped ? 0 : 1;
 
-    Animated.spring(flipAnim, {
-      toValue,
-      friction: 8,
-      tension: 10,
-      useNativeDriver: true,
-    }).start();
+    flipRotation.value = withSpring(toValue, {
+      damping: 15,
+      stiffness: 100,
+    });
 
     setIsFlipped(!isFlipped);
 
+    // Character reacts to flip
+    if (!isFlipped) {
+      // Flipping to see answer - show anticipation/curiosity
+      setCharacterState('anticipation');
+      setTimeout(() => {
+        setCharacterState('celebrate'); // Happy to learn
+      }, 300);
+    } else {
+      setCharacterState('idle');
+    }
+
     // Soft haptic feedback on flip
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
 
-  const handleDone = () => {
-    if (Platform.OS === 'ios') {
+  const handleDone = (event: any) => {
+    // Capture tap position for animations
+    const { pageX, pageY } = event.nativeEvent;
+    setTapPosition({ x: pageX, y: pageY });
+
+    // SmartFlashcard is educational, always mark as correct
+    const timeSpent = 8; // Flashcards take more time to review
+    const combo = session?.currentCombo || 1;
+    const xpResult = calculateXP(true, timeSpent, combo);
+
+    setXPValue(xpResult.baseXP);
+    setSpeedBonus(xpResult.speedBonus);
+
+    // Show particle burst immediately
+    setShowParticleBurst(true);
+
+    // Show XP animation
+    setTimeout(() => {
+      setShowXPAnimation(true);
+    }, 150);
+
+    // Character celebrates learning
+    reactToAnswer(true);
+
+    // Haptic feedback
+    if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
-    // SmartFlashcard is educational, always mark as correct
-    onComplete(challenge.id, true, {
-      correctAnswer: challenge.word,
-      explanation: challenge.explanation,
-    });
+
+    // Complete after animations
+    setTimeout(() => {
+      onComplete(challenge.id, true, {
+        correctAnswer: challenge.word,
+        explanation: challenge.explanation,
+      });
+    }, 800);
   };
 
-  // Interpolate rotation
-  const frontRotateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '180deg'],
+  // Animated styles for flip
+  const frontAnimatedStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flipRotation.value, [0, 1], [0, 180]);
+    const opacity = interpolate(flipRotation.value, [0, 0.5, 1], [1, 0, 0]);
+
+    return {
+      transform: [
+        { perspective: 1000 },
+        { rotateY: `${rotateY}deg` },
+        { scale: cardScale.value },
+      ],
+      opacity,
+    };
   });
 
-  const backRotateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['180deg', '360deg'],
+  const backAnimatedStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flipRotation.value, [0, 1], [180, 360]);
+    const opacity = interpolate(flipRotation.value, [0, 0.5, 1], [0, 0, 1]);
+
+    return {
+      transform: [
+        { perspective: 1000 },
+        { rotateY: `${rotateY}deg` },
+        { scale: cardScale.value },
+      ],
+      opacity,
+    };
   });
 
-  const frontOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [1, 0, 0],
-  });
+  const doneButtonAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(flipRotation.value, [0, 0.5, 1], [0, 0, 1]);
+    const translateY = interpolate(flipRotation.value, [0, 1], [20, 0]);
 
-  const backOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0, 1],
+    return {
+      opacity,
+      transform: [{ translateY }],
+    };
   });
 
   return (
     <View style={styles.container}>
-      {/* Content */}
+      {/* Main Content */}
       <View style={styles.content}>
+        {/* Learning Companion */}
+        <View style={styles.companionContainer}>
+          <LearningCompanion
+            state={characterState}
+            combo={session?.currentCombo || 1}
+            size={64}
+          />
+        </View>
+
         {/* Title Section */}
         <View style={styles.titleSection}>
-          <Text style={styles.emoji}>{challenge.emoji}</Text>
           <Text style={styles.title}>{challenge.title}</Text>
           <Text style={styles.context}>{challenge.context}</Text>
         </View>
@@ -113,10 +219,7 @@ export default function SmartFlashcardScreen({
             style={[
               styles.card,
               styles.cardFront,
-              {
-                transform: [{ rotateY: frontRotateY }],
-                opacity: frontOpacity,
-              },
+              frontAnimatedStyle,
             ]}
           >
             <View style={styles.cardContent}>
@@ -130,10 +233,7 @@ export default function SmartFlashcardScreen({
             style={[
               styles.card,
               styles.cardBack,
-              {
-                transform: [{ rotateY: backRotateY }],
-                opacity: backOpacity,
-              },
+              backAnimatedStyle,
             ]}
           >
             <View style={styles.cardContent}>
@@ -165,17 +265,42 @@ export default function SmartFlashcardScreen({
 
         {/* Done Button (only show after flip) */}
         {isFlipped && (
-          <Animated.View style={[styles.doneButtonContainer, { opacity: backOpacity }]}>
+          <Animated.View style={[styles.doneButtonContainer, doneButtonAnimatedStyle]}>
             <TouchableOpacity
               style={styles.doneButton}
               onPress={handleDone}
               activeOpacity={0.8}
             >
-              <Text style={styles.doneButtonText}>Done</Text>
+              <Text style={styles.doneButtonText}>Got It! →</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
       </View>
+
+      {/* Particle Burst on Completion */}
+      {showParticleBurst && (
+        <ParticleBurst
+          x={tapPosition.x}
+          y={tapPosition.y}
+          particleCount={15}
+          colors={['#FFD700', '#FFA500', '#9333EA', '#7C3AED', '#FF6347']}
+          onComplete={() => setShowParticleBurst(false)}
+        />
+      )}
+
+      {/* XP Flying Animation */}
+      {showXPAnimation && (
+        <XPFlyingNumber
+          value={xpValue}
+          startX={tapPosition.x}
+          startY={tapPosition.y}
+          endX={SCREEN_WIDTH - 80}
+          endY={60}
+          speedBonus={speedBonus}
+          onComplete={() => setShowXPAnimation(false)}
+          delay={0}
+        />
+      )}
     </View>
   );
 }
@@ -190,13 +315,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
   },
+  companionContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   titleSection: {
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  emoji: {
-    fontSize: 56,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   title: {
     fontSize: 24,
@@ -229,11 +354,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
     minHeight: 300,
     justifyContent: 'center',
   },
@@ -304,18 +435,24 @@ const styles = StyleSheet.create({
   },
   doneButtonContainer: {
     marginTop: 20,
+    marginBottom: 20,
   },
   doneButton: {
     backgroundColor: COLORS.darkNavy,
     paddingVertical: 16,
     borderRadius: 28,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   doneButtonText: {
     fontSize: 18,
