@@ -36,13 +36,14 @@ const NODE_SIZE = 32;
 const NODE_SPACING = 60;
 const CONNECTOR_WIDTH = NODE_SPACING - NODE_SIZE;
 
-type NodeState = 'completed' | 'current' | 'upcoming';
+type NodeState = 'completed_correct' | 'completed_incorrect' | 'current' | 'upcoming';
 
 interface ProgressNodeProps {
   index: number;
   state: NodeState;
   challengeType: string;
   total: number;
+  challengeId: string;
 }
 
 // Get color for challenge type
@@ -66,12 +67,12 @@ const getChallengeAccentColor = (type: string): string => {
 };
 
 // Individual Progress Node
-function ProgressNode({ index, state, challengeType, total }: ProgressNodeProps) {
+function ProgressNode({ index, state, challengeType, total, challengeId }: ProgressNodeProps) {
   const scale = useSharedValue(state === 'current' ? 1.2 : 1);
   const opacity = useSharedValue(state === 'upcoming' ? 0.4 : 1);
 
   useEffect(() => {
-    if (state === 'completed') {
+    if (state === 'completed_correct' || state === 'completed_incorrect') {
       // Burst animation when completing
       animateNodeComplete(scale, opacity);
     } else if (state === 'current') {
@@ -91,8 +92,10 @@ function ProgressNode({ index, state, challengeType, total }: ProgressNodeProps)
 
   const getNodeColor = () => {
     switch (state) {
-      case 'completed':
-        return '#10B981'; // Green
+      case 'completed_correct':
+        return '#10B981'; // Green for correct
+      case 'completed_incorrect':
+        return '#F59E0B'; // Orange for incorrect
       case 'current':
         return getChallengeAccentColor(challengeType);
       case 'upcoming':
@@ -105,8 +108,12 @@ function ProgressNode({ index, state, challengeType, total }: ProgressNodeProps)
   return (
     <Animated.View style={[styles.nodeContainer, animatedStyle]}>
       <View style={[styles.node, { backgroundColor: nodeColor }]}>
-        {state === 'completed' && (
-          <Ionicons name="checkmark" size={18} color="white" />
+        {(state === 'completed_correct' || state === 'completed_incorrect') && (
+          <Ionicons
+            name={state === 'completed_correct' ? "checkmark" : "close"}
+            size={18}
+            color="white"
+          />
         )}
         {state === 'current' && (
           <View style={styles.currentNodeInner}>
@@ -175,7 +182,7 @@ export function ProgressPath({ style }: ProgressPathProps) {
   }
 
   const progress = getProgress();
-  const { challenges, currentIndex } = session;
+  const { challenges, currentIndex, incorrectChallengeIds } = session;
 
   // Auto-scroll to keep current node visible
   useEffect(() => {
@@ -200,12 +207,17 @@ export function ProgressPath({ style }: ProgressPathProps) {
       >
         <View style={styles.pathContainer}>
           {challenges.map((challenge, index) => {
-            const state: NodeState =
-              index < currentIndex
-                ? 'completed'
-                : index === currentIndex
-                ? 'current'
-                : 'upcoming';
+            // Determine node state based on completion and correctness
+            let state: NodeState;
+            if (index < currentIndex) {
+              // Completed - check if it was correct or incorrect
+              const wasIncorrect = incorrectChallengeIds.includes(challenge.id);
+              state = wasIncorrect ? 'completed_incorrect' : 'completed_correct';
+            } else if (index === currentIndex) {
+              state = 'current';
+            } else {
+              state = 'upcoming';
+            }
 
             return (
               <React.Fragment key={`node-${challenge.id}-${index}`}>
@@ -214,6 +226,7 @@ export function ProgressPath({ style }: ProgressPathProps) {
                   state={state}
                   challengeType={challenge.type}
                   total={challenges.length}
+                  challengeId={challenge.id}
                 />
 
                 {/* Connector line between nodes */}
