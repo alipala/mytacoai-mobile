@@ -23,7 +23,14 @@ import type { LearningPlan } from '../../api/generated';
 import { loadTodayCompletions, markChallengeCompleted } from '../../services/completionTracker';
 import { useChallengeSession } from '../../contexts/ChallengeSessionContext';
 import { loadDailyStats, updateDailyStats, getAllCategoryStats, DailyStats, CategoryStats } from '../../services/dailyStatsService';
-import TodaysProgressCard from '../../components/TodaysProgressCard';
+import EnhancedTodaysProgressCard from '../../components/EnhancedTodaysProgressCard';
+import RecentPerformanceCard from '../../components/RecentPerformanceCard';
+import ImmersiveHeader from '../../components/ImmersiveHeader';
+import StatsCarousel from '../../components/StatsCarousel';
+import ImmersiveLoader from '../../components/ImmersiveLoader';
+import HorizontalStatsCarousel from '../../components/HorizontalStatsCarousel';
+import PlaceholderStatsCard from '../../components/PlaceholderStatsCard';
+import { useDailyStats } from '../../hooks/useStats';
 
 // Challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -75,6 +82,7 @@ const getCategoryGradient = (type: string): [string, string] => {
 export default function ExploreScreenRedesigned({ navigation }: ExploreScreenProps) {
   const isFocused = useIsFocused();
   const { startSession } = useChallengeSession();
+  const { daily } = useDailyStats(true);
 
   // Navigation state
   const [navState, setNavState] = useState<NavigationState>('mode_selection');
@@ -87,6 +95,8 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   const headerScaleAnim = useRef(new Animated.Value(0.9)).current;
   const headerOpacityAnim = useRef(new Animated.Value(0)).current;
   const challengeModalAnim = useRef(new Animated.Value(height)).current;
+  const questCard1Scale = useRef(new Animated.Value(0.95)).current;
+  const questCard2Scale = useRef(new Animated.Value(0.95)).current;
 
   // User data
   const [userName, setUserName] = useState<string>('');
@@ -158,6 +168,27 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       Animated.timing(headerOpacityAnim, {
         toValue: 1,
         duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Staggered quest card animations
+    Animated.sequence([
+      Animated.delay(400),
+      Animated.spring(questCard1Scale, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    Animated.sequence([
+      Animated.delay(500),
+      Animated.spring(questCard2Scale, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
         useNativeDriver: true,
       }),
     ]).start();
@@ -590,180 +621,170 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Clean Modern Header */}
-        <Animated.View
-          style={{
-            marginBottom: 32,
-            opacity: headerOpacityAnim,
-            transform: [{ scale: headerScaleAnim }],
-          }}
-        >
-          <Text style={{
-            fontSize: 34,
-            fontWeight: '700',
-            color: '#1F2937',
-            marginBottom: 8,
-            letterSpacing: -0.5,
-          }}>
-            Challenges
-          </Text>
-          <Text style={{
-            fontSize: 17,
-            color: '#6B7280',
-            fontWeight: '500',
-          }}>
-            Hi {userName}, choose your practice mode
-          </Text>
-        </Animated.View>
+        {/* Immersive Header */}
+        <ImmersiveHeader
+          userName={userName || 'Learner'}
+          streak={daily?.streak?.current || 0}
+          totalXP={daily?.overall?.total_xp || 0}
+          challengesToday={daily?.overall?.total_challenges || 0}
+        />
 
-        {/* Today's Progress Card */}
-        {dailyStats && (
-          <TodaysProgressCard stats={dailyStats} isLoading={loadingStats} />
+        {/* Show placeholder for new users, carousel for active users */}
+        {(!daily || daily?.overall?.total_challenges === 0) ? (
+          <PlaceholderStatsCard />
+        ) : (
+          <HorizontalStatsCarousel onRefresh={reloadDailyStats} />
         )}
 
-        {/* Completed Plans Card - White with Coral border */}
-        <TouchableOpacity
-          style={{
-            marginBottom: 16,
-            opacity: completedPlans.length === 0 ? 0.6 : 1,
-          }}
-          onPress={() => handleModeSelection('completed_plans')}
-          activeOpacity={0.8}
-          disabled={completedPlans.length === 0}
-        >
-          <View
+        {/* Section Title */}
+        <View style={{ marginBottom: 12, marginTop: 0, paddingHorizontal: 0 }}>
+          <Text style={{
+            fontSize: 22,
+            fontWeight: '700',
+            color: '#1F2937',
+          }}>
+            🏆 Choose Your Quest
+          </Text>
+        </View>
+
+        {/* Quest Cards - Side by Side */}
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+          {/* Completed Plans Card */}
+          <Animated.View
             style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 22,
-              padding: 20,
-              minHeight: 140,
-              borderWidth: 3,
-              borderColor: completedPlans.length === 0 ? '#E5E7EB' : '#F75A5A',
-              shadowColor: '#F75A5A',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: completedPlans.length === 0 ? 0 : 0.15,
-              shadowRadius: 12,
-              elevation: 6,
+              flex: 1,
+              transform: [{ scale: questCard1Scale }],
             }}
           >
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <View style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: '#FFF5F5',
-                  borderWidth: 2,
-                  borderColor: '#F75A5A',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 14,
-                }}>
-                  <Text style={{ fontSize: 32 }}>👑</Text>
-                </View>
-                <View style={{ flex: 1 }}>
+            <TouchableOpacity
+              style={{
+                opacity: completedPlans.length === 0 ? 0.6 : 1,
+              }}
+              onPress={() => handleModeSelection('completed_plans')}
+              activeOpacity={0.8}
+              disabled={completedPlans.length === 0}
+            >
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 20,
+                  padding: 16,
+                  minHeight: 140,
+                  borderWidth: 2.5,
+                  borderColor: completedPlans.length === 0 ? '#E5E7EB' : '#F75A5A',
+                  shadowColor: '#F75A5A',
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: completedPlans.length === 0 ? 0 : 0.12,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+              <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                <View style={{ alignItems: 'center', marginBottom: 8 }}>
+                  <View style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 26,
+                    backgroundColor: '#FFF5F5',
+                    borderWidth: 2,
+                    borderColor: '#F75A5A',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 10,
+                  }}>
+                    <Text style={{ fontSize: 28 }}>👑</Text>
+                  </View>
                   <Text style={{
-                    fontSize: 20,
-                    fontWeight: '600',
+                    fontSize: 16,
+                    fontWeight: '700',
                     color: '#1F2937',
-                    marginBottom: 3,
-                    letterSpacing: -0.3,
+                    textAlign: 'center',
+                    marginBottom: 4,
                   }}>
                     Master Your Plans
                   </Text>
                 </View>
+
+                <Text style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: '#F75A5A',
+                  textAlign: 'center',
+                }}>
+                  {completedPlans.length > 0
+                    ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} →`
+                    : 'No plans yet'}
+                </Text>
               </View>
-
-              <Text style={{
-                fontSize: 13,
-                color: '#6B7280',
-                marginBottom: 8,
-                lineHeight: 18,
-              }}>
-                Practice from learning plans you've finished
-              </Text>
-
-              <Text style={{
-                fontSize: 15,
-                fontWeight: '700',
-                color: '#F75A5A',
-              }}>
-                {completedPlans.length > 0
-                  ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} available →`
-                  : 'No completed plans yet'}
-              </Text>
             </View>
-          </View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+          </Animated.View>
 
-        {/* Freestyle Practice Card - White with Turquoise border */}
-        <TouchableOpacity
-          style={{ marginBottom: 20 }}
-          onPress={() => handleModeSelection('freestyle')}
-          activeOpacity={0.8}
-        >
-          <View
+          {/* Freestyle Practice Card */}
+          <Animated.View
             style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 22,
-              padding: 20,
-              minHeight: 140,
-              borderWidth: 3,
-              borderColor: '#4ECFBF',
-              shadowColor: '#4ECFBF',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              elevation: 6,
+              flex: 1,
+              transform: [{ scale: questCard2Scale }],
             }}
           >
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <View style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: '#F0FFFE',
-                  borderWidth: 2,
+            <TouchableOpacity
+              onPress={() => handleModeSelection('freestyle')}
+              activeOpacity={0.8}
+            >
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 20,
+                  padding: 16,
+                  minHeight: 140,
+                  borderWidth: 2.5,
                   borderColor: '#4ECFBF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 14,
-                }}>
-                  <Text style={{ fontSize: 32 }}>🚀</Text>
-                </View>
-                <View style={{ flex: 1 }}>
+                  shadowColor: '#4ECFBF',
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.12,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+              <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                <View style={{ alignItems: 'center', marginBottom: 8 }}>
+                  <View style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 26,
+                    backgroundColor: '#F0FFFE',
+                    borderWidth: 2,
+                    borderColor: '#4ECFBF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 10,
+                  }}>
+                    <Text style={{ fontSize: 28 }}>🚀</Text>
+                  </View>
                   <Text style={{
-                    fontSize: 20,
-                    fontWeight: '600',
+                    fontSize: 16,
+                    fontWeight: '700',
                     color: '#1F2937',
-                    marginBottom: 3,
-                    letterSpacing: -0.3,
+                    textAlign: 'center',
+                    marginBottom: 4,
                   }}>
                     Freestyle Practice
                   </Text>
                 </View>
+
+                <Text style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: '#4ECFBF',
+                  textAlign: 'center',
+                }}>
+                  All levels →
+                </Text>
               </View>
-
-              <Text style={{
-                fontSize: 13,
-                color: '#6B7280',
-                marginBottom: 14,
-                lineHeight: 18,
-              }}>
-                Choose any language and level
-              </Text>
-
-              <Text style={{
-                fontSize: 15,
-                fontWeight: '700',
-                color: '#4ECFBF',
-              }}>
-                6 languages · All CEFR levels →
-              </Text>
             </View>
-          </View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
       </ScrollView>
     </Animated.View>
   );
@@ -1159,9 +1180,9 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
   };
 
   const renderChallengeCategories = () => {
-    const title = selectedPlan
-      ? `${selectedPlan.language.charAt(0).toUpperCase() + selectedPlan.language.slice(1)} ${selectedPlan.proficiency_level}`
-      : `${selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)} ${selectedLevel}`;
+    const language = selectedPlan?.language || selectedLanguage;
+    const level = selectedPlan?.proficiency_level || selectedLevel;
+    const languageUpper = language.charAt(0).toUpperCase() + language.slice(1);
 
     return (
       <Animated.View
@@ -1186,10 +1207,10 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
-              {title} Challenges
+              🎯 {languageUpper.toUpperCase()} • Level {level}
             </Text>
             <Text style={{ fontSize: 14, color: '#6B7280' }}>
-              {totalChallengeCount} challenges available
+              Choose your challenge type
             </Text>
           </View>
         </View>
@@ -1573,17 +1594,7 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
 
   // Main render
   if (isLoading && navState === 'mode_selection') {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-        <StatusBar barStyle="dark-content" />
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#06B6D4" />
-          <Text style={{ marginTop: 16, fontSize: 14, color: '#6B7280' }}>
-            Loading...
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <ImmersiveLoader message="Loading your adventures..." />;
   }
 
   return (

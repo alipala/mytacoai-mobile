@@ -213,6 +213,9 @@ export const LoginScreen = ({ navigation }: any) => {
 
       await authService.login(email, password);
       const user = await authService.getCurrentUser();
+
+      // Store user object for stats and other features
+      await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('auth_provider', 'email');
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -220,7 +223,7 @@ export const LoginScreen = ({ navigation }: any) => {
       showToast({
         type: 'success',
         text1: 'Welcome Back! 🎉',
-        text2: `Great to see you again, ${user.first_name || user.email}!`,
+        text2: `Great to see you again, ${user.name || user.email}!`,
         duration: 3000,
       });
 

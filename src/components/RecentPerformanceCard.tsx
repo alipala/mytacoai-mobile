@@ -1,0 +1,567 @@
+/**
+ * Recent Performance Card
+ *
+ * Displays 7-day performance trends with sparkline chart and insights
+ */
+
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
+import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
+import { useRecentPerformance } from '../hooks/useStats';
+
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width - 40; // Assuming 20px padding on each side
+
+interface RecentPerformanceCardProps {
+  onRefresh?: () => void;
+  initiallyExpanded?: boolean;
+  maxDays?: number;
+}
+
+export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = false, maxDays = 7 }: RecentPerformanceCardProps) {
+  const { recent, isLoading, error, refetchRecent } = useRecentPerformance(7, true);
+  const [showDetails, setShowDetails] = useState(initiallyExpanded);
+  const expansionAnim = useRef(new Animated.Value(initiallyExpanded ? 1 : 0)).current;
+
+  const handleRefresh = async () => {
+    await refetchRecent(true);
+    onRefresh?.();
+  };
+
+  const toggleDetails = () => {
+    const toValue = showDetails ? 0 : 1;
+    Animated.spring(expansionAnim, {
+      toValue,
+      friction: 8,
+      tension: 80,
+      useNativeDriver: false,
+    }).start();
+    setShowDetails(!showDetails);
+  };
+
+  // Error state (but show empty state for "not found" errors)
+  if (error && !recent) {
+    // Check if it's a "not found" error (new user with no stats)
+    const isNotFoundError =
+      error.message.includes('not found') ||
+      error.message.includes('404') ||
+      error.message.includes('Statistics not found');
+
+    if (isNotFoundError) {
+      // Show empty state for new users
+      return (
+        <View style={styles.card}>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>📈</Text>
+            <Text style={styles.emptyTitle}>Start Your Journey!</Text>
+            <Text style={styles.emptyMessage}>
+              Complete a few challenges to see your performance trends
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    // Show error state for actual errors
+    return (
+      <View style={styles.card}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorEmoji}>📊</Text>
+          <Text style={styles.errorTitle}>Unable to Load Trends</Text>
+          <Text style={styles.errorMessage}>{error.message}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Loading state
+  if (isLoading && !recent) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#06B6D4" />
+          <Text style={styles.loadingText}>Loading your performance trends...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // No data state
+  if (!recent || recent.daily_breakdown.length < 3) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>📈</Text>
+          <Text style={styles.emptyTitle}>Not Enough Data Yet</Text>
+          <Text style={styles.emptyMessage}>
+            Complete a few more challenges to see your performance trends
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Calculate sparkline points for accuracy trend
+  const accuracyData = recent.daily_breakdown.map((day) => day.accuracy ?? 0);
+  const maxAccuracy = Math.max(...accuracyData, 100);
+  const minAccuracy = Math.min(...accuracyData, 0);
+  const range = maxAccuracy - minAccuracy || 1;
+
+  const chartWidth = CARD_WIDTH - 80;
+  const chartHeight = 60;
+  const stepX = chartWidth / Math.max(accuracyData.length - 1, 1);
+
+  const sparklinePoints = accuracyData
+    .map((accuracy, index) => {
+      const x = 40 + index * stepX;
+      const y = chartHeight - ((accuracy - minAccuracy) / range) * chartHeight + 10;
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  // Determine trend based on both accuracy AND practice consistency
+  const firstAccuracy = accuracyData[0];
+  const lastAccuracy = accuracyData[accuracyData.length - 1];
+  const trendDiff = lastAccuracy - firstAccuracy;
+
+  // Count days with actual practice (challenges > 0)
+  const daysWithPractice = recent.daily_breakdown.filter(day => day.challenges > 0).length;
+
+  // Check when last practiced (breakdown goes from oldest to newest, so reverse to find most recent)
+  const reversedBreakdown = [...recent.daily_breakdown].reverse();
+  const lastPracticeDayIndex = reversedBreakdown.findIndex(day => day.challenges > 0);
+  const daysSinceLastPractice = lastPracticeDayIndex >= 0 ? lastPracticeDayIndex : 7;
+
+  // Determine trend based on practice pattern
+  let trendIcon: string;
+  let trendColor: string;
+  let trendText: string;
+
+  if (daysWithPractice === 0) {
+    // No practice at all
+    trendIcon = '🌟';
+    trendColor = '#9CA3AF';
+    trendText = 'Start Today';
+  } else if (daysSinceLastPractice >= 3) {
+    // Haven't practiced in 3+ days
+    trendIcon = '👋';
+    trendColor = '#F59E0B';
+    trendText = 'Come Back';
+  } else if (daysWithPractice === 1) {
+    // Just started
+    trendIcon = '🚀';
+    trendColor = '#06B6D4';
+    trendText = 'Just Started';
+  } else if (daysWithPractice >= 5) {
+    // Practicing consistently
+    trendIcon = '🔥';
+    trendColor = '#EF4444';
+    trendText = 'On Fire';
+  } else if (trendDiff > 5) {
+    // Accuracy improving
+    trendIcon = '↑';
+    trendColor = '#10B981';
+    trendText = 'Improving';
+  } else if (trendDiff < -5) {
+    // Accuracy declining
+    trendIcon = '↓';
+    trendColor = '#EF4444';
+    trendText = 'Needs Focus';
+  } else {
+    // Regular practice, stable accuracy
+    trendIcon = '💪';
+    trendColor = '#8B5CF6';
+    trendText = 'Keep Going';
+  }
+
+  // Get most practiced language and type (with safety checks)
+  const languageEntries = Object.entries(recent.by_language || {}).filter(
+    ([lang]) => lang !== 'unknown'
+  );
+  const mostPracticedLanguage = languageEntries.length > 0
+    ? languageEntries.reduce((max, [lang, stats]) =>
+        (stats?.challenges || 0) > (recent.by_language[max]?.challenges || 0) ? lang : max
+      , languageEntries[0][0])
+    : recent.daily_breakdown.length > 0 ? 'Keep Going! 💪' : 'N/A';
+
+  const typeEntries = Object.entries(recent.by_type || {}).filter(
+    ([type]) => type !== 'unknown'
+  );
+  const mostPracticedType = typeEntries.length > 0
+    ? typeEntries.reduce((max, [type, stats]) =>
+        (stats?.challenges || 0) > (recent.by_type[max]?.challenges || 0) ? type : max
+      , typeEntries[0][0])
+    : recent.daily_breakdown.length > 0 ? 'Keep Going! 💪' : 'N/A';
+
+  // Format challenge type name
+  const formatTypeName = (type: string): string => {
+    return type
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  // Get weakest CEFR level (with safety checks)
+  const levelEntries = Object.entries(recent.by_level || {});
+  const weakestLevel = levelEntries.length > 1 // Need at least 2 levels to compare
+    ? levelEntries.reduce((min, [level, stats]) => {
+        const minAccuracy = recent.by_level[min]?.accuracy || 100;
+        return (stats?.accuracy || 0) < minAccuracy ? level : min;
+      }, levelEntries[0][0])
+    : levelEntries.length === 1
+    ? levelEntries[0][0] // Single level - show it
+    : recent.daily_breakdown.length > 0 ? 'Keep Going! 💪' : 'N/A'; // No levels
+
+  const detailsHeight = expansionAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 250],
+  });
+
+  const detailsOpacity = expansionAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.gradient}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerEmoji}>📊</Text>
+            <View>
+              <Text style={styles.headerTitle}>Recent Performance</Text>
+              <Text style={styles.headerSubtitle}>Last 7 days</Text>
+            </View>
+          </View>
+          <View style={[styles.trendBadge, { backgroundColor: `${trendColor}20` }]}>
+            <Text style={[styles.trendIcon, { color: trendColor }]}>{trendIcon}</Text>
+            <Text style={[styles.trendText, { color: trendColor }]}>{trendText}</Text>
+          </View>
+        </View>
+
+        {/* Sparkline Chart */}
+        <View style={styles.chartContainer}>
+          <Svg width={chartWidth + 80} height={chartHeight + 20}>
+            {/* Grid lines */}
+            <Line x1="40" y1="10" x2={chartWidth + 40} y2="10" stroke="#E5E7EB" strokeWidth="1" />
+            <Line x1="40" y1={chartHeight / 2 + 10} x2={chartWidth + 40} y2={chartHeight / 2 + 10} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4,4" />
+            <Line x1="40" y1={chartHeight + 10} x2={chartWidth + 40} y2={chartHeight + 10} stroke="#E5E7EB" strokeWidth="1" />
+
+            {/* Sparkline */}
+            <Polyline
+              points={sparklinePoints}
+              fill="none"
+              stroke="#06B6D4"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {/* Data points */}
+            {accuracyData.map((accuracy, index) => {
+              const x = 40 + index * stepX;
+              const y = chartHeight - ((accuracy - minAccuracy) / range) * chartHeight + 10;
+              return (
+                <Circle
+                  key={index}
+                  cx={x}
+                  cy={y}
+                  r="4"
+                  fill="#FFFFFF"
+                  stroke="#06B6D4"
+                  strokeWidth="2"
+                />
+              );
+            })}
+
+            {/* Y-axis labels */}
+            <SvgText
+              x="5"
+              y="15"
+              fontSize="10"
+              fill="#6B7280"
+              fontWeight="600"
+            >
+              {Math.round(maxAccuracy)}%
+            </SvgText>
+            <SvgText
+              x="5"
+              y={chartHeight + 15}
+              fontSize="10"
+              fill="#6B7280"
+              fontWeight="600"
+            >
+              {Math.round(minAccuracy)}%
+            </SvgText>
+          </Svg>
+        </View>
+
+        {/* Quick Insights */}
+        <View style={styles.insightsRow}>
+          <View style={styles.insightItem}>
+            <Text style={styles.insightLabel}>Most Practiced</Text>
+            <Text style={styles.insightValue}>
+              {mostPracticedLanguage.charAt(0).toUpperCase() + mostPracticedLanguage.slice(1)}
+            </Text>
+          </View>
+          <View style={styles.insightDivider} />
+          <View style={styles.insightItem}>
+            <Text style={styles.insightLabel}>Favorite Type</Text>
+            <Text style={styles.insightValue}>{formatTypeName(mostPracticedType)}</Text>
+          </View>
+          <View style={styles.insightDivider} />
+          <View style={styles.insightItem}>
+            <Text style={styles.insightLabel}>Needs Work</Text>
+            <Text style={styles.insightValue}>{weakestLevel}</Text>
+          </View>
+        </View>
+
+        {/* Detailed Breakdown (Always Visible) */}
+        <View style={styles.detailsContainer}>
+          <View style={styles.divider} />
+
+          {/* Daily Breakdown */}
+          <Text style={styles.detailsTitle}>📅 Daily Breakdown</Text>
+          <View style={styles.dailyGrid}>
+            {recent.daily_breakdown.slice().reverse().slice(0, maxDays).map((day, index) => (
+              <View key={index} style={styles.dailyItem}>
+                <Text style={styles.dailyDate}>
+                  {new Date(day.date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <Text style={styles.dailyChallenges}>{day.challenges} challenges</Text>
+                <Text style={styles.dailyAccuracy}>{Math.round(day.accuracy)}% accuracy</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    marginBottom: 0,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  gradient: {
+    padding: 20,
+    paddingBottom: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  trendBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  trendIcon: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginRight: 4,
+  },
+  trendText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  chartContainer: {
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  insightsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  insightItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  insightDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#E5E7EB',
+  },
+  insightLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  insightValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F2937',
+    textAlign: 'center',
+  },
+  expandIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 8,
+  },
+  expandText: {
+    fontSize: 12,
+    color: '#06B6D4',
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  expandArrow: {
+    fontSize: 10,
+    color: '#06B6D4',
+  },
+  detailsContainer: {
+    overflow: 'hidden',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 12,
+  },
+  detailsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 10,
+  },
+  dailyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 0,
+  },
+  dailyItem: {
+    width: '48%',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    padding: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  dailyDate: {
+    fontSize: 12, // Reduced from 13
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 3, // Reduced from 4
+  },
+  dailyChallenges: {
+    fontSize: 11, // Reduced from 12
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  dailyAccuracy: {
+    fontSize: 11, // Reduced from 12
+    color: '#06B6D4',
+    fontWeight: '600',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  errorEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#06B6D4',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 12,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  emptyMessage: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+});
