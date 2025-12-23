@@ -228,6 +228,21 @@ export function useStats(options: UseStatsOptions = {}): UseStatsReturn {
 
   // Auto-fetch on mount
   useEffect(() => {
+    // Clear old cache on first mount (one-time cleanup)
+    const clearOldCache = async () => {
+      try {
+        await statsService.clearAllStatsCache();
+
+        // Also clear OLD stats system cache (legacy cleanup)
+        const { clearAllOldStats } = await import('../services/dailyStatsService');
+        await clearAllOldStats();
+      } catch (error) {
+        console.error('[useStats] Failed to clear old cache:', error);
+      }
+    };
+
+    clearOldCache();
+
     if (autoFetch) {
       refetch(false);
     }

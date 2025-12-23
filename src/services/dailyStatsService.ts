@@ -246,3 +246,24 @@ export async function resetDailyStats(): Promise<void> {
     console.error('❌ Error resetting daily stats:', error);
   }
 }
+
+/**
+ * Clear all old stats data (for migration cleanup)
+ */
+export async function clearAllOldStats(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(DAILY_STATS_KEY);
+    await AsyncStorage.removeItem(STREAK_KEY);
+
+    // Clear all category stats
+    const keys = await AsyncStorage.getAllKeys();
+    const categoryKeys = keys.filter(key => key.startsWith(CATEGORY_STATS_KEY));
+    if (categoryKeys.length > 0) {
+      await AsyncStorage.multiRemove(categoryKeys);
+    }
+
+    console.log('🗑️ All old stats cleared');
+  } catch (error) {
+    console.error('❌ Error clearing old stats:', error);
+  }
+}

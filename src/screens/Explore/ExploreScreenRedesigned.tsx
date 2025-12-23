@@ -23,7 +23,8 @@ import type { LearningPlan } from '../../api/generated';
 import { loadTodayCompletions, markChallengeCompleted } from '../../services/completionTracker';
 import { useChallengeSession } from '../../contexts/ChallengeSessionContext';
 import { loadDailyStats, updateDailyStats, getAllCategoryStats, DailyStats, CategoryStats } from '../../services/dailyStatsService';
-import TodaysProgressCard from '../../components/TodaysProgressCard';
+import EnhancedTodaysProgressCard from '../../components/EnhancedTodaysProgressCard';
+import RecentPerformanceCard from '../../components/RecentPerformanceCard';
 
 // Challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -617,9 +618,10 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
         </Animated.View>
 
         {/* Today's Progress Card */}
-        {dailyStats && (
-          <TodaysProgressCard stats={dailyStats} isLoading={loadingStats} />
-        )}
+        <EnhancedTodaysProgressCard onRefresh={reloadDailyStats} />
+
+        {/* Recent Performance Card */}
+        <RecentPerformanceCard onRefresh={reloadDailyStats} />
 
         {/* Completed Plans Card - White with Coral border */}
         <TouchableOpacity

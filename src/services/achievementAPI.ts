@@ -144,7 +144,10 @@ export async function completeSession(
   maxCombo: number,
   totalXP: number,
   answerTimes: number[],
-  achievementIds: string[]
+  achievementIds: string[],
+  language?: string,
+  level?: string,
+  challengeType?: string
 ): Promise<{
   success: boolean;
   session_id: string;
@@ -166,6 +169,9 @@ export async function completeSession(
         total_xp: totalXP,
         answer_times: answerTimes,
         achievements: achievementIds,
+        language: language,
+        level: level,
+        challenge_type: challengeType,
       }),
     });
 

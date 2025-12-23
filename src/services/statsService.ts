@@ -19,7 +19,27 @@ import {
 // Get API base URL from config
 import { API_BASE_URL } from '../config/api';
 
-// Cache keys
+/**
+ * Get user ID for cache key (to make cache user-specific)
+ */
+async function getUserId(): Promise<string> {
+  try {
+    const userStr = await AsyncStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      const userId = user.id || user._id || 'unknown';
+      console.log(`[StatsService] Got user ID: ${userId}`);
+      return userId;
+    }
+    console.warn('[StatsService] No user found in storage');
+    return 'unknown';
+  } catch (error) {
+    console.error('[StatsService] Failed to get user ID:', error);
+    return 'unknown';
+  }
+}
+
+// Cache keys (will be prefixed with user ID)
 const CACHE_KEYS = {
   daily: 'stats_daily_',
   recent: 'stats_recent_',
@@ -50,7 +70,12 @@ function getUserTimezone(): string {
  */
 async function getAuthToken(): Promise<string | null> {
   try {
-    return await AsyncStorage.getItem('authToken');
+    // Try both possible key names for compatibility
+    let token = await AsyncStorage.getItem('auth_token');
+    if (!token) {
+      token = await AsyncStorage.getItem('authToken');
+    }
+    return token;
   } catch (error) {
     console.error('[StatsService] Failed to get auth token:', error);
     return null;
@@ -111,25 +136,52 @@ async function setCachedData<T>(cacheKey: string, data: T): Promise<void> {
 export async function invalidateCache(layer: StatsLayer): Promise<void> {
   try {
     const timezone = getUserTimezone();
+    const userId = await getUserId();
     const cacheKey =
       layer === 'all'
         ? null
-        : `${CACHE_KEYS[layer]}${timezone}`;
+        : `${CACHE_KEYS[layer]}${userId}_${timezone}`;
 
     if (cacheKey) {
       await AsyncStorage.removeItem(cacheKey);
       console.log(`[StatsService] Invalidated cache for ${layer}`);
     } else {
-      // Invalidate all
-      await AsyncStorage.multiRemove([
-        `${CACHE_KEYS.daily}${timezone}`,
-        `${CACHE_KEYS.recent}${timezone}`,
-        `${CACHE_KEYS.lifetime}${timezone}`,
-      ]);
-      console.log('[StatsService] Invalidated all caches');
+      // Invalidate all - get all keys and remove stats-related ones
+      const allKeys = await AsyncStorage.getAllKeys();
+      const statsKeys = allKeys.filter(
+        key =>
+          key.startsWith('stats_daily_') ||
+          key.startsWith('stats_recent_') ||
+          key.startsWith('stats_lifetime_')
+      );
+      if (statsKeys.length > 0) {
+        await AsyncStorage.multiRemove(statsKeys);
+        console.log(`[StatsService] Invalidated ${statsKeys.length} cached stats`);
+      }
     }
   } catch (error) {
     console.error('[StatsService] Cache invalidation error:', error);
+  }
+}
+
+/**
+ * Clear all old stats cache (for migration/cleanup)
+ */
+export async function clearAllStatsCache(): Promise<void> {
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const statsKeys = allKeys.filter(
+      key =>
+        key.startsWith('stats_daily_') ||
+        key.startsWith('stats_recent_') ||
+        key.startsWith('stats_lifetime_')
+    );
+    if (statsKeys.length > 0) {
+      await AsyncStorage.multiRemove(statsKeys);
+      console.log(`[StatsService] Cleared ${statsKeys.length} old cache entries`);
+    }
+  } catch (error) {
+    console.error('[StatsService] Failed to clear cache:', error);
   }
 }
 
@@ -140,7 +192,8 @@ export async function fetchDailyStats(
   forceRefresh: boolean = false
 ): Promise<DailyStatsResponse> {
   const timezone = getUserTimezone();
-  const cacheKey = `${CACHE_KEYS.daily}${timezone}`;
+  const userId = await getUserId();
+  const cacheKey = `${CACHE_KEYS.daily}${userId}_${timezone}`;
 
   try {
     // Check cache first
@@ -150,7 +203,7 @@ export async function fetchDailyStats(
         CACHE_DURATIONS.daily
       );
       if (cached) {
-        console.log('[StatsService] Daily stats from cache');
+        console.log(`[StatsService] Daily stats from cache for user ${userId}`);
         return cached;
       }
     }
@@ -192,7 +245,8 @@ export async function fetchRecentPerformance(
   forceRefresh: boolean = false
 ): Promise<RecentPerformanceResponse> {
   const timezone = getUserTimezone();
-  const cacheKey = `${CACHE_KEYS.recent}${timezone}_${days}`;
+  const userId = await getUserId();
+  const cacheKey = `${CACHE_KEYS.recent}${userId}_${timezone}_${days}`;
 
   try {
     // Check cache first
@@ -202,7 +256,7 @@ export async function fetchRecentPerformance(
         CACHE_DURATIONS.recent
       );
       if (cached) {
-        console.log('[StatsService] Recent performance from cache');
+        console.log(`[StatsService] Recent performance from cache for user ${userId}`);
         return cached;
       }
     }
@@ -245,7 +299,8 @@ export async function fetchLifetimeProgress(
   forceRefresh: boolean = false
 ): Promise<LifetimeProgressResponse> {
   const timezone = getUserTimezone();
-  const cacheKey = `${CACHE_KEYS.lifetime}${timezone}_${includeAchievements}`;
+  const userId = await getUserId();
+  const cacheKey = `${CACHE_KEYS.lifetime}${userId}_${timezone}_${includeAchievements}`;
 
   try {
     // Check cache first
@@ -255,7 +310,7 @@ export async function fetchLifetimeProgress(
         CACHE_DURATIONS.lifetime
       );
       if (cached) {
-        console.log('[StatsService] Lifetime progress from cache');
+        console.log(`[StatsService] Lifetime progress from cache for user ${userId}`);
         return cached;
       }
     }
@@ -420,5 +475,6 @@ export default {
   fetchLifetimeProgress,
   fetchAllStats,
   invalidateCache,
+  clearAllStatsCache,
   refreshStatsAfterSession,
 };

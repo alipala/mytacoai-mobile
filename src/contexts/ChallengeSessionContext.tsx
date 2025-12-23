@@ -335,7 +335,10 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         currentSession.maxCombo,
         currentSession.totalXP,
         currentSession.answerTimes,
-        achievementIds
+        achievementIds,
+        currentSession.language,
+        currentSession.level,
+        currentSession.challengeType
       );
 
       console.log('✅ Session persisted to backend:', response);
