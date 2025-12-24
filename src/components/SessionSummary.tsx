@@ -93,14 +93,17 @@ export default function SessionSummary({
 
   return (
     <View style={styles.container}>
-      {/* Confetti */}
-      <ConfettiCannon
-        ref={confettiRef}
-        count={80}
-        origin={{ x: width / 2, y: -10 }}
-        autoStart={false}
-        fadeOut={true}
-      />
+      {/* Confetti - Only render for perfect sessions (100% accuracy) */}
+      {stats.accuracy === 100 && (
+        <ConfettiCannon
+          ref={confettiRef}
+          count={80}
+          origin={{ x: width / 2, y: -10 }}
+          autoStart={false}
+          fadeOut={true}
+          pointerEvents="none"
+        />
+      )}
 
       <ScrollView
         style={styles.scrollView}
@@ -236,6 +239,8 @@ export default function SessionSummary({
               </LinearGradient>
             </TouchableOpacity>
           </View>
+          {/* Extra bottom padding to ensure nothing renders below */}
+          <View style={{ height: 60 }} />
         </Animated.View>
       </ScrollView>
     </View>
@@ -285,6 +290,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+    zIndex: 1000, // Ensure this is above everything else
   },
   scrollView: {
     flex: 1,

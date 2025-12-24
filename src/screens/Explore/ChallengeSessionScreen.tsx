@@ -341,5 +341,6 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+    overflow: 'hidden', // Hide anything that extends beyond bounds
   },
 });
