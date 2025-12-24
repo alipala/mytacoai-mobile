@@ -11,10 +11,24 @@ import {
   PanResponder,
   Animated,
 } from 'react-native';
+import ReanimatedAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  runOnJS,
+} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { SwipeFixChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
+import { LearningCompanion } from '../../../components/LearningCompanion';
+import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
+import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
+import { useCharacterState } from '../../../hooks/useCharacterState';
+import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
+import { calculateXP } from '../../../services/xpCalculator';
+import { useAudio } from '../../../hooks/useAudio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,13 +45,29 @@ export default function SwipeFixScreen({
 }: SwipeFixScreenProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hasViewed, setHasViewed] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [tapPosition, setTapPosition] = useState({ x: SCREEN_WIDTH / 2, y: 200 });
+  const [showXPAnimation, setShowXPAnimation] = useState(false);
+  const [showParticleBurst, setShowParticleBurst] = useState(false);
+  const [xpValue, setXPValue] = useState(0);
+  const [speedBonus, setSpeedBonus] = useState(0);
+
   const translateX = useRef(new Animated.Value(0)).current;
+  const screenOpacity = useSharedValue(1);
+
+  const { session } = useChallengeSession();
+  const { characterState, reactToAnswer } = useCharacterState();
+  const { play } = useAudio();
 
   // Reset state when challenge changes
   useEffect(() => {
     setCurrentIndex(0);
     setHasViewed(false);
+    setShowCelebration(false);
+    setShowXPAnimation(false);
+    setShowParticleBurst(false);
     translateX.setValue(0);
+    screenOpacity.value = 1;
   }, [challenge.id]);
 
   const currentExample = challenge.examples[currentIndex];
@@ -110,25 +140,86 @@ export default function SwipeFixScreen({
     });
   };
 
-  const handleDone = () => {
-    if (Platform.OS === 'ios') {
+  const handleDone = (event: any) => {
+    // Capture tap position for animations
+    const { pageX, pageY } = event.nativeEvent;
+    setTapPosition({ x: pageX, y: pageY });
+
+    // Calculate XP
+    const timeSpent = 8; // Swipe challenges take time to review
+    const combo = session?.currentCombo || 1;
+    const xpResult = calculateXP(true, timeSpent, combo);
+
+    setXPValue(xpResult.baseXP);
+    setSpeedBonus(xpResult.speedBonus);
+
+    // Show celebration
+    setShowCelebration(true);
+
+    // Show particle burst immediately
+    setShowParticleBurst(true);
+
+    // Show XP animation
+    setTimeout(() => {
+      setShowXPAnimation(true);
+    }, 150);
+
+    // Character celebrates
+    reactToAnswer(true);
+
+    // Play correct answer sound
+    play('correct_answer');
+
+    // Haptic feedback
+    if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
-    // SwipeFixChallenge is educational, not right/wrong, so always mark as correct
-    onComplete(challenge.id, true, {
-      correctAnswer: challenge.concept,
-      explanation: `You reviewed ${challenge.examples.length} examples of: ${challenge.concept}`,
-    });
+
+    // Auto-advance with fade out after animations
+    setTimeout(() => {
+      screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+        if (finished) {
+          runOnJS(onComplete)(challenge.id, true, {
+            correctAnswer: challenge.concept,
+            explanation: `You reviewed ${challenge.examples.length} examples of: ${challenge.concept}`,
+          });
+        }
+      });
+    }, 800);
   };
 
+  const screenAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: screenOpacity.value,
+  }));
+
   return (
-    <View style={styles.container}>
+    <ReanimatedAnimated.View style={[styles.container, screenAnimatedStyle]}>
+      {/* Celebration Companion - Only shows after "Done" is pressed */}
+      {showCelebration && (
+        <View style={styles.celebrationCompanion}>
+          <LearningCompanion
+            state={characterState}
+            combo={1}
+            size={96}
+          />
+        </View>
+      )}
+
       {/* Content */}
       <View style={styles.content}>
-        {/* Title Section */}
+        {/* Learning Companion (before pressing Done) */}
+        {!showCelebration && (
+          <View style={styles.companionContainer}>
+            <LearningCompanion
+              state={characterState}
+              combo={session?.currentCombo || 1}
+              size={80}
+            />
+          </View>
+        )}
+
+        {/* Concept Section - Removed title */}
         <View style={styles.titleSection}>
-          <Text style={styles.emoji}>{challenge.emoji}</Text>
-          <Text style={styles.title}>{challenge.title}</Text>
           <Text style={styles.concept}>{challenge.concept}</Text>
         </View>
 
@@ -202,7 +293,31 @@ export default function SwipeFixScreen({
           </TouchableOpacity>
         )}
       </View>
-    </View>
+
+      {/* Particle Burst on Completion */}
+      {showParticleBurst && (
+        <SkiaParticleBurst
+          x={tapPosition.x}
+          y={tapPosition.y}
+          preset="success"
+          onComplete={() => setShowParticleBurst(false)}
+        />
+      )}
+
+      {/* XP Flying Animation - Hide during celebration */}
+      {showXPAnimation && !showCelebration && (
+        <XPFlyingNumber
+          value={xpValue}
+          startX={tapPosition.x}
+          startY={tapPosition.y}
+          endX={SCREEN_WIDTH - 80}
+          endY={60}
+          speedBonus={speedBonus}
+          onComplete={() => setShowXPAnimation(false)}
+          delay={0}
+        />
+      )}
+    </ReanimatedAnimated.View>
   );
 }
 
@@ -211,17 +326,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  celebrationCompanion: {
+    position: 'absolute',
+    top: 80,
+    alignSelf: 'center',
+    zIndex: 1000,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 20,
   },
+  companionContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   titleSection: {
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  emoji: {
-    fontSize: 56,
     marginBottom: 12,
   },
   title: {
@@ -241,7 +364,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   swipeHintText: {
     fontSize: 14,
@@ -251,7 +374,8 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    marginTop: 20,
     marginBottom: 20,
   },
   card: {
@@ -322,7 +446,7 @@ const styles = StyleSheet.create({
   doneButton: {
     backgroundColor: COLORS.darkNavy,
     paddingVertical: 16,
-    borderRadius: 28,
+    borderRadius: 12,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },

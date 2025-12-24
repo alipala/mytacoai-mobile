@@ -10,7 +10,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ConfettiCannon from 'react-native-confetti-cannon';
 import { SessionStats, SessionComparison, OverallProgress } from '../types/progressStats';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -55,7 +54,6 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   const [progressAnim] = useState(new Animated.Value(0));
   const [rotateAnim] = useState(new Animated.Value(0));
   const [pulseAnim] = useState(new Animated.Value(1));
-  const confettiRef = useRef<any>(null);
 
   // Analyzing steps to cycle through
   const analyzingSteps = [
@@ -114,17 +112,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
     }
   }, [stage, analyzingSteps.length]);
 
-  // Trigger confetti with delay when success stage is reached
-  useEffect(() => {
-    if (stage === 'success' && confettiRef.current) {
-      console.log('[SESSION_MODAL] 🎉 Success stage reached - triggering confetti');
-      // Delay confetti by 300ms to ensure modal is visible
-      const timer = setTimeout(() => {
-        confettiRef.current?.start();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [stage]);
+  // Confetti removed for cleaner UX
 
   // Rotate conversation highlights
   useEffect(() => {
@@ -220,17 +208,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          {/* Confetti Animation - render inside modal container */}
-          {stage === 'success' && (
-            <ConfettiCannon
-              ref={confettiRef}
-              count={200}
-              origin={{x: SCREEN_WIDTH / 2, y: -100}}
-              autoStart={false}
-              fadeOut={true}
-              fallSpeed={2500}
-            />
-          )}
+          {/* Confetti removed for cleaner UX */}
 
           {/* Header */}
           <View style={[styles.header, { backgroundColor: config.color }]}>

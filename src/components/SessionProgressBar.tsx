@@ -1,77 +1,45 @@
 /**
- * Session Progress Bar
+ * Session Progress Bar (Redesigned)
  *
- * Displays current session progress at the top of challenge screens
- * Shows: Current challenge number, XP earned, combo multiplier
+ * Displays current session progress with spatial journey visualization
+ * Shows: Node-based progress path, XP earned, combo streak
+ *
+ * Uses new game-feel components for immersive experience
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useChallengeSession } from '../contexts/ChallengeSessionContext';
 import { formatXP } from '../services/xpCalculator';
+import { ProgressPath } from './ProgressPath';
+import { ComboBadge } from './ComboBadge';
 
 interface SessionProgressBarProps {
   showXP?: boolean;
   showCombo?: boolean;
+  onComboMilestone?: (combo: number, message: string) => void;
+  onComboLost?: () => void;
 }
 
 export default function SessionProgressBar({
   showXP = true,
   showCombo = true,
+  onComboMilestone,
+  onComboLost,
 }: SessionProgressBarProps) {
   const { session, getProgress } = useChallengeSession();
   const progress = getProgress();
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  const comboScaleAnim = useRef(new Animated.Value(1)).current;
-
-  // Animate progress bar
-  useEffect(() => {
-    Animated.spring(progressAnim, {
-      toValue: progress.percentage,
-      useNativeDriver: false,
-      friction: 8,
-      tension: 40,
-    }).start();
-  }, [progress.percentage]);
-
-  // Animate combo when it changes
-  useEffect(() => {
-    if (session && session.currentCombo > 1) {
-      // Pulse animation
-      Animated.sequence([
-        Animated.spring(comboScaleAnim, {
-          toValue: 1.2,
-          useNativeDriver: true,
-          friction: 3,
-        }),
-        Animated.spring(comboScaleAnim, {
-          toValue: 1,
-          useNativeDriver: true,
-          friction: 3,
-        }),
-      ]).start();
-    }
-  }, [session?.currentCombo]);
 
   if (!session) {
     return null;
   }
 
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-  });
-
   return (
     <View style={styles.container}>
-      {/* Top bar with stats */}
+      {/* Top stats bar */}
       <View style={styles.statsRow}>
-        <Text style={styles.progressText}>
-          Challenge {progress.current + 1}/{progress.total}
-        </Text>
-
         <View style={styles.rightStats}>
+          {/* XP Badge */}
           {showXP && (
             <View style={styles.statBadge}>
               <Text style={styles.statLabel}>💪</Text>
@@ -79,36 +47,18 @@ export default function SessionProgressBar({
             </View>
           )}
 
-          {showCombo && session.currentCombo > 1 && (
-            <Animated.View
-              style={[styles.comboBadge, { transform: [{ scale: comboScaleAnim }] }]}
-            >
-              <LinearGradient
-                colors={['#FF6B9D', '#F97316']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.comboGradient}
-              >
-                <Text style={styles.comboText}>{session.currentCombo}x 🔥</Text>
-              </LinearGradient>
-            </Animated.View>
+          {/* Combo Badge (using new component) */}
+          {showCombo && (
+            <ComboBadge
+              onMilestone={onComboMilestone}
+              onComboLost={onComboLost}
+            />
           )}
         </View>
       </View>
 
-      {/* Progress bar */}
-      <View style={styles.progressBarContainer}>
-        <View style={styles.progressBarBackground}>
-          <Animated.View style={[styles.progressBarFill, { width: progressWidth }]}>
-            <LinearGradient
-              colors={['#06B6D4', '#0891B2']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={StyleSheet.absoluteFill}
-            />
-          </Animated.View>
-        </View>
-      </View>
+      {/* Progress Path (replaces progress bar) */}
+      <ProgressPath />
 
       {/* Divider */}
       <View style={styles.divider} />
@@ -128,7 +78,7 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 8,
@@ -159,33 +109,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#0891B2',
-  },
-  comboBadge: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  comboGradient: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  comboText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  progressBarContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-  },
-  progressBarBackground: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 4,
   },
   divider: {
     height: 1,

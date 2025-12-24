@@ -123,6 +123,19 @@ function MainTabs() {
           tabBarLabel: 'Challenges',
           headerShown: false,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // Get current route state
+            const state = navigation.getState();
+            const exploreRoute = state.routes.find(r => r.name === 'Explore');
+
+            // If we're already on Explore tab and user taps again, reset to initial screen
+            if (exploreRoute && state.index === state.routes.findIndex(r => r.name === 'Explore')) {
+              e.preventDefault();
+              navigation.navigate('Explore', { reset: true });
+            }
+          },
+        })}
       />
 
       {/* Profile Tab */}
