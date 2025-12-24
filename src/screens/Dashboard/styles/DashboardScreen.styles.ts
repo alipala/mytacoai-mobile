@@ -7,19 +7,19 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F7F9FA',
   },
-  // iOS-Native Header - Premium Design for Large Screens
+  // iOS-Native Header - Premium Design with Larger Logo (matches bottom tab height)
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#4FD1C5',
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    height: 68,
+    paddingVertical: 18, // Increased from 14 to 18
+    height: 90, // Increased from 68 to 90 (matches typical iOS tab bar)
   },
   logo: {
-    width: 180,
-    height: 57,
+    width: 220, // Increased from 180 to 220 (22% bigger)
+    height: 70, // Increased from 57 to 70 (23% bigger) - maintains aspect ratio
   },
   headerActions: {
     flexDirection: 'row',
@@ -30,21 +30,21 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10, // Increased from 8 to 10
+    paddingHorizontal: 18, // Increased from 16 to 18
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 22, // Increased from 20 to 22
   },
   upgradeButtonText: {
     color: '#4FD1C5',
-    fontSize: 16,
+    fontSize: 17, // Increased from 16 to 17
     fontWeight: '700',
   },
-  // EXIT Button - Premium Design
+  // EXIT Button - Premium Design (larger to match header)
   exitButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48, // Increased from 44 to 48
+    height: 48, // Increased from 44 to 48
+    borderRadius: 24, // Increased from 22 to 24
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',

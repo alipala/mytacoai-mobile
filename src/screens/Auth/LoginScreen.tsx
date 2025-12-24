@@ -33,6 +33,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { AuthenticationService } from '../../api/generated';
 import { styles } from './LoginScreen.styles';
+import { AuthResultModal } from '../../components/AuthResultModal';
 
 
 export const LoginScreen = ({ navigation }: any) => {
@@ -71,6 +72,13 @@ export const LoginScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Auth result modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalType, setAuthModalType] = useState<'success' | 'error'>('success');
+  const [authModalTitle, setAuthModalTitle] = useState('');
+  const [authModalMessage, setAuthModalMessage] = useState('');
+  const [authModalUserName, setAuthModalUserName] = useState('');
 
   /**
    * Entrance animations on mount
@@ -218,18 +226,16 @@ export const LoginScreen = ({ navigation }: any) => {
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('auth_provider', 'email');
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      showToast({
-        type: 'success',
-        text1: 'Welcome Back! 🎉',
-        text2: `Great to see you again, ${user.name || user.email}!`,
-        duration: 3000,
-      });
+      // Show beautiful success modal
+      setAuthModalType('success');
+      setAuthModalTitle('Welcome Back!');
+      setAuthModalMessage('Great to see you again! Loading your dashboard...');
+      setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
+      setShowAuthModal(true);
 
       setTimeout(() => {
         navigation.replace('Main');
-      }, 500);
+      }, 3000);
 
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -238,38 +244,36 @@ export const LoginScreen = ({ navigation }: any) => {
       const errorDetail = error.response?.data?.detail || error.body?.detail || error.message;
 
       if (statusCode === 403) {
-        showToast({
-          type: 'error',
-          text1: 'Email Not Verified',
-          text2: 'Please check your inbox for the verification link.',
-          duration: 4000,
-        });
+        setAuthModalType('error');
+        setAuthModalTitle('Email Not Verified');
+        setAuthModalMessage('Please check your inbox for the verification link. Redirecting...');
+        setAuthModalUserName('');
+        setShowAuthModal(true);
 
         setTimeout(() => {
+          setShowAuthModal(false);
           navigation.navigate('VerifyEmail', {
             email: email.toLowerCase().trim(),
           });
-        }, 2000);
+        }, 3000);
         return;
       }
 
       if (statusCode === 401) {
         setPasswordError('Invalid email or password');
-        showToast({
-          type: 'error',
-          text1: 'Invalid Credentials',
-          text2: 'Please check your email and password.',
-          duration: 3000,
-        });
+        setAuthModalType('error');
+        setAuthModalTitle('Invalid Credentials');
+        setAuthModalMessage('Please check your email and password and try again.');
+        setAuthModalUserName('');
+        setShowAuthModal(true);
         return;
       }
 
-      showToast({
-        type: 'error',
-        text1: 'Login Failed',
-        text2: errorDetail || 'An error occurred. Please try again.',
-        duration: 4000,
-      });
+      setAuthModalType('error');
+      setAuthModalTitle('Login Failed');
+      setAuthModalMessage(errorDetail || 'An error occurred. Please try again.');
+      setAuthModalUserName('');
+      setShowAuthModal(true);
     } finally {
       setLoading(false);
     }
@@ -387,20 +391,18 @@ export const LoginScreen = ({ navigation }: any) => {
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('auth_provider', 'google');
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      showToast({
-        type: 'success',
-        text1: 'Welcome! 🎉',
-        text2: `Signed in as ${user.email}`,
-        duration: 3000,
-      });
+      // Show beautiful success modal
+      setAuthModalType('success');
+      setAuthModalTitle('Welcome!');
+      setAuthModalMessage('Successfully signed in with Google. Loading your dashboard...');
+      setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
+      setShowAuthModal(true);
 
       console.log('🧭 Navigating to Main screen...');
       setTimeout(() => {
         navigation.replace('Main');
         console.log('✅ Navigation complete');
-      }, 500);
+      }, 3000);
 
     } catch (error: any) {
       console.error('❌ Google Sign-In Error:', error);
@@ -414,12 +416,11 @@ export const LoginScreen = ({ navigation }: any) => {
         console.log('ℹ️ User cancelled sign-in');
         // User cancelled - no error message needed
       } else {
-        showToast({
-          type: 'error',
-          text1: 'Google Sign-In Failed',
-          text2: error.message || 'Please try again or use email sign-in.',
-          duration: 3000,
-        });
+        setAuthModalType('error');
+        setAuthModalTitle('Google Sign-In Failed');
+        setAuthModalMessage(error.message || 'Please try again or use email sign-in.');
+        setAuthModalUserName('');
+        setShowAuthModal(true);
       }
     } finally {
       console.log('🏁 Google Sign-In flow finished');
@@ -830,6 +831,17 @@ export const LoginScreen = ({ navigation }: any) => {
 
       {/* Toast Notifications */}
       <GlobalToast />
+
+      {/* Auth Result Modal */}
+      <AuthResultModal
+        visible={showAuthModal}
+        type={authModalType}
+        title={authModalTitle}
+        message={authModalMessage}
+        userName={authModalUserName}
+        onClose={() => setShowAuthModal(false)}
+        autoCloseDelay={3000}
+      />
     </View>
   );
 };

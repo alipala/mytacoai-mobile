@@ -459,7 +459,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onPress={handleUpgradePress}
                 activeOpacity={0.7}
               >
-                <Ionicons name="sparkles" size={20} color="#4FD1C5" />
+                <Ionicons name="sparkles" size={22} color="#4FD1C5" />
                 <Text style={styles.upgradeButtonText}>Upgrade</Text>
               </TouchableOpacity>
             )}
@@ -470,7 +470,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               onPress={handleLogoutPress}
               activeOpacity={0.7}
             >
-              <Ionicons name="log-out-outline" size={26} color="#FFFFFF" />
+              <Ionicons name="log-out-outline" size={28} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -592,7 +592,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               onPress={handleUpgradePress}
               activeOpacity={0.7}
             >
-              <Ionicons name="sparkles" size={20} color="#4FD1C5" />
+              <Ionicons name="sparkles" size={22} color="#4FD1C5" />
               <Text style={styles.upgradeButtonText}>Upgrade</Text>
             </TouchableOpacity>
           )}
@@ -603,7 +603,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             onPress={handleLogoutPress}
             activeOpacity={0.7}
           >
-            <Ionicons name="log-out-outline" size={26} color="#FFFFFF" />
+            <Ionicons name="log-out-outline" size={28} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
