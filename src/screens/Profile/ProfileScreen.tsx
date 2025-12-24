@@ -1366,7 +1366,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           onRequestClose={() => setShowAppSettings(false)}
         >
           <SafeAreaView style={styles.modalSafeArea}>
-            <SettingsScreen onClose={() => setShowAppSettings(false)} />
+            <SettingsScreen onClose={() => setShowAppSettings(false)} navigation={navigation} />
           </SafeAreaView>
         </Modal>
       </View>

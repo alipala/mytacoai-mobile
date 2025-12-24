@@ -55,7 +55,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Animation refs for Start New Session button
   const buttonFloatAnim = useRef(new Animated.Value(0)).current;
@@ -262,30 +261,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   };
 
 
-  const handleLogoutPress = () => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setShowLogoutModal(true);
-  };
-
-  const handleConfirmLogout = async () => {
-    if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-    setShowLogoutModal(false);
-    await AsyncStorage.removeItem('auth_token');
-    await AsyncStorage.removeItem('user');
-    navigation.replace('Login');
-  };
-
-  const handleCancelLogout = () => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setShowLogoutModal(false);
-  };
-
   const getTimeBasedGreeting = (): string => {
     const hour = new Date().getHours();
     const firstName = userName?.split(' ')[0] || 'there';
@@ -328,43 +303,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectAssessment={handleSelectAssessment}
         />
 
-        {/* Logout Confirmation Modal */}
-        <Modal
-          visible={showLogoutModal}
-          transparent
-          animationType="fade"
-          onRequestClose={handleCancelLogout}
-        >
-          <Pressable style={styles.logoutModalOverlay} onPress={handleCancelLogout}>
-            <Pressable style={styles.logoutModalContainer} onPress={(e) => e.stopPropagation()}>
-              <View style={styles.logoutModalHeader}>
-                <View style={styles.logoutIconContainer}>
-                  <Ionicons name="log-out" size={32} color="#EF4444" />
-                </View>
-              </View>
-              <Text style={styles.logoutModalTitle}>Sign Out?</Text>
-              <Text style={styles.logoutModalMessage}>
-                Are you sure you want to sign out? You'll need to log in again to access your learning progress.
-              </Text>
-              <View style={styles.logoutModalButtons}>
-                <TouchableOpacity
-                  style={styles.logoutCancelButton}
-                  onPress={handleCancelLogout}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.logoutCancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.logoutConfirmButton}
-                  onPress={handleConfirmLogout}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
-                </TouchableOpacity>
-              </View>
-            </Pressable>
-          </Pressable>
-        </Modal>
       </SafeAreaView>
     );
   }
@@ -398,43 +336,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectAssessment={handleSelectAssessment}
         />
 
-        {/* Logout Confirmation Modal */}
-        <Modal
-          visible={showLogoutModal}
-          transparent
-          animationType="fade"
-          onRequestClose={handleCancelLogout}
-        >
-          <Pressable style={styles.logoutModalOverlay} onPress={handleCancelLogout}>
-            <Pressable style={styles.logoutModalContainer} onPress={(e) => e.stopPropagation()}>
-              <View style={styles.logoutModalHeader}>
-                <View style={styles.logoutIconContainer}>
-                  <Ionicons name="log-out" size={32} color="#EF4444" />
-                </View>
-              </View>
-              <Text style={styles.logoutModalTitle}>Sign Out?</Text>
-              <Text style={styles.logoutModalMessage}>
-                Are you sure you want to sign out? You'll need to log in again to access your learning progress.
-              </Text>
-              <View style={styles.logoutModalButtons}>
-                <TouchableOpacity
-                  style={styles.logoutCancelButton}
-                  onPress={handleCancelLogout}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.logoutCancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.logoutConfirmButton}
-                  onPress={handleConfirmLogout}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
-                </TouchableOpacity>
-              </View>
-            </Pressable>
-          </Pressable>
-        </Modal>
       </SafeAreaView>
     );
   }
@@ -463,15 +364,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 <Text style={styles.upgradeButtonText}>Upgrade</Text>
               </TouchableOpacity>
             )}
-
-            {/* EXIT Button - Premium Design */}
-            <TouchableOpacity
-              style={styles.exitButton}
-              onPress={handleLogoutPress}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="log-out-outline" size={28} color="#FFFFFF" />
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -533,43 +425,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectAssessment={handleSelectAssessment}
         />
 
-        {/* Logout Confirmation Modal */}
-        <Modal
-          visible={showLogoutModal}
-          transparent
-          animationType="fade"
-          onRequestClose={handleCancelLogout}
-        >
-          <Pressable style={styles.logoutModalOverlay} onPress={handleCancelLogout}>
-            <Pressable style={styles.logoutModalContainer} onPress={(e) => e.stopPropagation()}>
-              <View style={styles.logoutModalHeader}>
-                <View style={styles.logoutIconContainer}>
-                  <Ionicons name="log-out" size={32} color="#EF4444" />
-                </View>
-              </View>
-              <Text style={styles.logoutModalTitle}>Sign Out?</Text>
-              <Text style={styles.logoutModalMessage}>
-                Are you sure you want to sign out? You'll need to log in again to access your learning progress.
-              </Text>
-              <View style={styles.logoutModalButtons}>
-                <TouchableOpacity
-                  style={styles.logoutCancelButton}
-                  onPress={handleCancelLogout}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.logoutCancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.logoutConfirmButton}
-                  onPress={handleConfirmLogout}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
-                </TouchableOpacity>
-              </View>
-            </Pressable>
-          </Pressable>
-        </Modal>
       </SafeAreaView>
     );
   }
@@ -596,15 +451,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               <Text style={styles.upgradeButtonText}>Upgrade</Text>
             </TouchableOpacity>
           )}
-
-          {/* EXIT Button - Premium Design */}
-          <TouchableOpacity
-            style={styles.exitButton}
-            onPress={handleLogoutPress}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="log-out-outline" size={28} color="#FFFFFF" />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -776,44 +622,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onSelectQuickPractice={handleSelectQuickPractice}
         onSelectAssessment={handleSelectAssessment}
       />
-
-      {/* Logout Confirmation Modal */}
-      <Modal
-        visible={showLogoutModal}
-        transparent
-        animationType="fade"
-        onRequestClose={handleCancelLogout}
-      >
-        <Pressable style={styles.logoutModalOverlay} onPress={handleCancelLogout}>
-          <Pressable style={styles.logoutModalContainer} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.logoutModalHeader}>
-              <View style={styles.logoutIconContainer}>
-                <Ionicons name="log-out" size={32} color="#EF4444" />
-              </View>
-            </View>
-            <Text style={styles.logoutModalTitle}>Sign Out?</Text>
-            <Text style={styles.logoutModalMessage}>
-              Are you sure you want to sign out? You'll need to log in again to access your learning progress.
-            </Text>
-            <View style={styles.logoutModalButtons}>
-              <TouchableOpacity
-                style={styles.logoutCancelButton}
-                onPress={handleCancelLogout}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.logoutCancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.logoutConfirmButton}
-                onPress={handleConfirmLogout}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 };

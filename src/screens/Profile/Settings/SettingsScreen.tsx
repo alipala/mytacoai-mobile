@@ -11,9 +11,12 @@ import {
   TouchableOpacity,
   Platform,
   StyleSheet,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AccountPreferencesScreen from './AccountPreferencesScreen';
 import VoiceSelectionScreen from './VoiceSelectionScreen';
 import NotificationSettingsScreen from './NotificationSettingsScreen';
@@ -22,10 +25,12 @@ type SettingsView = 'main' | 'account' | 'voice' | 'notifications';
 
 interface SettingsScreenProps {
   onClose: () => void;
+  navigation?: any;
 }
 
-const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) => {
   const [currentView, setCurrentView] = useState<SettingsView>('main');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleNavigate = (view: SettingsView) => {
     if (Platform.OS === 'ios') {
@@ -39,6 +44,40 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setCurrentView('main');
+  };
+
+  const handleLogoutPress = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    setShowLogoutModal(false);
+
+    // Clear auth data
+    await AsyncStorage.removeItem('auth_token');
+    await AsyncStorage.removeItem('user');
+
+    // Close the settings modal
+    onClose();
+
+    // Navigate to Login screen
+    // We need to get navigation from the parent ProfileScreen
+    if (navigation) {
+      navigation.replace('Login');
+    }
+  };
+
+  const handleCancelLogout = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowLogoutModal(false);
   };
 
   // Render sub-screens
@@ -139,7 +178,63 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             <Text style={styles.helpNoteBold}>Conversation Help</Text> settings can be accessed directly during your practice sessions by tapping the lightbulb icon.
           </Text>
         </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogoutPress}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.menuIcon, { backgroundColor: '#EF444420' }]}>
+            <Ionicons name="log-out-outline" size={24} color="#EF4444" />
+          </View>
+          <View style={styles.menuInfo}>
+            <Text style={styles.logoutLabel}>Logout</Text>
+            <Text style={styles.menuDescription}>
+              Sign out and clear your session
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
       </ScrollView>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelLogout}
+      >
+        <Pressable style={styles.logoutModalOverlay} onPress={handleCancelLogout}>
+          <Pressable style={styles.logoutModalContainer} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.logoutModalHeader}>
+              <View style={styles.logoutIconContainer}>
+                <Ionicons name="log-out" size={32} color="#EF4444" />
+              </View>
+            </View>
+            <Text style={styles.logoutModalTitle}>Sign Out?</Text>
+            <Text style={styles.logoutModalMessage}>
+              Are you sure you want to sign out? You'll need to log in again to access your learning progress.
+            </Text>
+            <View style={styles.logoutModalButtons}>
+              <TouchableOpacity
+                style={styles.logoutCancelButton}
+                onPress={handleCancelLogout}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.logoutConfirmButton}
+                onPress={handleConfirmLogout}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -222,6 +317,96 @@ const styles = StyleSheet.create({
   },
   helpNoteBold: {
     fontWeight: '600',
+  },
+  // Logout Button Styles
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    marginTop: 24,
+  },
+  logoutLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#EF4444',
+    marginBottom: 4,
+  },
+  // Logout Modal Styles
+  logoutModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  logoutModalContainer: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  logoutModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoutIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  logoutModalMessage: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  logoutModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  logoutCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  logoutCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  logoutConfirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+  },
+  logoutConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
 

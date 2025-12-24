@@ -40,15 +40,6 @@ export const styles = StyleSheet.create({
     fontSize: 17, // Increased from 16 to 17
     fontWeight: '700',
   },
-  // EXIT Button - Premium Design (larger to match header)
-  exitButton: {
-    width: 48, // Increased from 44 to 48
-    height: 48, // Increased from 44 to 48
-    borderRadius: 24, // Increased from 22 to 24
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scrollView: {
     flex: 1,
   },
@@ -332,79 +323,5 @@ export const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  // Logout Modal - Premium Design
-  logoutModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  logoutModalContainer: {
-    width: '100%',
-    maxWidth: 380,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  logoutModalHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoutIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoutModalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  logoutModalMessage: {
-    fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 28,
-  },
-  logoutModalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  logoutCancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-  },
-  logoutCancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#4B5563',
-  },
-  logoutConfirmButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#EF4444',
-    alignItems: 'center',
-  },
-  logoutConfirmButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });
