@@ -24,6 +24,20 @@ export function useAudio() {
   }, []);
 
   /**
+   * Stop a specific sound
+   */
+  const stop = useCallback((type: SoundType) => {
+    audioService.stop(type);
+  }, []);
+
+  /**
+   * Stop all currently playing sounds
+   */
+  const stopAll = useCallback(() => {
+    audioService.stopAll();
+  }, []);
+
+  /**
    * Set volume
    */
   const setVolume = useCallback(async (newVolume: number) => {
@@ -50,6 +64,8 @@ export function useAudio() {
 
   return {
     play,
+    stop,
+    stopAll,
     volume,
     setVolume,
     isMuted,

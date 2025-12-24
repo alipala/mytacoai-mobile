@@ -149,6 +149,44 @@ class AudioService {
   }
 
   /**
+   * Stop a specific sound immediately
+   */
+  async stop(type: SoundType): Promise<void> {
+    try {
+      const sound = this.sounds.get(type);
+      if (!sound) {
+        return;
+      }
+
+      await sound.stopAsync();
+      await sound.setPositionAsync(0);
+      console.log(`⏹️  Stopped sound: ${type}`);
+    } catch (error) {
+      console.error(`❌ Error stopping sound ${type}:`, error);
+    }
+  }
+
+  /**
+   * Stop all currently playing sounds immediately
+   */
+  async stopAll(): Promise<void> {
+    try {
+      const stopPromises = Array.from(this.sounds.values()).map(async (sound) => {
+        try {
+          await sound.stopAsync();
+          await sound.setPositionAsync(0);
+        } catch (err) {
+          // Ignore errors for sounds that aren't playing
+        }
+      });
+      await Promise.all(stopPromises);
+      console.log(`⏹️  Stopped all sounds`);
+    } catch (error) {
+      console.error('❌ Error stopping all sounds:', error);
+    }
+  }
+
+  /**
    * Set volume (0.0 to 1.0)
    */
   async setVolume(volume: number): Promise<void> {

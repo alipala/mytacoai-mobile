@@ -17,6 +17,8 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -67,7 +69,7 @@ export default function BrainTicklerScreen({
 
   const { session } = useChallengeSession();
   const { characterState, reactToAnswer, reactToSelection, updateState } = useCharacterState();
-  const { play } = useAudio();
+  const { play, stopAll: stopAllAudio } = useAudio();
 
   // Refs to track timer intervals (for cleanup)
   const timerTickIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -75,6 +77,7 @@ export default function BrainTicklerScreen({
 
   // Helper function to stop all timers immediately
   const stopAllTimers = () => {
+    // 1. Clear interval timers
     if (timerTickIntervalRef.current) {
       clearInterval(timerTickIntervalRef.current);
       timerTickIntervalRef.current = null;
@@ -83,6 +86,12 @@ export default function BrainTicklerScreen({
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
     }
+
+    // 2. CRITICAL: Stop all audio playback immediately (timer tick sound is 8 seconds!)
+    stopAllAudio();
+
+    // 3. Set timerActive to false to prevent any pending state updates
+    setTimerActive(false);
   };
 
   // Animation values
@@ -118,11 +127,37 @@ export default function BrainTicklerScreen({
     timerScale.value = 1;
     backgroundOpacity.value = 0;
 
-    // Cleanup on unmount
+    // Cleanup on unmount - CRITICAL: Stop timers immediately
     return () => {
       stopAllTimers();
     };
   }, [challenge.id]);
+
+  // CRITICAL: Stop timers when component is about to unmount (back button, exit, etc.)
+  useEffect(() => {
+    return () => {
+      // This cleanup runs when component unmounts for ANY reason
+      // (back button, navigation, app background, etc.)
+      stopAllTimers();
+    };
+  }, []);
+
+  // CRITICAL: Stop timers when app goes to background
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // App is going to background - stop timers immediately
+        stopAllTimers();
+        console.log('⏸️  App backgrounded - timers stopped');
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Timer logic with continuous tick sound
   useEffect(() => {
