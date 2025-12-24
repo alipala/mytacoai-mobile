@@ -236,7 +236,7 @@ const swipeFixByLevel: Record<CEFRLevel, SwipeFixChallenge[]> = {
     {
       id: 'sf_a1_1',
       type: 'swipe_fix',
-      title: 'You Struggled With This',
+      title: 'Compare & Learn',
       emoji: '🔄',
       description: 'Swipe to compare',
       cefrLevel: 'A1',
@@ -260,7 +260,7 @@ const swipeFixByLevel: Record<CEFRLevel, SwipeFixChallenge[]> = {
     {
       id: 'sf_a2_1',
       type: 'swipe_fix',
-      title: 'You Struggled With This',
+      title: 'Compare & Learn',
       emoji: '🔄',
       description: 'Compare correct vs incorrect',
       cefrLevel: 'A2',
@@ -284,7 +284,7 @@ const swipeFixByLevel: Record<CEFRLevel, SwipeFixChallenge[]> = {
     {
       id: 'sf_b1_1',
       type: 'swipe_fix',
-      title: 'You Struggled With This',
+      title: 'Compare & Learn',
       emoji: '🔄',
       description: 'Swipe to learn the difference',
       cefrLevel: 'B1',
@@ -308,7 +308,7 @@ const swipeFixByLevel: Record<CEFRLevel, SwipeFixChallenge[]> = {
     {
       id: 'sf_b2_1',
       type: 'swipe_fix',
-      title: 'You Struggled With This',
+      title: 'Compare & Learn',
       emoji: '🔄',
       description: 'Compare the nuance',
       cefrLevel: 'B2',
@@ -332,7 +332,7 @@ const swipeFixByLevel: Record<CEFRLevel, SwipeFixChallenge[]> = {
     {
       id: 'sf_c1_1',
       type: 'swipe_fix',
-      title: 'You Struggled With This',
+      title: 'Compare & Learn',
       emoji: '🔄',
       description: 'Subtle distinction',
       cefrLevel: 'C1',
@@ -356,7 +356,7 @@ const swipeFixByLevel: Record<CEFRLevel, SwipeFixChallenge[]> = {
     {
       id: 'sf_c2_1',
       type: 'swipe_fix',
-      title: 'You Struggled With This',
+      title: 'Compare & Learn',
       emoji: '🔄',
       description: 'Advanced nuance',
       cefrLevel: 'C2',

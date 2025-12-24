@@ -12,10 +12,21 @@ import {
   Platform,
   FlatList,
 } from 'react-native';
+import ReanimatedAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+  Easing as ReanimatedEasing,
+  interpolate,
+} from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 import { Language, CEFRLevel, Challenge } from '../../services/mockChallengeData';
 import { ChallengeService, CHALLENGE_TYPES } from '../../services/challengeService';
 import { LearningService } from '../../api/generated/services/LearningService';
@@ -60,23 +71,56 @@ interface ExploreScreenProps {
   route?: any;
 }
 
-// Challenge category colors (inspired by Kahoot/Duolingo)
+// Semantic color system - colors communicate meaning with visual appeal
 const getCategoryGradient = (type: string): [string, string] => {
   switch (type) {
-    case 'error_spotting':
-      return ['#FF6B9D', '#C44569']; // Pink
-    case 'swipe_fix':
-      return ['#4ECFBF', '#0D9488']; // Turquoise
-    case 'micro_quiz':
-      return ['#FFA726', '#FB8C00']; // Orange
-    case 'smart_flashcard':
-      return ['#AB47BC', '#8E24AA']; // Purple
-    case 'native_check':
-      return ['#FFCA28', '#FFB300']; // Yellow
+    // 🔥 URGENCY - Time pressure (Red/Orange gradient)
     case 'brain_tickler':
-      return ['#EF5350', '#E53935']; // Red
+      return ['#FF6B35', '#FF4757'];
+
+    // 🎯 QUICK ACTION - Fast decisions (Coral gradient)
+    case 'micro_quiz':
+      return ['#F75A5A', '#E74C4C'];
+
+    // 💧 CALM PRECISION - Language fluency (Turquoise gradient)
+    case 'native_check':
+      return ['#4ECFBF', '#3DB8A8'];
+
+    // ⚠️ ATTENTION - Spotting details (Yellow gradient)
+    case 'error_spotting':
+      return ['#FFD63A', '#FFC700'];
+
+    // 🧠 REFLECTION - Learning mode (Turquoise gradient)
+    case 'smart_flashcard':
+      return ['#4ECFBF', '#3DB8A8'];
+
+    // 🔄 IMPROVEMENT - Correction mode (Orange gradient)
+    case 'swipe_fix':
+      return ['#FFA955', '#FF9635'];
+
+    // 🚫 INACTIVE - Locked
     default:
-      return ['#78909C', '#546E7A']; // Gray
+      return ['#95A5A6', '#7F8C8D'];
+  }
+};
+
+// Icon mapping - white Ionicons for clean game lobby feel
+const getChallengeIcon = (type: string): keyof typeof Ionicons.glyphMap => {
+  switch (type) {
+    case 'brain_tickler':
+      return 'timer'; // Chronometer/stopwatch for timed challenge
+    case 'micro_quiz':
+      return 'bulb'; // Light bulb (solid)
+    case 'native_check':
+      return 'chatbubble-ellipses'; // Speech bubble for natural language
+    case 'error_spotting':
+      return 'search'; // Magnifying glass (solid)
+    case 'smart_flashcard':
+      return 'layers'; // Layers/cards (solid)
+    case 'swipe_fix':
+      return 'swap-horizontal'; // Swap arrows (solid)
+    default:
+      return 'help-circle'; // Default fallback
   }
 };
 
@@ -679,59 +723,74 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               activeOpacity={0.8}
               disabled={completedPlans.length === 0}
             >
-              <View
+              <LinearGradient
+                colors={completedPlans.length === 0 ? ['#6B7280', '#4B5563'] : ['#F75A5A', '#E74C4C']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={{
-                  backgroundColor: '#FFFFFF',
                   borderRadius: 20,
                   padding: 16,
                   minHeight: 140,
-                  borderWidth: 2.5,
-                  borderColor: completedPlans.length === 0 ? '#E5E7EB' : '#F75A5A',
-                  shadowColor: '#F75A5A',
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: completedPlans.length === 0 ? 0 : 0.12,
-                  shadowRadius: 8,
-                  elevation: 4,
+                  shadowColor: completedPlans.length === 0 ? '#4B5563' : '#F75A5A',
+                  shadowOffset: { width: 0, height: 6 },
+                  shadowOpacity: completedPlans.length === 0 ? 0.2 : 0.3,
+                  shadowRadius: 12,
+                  elevation: 6,
                 }}
               >
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 26,
-                    backgroundColor: '#FFF5F5',
-                    borderWidth: 2,
-                    borderColor: '#F75A5A',
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 10,
+                    marginBottom: 12,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 6,
                   }}>
-                    <Text style={{ fontSize: 28 }}>👑</Text>
+                    <Text style={{ fontSize: 32 }}>👑</Text>
                   </View>
                   <Text style={{
                     fontSize: 16,
-                    fontWeight: '700',
-                    color: '#1F2937',
+                    fontWeight: '800',
+                    color: '#FFFFFF',
                     textAlign: 'center',
                     marginBottom: 4,
+                    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 3,
                   }}>
                     Master Your Plans
                   </Text>
                 </View>
 
-                <Text style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: '#F75A5A',
-                  textAlign: 'center',
+                <View style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  alignSelf: 'center',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
                 }}>
-                  {completedPlans.length > 0
-                    ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} →`
-                    : 'No plans yet'}
-                </Text>
+                  <Text style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: '#FFFFFF',
+                    textAlign: 'center',
+                  }}>
+                    {completedPlans.length > 0
+                      ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} →`
+                      : 'No plans yet'}
+                  </Text>
+                </View>
               </View>
-            </View>
+            </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
 
@@ -746,57 +805,72 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               onPress={() => handleModeSelection('freestyle')}
               activeOpacity={0.8}
             >
-              <View
+              <LinearGradient
+                colors={['#4ECFBF', '#3DB8A8']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={{
-                  backgroundColor: '#FFFFFF',
                   borderRadius: 20,
                   padding: 16,
                   minHeight: 140,
-                  borderWidth: 2.5,
-                  borderColor: '#4ECFBF',
                   shadowColor: '#4ECFBF',
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.12,
-                  shadowRadius: 8,
-                  elevation: 4,
+                  shadowOffset: { width: 0, height: 6 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 12,
+                  elevation: 6,
                 }}
               >
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 26,
-                    backgroundColor: '#F0FFFE',
-                    borderWidth: 2,
-                    borderColor: '#4ECFBF',
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 6,
                   }}>
-                    <Text style={{ fontSize: 28 }}>🚀</Text>
+                    <Text style={{ fontSize: 32 }}>🚀</Text>
                   </View>
                   <Text style={{
                     fontSize: 16,
-                    fontWeight: '700',
-                    color: '#1F2937',
+                    fontWeight: '800',
+                    color: '#FFFFFF',
                     textAlign: 'center',
                     marginBottom: 4,
+                    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 3,
                   }}>
                     Freestyle Practice
                   </Text>
                 </View>
 
-                <Text style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: '#4ECFBF',
-                  textAlign: 'center',
+                <View style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  alignSelf: 'center',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
                 }}>
-                  All levels →
-                </Text>
+                  <Text style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: '#FFFFFF',
+                    textAlign: 'center',
+                  }}>
+                    All levels →
+                  </Text>
+                </View>
               </View>
-            </View>
+            </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -1199,6 +1273,22 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
     const level = selectedPlan?.proficiency_level || selectedLevel;
     const languageUpper = language.charAt(0).toUpperCase() + language.slice(1);
 
+    // Determine featured challenge (Brain Tickler gets priority)
+    const featuredChallenge = CHALLENGE_TYPES.find(c => c.type === 'brain_tickler') || CHALLENGE_TYPES[0];
+    const featuredCount = challengeCounts[featuredChallenge.type] || 0;
+    const featuredStats = categoryStats[featuredChallenge.type] || { completed: 0, total: featuredCount, accuracy: 0 };
+    const [featuredColor1, featuredColor2] = getCategoryGradient(featuredChallenge.type);
+
+    // Primary challenges (time-based and skill-based)
+    const primaryChallenges = CHALLENGE_TYPES.filter(c =>
+      c.type === 'micro_quiz' || c.type === 'native_check'
+    );
+
+    // Secondary challenges (learning modes)
+    const secondaryChallenges = CHALLENGE_TYPES.filter(c =>
+      c.type === 'error_spotting' || c.type === 'smart_flashcard' || c.type === 'swipe_fix'
+    );
+
     return (
       <Animated.View
         style={{
@@ -1222,170 +1312,67 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
-              🎯 {languageUpper.toUpperCase()} • Level {level}
+              🎮 {languageUpper.toUpperCase()} • Level {level}
             </Text>
             <Text style={{ fontSize: 14, color: '#6B7280' }}>
-              Choose your challenge type
+              Pick how you want to play
             </Text>
           </View>
         </View>
 
-        {/* Grid of Challenge Category Cards */}
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-          }}>
-            {CHALLENGE_TYPES.map((category) => {
+          {/* 🔥 HERO CARD - Featured Daily Challenge */}
+          <GameLobbyHeroCard
+            challenge={featuredChallenge}
+            count={featuredCount}
+            stats={featuredStats}
+            color1={featuredColor1}
+            color2={featuredColor2}
+            onPress={() => handleCategoryPress(featuredChallenge.type)}
+          />
+
+          {/* ⚡ PRIMARY MODES - Larger landscape cards */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            {primaryChallenges.map((category) => {
               const count = challengeCounts[category.type] || 0;
               const [color1, color2] = getCategoryGradient(category.type);
               const stats = categoryStats[category.type] || { completed: 0, total: count, accuracy: 0 };
 
               return (
-                <TouchableOpacity
+                <GameLobbyPrimaryCard
                   key={category.type}
-                  style={{
-                    width: CARD_WIDTH,
-                    marginBottom: 16,
-                  }}
+                  challenge={category}
+                  count={count}
+                  stats={stats}
+                  color1={color1}
+                  color2={color2}
                   onPress={() => handleCategoryPress(category.type)}
-                  activeOpacity={0.8}
-                  disabled={count === 0}
-                >
-                  <LinearGradient
-                    colors={count === 0 ? ['#E5E7EB', '#D1D5DB'] : [color1, color2]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                      borderRadius: 24,
-                      padding: 20,
-                      height: 200,
-                      opacity: count === 0 ? 0.5 : 1,
-                      shadowColor: count === 0 ? '#000' : color1,
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: count === 0 ? 0.05 : 0.3,
-                      shadowRadius: 12,
-                      elevation: 6,
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <View>
-                      {/* Emoji Icon */}
-                      <View style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 28,
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: 12,
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 6,
-                      }}>
-                        <Text style={{ fontSize: 32 }}>{category.emoji}</Text>
-                      </View>
+                />
+              );
+            })}
+          </View>
 
-                      {/* Title */}
-                      <Text
-                        style={{
-                          fontSize: 17,
-                          fontWeight: '800',
-                          color: '#FFFFFF',
-                          marginBottom: 6,
-                          textShadowColor: 'rgba(0, 0, 0, 0.15)',
-                          textShadowOffset: { width: 0, height: 1 },
-                          textShadowRadius: 2,
-                          lineHeight: 21,
-                        }}
-                        numberOfLines={2}
-                      >
-                        {category.title}
-                      </Text>
+          {/* 🎴 SECONDARY MODES - Smaller portrait cards */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            {secondaryChallenges.map((category) => {
+              const count = challengeCounts[category.type] || 0;
+              const [color1, color2] = getCategoryGradient(category.type);
+              const stats = categoryStats[category.type] || { completed: 0, total: count, accuracy: 0 };
 
-                      {/* Description */}
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: 'rgba(255, 255, 255, 0.9)',
-                          lineHeight: 16,
-                        }}
-                        numberOfLines={2}
-                      >
-                        {category.description}
-                      </Text>
-                    </View>
-
-                    {/* Progress Badge - shows completion and accuracy */}
-                    <View>
-                      {stats.completed > 0 ? (
-                        <View>
-                          {/* Completion */}
-                          <View style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                            paddingHorizontal: 10,
-                            paddingVertical: 4,
-                            borderRadius: 10,
-                            alignSelf: 'flex-start',
-                            borderWidth: 1,
-                            borderColor: 'rgba(255, 255, 255, 0.3)',
-                            marginBottom: 6,
-                          }}>
-                            <Text style={{
-                              fontSize: 13,
-                              fontWeight: '800',
-                              color: '#FFFFFF',
-                            }}>
-                              ✅ {stats.completed}/{count}
-                            </Text>
-                          </View>
-                          {/* Accuracy */}
-                          <View style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                            paddingHorizontal: 10,
-                            paddingVertical: 4,
-                            borderRadius: 10,
-                            alignSelf: 'flex-start',
-                            borderWidth: 1,
-                            borderColor: 'rgba(255, 255, 255, 0.3)',
-                          }}>
-                            <Text style={{
-                              fontSize: 13,
-                              fontWeight: '800',
-                              color: '#FFFFFF',
-                            }}>
-                              🎯 {Math.round(stats.accuracy)}%
-                            </Text>
-                          </View>
-                        </View>
-                      ) : (
-                        <View style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                          paddingHorizontal: 12,
-                          paddingVertical: 6,
-                          borderRadius: 12,
-                          alignSelf: 'flex-start',
-                          borderWidth: 1,
-                          borderColor: 'rgba(255, 255, 255, 0.3)',
-                        }}>
-                          <Text style={{
-                            fontSize: 14,
-                            fontWeight: '800',
-                            color: '#FFFFFF',
-                          }}>
-                            {count} {count === 0 ? '🔒' : ''}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
+              return (
+                <GameLobbySecondaryCard
+                  key={category.type}
+                  challenge={category}
+                  count={count}
+                  stats={stats}
+                  color1={color1}
+                  color2={color2}
+                  onPress={() => handleCategoryPress(category.type)}
+                />
               );
             })}
           </View>
@@ -1634,5 +1621,420 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
         </View>
       )}
     </SafeAreaView>
+  );
+}
+
+// ========================================
+// 🎮 GAME LOBBY CARD COMPONENTS
+// ========================================
+
+interface CardProps {
+  challenge: { type: string; title: string; emoji: string; description: string };
+  count: number;
+  stats: { completed: number; total: number; accuracy: number };
+  color1: string;
+  color2: string;
+  onPress: () => void;
+}
+
+// 🔥 HERO CARD - Featured Daily Challenge
+function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }: CardProps) {
+  // Pulsing glow animation
+  const pulseAnim = useSharedValue(0);
+
+  useEffect(() => {
+    pulseAnim.value = withRepeat(
+      withTiming(1, { duration: 2000, easing: ReanimatedEasing.inOut(ReanimatedEasing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    shadowRadius: interpolate(pulseAnim.value, [0, 1], [12, 20]),
+  }));
+
+  // Icon rotation for urgency
+  const iconRotation = useSharedValue(0);
+
+  useEffect(() => {
+    iconRotation.value = withRepeat(
+      withSequence(
+        withTiming(10, { duration: 800 }),
+        withTiming(-10, { duration: 800 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${iconRotation.value}deg` }],
+  }));
+
+  const isDisabled = count === 0;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      disabled={isDisabled}
+      style={{ marginBottom: 20 }}
+    >
+      <ReanimatedAnimated.View style={[pulseStyle]}>
+        <LinearGradient
+          colors={isDisabled ? ['#E5E7EB', '#D1D5DB'] : [color1, color2]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            borderRadius: 24,
+            padding: 24,
+            minHeight: 160,
+            shadowColor: isDisabled ? '#000' : color1,
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: isDisabled ? 0.05 : 0.35,
+            elevation: 8,
+          }}
+        >
+          {/* Daily Badge */}
+          <View style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            backgroundColor: 'rgba(255, 255, 255, 0.25)',
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.4)',
+          }}>
+            <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
+              🔥 FEATURED
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+            {/* Animated White Icon */}
+            <ReanimatedAnimated.View style={[iconStyle]}>
+              <Ionicons
+                name={getChallengeIcon(challenge.type)}
+                size={56}
+                color="#FFFFFF"
+                style={{ marginRight: 16 }}
+              />
+            </ReanimatedAnimated.View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 24,
+                fontWeight: '800',
+                color: '#FFFFFF',
+                marginBottom: 4,
+                textShadowColor: 'rgba(0, 0, 0, 0.2)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 3,
+              }}>
+                {challenge.title}
+              </Text>
+              <Text style={{
+                fontSize: 14,
+                color: 'rgba(255, 255, 255, 0.95)',
+                fontWeight: '600',
+              }}>
+                {challenge.description}
+              </Text>
+            </View>
+          </View>
+
+          {/* Progress & Start Button */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+            {stats.completed > 0 ? (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
+                    {stats.completed}/{count} done
+                  </Text>
+                </View>
+                <View style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
+                    {Math.round(stats.accuracy)}% accuracy
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <View />
+            )}
+
+            {/* Start Button with Arrow */}
+            <View style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+            }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: color1 }}>
+                START
+              </Text>
+              <Ionicons name="arrow-forward" size={18} color={color1} />
+            </View>
+          </View>
+        </LinearGradient>
+      </ReanimatedAnimated.View>
+    </TouchableOpacity>
+  );
+}
+
+// ⚡ PRIMARY CARD - Landscape, Medium Size
+function GameLobbyPrimaryCard({ challenge, count, stats, color1, color2, onPress }: CardProps) {
+  // Gentle breathing animation (same as Secondary cards)
+  const breatheAnim = useSharedValue(1);
+
+  useEffect(() => {
+    breatheAnim.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 2500 }),
+        withTiming(1.0, { duration: 2500 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const breatheStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breatheAnim.value }],
+  }));
+
+  const isDisabled = count === 0;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      disabled={isDisabled}
+      style={{ flex: 1 }}
+    >
+      <ReanimatedAnimated.View style={[breatheStyle]}>
+        <LinearGradient
+          colors={isDisabled ? ['#E5E7EB', '#D1D5DB'] : [color1, color2]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            borderRadius: 20,
+            padding: 18,
+            minHeight: 140,
+            shadowColor: isDisabled ? '#000' : color1,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDisabled ? 0.05 : 0.25,
+            shadowRadius: 10,
+            elevation: 5,
+            justifyContent: 'space-between',
+          }}
+        >
+          {/* White Icon */}
+          <Ionicons
+            name={getChallengeIcon(challenge.type)}
+            size={42}
+            color="#FFFFFF"
+            style={{ marginBottom: 8 }}
+          />
+
+          <View>
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '800',
+              color: '#FFFFFF',
+              marginBottom: 4,
+              textShadowColor: 'rgba(0, 0, 0, 0.15)',
+              textShadowOffset: { width: 0, height: 1 },
+              textShadowRadius: 2,
+            }}>
+              {challenge.title}
+            </Text>
+            <Text style={{
+              fontSize: 11,
+              color: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: 12,
+            }}>
+              {challenge.description}
+            </Text>
+          </View>
+
+          {/* Stats Badge */}
+          {stats.completed > 0 ? (
+            <View style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.25)',
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 8,
+              alignSelf: 'flex-start',
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+            }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
+                {stats.completed}/{count} • {Math.round(stats.accuracy)}%
+              </Text>
+            </View>
+          ) : (
+            <View style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.25)',
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 8,
+              alignSelf: 'flex-start',
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+            }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
+                {count} {isDisabled ? '🔒' : ''}
+              </Text>
+            </View>
+          )}
+        </LinearGradient>
+      </ReanimatedAnimated.View>
+    </TouchableOpacity>
+  );
+}
+
+// 🎴 SECONDARY CARD - Portrait, Smaller Size
+function GameLobbySecondaryCard({ challenge, count, stats, color1, color2, onPress }: CardProps) {
+  // Gentle breathing animation
+  const breatheAnim = useSharedValue(1);
+
+  useEffect(() => {
+    breatheAnim.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 2500 }),
+        withTiming(1.0, { duration: 2500 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const breatheStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breatheAnim.value }],
+  }));
+
+  // Flip preview for Smart Flashcard
+  const flipAnim = useSharedValue(0);
+
+  useEffect(() => {
+    if (challenge.type === 'smart_flashcard') {
+      flipAnim.value = withRepeat(
+        withSequence(
+          withDelay(2000, withTiming(5, { duration: 600 })),
+          withTiming(0, { duration: 600 }),
+          withDelay(2000, withTiming(0, { duration: 0 }))
+        ),
+        -1,
+        false
+      );
+    }
+  }, []);
+
+  const flipStyle = useAnimatedStyle(() => ({
+    transform: [{ rotateY: `${flipAnim.value}deg` }],
+  }));
+
+  const isDisabled = count === 0;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      disabled={isDisabled}
+      style={{ flex: 1 }}
+    >
+      <ReanimatedAnimated.View style={[breatheStyle]}>
+        <LinearGradient
+          colors={isDisabled ? ['#E5E7EB', '#D1D5DB'] : [color1, color2]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            borderRadius: 16,
+            padding: 14,
+            minHeight: 130,
+            shadowColor: isDisabled ? '#000' : color1,
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: isDisabled ? 0.05 : 0.2,
+            shadowRadius: 8,
+            elevation: 4,
+            justifyContent: 'space-between',
+          }}
+        >
+          {/* White Icon with flip animation for flashcard */}
+          <ReanimatedAnimated.View style={[flipStyle]}>
+            <Ionicons
+              name={getChallengeIcon(challenge.type)}
+              size={36}
+              color="#FFFFFF"
+              style={{ marginBottom: 8 }}
+            />
+          </ReanimatedAnimated.View>
+
+          <View>
+            <Text style={{
+              fontSize: 14,
+              fontWeight: '800',
+              color: '#FFFFFF',
+              marginBottom: 6,
+              textShadowColor: 'rgba(0, 0, 0, 0.15)',
+              textShadowOffset: { width: 0, height: 1 },
+              textShadowRadius: 2,
+            }} numberOfLines={2}>
+              {challenge.title}
+            </Text>
+          </View>
+
+          {/* Compact Stats */}
+          {stats.completed > 0 ? (
+            <View style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.25)',
+              paddingHorizontal: 6,
+              paddingVertical: 3,
+              borderRadius: 6,
+              alignSelf: 'flex-start',
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+            }}>
+              <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>
+                {stats.completed}/{count}
+              </Text>
+            </View>
+          ) : (
+            <View style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.25)',
+              paddingHorizontal: 6,
+              paddingVertical: 3,
+              borderRadius: 6,
+              alignSelf: 'flex-start',
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+            }}>
+              <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>
+                {count}{isDisabled ? ' 🔒' : ''}
+              </Text>
+            </View>
+          )}
+        </LinearGradient>
+      </ReanimatedAnimated.View>
+    </TouchableOpacity>
   );
 }

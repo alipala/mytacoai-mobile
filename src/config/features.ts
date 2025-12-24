@@ -17,7 +17,7 @@ export const FeatureFlags = {
    *
    * Set to false by default for safety - enable when backend is ready
    */
-  USE_CHALLENGE_API: true, // ✅ ENABLED for production
+  USE_CHALLENGE_API: false, // ⚠️ DISABLED - Using local mock data with updated titles
 
   /**
    * Enable API fallback to mock data on failure
