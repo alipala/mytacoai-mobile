@@ -37,6 +37,7 @@ import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
+import { useAudio } from '../../../hooks/useAudio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -61,6 +62,7 @@ export default function MicroQuizScreen({
 
   const { session } = useChallengeSession();
   const { characterState, reactToAnswer, reactToSelection } = useCharacterState();
+  const { play } = useAudio();
 
   // Animation values
   const questionScale = useSharedValue(1);
@@ -98,14 +100,14 @@ export default function MicroQuizScreen({
     const isCorrect = option.isCorrect;
 
     setSelectedOption(optionId);
-    reactToSelection();
+    // Removed anticipation state - go straight to feedback
 
-    // Wait for anticipation
+    // Wait briefly before showing feedback
     setTimeout(() => {
       setShowFeedback(true);
       reactToAnswer(isCorrect);
 
-      // Haptic feedback
+      // Haptic and audio feedback
       if (Platform.OS !== 'web') {
         if (isCorrect) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -113,6 +115,9 @@ export default function MicroQuizScreen({
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
       }
+
+      // Play sound effect
+      play(isCorrect ? 'correct_answer' : 'wrong_answer');
 
       // Calculate XP for correct answers
       if (isCorrect) {
@@ -147,12 +152,12 @@ export default function MicroQuizScreen({
           const explanationText = challenge.explanation;
           const challengeIdToComplete = challenge.id;
 
-          screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+          screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
             if (finished) {
               runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
             }
           });
-        }, 1200);
+        }, 1800); // Increased from 1200 to 1800ms to show celebration fully
       }
     }, 200); // Anticipation delay
   };
@@ -198,14 +203,11 @@ export default function MicroQuizScreen({
               <LearningCompanion
                 state={characterState}
                 combo={session?.currentCombo || 1}
-                size={64}
+                size={80}
               />
             </View>
 
-            {/* Challenge Title */}
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>{challenge.title}</Text>
-            </View>
+            {/* Title removed - only companion animation shown */}
 
             {/* Question with breathing animation */}
             <Animated.View style={[styles.questionContainer, questionAnimatedStyle]}>
@@ -255,9 +257,6 @@ export default function MicroQuizScreen({
                 <>
                   <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>
                     Almost there!
-                  </Text>
-                  <Text style={styles.feedbackSubtitle}>
-                    Let's review together
                   </Text>
                 </>
               )}
@@ -314,8 +313,8 @@ export default function MicroQuizScreen({
         />
       )}
 
-      {/* XP Flying Animation */}
-      {showXPAnimation && (
+      {/* XP Flying Animation - Hide during feedback */}
+      {showXPAnimation && !showFeedback && (
         <XPFlyingNumber
           value={xpValue}
           startX={tapPosition.x}
@@ -511,7 +510,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.darkNavy,
     paddingHorizontal: 48,
     paddingVertical: 16,
-    borderRadius: 28,
+    borderRadius: 12,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

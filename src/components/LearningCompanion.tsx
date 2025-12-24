@@ -2,24 +2,21 @@
  * LearningCompanion Component
  *
  * Persistent character that accompanies user through all challenges
- * Reacts to user actions with animations and expressions
- *
- * Currently using animated emoji - can be upgraded to Lottie animations
+ * Reacts to user actions with Lottie animations
  */
 
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, Platform } from 'react-native';
+import LottieView from 'lottie-react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withSequence,
   withTiming,
-  withRepeat,
   Easing,
 } from 'react-native-reanimated';
 import { useCharacterState, CharacterState } from '../hooks/useCharacterState';
-import { createBreathingAnimation } from '../animations/UniversalFeedback';
 
 interface LearningCompanionProps {
   state?: CharacterState;
@@ -28,15 +25,18 @@ interface LearningCompanionProps {
   size?: number;
 }
 
-// Emoji map for different states
-const COMPANION_EMOJIS: Record<CharacterState, string> = {
-  idle: '😊', // Friendly companion
-  anticipation: '🤔',
-  celebrate: '🎉',
-  disappointed: '😊', // Stay positive even when wrong
-  nervous: '😰',
-  legendary: '🌟',
+// Lottie animation sources
+const COMPANION_ANIMATIONS: Record<CharacterState, any> = {
+  idle: require('../assets/lottie/companion_idle.json'),
+  anticipation: require('../assets/lottie/companion_anticipation.json'),
+  celebrate: require('../assets/lottie/companion_celebrate.json'),
+  disappointed: require('../assets/lottie/companion_disappointed.json'),
+  nervous: require('../assets/lottie/companion_anticipation.json'), // Use anticipation for now
+  legendary: require('../assets/lottie/companion_legendary.json'),
 };
+
+// Animation should loop for these states
+const LOOPING_STATES: CharacterState[] = ['idle', 'nervous', 'disappointed'];
 
 export function LearningCompanion({
   state: externalState,
@@ -49,12 +49,13 @@ export function LearningCompanion({
     idleDelay: 600,
   });
 
+  const lottieRef = useRef<LottieView>(null);
+
   // Use external state if provided, otherwise use internal hook state
   const currentState = externalState || characterState;
 
-  // Animation shared values
+  // Animation shared values for additional effects
   const scale = useSharedValue(1);
-  const rotateZ = useSharedValue(0);
   const translateY = useSharedValue(0);
   const opacity = useSharedValue(1);
 
@@ -65,95 +66,18 @@ export function LearningCompanion({
     }
   }, [externalState]);
 
-  // React to state changes with animations
+  // Play animation when state changes
   useEffect(() => {
-    switch (currentState) {
-      case 'idle':
-        // Breathing animation
-        scale.value = createBreathingAnimation(1.0);
-        rotateZ.value = 0;
-        translateY.value = 0;
-        opacity.value = 1;
-        break;
-
-      case 'anticipation':
-        // Lean forward, freeze
-        scale.value = withSpring(1.05, { damping: 15, stiffness: 200 });
-        rotateZ.value = withSpring(5, { damping: 15, stiffness: 200 });
-        break;
-
-      case 'celebrate':
-        // Jump and spin!
-        scale.value = withSequence(
-          withSpring(1.4, { damping: 5, stiffness: 200 }),
-          withSpring(1.1, { damping: 10, stiffness: 150 }),
-          withSpring(1.0, { damping: 12, stiffness: 120 })
-        );
-
-        rotateZ.value = withSequence(
-          withTiming(0, { duration: 0 }),
-          withTiming(360, { duration: 400, easing: Easing.out(Easing.back(1.5)) })
-        );
-
-        translateY.value = withSequence(
-          withSpring(-30, { damping: 8, stiffness: 200 }),
-          withSpring(0, { damping: 10, stiffness: 150 })
-        );
-        break;
-
-      case 'disappointed':
-        // Shrink and droop
-        scale.value = withSequence(
-          withTiming(0.85, { duration: 200 }),
-          withSpring(0.95, { damping: 15, stiffness: 200 })
-        );
-
-        translateY.value = withSpring(5, { damping: 15, stiffness: 200 });
-        opacity.value = withSequence(
-          withTiming(0.7, { duration: 200 }),
-          withTiming(1.0, { duration: 300 })
-        );
-        break;
-
-      case 'nervous':
-        // Rapid shake
-        scale.value = withRepeat(
-          withSequence(
-            withTiming(1.03, { duration: 100 }),
-            withTiming(0.97, { duration: 100 })
-          ),
-          -1,
-          true
-        );
-
-        rotateZ.value = withRepeat(
-          withSequence(
-            withTiming(-3, { duration: 150 }),
-            withTiming(3, { duration: 150 })
-          ),
-          -1,
-          true
-        );
-        break;
-
-      case 'legendary':
-        // Epic celebration with crown
-        scale.value = withSequence(
-          withSpring(1.5, { damping: 5, stiffness: 200 }),
-          withSpring(1.25, { damping: 8, stiffness: 150 })
-        );
-
-        rotateZ.value = withSequence(
-          withTiming(0, { duration: 0 }),
-          withTiming(360, { duration: 600, easing: Easing.out(Easing.back(2)) })
-        );
-
-        translateY.value = withSequence(
-          withSpring(-40, { damping: 8, stiffness: 200 }),
-          withSpring(0, { damping: 10, stiffness: 150 })
-        );
-        break;
+    if (lottieRef.current) {
+      lottieRef.current.reset();
+      lottieRef.current.play();
     }
+
+    // Keep all animations in the same position - no extra transforms
+    // Reset to default position for all states
+    scale.value = withSpring(1.0);
+    translateY.value = withSpring(0);
+    opacity.value = withTiming(1.0);
   }, [currentState]);
 
   // Scale based on combo (grows with streak)
@@ -162,28 +86,37 @@ export function LearningCompanion({
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: scale.value * comboScale },
-      { rotateZ: `${rotateZ.value}deg` },
       { translateY: translateY.value },
     ],
     opacity: opacity.value,
   }));
 
   const containerSize = size * 1.5; // Extra space for animations
+  const shouldLoop = LOOPING_STATES.includes(currentState);
 
   return (
     <View style={[styles.container, { width: containerSize, height: containerSize }, style]}>
       <Animated.View style={[styles.characterContainer, animatedStyle]}>
-        {/* Emoji character */}
-        <Text style={[styles.emoji, { fontSize: size }]}>
-          {COMPANION_EMOJIS[currentState]}
-        </Text>
+        {/* Lottie Animation */}
+        <LottieView
+          ref={lottieRef}
+          source={COMPANION_ANIMATIONS[currentState]}
+          style={{ width: size, height: size }}
+          autoPlay
+          loop={shouldLoop}
+          speed={1}
+        />
 
-        {/* Combo flame overlay for streaks */}
-        {combo >= 3 && (
-          <View style={styles.comboFlame}>
-            <Text style={styles.flameEmoji}>
-              {combo >= 10 ? '👑' : combo >= 7 ? '🌟' : combo >= 5 ? '⚡' : '🔥'}
-            </Text>
+        {/* Combo overlay for streaks - only show during celebrate/legendary */}
+        {combo >= 3 && (currentState === 'celebrate' || currentState === 'legendary') && (
+          <View style={styles.comboOverlay}>
+            <LottieView
+              source={require('../assets/lottie/companion_celebrate.json')}
+              style={styles.comboAnimation}
+              autoPlay
+              loop={false}
+              speed={0.8}
+            />
           </View>
         )}
       </Animated.View>
@@ -205,16 +138,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emoji: {
-    textAlign: 'center',
-  },
-  comboFlame: {
+  comboOverlay: {
     position: 'absolute',
-    top: -10,
-    right: -10,
+    top: -15,
+    right: -15,
   },
-  flameEmoji: {
-    fontSize: 24,
+  comboAnimation: {
+    width: 32,
+    height: 32,
   },
   glow: {
     position: 'absolute',

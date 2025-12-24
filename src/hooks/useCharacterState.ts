@@ -25,7 +25,7 @@ export function useCharacterState(config: CharacterStateConfig = {}) {
   const {
     onStateChange,
     autoReturnToIdle = true,
-    idleDelay = 600,
+    idleDelay = 2000,
   } = config;
 
   const [characterState, setCharacterState] = useState<CharacterState>('idle');
@@ -44,8 +44,8 @@ export function useCharacterState(config: CharacterStateConfig = {}) {
         onStateChange(newState);
       }
 
-      // Auto-return to idle after animations complete
-      if (autoReturnToIdle && newState !== 'idle' && newState !== 'nervous') {
+      // Auto-return to idle after animations complete (but not for disappointed - stays until Continue pressed)
+      if (autoReturnToIdle && newState !== 'idle' && newState !== 'nervous' && newState !== 'disappointed') {
         setTimeout(() => {
           setCharacterState('idle');
         }, idleDelay);

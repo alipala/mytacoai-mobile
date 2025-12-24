@@ -9,7 +9,7 @@
  * - Emotion-first design
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -39,6 +39,7 @@ import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
+import { useAudio } from '../../../hooks/useAudio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -65,7 +66,24 @@ export default function BrainTicklerScreen({
   const [speedBonus, setSpeedBonus] = useState(0);
 
   const { session } = useChallengeSession();
-  const { characterState, reactToAnswer, reactToSelection, setCharacterState } = useCharacterState();
+  const { characterState, reactToAnswer, reactToSelection, updateState } = useCharacterState();
+  const { play } = useAudio();
+
+  // Refs to track timer intervals (for cleanup)
+  const timerTickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to stop all timers immediately
+  const stopAllTimers = () => {
+    if (timerTickIntervalRef.current) {
+      clearInterval(timerTickIntervalRef.current);
+      timerTickIntervalRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  };
 
   // Animation values
   const timerScale = useSharedValue(1);
@@ -83,6 +101,9 @@ export default function BrainTicklerScreen({
 
   // Reset state when challenge changes with fade animation
   useEffect(() => {
+    // Stop any existing timers first
+    stopAllTimers();
+
     // Fade in animation for new challenge
     screenOpacity.value = 0;
     screenOpacity.value = withTiming(1, { duration: 300 });
@@ -96,17 +117,42 @@ export default function BrainTicklerScreen({
     progressPercent.value = 0;
     timerScale.value = 1;
     backgroundOpacity.value = 0;
+
+    // Cleanup on unmount
+    return () => {
+      stopAllTimers();
+    };
   }, [challenge.id]);
 
-  // Timer logic
+  // Timer logic with continuous tick sound
   useEffect(() => {
-    if (!timerActive || showFeedback) return;
+    if (!timerActive || showFeedback) {
+      // Stop all timers when timer becomes inactive
+      stopAllTimers();
+      return;
+    }
 
-    const interval = setInterval(() => {
+    // Start timer tick sound immediately
+    play('timer_tick');
+
+    // Play tick sound every second
+    timerTickIntervalRef.current = setInterval(() => {
+      play('timer_tick');
+    }, 1000);
+
+    countdownIntervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
+          // IMMEDIATELY stop ALL timers synchronously
+          stopAllTimers();
+
+          // Set states
           setTimerActive(false);
           setShowFeedback(true);
+
+          // Play wrong answer sound on timeout
+          play('wrong_answer');
+
           // Haptic feedback when time runs out
           if (Platform.OS !== 'web') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -118,7 +164,10 @@ export default function BrainTicklerScreen({
       });
     }, 1000);
 
-    return () => clearInterval(interval);
+    // Cleanup function
+    return () => {
+      stopAllTimers();
+    };
   }, [timerActive, showFeedback]);
 
   // Progress animation
@@ -129,16 +178,13 @@ export default function BrainTicklerScreen({
     );
   }, [timeLeft, challenge.timeLimit]);
 
-  // Pulse animation for last 3 seconds + character nervous
+  // Pulse animation for last 3 seconds
   useEffect(() => {
     if (timeLeft <= 3 && timeLeft > 0) {
       timerScale.value = withSequence(
         withTiming(1.05, { duration: 150 }),
         withTiming(1, { duration: 150 })
       );
-      setCharacterState('nervous'); // Character gets nervous!
-    } else if (timeLeft > 3) {
-      setCharacterState('idle');
     }
   }, [timeLeft]);
 
@@ -156,14 +202,18 @@ export default function BrainTicklerScreen({
 
     setSelectedOption(optionId);
     setTimerActive(false);
-    reactToSelection();
 
-    // Wait for anticipation
+    // Stop ALL timers immediately
+    stopAllTimers();
+
+    // Removed anticipation state - go straight to feedback
+
+    // Wait briefly before showing feedback
     setTimeout(() => {
       setShowFeedback(true);
       reactToAnswer(isCorrect);
 
-      // Haptic feedback
+      // Haptic and audio feedback
       if (Platform.OS !== 'web') {
         if (isCorrect) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -171,6 +221,9 @@ export default function BrainTicklerScreen({
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
       }
+
+      // Play sound effect
+      play(isCorrect ? 'correct_answer' : 'wrong_answer');
 
       // Calculate XP for correct answers (bonus for speed!)
       if (isCorrect) {
@@ -205,12 +258,12 @@ export default function BrainTicklerScreen({
           const explanationText = challenge.explanation;
           const challengeIdToComplete = challenge.id;
 
-          screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+          screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
             if (finished) {
               runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
             }
           });
-        }, 1200);
+        }, 1800); // Increased from 1200 to 1800ms to show celebration fully
       }
     }, 200); // Anticipation delay
   };
@@ -270,21 +323,7 @@ export default function BrainTicklerScreen({
       <View style={styles.content}>
         {!showFeedback ? (
           <>
-            {/* Learning Companion */}
-            <View style={styles.companionContainer}>
-              <LearningCompanion
-                state={characterState}
-                combo={session?.currentCombo || 1}
-                size={64}
-              />
-            </View>
-
-            {/* Challenge Title */}
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>{challenge.title}</Text>
-            </View>
-
-            {/* Timer */}
+            {/* Timer - No companion animation needed, timer provides visual feedback */}
             <Animated.View style={[styles.timerContainer, timerAnimatedStyle]}>
               <Svg width="120" height="120">
                 {/* Background circle */}
@@ -375,9 +414,6 @@ export default function BrainTicklerScreen({
                   <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>
                     Good try!
                   </Text>
-                  <Text style={styles.feedbackSubtitle}>
-                    Keep practicing, you'll get it!
-                  </Text>
                 </>
               )}
 
@@ -433,8 +469,8 @@ export default function BrainTicklerScreen({
         />
       )}
 
-      {/* XP Flying Animation */}
-      {showXPAnimation && (
+      {/* XP Flying Animation - Hide during feedback */}
+      {showXPAnimation && !showFeedback && (
         <XPFlyingNumber
           value={xpValue}
           startX={tapPosition.x}
@@ -644,7 +680,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.darkNavy,
     paddingHorizontal: 48,
     paddingVertical: 16,
-    borderRadius: 28,
+    borderRadius: 12,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

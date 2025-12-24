@@ -37,6 +37,7 @@ import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
+import { useAudio } from '../../../hooks/useAudio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -61,6 +62,7 @@ export default function NativeCheckScreen({
 
   const { session } = useChallengeSession();
   const { characterState, reactToAnswer, reactToSelection } = useCharacterState();
+  const { play } = useAudio();
 
   // Animation values
   const sentenceScale = useSharedValue(1);
@@ -95,14 +97,14 @@ export default function NativeCheckScreen({
     const isCorrect = answer === challenge.isNatural;
 
     setSelectedAnswer(answer);
-    reactToSelection();
+    // Removed anticipation state - go straight to feedback
 
-    // Wait for anticipation
+    // Wait briefly before showing feedback
     setTimeout(() => {
       setShowFeedback(true);
       reactToAnswer(isCorrect);
 
-      // Haptic feedback
+      // Haptic and audio feedback
       if (Platform.OS !== 'web') {
         if (isCorrect) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -110,6 +112,9 @@ export default function NativeCheckScreen({
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
       }
+
+      // Play sound effect
+      play(isCorrect ? 'correct_answer' : 'wrong_answer');
 
       // Calculate XP for correct answers
       if (isCorrect) {
@@ -144,12 +149,12 @@ export default function NativeCheckScreen({
           const explanationText = challenge.explanation;
           const challengeIdToComplete = challenge.id;
 
-          screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+          screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
             if (finished) {
               runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
             }
           });
-        }, 1200);
+        }, 1800); // Increased from 1200 to 1800ms to show celebration fully
       }
     }, 200); // Anticipation delay
   };
@@ -195,14 +200,11 @@ export default function NativeCheckScreen({
               <LearningCompanion
                 state={characterState}
                 combo={session?.currentCombo || 1}
-                size={64}
+                size={80}
               />
             </View>
 
-            {/* Challenge Title */}
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>{challenge.title}</Text>
-            </View>
+            {/* Title removed - only companion animation shown */}
 
             {/* Sentence with breathing animation */}
             <Animated.View style={[styles.sentenceContainer, sentenceAnimatedStyle]}>
@@ -259,9 +261,6 @@ export default function NativeCheckScreen({
                 <>
                   <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>
                     Let's see...
-                  </Text>
-                  <Text style={styles.feedbackSubtitle}>
-                    Learning together
                   </Text>
                 </>
               )}
@@ -330,8 +329,8 @@ export default function NativeCheckScreen({
         />
       )}
 
-      {/* XP Flying Animation */}
-      {showXPAnimation && (
+      {/* XP Flying Animation - Hide during feedback */}
+      {showXPAnimation && !showFeedback && (
         <XPFlyingNumber
           value={xpValue}
           startX={tapPosition.x}
@@ -570,7 +569,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.darkNavy,
     paddingHorizontal: 48,
     paddingVertical: 16,
-    borderRadius: 28,
+    borderRadius: 12,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

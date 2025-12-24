@@ -12,12 +12,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   SafeAreaView,
   StatusBar,
   Modal,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useChallengeSession } from '../../contexts/ChallengeSessionContext';
@@ -54,6 +56,7 @@ export default function ChallengeSessionScreen({
   } = useChallengeSession();
 
   const [showSummary, setShowSummary] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
   const [sessionStats, setSessionStats] = useState<SessionStats | null>(null);
   const [savedSessionInfo, setSavedSessionInfo] = useState<{
     userId: string;
@@ -125,6 +128,9 @@ export default function ChallengeSessionScreen({
    * Handle session completion
    */
   const handleSessionComplete = async () => {
+    // Show loading animation
+    setShowLoading(true);
+
     // Save session info before it gets cleared by endSession
     if (session) {
       setSavedSessionInfo({
@@ -140,11 +146,19 @@ export default function ChallengeSessionScreen({
       const stats = await endSession();
       console.log('📈 Session stats:', stats);
       setSessionStats(stats);
-      setShowSummary(true);
+
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+        setShowLoading(false);
+        setShowSummary(true);
+      }, 500);
     } catch (error) {
       console.error('❌ Error ending session:', error);
       // Show summary anyway with default values
-      setShowSummary(true);
+      setTimeout(() => {
+        setShowLoading(false);
+        setShowSummary(true);
+      }, 500);
     }
   };
 
@@ -266,10 +280,18 @@ export default function ChallengeSessionScreen({
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Session Progress Bar - Only show if session exists */}
-      {session && <SessionProgressBar />}
+      {session && !showLoading && <SessionProgressBar />}
+
+      {/* Loading Screen - Show while calculating stats */}
+      {showLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#06B6D4" />
+          <Text style={styles.loadingText}>Calculating results...</Text>
+        </View>
+      )}
 
       {/* Main Content - Show current challenge */}
-      {session && (
+      {session && !showLoading && (
         <View style={styles.content}>
           {renderChallenge()}
         </View>
@@ -303,6 +325,18 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   modalContainer: {
     flex: 1,

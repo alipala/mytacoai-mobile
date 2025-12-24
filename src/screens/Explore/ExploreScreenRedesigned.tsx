@@ -57,6 +57,7 @@ type PracticeMode = 'completed_plans' | 'freestyle' | null;
 
 interface ExploreScreenProps {
   navigation: any;
+  route?: any;
 }
 
 // Challenge category colors (inspired by Kahoot/Duolingo)
@@ -79,7 +80,7 @@ const getCategoryGradient = (type: string): [string, string] => {
   }
 };
 
-export default function ExploreScreenRedesigned({ navigation }: ExploreScreenProps) {
+export default function ExploreScreenRedesigned({ navigation, route }: ExploreScreenProps) {
   const isFocused = useIsFocused();
   const { startSession } = useChallengeSession();
   const { daily } = useDailyStats(true);
@@ -144,6 +145,20 @@ export default function ExploreScreenRedesigned({ navigation }: ExploreScreenPro
       reloadDailyStats();
     }
   }, [isFocused]);
+
+  // Listen for tab press reset - reset to mode selection screen
+  useEffect(() => {
+    if (route?.params?.reset) {
+      // Reset navigation state to initial screen
+      setNavState('mode_selection');
+      setPracticeMode(null);
+      setSelectedChallenge(null);
+      setShowAnimatedSelector(false);
+
+      // Clear the reset param to avoid repeating this effect
+      navigation.setParams({ reset: undefined });
+    }
+  }, [route?.params?.reset]);
 
   // Reload daily stats (used when returning from a session)
   const reloadDailyStats = async () => {

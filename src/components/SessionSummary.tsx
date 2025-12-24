@@ -29,6 +29,7 @@ import {
   getEncouragementMessage,
 } from '../services/achievementService';
 import { calculateSessionGrade, formatXP } from '../services/xpCalculator';
+import { audioService } from '../services/audioService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -55,6 +56,9 @@ export default function SessionSummary({
   const isNewRecord = previousBestXP !== undefined && stats.totalXP > previousBestXP;
 
   useEffect(() => {
+    // Play session complete sound
+    audioService.play('session_complete');
+
     // Haptic feedback
     if (stats.accuracy === 100) {
       // Perfect session - celebration!
@@ -117,22 +121,6 @@ export default function SessionSummary({
             <Text style={styles.headerEmoji}>{grade.emoji}</Text>
             <Text style={styles.headerTitle}>Session Complete!</Text>
             <Text style={styles.headerSubtitle}>{grade.message}</Text>
-          </View>
-
-          {/* Grade Display */}
-          <View style={styles.gradeContainer}>
-            <LinearGradient
-              colors={
-                grade.grade === 'S' || grade.grade === 'A'
-                  ? ['#FBBF24', '#F59E0B']
-                  : grade.grade === 'B'
-                  ? ['#06B6D4', '#0891B2']
-                  : ['#9CA3AF', '#6B7280']
-              }
-              style={styles.gradeGradient}
-            >
-              <Text style={styles.gradeText}>{grade.grade}</Text>
-            </LinearGradient>
           </View>
 
           {/* Performance Metrics */}

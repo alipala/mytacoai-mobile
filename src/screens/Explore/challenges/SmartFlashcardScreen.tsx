@@ -38,6 +38,7 @@ import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
+import { useAudio } from '../../../hooks/useAudio';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -53,6 +54,7 @@ export default function SmartFlashcardScreen({
   onClose,
 }: SmartFlashcardScreenProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [tapPosition, setTapPosition] = useState({ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 });
   const [showXPAnimation, setShowXPAnimation] = useState(false);
   const [showParticleBurst, setShowParticleBurst] = useState(false);
@@ -60,7 +62,8 @@ export default function SmartFlashcardScreen({
   const [speedBonus, setSpeedBonus] = useState(0);
 
   const { session } = useChallengeSession();
-  const { characterState, reactToAnswer, setCharacterState } = useCharacterState();
+  const { characterState, reactToAnswer, updateState } = useCharacterState();
+  const { play } = useAudio();
 
   // Animation values
   const flipRotation = useSharedValue(0);
@@ -79,6 +82,7 @@ export default function SmartFlashcardScreen({
     screenOpacity.value = withTiming(1, { duration: 300 });
 
     setIsFlipped(false);
+    setShowCelebration(false);
     setShowXPAnimation(false);
     setShowParticleBurst(false);
     flipRotation.value = 0;
@@ -94,16 +98,8 @@ export default function SmartFlashcardScreen({
 
     setIsFlipped(!isFlipped);
 
-    // Character reacts to flip
-    if (!isFlipped) {
-      // Flipping to see answer - show anticipation/curiosity
-      setCharacterState('anticipation');
-      setTimeout(() => {
-        setCharacterState('celebrate'); // Happy to learn
-      }, 300);
-    } else {
-      setCharacterState('idle');
-    }
+    // Play card flip sound
+    play('card_flip');
 
     // Soft haptic feedback on flip
     if (Platform.OS !== 'web') {
@@ -124,6 +120,9 @@ export default function SmartFlashcardScreen({
     setXPValue(xpResult.baseXP);
     setSpeedBonus(xpResult.speedBonus);
 
+    // Show celebration
+    setShowCelebration(true);
+
     // Show particle burst immediately
     setShowParticleBurst(true);
 
@@ -134,6 +133,9 @@ export default function SmartFlashcardScreen({
 
     // Character celebrates learning
     reactToAnswer(true);
+
+    // Play correct answer sound (flashcard always correct)
+    play('correct_answer');
 
     // Haptic feedback
     if (Platform.OS !== 'web') {
@@ -198,23 +200,19 @@ export default function SmartFlashcardScreen({
 
   return (
     <Animated.View style={[styles.container, screenAnimatedStyle]}>
-      {/* Main Content */}
-      <View style={styles.content}>
-        {/* Learning Companion */}
-        <View style={styles.companionContainer}>
+      {/* Celebration Companion - Only shows after "Got It!" is pressed */}
+      {showCelebration && (
+        <View style={styles.celebrationCompanion}>
           <LearningCompanion
             state={characterState}
-            combo={session?.currentCombo || 1}
-            size={64}
+            combo={1}
+            size={96}
           />
         </View>
+      )}
 
-        {/* Title Section */}
-        <View style={styles.titleSection}>
-          <Text style={styles.title}>{challenge.title}</Text>
-          <Text style={styles.context}>{challenge.context}</Text>
-        </View>
-
+      {/* Main Content */}
+      <View style={styles.content}>
         {/* Flip Hint */}
         <View style={styles.flipHint}>
           <Text style={styles.flipHintText}>
@@ -301,8 +299,8 @@ export default function SmartFlashcardScreen({
         />
       )}
 
-      {/* XP Flying Animation */}
-      {showXPAnimation && (
+      {/* XP Flying Animation - Hide during celebration */}
+      {showXPAnimation && !showCelebration && (
         <XPFlyingNumber
           value={xpValue}
           startX={tapPosition.x}
@@ -322,6 +320,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  celebrationCompanion: {
+    position: 'absolute',
+    top: 80, // Position above the card
+    alignSelf: 'center',
+    zIndex: 1000,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
@@ -453,7 +459,7 @@ const styles = StyleSheet.create({
   doneButton: {
     backgroundColor: COLORS.darkNavy,
     paddingVertical: 16,
-    borderRadius: 28,
+    borderRadius: 12,
     alignItems: 'center',
     ...Platform.select({
       ios: {
