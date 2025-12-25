@@ -15,6 +15,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { useRecentPerformance } from '../hooks/useStats';
 
 const { width } = Dimensions.get('window');
@@ -29,7 +30,16 @@ interface RecentPerformanceCardProps {
 export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = false, maxDays = 7 }: RecentPerformanceCardProps) {
   const { recent, isLoading, error, refetchRecent } = useRecentPerformance(7, true);
   const [showDetails, setShowDetails] = useState(initiallyExpanded);
+  const [forceRender, setForceRender] = useState(0);
   const expansionAnim = useRef(new Animated.Value(initiallyExpanded ? 1 : 0)).current;
+
+  // Force refresh on component mount to bypass cache
+  React.useEffect(() => {
+    console.log('[RecentPerformanceCard] Force refreshing recent performance data...');
+    refetchRecent(true).then(() => {
+      setForceRender(prev => prev + 1);
+    });
+  }, []);
 
   const handleRefresh = async () => {
     await refetchRecent(true);
@@ -148,11 +158,25 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
   let trendColor: string;
   let trendText: string;
 
-  if (daysWithPractice === 0) {
-    // No practice at all
-    trendIcon = '🌟';
-    trendColor = '#9CA3AF';
-    trendText = 'Start Today';
+  // Check if user practiced TODAY (last item in breakdown is today)
+  const todayChallenges = recent.daily_breakdown[recent.daily_breakdown.length - 1]?.challenges || 0;
+  const didPracticeToday = todayChallenges > 0;
+
+  console.log('[RecentPerformanceCard] Today challenges:', todayChallenges);
+  console.log('[RecentPerformanceCard] Did practice today:', didPracticeToday);
+  console.log('[RecentPerformanceCard] Breakdown length:', recent.daily_breakdown.length);
+
+  if (!didPracticeToday) {
+    // No challenges today - motivate them to start!
+    console.log('[RecentPerformanceCard] Setting badge: No Challenges Today');
+    trendIcon = 'fitness-outline';
+    trendColor = '#F59E0B';
+    trendText = 'No Challenges Today';
+  } else if (daysWithPractice === 0) {
+    // No practice at all in 7 days (shouldn't happen if didPracticeToday is true, but keep as fallback)
+    trendIcon = 'fitness-outline';
+    trendColor = '#F59E0B';
+    trendText = 'No Challenges Today';
   } else if (daysSinceLastPractice >= 3) {
     // Haven't practiced in 3+ days
     trendIcon = '👋';
@@ -193,7 +217,7 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
     ? languageEntries.reduce((max, [lang, stats]) =>
         (stats?.challenges || 0) > (recent.by_language[max]?.challenges || 0) ? lang : max
       , languageEntries[0][0])
-    : recent.daily_breakdown.length > 0 ? 'Keep Going! 💪' : 'N/A';
+    : '-';
 
   const typeEntries = Object.entries(recent.by_type || {}).filter(
     ([type]) => type !== 'unknown'
@@ -202,7 +226,7 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
     ? typeEntries.reduce((max, [type, stats]) =>
         (stats?.challenges || 0) > (recent.by_type[max]?.challenges || 0) ? type : max
       , typeEntries[0][0])
-    : recent.daily_breakdown.length > 0 ? 'Keep Going! 💪' : 'N/A';
+    : '-';
 
   // Format challenge type name
   const formatTypeName = (type: string): string => {
@@ -221,7 +245,7 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
       }, levelEntries[0][0])
     : levelEntries.length === 1
     ? levelEntries[0][0] // Single level - show it
-    : recent.daily_breakdown.length > 0 ? 'Keep Going! 💪' : 'N/A'; // No levels
+    : '-'; // No levels
 
   const detailsHeight = expansionAnim.interpolate({
     inputRange: [0, 1],
@@ -239,21 +263,25 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerEmoji}>📊</Text>
+            <Ionicons name="trending-up-outline" size={32} color="#06B6D4" style={{ marginRight: 12 }} />
             <View>
-              <Text style={styles.headerTitle}>Recent Performance</Text>
+              <Text style={styles.headerTitle}>Accuracy Trend</Text>
               <Text style={styles.headerSubtitle}>Last 7 days</Text>
             </View>
           </View>
           <View style={[styles.trendBadge, { backgroundColor: `${trendColor}20` }]}>
-            <Text style={[styles.trendIcon, { color: trendColor }]}>{trendIcon}</Text>
+            {trendIcon.includes('-') ? (
+              <Ionicons name={trendIcon as any} size={18} color={trendColor} style={{ marginRight: 4 }} />
+            ) : (
+              <Text style={[styles.trendIcon, { color: trendColor }]}>{trendIcon}</Text>
+            )}
             <Text style={[styles.trendText, { color: trendColor }]}>{trendText}</Text>
           </View>
         </View>
 
         {/* Sparkline Chart */}
         <View style={styles.chartContainer}>
-          <Svg width={chartWidth + 80} height={chartHeight + 20}>
+          <Svg width={chartWidth + 80} height={chartHeight + 40}>
             {/* Grid lines */}
             <Line x1="40" y1="10" x2={chartWidth + 40} y2="10" stroke="#E5E7EB" strokeWidth="1" />
             <Line x1="40" y1={chartHeight / 2 + 10} x2={chartWidth + 40} y2={chartHeight / 2 + 10} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4,4" />
@@ -305,6 +333,27 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
             >
               {Math.round(minAccuracy)}%
             </SvgText>
+
+            {/* X-axis date labels - show all 7 days */}
+            {recent.daily_breakdown.map((day, index) => {
+              const x = 40 + index * stepX;
+              const date = new Date(day.date);
+              const dayLabel = date.getDate().toString(); // Just the day number (e.g., "19", "22", "25")
+
+              return (
+                <SvgText
+                  key={`date-${index}`}
+                  x={x}
+                  y={chartHeight + 30}
+                  fontSize="9"
+                  fill="#9CA3AF"
+                  fontWeight="500"
+                  textAnchor="middle"
+                >
+                  {dayLabel}
+                </SvgText>
+              );
+            })}
           </Svg>
         </View>
 

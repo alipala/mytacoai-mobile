@@ -41,7 +41,7 @@ import StatsCarousel from '../../components/StatsCarousel';
 import ImmersiveLoader from '../../components/ImmersiveLoader';
 import HorizontalStatsCarousel from '../../components/HorizontalStatsCarousel';
 import PlaceholderStatsCard from '../../components/PlaceholderStatsCard';
-import { useDailyStats } from '../../hooks/useStats';
+import { useDailyStats, useRecentPerformance } from '../../hooks/useStats';
 
 // Challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -128,6 +128,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   const isFocused = useIsFocused();
   const { startSession } = useChallengeSession();
   const { daily } = useDailyStats(true);
+  const { recent } = useRecentPerformance(7, true); // Check for historical data
 
   // Navigation state
   const [navState, setNavState] = useState<NavigationState>('mode_selection');
@@ -689,11 +690,13 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
         />
 
         {/* Show placeholder for new users, carousel for active users */}
-        {(!daily || daily?.overall?.total_challenges === 0) ? (
-          <PlaceholderStatsCard />
-        ) : (
-          <HorizontalStatsCarousel onRefresh={reloadDailyStats} />
-        )}
+        {(() => {
+          const showPlaceholder = !daily || (daily?.overall?.total_challenges === 0 && (!recent || recent.summary.total_challenges === 0));
+          console.log('[ExploreScreen] Daily challenges:', daily?.overall?.total_challenges);
+          console.log('[ExploreScreen] Recent total challenges:', recent?.summary?.total_challenges);
+          console.log('[ExploreScreen] Show placeholder:', showPlaceholder);
+          return showPlaceholder ? <PlaceholderStatsCard /> : <HorizontalStatsCarousel onRefresh={reloadDailyStats} />;
+        })()}
 
         {/* Section Title */}
         <View style={{ marginBottom: 12, marginTop: 0, paddingHorizontal: 0 }}>

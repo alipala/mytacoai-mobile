@@ -281,6 +281,14 @@ export async function fetchRecentPerformance(
       }
     );
 
+    console.log(`[StatsService] ✅ API Response: ${response.data.summary.total_challenges} challenges`);
+    console.log(`[StatsService] Daily breakdown has ${response.data.daily_breakdown.length} days`);
+    response.data.daily_breakdown.forEach((day: any) => {
+      if (day.challenges > 0) {
+        console.log(`[StatsService]   ${day.date}: ${day.challenges} challenges`);
+      }
+    });
+
     // Cache the result
     await setCachedData(cacheKey, response.data);
 

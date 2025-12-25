@@ -20,6 +20,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useDailyStats } from '../hooks/useStats';
 import type { DailyStatsBreakdown } from '../types/stats';
 
@@ -39,6 +40,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const progressBarAnim = useRef(new Animated.Value(0)).current;
+  const bounceAnim = useRef(new Animated.Value(0)).current;
   const expansionAnims = useRef({
     language: new Animated.Value(0),
     type: new Animated.Value(0),
@@ -60,6 +62,22 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Bouncing arrow animation - continuous loop
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   useEffect(() => {
@@ -114,6 +132,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     onRefresh?.();
   };
 
+
   // Loading state
   if (isLoading && !daily) {
     return (
@@ -137,7 +156,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
       error.message.includes('Statistics not found');
 
     if (isNotFoundError) {
-      // Show empty state for new users
+      // Show motivational banner for new users
       return (
         <Animated.View
           style={[
@@ -149,17 +168,56 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
           ]}
         >
           <LinearGradient
-            colors={['#DBEAFE', '#BFDBFE']}
+            colors={['#F0FFFE', '#CCFBF1']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.gradient}
           >
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>🎯</Text>
-              <Text style={styles.emptyTitle}>Ready to Start?</Text>
-              <Text style={styles.emptySubtitle}>
-                Complete your first challenge to start tracking your progress!
+            <View style={styles.motivationalBanner}>
+              <View style={styles.bannerHeader}>
+                <Ionicons name="trophy" size={36} color="#14B8A6" />
+              </View>
+
+              <Text style={styles.bannerTitle}>Start Your First Challenge!</Text>
+
+              <Text style={styles.bannerSubtitle}>
+                Choose a quest below to begin your learning journey
               </Text>
+
+              <View style={styles.bannerPerks}>
+                <View style={styles.perkItem}>
+                  <Ionicons name="flash" size={14} color="#0F766E" />
+                  <Text style={styles.perkText}>+50 XP</Text>
+                </View>
+                <View style={styles.perkDivider} />
+                <View style={styles.perkItem}>
+                  <Ionicons name="star" size={14} color="#0F766E" />
+                  <Text style={styles.perkText}>Build Streak</Text>
+                </View>
+                <View style={styles.perkDivider} />
+                <View style={styles.perkItem}>
+                  <Ionicons name="ribbon" size={14} color="#0F766E" />
+                  <Text style={styles.perkText}>Earn Badges</Text>
+                </View>
+              </View>
+
+              <View style={styles.scrollIndicator}>
+                <Animated.View
+                  style={{
+                    transform: [
+                      {
+                        translateY: bounceAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 8],
+                        }),
+                      },
+                    ],
+                  }}
+                >
+                  <Ionicons name="chevron-down" size={24} color="#14B8A6" />
+                </Animated.View>
+                <Text style={styles.scrollText}>Choose quest below</Text>
+              </View>
             </View>
           </LinearGradient>
         </Animated.View>
@@ -188,8 +246,10 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     return null;
   }
 
-  // Empty state (no activity today)
+  // Empty state (no activity today) - Motivational banner with streak urgency
   if (daily.overall.total_challenges === 0) {
+    const hasStreak = daily.streak.current > 0;
+
     return (
       <Animated.View
         style={[
@@ -201,22 +261,90 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         ]}
       >
         <LinearGradient
-          colors={['#DBEAFE', '#BFDBFE']}
+          colors={hasStreak ? ['#FEE2E2', '#FECACA'] : ['#F0FFFE', '#CCFBF1']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
         >
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>🎯</Text>
-            <Text style={styles.emptyTitle}>Ready to Start?</Text>
-            <Text style={styles.emptySubtitle}>
-              Complete challenges to see your progress here!
+          <View style={styles.motivationalBanner}>
+            <View style={styles.bannerHeader}>
+              <Ionicons
+                name={hasStreak ? "flame" : "trophy"}
+                size={40}
+                color={hasStreak ? "#DC2626" : "#14B8A6"}
+              />
+              {hasStreak && (
+                <View style={styles.streakBadge}>
+                  <Text style={styles.streakNumber}>{daily.streak.current}</Text>
+                </View>
+              )}
+            </View>
+
+            <Text style={[styles.bannerTitle, { color: hasStreak ? "#991B1B" : "#115E59" }]}>
+              {hasStreak ? `${daily.streak.current}-Day Streak Active!` : "Start Your Journey!"}
             </Text>
-            {daily.streak.current > 0 && (
-              <Text style={styles.emptyStreakInfo}>
-                Keep your {daily.streak.current}-day streak alive! 🔥
+
+            <Text style={[styles.bannerSubtitle, { color: hasStreak ? "#7F1D1D" : "#134E4A" }]}>
+              {hasStreak
+                ? "Complete a quest below to keep your streak alive"
+                : "Choose a quest below to begin earning rewards"
+              }
+            </Text>
+
+            <View style={styles.bannerPerks}>
+              <View style={styles.perkItem}>
+                <Ionicons
+                  name={hasStreak ? "shield-checkmark" : "flash"}
+                  size={14}
+                  color={hasStreak ? "#991B1B" : "#0F766E"}
+                />
+                <Text style={[styles.perkText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
+                  {hasStreak ? "Save Streak" : "+50 XP"}
+                </Text>
+              </View>
+              <View style={styles.perkDivider} />
+              <View style={styles.perkItem}>
+                <Ionicons
+                  name="trending-up"
+                  size={14}
+                  color={hasStreak ? "#991B1B" : "#0F766E"}
+                />
+                <Text style={[styles.perkText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
+                  Boost Stats
+                </Text>
+              </View>
+              <View style={styles.perkDivider} />
+              <View style={styles.perkItem}>
+                <Ionicons
+                  name="star"
+                  size={14}
+                  color={hasStreak ? "#991B1B" : "#0F766E"}
+                />
+                <Text style={[styles.perkText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
+                  Earn Badges
+                </Text>
+              </View>
+            </View>
+
+            <View style={[styles.scrollIndicator, { borderTopColor: hasStreak ? 'rgba(153, 27, 27, 0.2)' : 'rgba(15, 118, 110, 0.2)' }]}>
+              <Animated.View
+                style={{
+                  transform: [
+                    {
+                      translateY: bounceAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 8],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <Ionicons name="chevron-down" size={24} color={hasStreak ? "#DC2626" : "#14B8A6"} />
+              </Animated.View>
+              <Text style={[styles.scrollText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
+                Choose quest below
               </Text>
-            )}
+            </View>
           </View>
         </LinearGradient>
       </Animated.View>
@@ -687,5 +815,87 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     paddingHorizontal: 20,
+  },
+  // Motivational Banner Styles
+  motivationalBanner: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  bannerHeader: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  streakBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#DC2626',
+  },
+  streakNumber: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#DC2626',
+  },
+  bannerTitle: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#115E59',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  bannerSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#134E4A',
+    textAlign: 'center',
+    marginBottom: 14,
+    lineHeight: 18,
+  },
+  bannerPerks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  perkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  perkText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#0F766E',
+  },
+  perkDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: 'rgba(15, 118, 110, 0.3)',
+    marginHorizontal: 8,
+  },
+  scrollIndicator: {
+    alignItems: 'center',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(15, 118, 110, 0.2)',
+    width: '100%',
+  },
+  scrollText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#0F766E',
+    marginTop: 4,
   },
 });

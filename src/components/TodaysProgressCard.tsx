@@ -112,8 +112,8 @@ export default function TodaysProgressCard({ stats, isLoading }: TodaysProgressC
         >
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🎯</Text>
-            <Text style={styles.emptyTitle}>Ready to Start?</Text>
-            <Text style={styles.emptySubtitle}>Complete challenges to see your progress here!</Text>
+            <Text style={styles.emptyTitle}>No Challenges Today</Text>
+            <Text style={styles.emptySubtitle}>Complete challenges to start tracking your daily progress!</Text>
           </View>
         </LinearGradient>
       </Animated.View>
