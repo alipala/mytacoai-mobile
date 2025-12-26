@@ -188,7 +188,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
       <View style={styles.container}>
         <View style={styles.whiteCard}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FFA955" />
+            <ActivityIndicator size="large" color="#F75A5A" />
             <Text style={styles.loadingText}>Loading lifetime progress...</Text>
           </View>
         </View>
@@ -272,7 +272,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
       ]}
     >
       <LinearGradient
-        colors={['#FFF9F0', '#FFE4C4']}
+        colors={['#FFFFFF', '#FFF5F5']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -333,13 +333,13 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
               activeOpacity={0.7}
             >
               <View style={styles.expandableHeaderLeft}>
-                <Ionicons name="language-outline" size={20} color="#FFA955" />
+                <Ionicons name="language-outline" size={20} color="#F75A5A" />
                 <Text style={styles.expandableTitle}>Languages ({languageEntries.length})</Text>
               </View>
               <Ionicons
                 name={expandedSection === 'languages' ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color="#FFA955"
+                color="#F75A5A"
               />
             </TouchableOpacity>
 
@@ -388,13 +388,13 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
               activeOpacity={0.7}
             >
               <View style={styles.expandableHeaderLeft}>
-                <Ionicons name="game-controller-outline" size={20} color="#FFA955" />
+                <Ionicons name="game-controller-outline" size={20} color="#F75A5A" />
                 <Text style={styles.expandableTitle}>Challenge Types ({typeEntries.length})</Text>
               </View>
               <Ionicons
                 name={expandedSection === 'types' ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color="#FFA955"
+                color="#F75A5A"
               />
             </TouchableOpacity>
 
@@ -446,13 +446,13 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
               activeOpacity={0.7}
             >
               <View style={styles.expandableHeaderLeft}>
-                <Ionicons name="bar-chart-outline" size={20} color="#FFA955" />
+                <Ionicons name="bar-chart-outline" size={20} color="#F75A5A" />
                 <Text style={styles.expandableTitle}>CEFR Levels ({levelEntries.length})</Text>
               </View>
               <Ionicons
                 name={expandedSection === 'levels' ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color="#FFA955"
+                color="#F75A5A"
               />
             </TouchableOpacity>
 
@@ -501,7 +501,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
         {lifetime.milestones.next_milestone && (
           <View style={styles.milestoneSection}>
             <View style={styles.milestoneHeader}>
-              <Ionicons name="trophy-outline" size={18} color="#FFA955" />
+              <Ionicons name="trophy-outline" size={18} color="#F75A5A" />
               <Text style={styles.milestoneTitle}>Next Milestone</Text>
             </View>
             <Text style={styles.milestoneTarget}>
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
   levelBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 169, 85, 0.2)',
+    backgroundColor: 'rgba(247, 90, 90, 0.12)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   levelText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#E08B3D',
+    color: '#E04545',
   },
   statsContainer: {
     gap: 8,
@@ -619,7 +619,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   statBoxPrimary: {
-    backgroundColor: 'rgba(255, 169, 85, 0.25)',
+    backgroundColor: 'rgba(247, 90, 90, 0.08)',
   },
   statLabel: {
     fontSize: 11,
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   expandableTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#E08B3D',
+    color: '#E04545',
   },
   expandedContent: {
     gap: 8,
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   },
   languageDetail: {
     fontSize: 12,
-    color: '#FFA955',
+    color: '#F75A5A',
     fontWeight: '500',
   },
   typeNameContainer: {
@@ -701,8 +701,8 @@ const styles = StyleSheet.create({
   levelBadgeText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#E08B3D',
-    backgroundColor: 'rgba(255, 169, 85, 0.2)',
+    color: '#E04545',
+    backgroundColor: 'rgba(247, 90, 90, 0.12)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
   milestoneTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#E08B3D',
+    color: '#E04545',
   },
   milestoneTarget: {
     fontSize: 14,
@@ -739,14 +739,14 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     height: 6,
-    backgroundColor: 'rgba(255, 169, 85, 0.2)',
+    backgroundColor: 'rgba(247, 90, 90, 0.15)',
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 6,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#FFA955',
+    backgroundColor: '#F75A5A',
     borderRadius: 3,
   },
   milestoneProgress: {
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: '#FFA955',
+    backgroundColor: '#F75A5A',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
