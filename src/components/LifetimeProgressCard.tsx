@@ -271,12 +271,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
         },
       ]}
     >
-      <LinearGradient
-        colors={['#FFFFFF', '#FFF5F5']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
+      <View style={styles.whiteCard}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -295,31 +290,35 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
         {/* Main Stats Grid - 2x2 */}
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
-            <View style={[styles.statBox, styles.statBoxPrimary]}>
-              <Text style={styles.statLabel}>Challenges</Text>
-              <Text style={styles.statValue}>{formatNumber(lifetime.summary.total_challenges)}</Text>
+            {/* Challenges - Turquoise */}
+            <View style={[styles.statBox, { backgroundColor: '#F0FFFE', borderColor: '#4ECFBF' }]}>
+              <Text style={[styles.statValue, { color: '#4ECFBF' }]}>{formatNumber(lifetime.summary.total_challenges)}</Text>
+              <Text style={[styles.statLabel, { color: '#2C9B8B' }]}>Challenges</Text>
             </View>
 
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Accuracy</Text>
-              <Text style={[styles.statValue, { color: overallAccuracy >= 70 ? '#10B981' : overallAccuracy >= 50 ? '#F59E0B' : '#EF4444' }]}>
+            {/* Accuracy - Coral */}
+            <View style={[styles.statBox, { backgroundColor: '#FFF5F5', borderColor: '#F75A5A' }]}>
+              <Text style={[styles.statValue, { color: '#F75A5A' }]}>
                 {Math.round(overallAccuracy)}%
               </Text>
+              <Text style={[styles.statLabel, { color: '#E04545' }]}>Accuracy</Text>
             </View>
           </View>
 
           <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Total XP</Text>
-              <Text style={styles.statValue}>{formatNumber(lifetime.summary.total_xp)}</Text>
+            {/* Total XP - Yellow */}
+            <View style={[styles.statBox, { backgroundColor: '#FFFBF0', borderColor: '#FFD63A' }]}>
+              <Text style={[styles.statValue, { color: '#E0B91A' }]}>{formatNumber(lifetime.summary.total_xp)}</Text>
+              <Text style={[styles.statLabel, { color: '#C9A518' }]}>Total XP</Text>
             </View>
 
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Best Streak</Text>
+            {/* Best Streak - Orange */}
+            <View style={[styles.statBox, { backgroundColor: '#FFF9F0', borderColor: '#FFA955' }]}>
               <View style={styles.streakContainer}>
                 <Text style={styles.streakEmoji}>🔥</Text>
-                <Text style={styles.statValue}>{lifetime.summary.longest_streak}</Text>
+                <Text style={[styles.statValue, { color: '#FFA955' }]}>{lifetime.summary.longest_streak}</Text>
               </View>
+              <Text style={[styles.statLabel, { color: '#E08B3D' }]}>Best Streak</Text>
             </View>
           </View>
         </View>
@@ -532,7 +531,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
             Member since {new Date(lifetime.summary.member_since).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
           </Text>
         </View>
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 }
@@ -544,8 +543,8 @@ const styles = StyleSheet.create({
   },
   whiteCard: {
     backgroundColor: '#FFFFFF',
+    padding: 20,
     borderRadius: 20,
-    overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
@@ -553,11 +552,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
-  },
-  gradient: {
-    padding: 20,
-    borderRadius: 20,
-    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -611,34 +605,32 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    marginHorizontal: 3,
+    borderWidth: 2,
     alignItems: 'center',
-    minHeight: 70,
     justifyContent: 'center',
-  },
-  statBoxPrimary: {
-    backgroundColor: 'rgba(247, 90, 90, 0.08)',
+    minHeight: 70,
   },
   statLabel: {
     fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 4,
+    fontWeight: '600',
     textAlign: 'center',
+    marginTop: 4,
   },
   statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontSize: 22,
+    fontWeight: '900',
   },
   streakContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
   },
   streakEmoji: {
-    fontSize: 16,
+    fontSize: 18,
   },
   expandableHeader: {
     flexDirection: 'row',
@@ -662,7 +654,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   languageItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: '#F9FAFB',
     borderRadius: 10,
     padding: 12,
   },
@@ -715,7 +707,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   milestoneSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 12,
     marginTop: 8,
