@@ -23,6 +23,7 @@ import {
 import { calculateXP } from '../services/xpCalculator';
 import { checkSessionAchievements, calculateSessionStats } from '../services/achievementService';
 import { completeSession as completeSessionAPI } from '../services/achievementAPI';
+import { refreshStatsAfterSession } from '../services/statsService';
 
 const SESSION_STORAGE_KEY = '@challenge_session';
 
@@ -352,6 +353,16 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         xpBonus: a.xpBonus,
         unlockedAt: a.unlocked_at || new Date(),
       }));
+
+      // 🔄 Invalidate stats cache and refresh immediately
+      // This ensures UI updates with latest stats after session completion
+      try {
+        await refreshStatsAfterSession(true);
+        console.log('✅ Stats cache refreshed after session completion');
+      } catch (error) {
+        console.error('⚠️ Failed to refresh stats cache:', error);
+        // Don't block session completion if cache refresh fails
+      }
     } catch (error) {
       console.error('❌ Error persisting session to backend:', error);
       // Continue with local stats even if backend fails
