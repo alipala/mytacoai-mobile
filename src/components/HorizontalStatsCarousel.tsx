@@ -1,8 +1,11 @@
 /**
  * Horizontal Stats Carousel
  *
- * Makes the detailed stats cards (Today's Progress + Recent Performance)
- * scrollable horizontally with colorful backgrounds
+ * Makes the detailed stats cards scrollable horizontally with colorful backgrounds
+ * Cards:
+ * - Today's Progress (Daily 0-24h)
+ * - Recent Performance (Weekly 7-day trend)
+ * - Lifetime Progress (All-time achievements)
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -16,6 +19,7 @@ import {
 } from 'react-native';
 import EnhancedTodaysProgressCard from './EnhancedTodaysProgressCard';
 import RecentPerformanceCard from './RecentPerformanceCard';
+import LifetimeProgressCard from './LifetimeProgressCard';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 40; // 20px margin on each side
@@ -91,9 +95,14 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
           <EnhancedTodaysProgressCard onRefresh={onRefresh} />
         </View>
 
-        {/* Card 2: Recent Performance */}
+        {/* Card 2: Recent Performance (7-day Accuracy Trend) */}
         <View style={styles.cardWrapper}>
           <RecentPerformanceCard onRefresh={onRefresh} initiallyExpanded={true} maxDays={4} />
+        </View>
+
+        {/* Card 3: Lifetime Progress (All-time achievements) */}
+        <View style={styles.cardWrapper}>
+          <LifetimeProgressCard onRefresh={onRefresh} />
         </View>
       </ScrollView>
     </View>

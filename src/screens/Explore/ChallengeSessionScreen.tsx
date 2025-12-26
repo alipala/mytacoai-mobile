@@ -117,7 +117,11 @@ export default function ChallengeSessionScreen({
     if (isLastChallenge) {
       // This was the last challenge - show summary
       console.log('🎊 Last challenge completed, showing summary');
-      handleSessionComplete();
+      // ⏱️ Wait for state update to complete before ending session
+      // This prevents a race condition where the last answer isn't counted
+      setTimeout(() => {
+        handleSessionComplete();
+      }, 0);
     } else {
       // Advance to next challenge
       nextChallenge();
