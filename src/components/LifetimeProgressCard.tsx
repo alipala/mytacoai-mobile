@@ -125,6 +125,36 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
     return { emoji: '✨', title: 'Beginner' };
   };
 
+  // Calculate overall accuracy from level mastery (weighted average)
+  const calculateOverallAccuracy = (): number => {
+    if (!lifetime?.level_mastery) return 0;
+
+    const levels = Object.values(lifetime.level_mastery);
+    if (levels.length === 0) return 0;
+
+    let totalChallenges = 0;
+    let weightedAccuracy = 0;
+
+    levels.forEach(level => {
+      totalChallenges += level.total_challenges;
+      weightedAccuracy += level.accuracy * level.total_challenges;
+    });
+
+    return totalChallenges > 0 ? weightedAccuracy / totalChallenges : 0;
+  };
+
+  // Format milestone type for display
+  const formatMilestoneType = (type: string): string => {
+    const typeMap: Record<string, string> = {
+      'total_challenges': 'Challenges',
+      'total_xp': 'XP',
+      'total_sessions': 'Sessions',
+      'total_time_hours': 'Hours',
+      'longest_streak': 'Streak',
+    };
+    return typeMap[type] || type.replace(/_/g, ' ');
+  };
+
   // Loading state
   if (isLoading && !lifetime) {
     return (
@@ -184,6 +214,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
   const topLanguages = languageEntries
     .sort((a, b) => b[1].total_challenges - a[1].total_challenges)
     .slice(0, 3);
+  const overallAccuracy = calculateOverallAccuracy();
 
   return (
     <Animated.View
@@ -216,23 +247,34 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
           </View>
         </View>
 
-        {/* Main Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={[styles.statBox, styles.statBoxPrimary]}>
-            <Text style={styles.statLabel}>Challenges</Text>
-            <Text style={styles.statValue}>{formatNumber(lifetime.summary.total_challenges)}</Text>
+        {/* Main Stats Grid - 2x2 */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statsRow}>
+            <View style={[styles.statBox, styles.statBoxPrimary]}>
+              <Text style={styles.statLabel}>Challenges</Text>
+              <Text style={styles.statValue}>{formatNumber(lifetime.summary.total_challenges)}</Text>
+            </View>
+
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>Accuracy</Text>
+              <Text style={[styles.statValue, { color: overallAccuracy >= 70 ? '#10B981' : overallAccuracy >= 50 ? '#F59E0B' : '#EF4444' }]}>
+                {Math.round(overallAccuracy)}%
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Total XP</Text>
-            <Text style={styles.statValue}>{formatNumber(lifetime.summary.total_xp)}</Text>
-          </View>
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>Total XP</Text>
+              <Text style={styles.statValue}>{formatNumber(lifetime.summary.total_xp)}</Text>
+            </View>
 
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Best Streak</Text>
-            <View style={styles.streakContainer}>
-              <Text style={styles.streakEmoji}>🔥</Text>
-              <Text style={styles.statValue}>{lifetime.summary.longest_streak}</Text>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>Best Streak</Text>
+              <View style={styles.streakContainer}>
+                <Text style={styles.streakEmoji}>🔥</Text>
+                <Text style={styles.statValue}>{lifetime.summary.longest_streak}</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -300,7 +342,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
               <Text style={styles.milestoneTitle}>Next Milestone</Text>
             </View>
             <Text style={styles.milestoneTarget}>
-              {lifetime.milestones.next_milestone.current} / {lifetime.milestones.next_milestone.target} {lifetime.milestones.next_milestone.type}
+              {formatNumber(lifetime.milestones.next_milestone.current)} / {formatNumber(lifetime.milestones.next_milestone.target)} {formatMilestoneType(lifetime.milestones.next_milestone.type)}
             </Text>
             <View style={styles.progressBarContainer}>
               <Animated.View
@@ -395,10 +437,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#7C3AED',
   },
-  statsGrid: {
-    flexDirection: 'row',
+  statsContainer: {
     gap: 8,
     marginBottom: 16,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
   },
   statBox: {
     flex: 1,
@@ -406,6 +452,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
+    minHeight: 70,
+    justifyContent: 'center',
   },
   statBoxPrimary: {
     backgroundColor: 'rgba(139, 92, 246, 0.15)',
