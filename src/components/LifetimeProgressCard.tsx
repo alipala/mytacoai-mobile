@@ -34,7 +34,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
   const { lifetime, isLoading, error, refetchLifetime } = useLifetimeProgress(false, true);
 
   // Expandable sections state
-  const [expandedSection, setExpandedSection] = useState<'languages' | 'milestones' | null>(null);
+  const [expandedSection, setExpandedSection] = useState<'languages' | 'types' | 'levels' | null>(null);
 
   // Animation values
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -42,7 +42,8 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
   const progressBarAnim = useRef(new Animated.Value(0)).current;
   const expansionAnims = useRef({
     languages: new Animated.Value(0),
-    milestones: new Animated.Value(0),
+    types: new Animated.Value(0),
+    levels: new Animated.Value(0),
   }).current;
 
   useEffect(() => {
@@ -78,7 +79,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
   }, [lifetime?.milestones.next_milestone]);
 
   // Handle section expansion
-  const toggleSection = (section: 'languages' | 'milestones') => {
+  const toggleSection = (section: 'languages' | 'types' | 'levels') => {
     const isExpanding = expandedSection !== section;
     const newExpandedSection = isExpanding ? section : null;
 
@@ -155,6 +156,32 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
     return typeMap[type] || type.replace(/_/g, ' ');
   };
 
+  // Format challenge type names
+  const formatChallengeType = (type: string): string => {
+    const typeMap: Record<string, string> = {
+      'micro_quiz': 'Micro Quiz',
+      'brain_tickler': 'Brain Tickler',
+      'smart_flashcard': 'Smart Flashcard',
+      'swipe_fix': 'Swipe Fix',
+      'error_spotting': 'Error Spotting',
+      'native_check': 'Native Check',
+    };
+    return typeMap[type] || type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  // Get mastery rank emoji
+  const getMasteryEmoji = (rank: string): string => {
+    const emojiMap: Record<string, string> = {
+      'master': '👑',
+      'expert': '💎',
+      'advanced': '⭐',
+      'intermediate': '🌟',
+      'beginner': '✨',
+      'novice': '🌱',
+    };
+    return emojiMap[rank] || '📊';
+  };
+
   // Loading state
   if (isLoading && !lifetime) {
     return (
@@ -210,10 +237,28 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
   }
 
   const levelBadge = getLevelBadge(lifetime.summary.total_challenges);
+
+  // Prepare Languages data
   const languageEntries = Object.entries(lifetime.language_progress || {});
   const topLanguages = languageEntries
     .sort((a, b) => b[1].total_challenges - a[1].total_challenges)
     .slice(0, 3);
+
+  // Prepare Challenge Types data
+  const typeEntries = Object.entries(lifetime.challenge_type_mastery || {});
+  const topTypes = typeEntries
+    .sort((a, b) => b[1].total_challenges - a[1].total_challenges)
+    .slice(0, 5);
+
+  // Prepare CEFR Levels data
+  const levelEntries = Object.entries(lifetime.level_mastery || {});
+  const sortedLevels = levelEntries
+    .sort((a, b) => {
+      // Sort by CEFR level order: A1, A2, B1, B2, C1, C2
+      const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      return levelOrder.indexOf(a[0]) - levelOrder.indexOf(b[0]);
+    });
+
   const overallAccuracy = calculateOverallAccuracy();
 
   return (
@@ -325,6 +370,124 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
                       </Text>
                       <Text style={styles.languageDetail}>
                         {formatNumber(progress.total_xp)} XP
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </Animated.View>
+          </>
+        )}
+
+        {/* Challenge Types Section */}
+        {topTypes.length > 0 && (
+          <>
+            <TouchableOpacity
+              style={styles.expandableHeader}
+              onPress={() => toggleSection('types')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.expandableHeaderLeft}>
+                <Ionicons name="game-controller-outline" size={20} color="#7C3AED" />
+                <Text style={styles.expandableTitle}>Challenge Types ({typeEntries.length})</Text>
+              </View>
+              <Ionicons
+                name={expandedSection === 'types' ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color="#7C3AED"
+              />
+            </TouchableOpacity>
+
+            <Animated.View
+              style={{
+                maxHeight: expansionAnims.types.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 300],
+                }),
+                opacity: expansionAnims.types,
+                overflow: 'hidden',
+              }}
+            >
+              <View style={styles.expandedContent}>
+                {topTypes.map(([type, mastery]) => (
+                  <View key={type} style={styles.languageItem}>
+                    <View style={styles.languageHeader}>
+                      <View style={styles.typeNameContainer}>
+                        <Text style={styles.typeEmoji}>{getMasteryEmoji(mastery.rank)}</Text>
+                        <Text style={styles.languageName}>
+                          {formatChallengeType(type)}
+                        </Text>
+                      </View>
+                      <Text style={styles.languageChallenges}>
+                        {mastery.total_challenges} challenges
+                      </Text>
+                    </View>
+                    <View style={styles.languageDetails}>
+                      <Text style={styles.languageDetail}>
+                        {Math.round(mastery.accuracy)}% accuracy
+                      </Text>
+                      <Text style={styles.languageDetail}>
+                        {mastery.rank.charAt(0).toUpperCase() + mastery.rank.slice(1)}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </Animated.View>
+          </>
+        )}
+
+        {/* CEFR Levels Section */}
+        {sortedLevels.length > 0 && (
+          <>
+            <TouchableOpacity
+              style={styles.expandableHeader}
+              onPress={() => toggleSection('levels')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.expandableHeaderLeft}>
+                <Ionicons name="bar-chart-outline" size={20} color="#7C3AED" />
+                <Text style={styles.expandableTitle}>CEFR Levels ({levelEntries.length})</Text>
+              </View>
+              <Ionicons
+                name={expandedSection === 'levels' ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color="#7C3AED"
+              />
+            </TouchableOpacity>
+
+            <Animated.View
+              style={{
+                maxHeight: expansionAnims.levels.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 300],
+                }),
+                opacity: expansionAnims.levels,
+                overflow: 'hidden',
+              }}
+            >
+              <View style={styles.expandedContent}>
+                {sortedLevels.map(([level, mastery]) => (
+                  <View key={level} style={styles.languageItem}>
+                    <View style={styles.languageHeader}>
+                      <View style={styles.typeNameContainer}>
+                        <Text style={styles.levelBadgeText}>{level}</Text>
+                        <View style={styles.starsContainer}>
+                          {Array.from({ length: mastery.mastery_stars }).map((_, i) => (
+                            <Text key={i} style={styles.starEmoji}>⭐</Text>
+                          ))}
+                        </View>
+                      </View>
+                      <Text style={styles.languageChallenges}>
+                        {mastery.total_challenges} challenges
+                      </Text>
+                    </View>
+                    <View style={styles.languageDetails}>
+                      <Text style={styles.languageDetail}>
+                        {Math.round(mastery.accuracy)}% accuracy
+                      </Text>
+                      <Text style={styles.languageDetail}>
+                        {mastery.languages.length} {mastery.languages.length === 1 ? 'language' : 'languages'}
                       </Text>
                     </View>
                   </View>
@@ -526,6 +689,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7C3AED',
     fontWeight: '500',
+  },
+  typeNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  typeEmoji: {
+    fontSize: 16,
+  },
+  levelBadgeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#7C3AED',
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  starEmoji: {
+    fontSize: 12,
   },
   milestoneSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
