@@ -1319,7 +1319,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       <View style={styles.header}>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
-            {screenLanguage ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice` : 'Conversation'}
+            {learningPlan && (learningPlan.status === 'awaiting_final_assessment' || learningPlan.status === 'failed_assessment')
+              ? `Final Assessment - ${screenLanguage?.charAt(0).toUpperCase()}${screenLanguage?.slice(1)} ${learningPlan.proficiency_level || ''}`
+              : screenLanguage
+                ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice`
+                : 'Conversation'}
           </Text>
         </View>
 
