@@ -13,14 +13,13 @@ export class ChatService {
     /**
      * Get Project Knowledge
      * Answer questions about the Language Tutor project using RAG
+     * @param requestBody
      * @returns ProjectKnowledgeResponse Successful Response
      * @throws ApiError
      */
-    public static getProjectKnowledgeApiChatProjectKnowledgePost({
-        requestBody,
-    }: {
+    public static getProjectKnowledgeApiChatProjectKnowledgePost(
         requestBody: ProjectKnowledgeRequest,
-    }): CancelablePromise<ProjectKnowledgeResponse> {
+    ): CancelablePromise<ProjectKnowledgeResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/chat/project-knowledge',
@@ -34,14 +33,13 @@ export class ChatService {
     /**
      * Get Vector Knowledge
      * Answer questions using vector similarity search and GPT
+     * @param requestBody
      * @returns VectorChatResponse Successful Response
      * @throws ApiError
      */
-    public static getVectorKnowledgeApiChatVectorKnowledgePost({
-        requestBody,
-    }: {
+    public static getVectorKnowledgeApiChatVectorKnowledgePost(
         requestBody: VectorChatRequest,
-    }): CancelablePromise<VectorChatResponse> {
+    ): CancelablePromise<VectorChatResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/chat/vector-knowledge',

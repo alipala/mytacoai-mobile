@@ -17,5 +17,8 @@ export type LearningPlan = {
     completed_sessions?: (number | null);
     progress_percentage?: (number | null);
     session_summaries?: (Array<string> | null);
+    status?: (string | null);
+    final_assessment?: (Record<string, any> | null);
+    all_sessions_completed_at?: (string | null);
 };
 

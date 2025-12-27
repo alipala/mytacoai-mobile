@@ -9,14 +9,13 @@ export class UrlRedirectService {
     /**
      * Redirect Shortened Url
      * Redirect shortened URLs to their original destinations
+     * @param urlHash
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static redirectShortenedUrlSUrlHashGet({
-        urlHash,
-    }: {
+    public static redirectShortenedUrlSUrlHashGet(
         urlHash: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/s/{url_hash}',

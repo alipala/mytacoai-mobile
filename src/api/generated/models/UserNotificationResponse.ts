@@ -8,6 +8,7 @@ export type UserNotificationResponse = {
     notification_id: string;
     is_read?: boolean;
     read_at?: (string | null);
+    deleted_at?: (string | null);
     _id: string;
     notification: NotificationResponse;
     created_at: string;

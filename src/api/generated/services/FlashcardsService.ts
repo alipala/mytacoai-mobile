@@ -14,14 +14,13 @@ export class FlashcardsService {
     /**
      * Generate Flashcards
      * Generate AI-powered flashcards from a speaking session
+     * @param requestBody
      * @returns FlashcardSet Successful Response
      * @throws ApiError
      */
-    public static generateFlashcardsApiFlashcardsGeneratePost({
-        requestBody,
-    }: {
+    public static generateFlashcardsApiFlashcardsGeneratePost(
         requestBody: FlashcardGenerationRequest,
-    }): CancelablePromise<FlashcardSet> {
+    ): CancelablePromise<FlashcardSet> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/flashcards/generate',
@@ -47,14 +46,13 @@ export class FlashcardsService {
     /**
      * Get Flashcard Set
      * Get a specific flashcard set with all its flashcards
+     * @param setId
      * @returns FlashcardSet Successful Response
      * @throws ApiError
      */
-    public static getFlashcardSetApiFlashcardsSetSetIdGet({
-        setId,
-    }: {
+    public static getFlashcardSetApiFlashcardsSetSetIdGet(
         setId: string,
-    }): CancelablePromise<FlashcardSet> {
+    ): CancelablePromise<FlashcardSet> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/flashcards/set/{set_id}',
@@ -69,14 +67,13 @@ export class FlashcardsService {
     /**
      * Delete Flashcard Set
      * Delete a flashcard set and all its associated flashcards
+     * @param setId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static deleteFlashcardSetApiFlashcardsSetSetIdDelete({
-        setId,
-    }: {
+    public static deleteFlashcardSetApiFlashcardsSetSetIdDelete(
         setId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/flashcards/set/{set_id}',
@@ -91,14 +88,13 @@ export class FlashcardsService {
     /**
      * Get Due Flashcards
      * Get flashcards that are due for review
+     * @param limit
      * @returns Flashcard Successful Response
      * @throws ApiError
      */
-    public static getDueFlashcardsApiFlashcardsDueGet({
-        limit = 10,
-    }: {
-        limit?: number,
-    }): CancelablePromise<Array<Flashcard>> {
+    public static getDueFlashcardsApiFlashcardsDueGet(
+        limit: number = 10,
+    ): CancelablePromise<Array<Flashcard>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/flashcards/due',
@@ -113,14 +109,13 @@ export class FlashcardsService {
     /**
      * Review Flashcard
      * Update flashcard progress after review
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static reviewFlashcardApiFlashcardsReviewPost({
-        requestBody,
-    }: {
+    public static reviewFlashcardApiFlashcardsReviewPost(
         requestBody: FlashcardReviewRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/flashcards/review',
@@ -146,14 +141,13 @@ export class FlashcardsService {
     /**
      * Get Flashcards For Session
      * Get all flashcards for a specific session
+     * @param sessionId
      * @returns Flashcard Successful Response
      * @throws ApiError
      */
-    public static getFlashcardsForSessionApiFlashcardsSessionSessionIdGet({
-        sessionId,
-    }: {
+    public static getFlashcardsForSessionApiFlashcardsSessionSessionIdGet(
         sessionId: string,
-    }): CancelablePromise<Array<Flashcard>> {
+    ): CancelablePromise<Array<Flashcard>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/flashcards/session/{session_id}',

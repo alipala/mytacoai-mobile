@@ -169,4 +169,43 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  // NEW: Final Assessment Banner Styles
+  assessmentBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 12,
+    gap: 10,
+  },
+  assessmentBannerFailed: {
+    backgroundColor: '#FEE2E2',
+    borderLeftColor: '#EF4444',
+  },
+  assessmentBannerIcon: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  assessmentBannerContent: {
+    flex: 1,
+  },
+  assessmentBannerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 2,
+  },
+  assessmentBannerText: {
+    fontSize: 12,
+    color: '#78350F',
+    lineHeight: 16,
+  },
+  continueButtonAssessment: {
+    backgroundColor: '#F59E0B',
+  },
 });

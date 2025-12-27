@@ -150,7 +150,17 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
   const totalSessions = plan.total_sessions || 16;
   const rawPercentage = plan.progress_percentage || (completedSessions / totalSessions) * 100;
   const percentage = Math.round(rawPercentage);
-  const isCompleted = percentage >= 100;
+
+  // NEW: Check final assessment status
+  const status = plan.status || 'in_progress';
+  const isAwaitingAssessment = status === 'awaiting_final_assessment';
+  const isAssessmentFailed = status === 'failed_assessment';
+  const isCompleted = status === 'completed';
+  const finalAssessment = plan.final_assessment || {};
+  const lastAttempt = finalAssessment.attempts?.length > 0
+    ? finalAssessment.attempts[finalAssessment.attempts.length - 1]
+    : null;
+
   const levelColors = getLevelColor(level);
 
   const handleContinuePress = () => {
@@ -211,21 +221,67 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         {plan.duration_months || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
       </Text>
 
+      {/* NEW: Final Assessment Banner */}
+      {isAwaitingAssessment && (
+        <View style={styles.assessmentBanner}>
+          <View style={styles.assessmentBannerIcon}>
+            <Ionicons name="alert-circle" size={20} color="#F59E0B" />
+          </View>
+          <View style={styles.assessmentBannerContent}>
+            <Text style={styles.assessmentBannerTitle}>Final Assessment Required</Text>
+            <Text style={styles.assessmentBannerText}>
+              Complete your assessment to finish this plan
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* NEW: Failed Assessment Banner */}
+      {isAssessmentFailed && lastAttempt && (
+        <View style={[styles.assessmentBanner, styles.assessmentBannerFailed]}>
+          <View style={styles.assessmentBannerIcon}>
+            <Ionicons name="close-circle" size={20} color="#EF4444" />
+          </View>
+          <View style={styles.assessmentBannerContent}>
+            <Text style={[styles.assessmentBannerTitle, { color: '#EF4444' }]}>
+              Assessment Not Passed
+            </Text>
+            <Text style={styles.assessmentBannerText}>
+              Last score: {lastAttempt.overall_score}/100 • Retry anytime
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* Action Buttons - Premium Design INSIDE Card */}
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
-          style={[styles.continueButton, isCompleted && styles.continueButtonDisabled]}
+          style={[
+            styles.continueButton,
+            isCompleted && styles.continueButtonDisabled,
+            (isAwaitingAssessment || isAssessmentFailed) && styles.continueButtonAssessment
+          ]}
           onPress={handleContinuePress}
           disabled={isCompleted}
           activeOpacity={0.8}
         >
           <Ionicons
-            name={isCompleted ? "checkmark-circle" : "play-circle"}
+            name={
+              isCompleted
+                ? "checkmark-circle"
+                : isAwaitingAssessment || isAssessmentFailed
+                ? "clipboard"
+                : "play-circle"
+            }
             size={20}
             color="#FFFFFF"
           />
           <Text style={styles.continueButtonText}>
-            {isCompleted ? 'Completed' : 'Continue'}
+            {isCompleted
+              ? 'Completed'
+              : isAwaitingAssessment || isAssessmentFailed
+              ? 'Take Assessment'
+              : 'Continue'}
           </Text>
         </TouchableOpacity>
 

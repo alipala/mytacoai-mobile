@@ -11,14 +11,13 @@ import { request as __request } from '../core/request';
 export class TutorsService {
     /**
      * Invite Tutor
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static inviteTutorTutorsInvitePost({
-        requestBody,
-    }: {
+    public static inviteTutorTutorsInvitePost(
         requestBody: TutorInviteRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/tutors/invite',
@@ -31,14 +30,13 @@ export class TutorsService {
     }
     /**
      * Accept Invitation
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static acceptInvitationTutorsAcceptInvitePost({
-        requestBody,
-    }: {
+    public static acceptInvitationTutorsAcceptInvitePost(
         requestBody: TutorAcceptInviteRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/tutors/accept-invite',
@@ -51,14 +49,13 @@ export class TutorsService {
     }
     /**
      * Get Institution Tutors
+     * @param institutionId
      * @returns TutorResponse Successful Response
      * @throws ApiError
      */
-    public static getInstitutionTutorsTutorsInstitutionInstitutionIdGet({
-        institutionId,
-    }: {
+    public static getInstitutionTutorsTutorsInstitutionInstitutionIdGet(
         institutionId: string,
-    }): CancelablePromise<Array<TutorResponse>> {
+    ): CancelablePromise<Array<TutorResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/tutors/institution/{institution_id}',

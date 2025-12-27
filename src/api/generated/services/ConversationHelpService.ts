@@ -12,14 +12,13 @@ export class ConversationHelpService {
     /**
      * Generate Help Content
      * Generate conversation help content based on AI tutor's response
+     * @param requestBody
      * @returns ConversationHelpResponse Successful Response
      * @throws ApiError
      */
-    public static generateHelpContentApiConversationHelpGeneratePost({
-        requestBody,
-    }: {
+    public static generateHelpContentApiConversationHelpGeneratePost(
         requestBody: ConversationHelpRequest,
-    }): CancelablePromise<ConversationHelpResponse> {
+    ): CancelablePromise<ConversationHelpResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/conversation-help/generate',
@@ -45,14 +44,13 @@ export class ConversationHelpService {
     /**
      * Update Help Settings
      * Update user's conversation help settings
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateHelpSettingsApiConversationHelpSettingsPut({
-        requestBody,
-    }: {
+    public static updateHelpSettingsApiConversationHelpSettingsPut(
         requestBody: Record<string, any>,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/conversation-help/settings',
@@ -66,14 +64,13 @@ export class ConversationHelpService {
     /**
      * Track Help System Usage
      * Track help system usage for analytics
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static trackHelpSystemUsageApiConversationHelpTrackUsagePost({
-        requestBody,
-    }: {
+    public static trackHelpSystemUsageApiConversationHelpTrackUsagePost(
         requestBody: Record<string, any>,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/conversation-help/track-usage',
@@ -88,14 +85,13 @@ export class ConversationHelpService {
      * Complete Conversation Session
      * CRITICAL FIX: Track session completion with proper duration and subscription usage
      * This endpoint should be called when a conversation session ends
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static completeConversationSessionApiConversationHelpCompleteSessionPost({
-        requestBody,
-    }: {
+    public static completeConversationSessionApiConversationHelpCompleteSessionPost(
         requestBody: Record<string, any>,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/conversation-help/complete-session',
