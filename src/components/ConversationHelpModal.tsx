@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
+  Easing,
   Dimensions,
   ScrollView,
   Platform,
@@ -160,6 +161,8 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   variant = 'modal', // Default to modal behavior
 }) => {
   const [scaleAnim] = useState(new Animated.Value(0));
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(20));
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['responses']));
   const dotAnimations = useRef([
     new Animated.Value(0),
@@ -170,15 +173,34 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 
   const uiText = getUIText(helpLanguage);
 
-  // Center scale entrance animation
+  // Entrance and exit animations
   useEffect(() => {
     if (visible) {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }).start();
+      // Modal variant - scale animation
+      if (variant === 'modal') {
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }).start();
+      } else {
+        // Inline variant - fade + slide animation
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 300,
+            easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
 
       if (Platform.OS === 'ios') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -200,10 +222,16 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
         ])
       ).start();
     } else {
-      scaleAnim.setValue(0);
+      // Reset animations when closing
+      if (variant === 'modal') {
+        scaleAnim.setValue(0);
+      } else {
+        fadeAnim.setValue(0);
+        slideAnim.setValue(20);
+      }
       micPulseAnim.setValue(1);
     }
-  }, [visible]);
+  }, [visible, variant]);
 
   // Loading dots animation
   useEffect(() => {
@@ -287,6 +315,10 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     if (onToggleHelp) {
       onToggleHelp(value);
     }
+    // Close modal when help is disabled
+    if (!value) {
+      onClose();
+    }
   };
 
   // Content component (can be wrapped in Modal or rendered inline)
@@ -294,8 +326,11 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     <Animated.View
       style={[
         variant === 'inline' ? styles.inlineContainer : styles.modalContainer,
-        variant === 'modal' && {
+        variant === 'modal' ? {
           transform: [{ scale: scaleAnim }],
+        } : {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
         },
       ]}
     >
