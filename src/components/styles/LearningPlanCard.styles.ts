@@ -2,7 +2,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40;
-const CARD_HEIGHT = 460; // Premium: 460px - Enough height to show all content
+const CARD_HEIGHT = 450; // Optimized: 450px - Compact to fit assessment banner
 
 export const styles = StyleSheet.create({
   card: {
@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 18,
+    marginBottom: 14,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -29,10 +29,10 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   flagEmoji: {
-    fontSize: 36, // OPTIMIZED: 36px (was 40px)
+    fontSize: 32, // OPTIMIZED: 32px - More compact
   },
   languageName: {
-    fontSize: 20, // OPTIMIZED: 20px (was 22px)
+    fontSize: 18, // OPTIMIZED: 18px - More compact
     fontWeight: 'bold',
     color: '#2D3748',
     marginBottom: 4,
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
   },
   progressSection: {
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: 10,
   },
   progressRingWrapper: {
     alignItems: 'center',
@@ -65,7 +65,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressPercentage: {
-    fontSize: 28, // OPTIMIZED: 28px (was 32px)
+    fontSize: 26, // OPTIMIZED: 26px - More compact
     fontWeight: 'bold',
     color: '#2D3748',
   },
@@ -82,19 +82,19 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   progressLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#718096',
-    marginTop: 10,
+    marginTop: 8,
     fontWeight: '500',
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     backgroundColor: '#F7FAFC',
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   statItem: {
     alignItems: 'center',
@@ -116,12 +116,12 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
   },
   planDescription: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 18,
-    marginTop: 4,
+    lineHeight: 16,
+    marginBottom: 10,
+    marginTop: 2,
   },
   // Buttons INSIDE card - Premium design
   buttonsContainer: {
@@ -135,7 +135,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#4FD1C5',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
     gap: 8,
     shadowColor: '#4FD1C5',
     shadowOffset: { width: 0, height: 4 },
@@ -161,7 +161,7 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E5E7EB',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
     gap: 8,
   },
   detailsButtonText: {
@@ -177,17 +177,17 @@ export const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#F59E0B',
     borderRadius: 8,
-    padding: 12,
-    marginVertical: 12,
-    gap: 10,
+    padding: 10,
+    marginVertical: 8,
+    gap: 8,
   },
   assessmentBannerFailed: {
     backgroundColor: '#FEE2E2',
     borderLeftColor: '#EF4444',
   },
   assessmentBannerIcon: {
-    width: 28,
-    height: 28,
+    width: 24,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -195,15 +195,15 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   assessmentBannerTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#92400E',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   assessmentBannerText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#78350F',
-    lineHeight: 16,
+    lineHeight: 15,
   },
   continueButtonAssessment: {
     backgroundColor: '#F59E0B',

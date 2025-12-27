@@ -198,7 +198,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 
       {/* Progress Section - Premium */}
       <View style={styles.progressSection}>
-        <AnimatedProgressCircle percentage={percentage} size={110} strokeWidth={10} />
+        <AnimatedProgressCircle percentage={percentage} size={95} strokeWidth={9} />
       </View>
 
       {/* Stats Row - Premium */}
@@ -225,7 +225,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
       {isAwaitingAssessment && (
         <View style={styles.assessmentBanner}>
           <View style={styles.assessmentBannerIcon}>
-            <Ionicons name="alert-circle" size={20} color="#F59E0B" />
+            <Ionicons name="alert-circle" size={18} color="#F59E0B" />
           </View>
           <View style={styles.assessmentBannerContent}>
             <Text style={styles.assessmentBannerTitle}>Final Assessment Required</Text>
@@ -240,7 +240,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
       {isAssessmentFailed && lastAttempt && (
         <View style={[styles.assessmentBanner, styles.assessmentBannerFailed]}>
           <View style={styles.assessmentBannerIcon}>
-            <Ionicons name="close-circle" size={20} color="#EF4444" />
+            <Ionicons name="close-circle" size={18} color="#EF4444" />
           </View>
           <View style={styles.assessmentBannerContent}>
             <Text style={[styles.assessmentBannerTitle, { color: '#EF4444' }]}>
