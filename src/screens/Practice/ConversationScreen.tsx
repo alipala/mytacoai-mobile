@@ -1435,9 +1435,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             </Text>
           </View>
         ) : (
-          messages.map((message) => (
-            <AnimatedMessage key={message.id} message={message} voiceName={userVoice} />
-          ))
+          <>
+            {messages.map((message) => (
+              <AnimatedMessage key={message.id} message={message} voiceName={userVoice} />
+            ))}
+
+            {/* Inline Conversation Help - shown after last message */}
+            {conversationHelp.isModalVisible && (
+              <ConversationHelpModal
+                visible={true}
+                variant="inline"
+                helpData={conversationHelp.helpData}
+                isLoading={conversationHelp.isLoading}
+                targetLanguage={learningPlan?.language || language}
+                helpLanguage={conversationHelp.helpSettings.help_language || 'english'}
+                helpEnabled={conversationHelp.helpSettings.help_enabled}
+                onClose={conversationHelp.closeHelpModal}
+                onSelectResponse={(responseText) => {
+                  console.log('[CONVERSATION_HELP] User selected response:', responseText);
+                  conversationHelp.selectSuggestedResponse(responseText);
+                }}
+                onToggleHelp={(enabled) => {
+                  console.log('[CONVERSATION_HELP] User toggled help:', enabled);
+                  conversationHelp.updateHelpSettings({ help_enabled: enabled });
+                }}
+              />
+            )}
+          </>
         )}
       </ScrollView>
 
@@ -1957,26 +1981,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </Modal>
       )}
 
-      {/* Conversation Help Modal */}
-      <ConversationHelpModal
-        visible={conversationHelp.isModalVisible}
-        helpData={conversationHelp.helpData}
-        isLoading={conversationHelp.isLoading}
-        targetLanguage={learningPlan?.language || language}
-        helpLanguage={conversationHelp.helpSettings.help_language || 'english'}
-        helpEnabled={conversationHelp.helpSettings.help_enabled}
-        onClose={conversationHelp.closeHelpModal}
-        onSelectResponse={(responseText) => {
-          // When user selects a suggested response, we could add it to the input
-          // For now, just close the modal and let them speak it
-          console.log('[CONVERSATION_HELP] User selected response:', responseText);
-          conversationHelp.selectSuggestedResponse(responseText);
-        }}
-        onToggleHelp={(enabled) => {
-          console.log('[CONVERSATION_HELP] User toggled help:', enabled);
-          conversationHelp.updateHelpSettings({ help_enabled: enabled });
-        }}
-      />
+      {/* Conversation Help is now rendered inline in the ScrollView above */}
     </SafeAreaView>
   );
 };

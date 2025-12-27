@@ -29,6 +29,7 @@ interface ConversationHelpModalProps {
   onClose: () => void;
   onSelectResponse?: (responseText: string) => void;
   onToggleHelp?: (enabled: boolean) => void;
+  variant?: 'modal' | 'inline'; // NEW: Support inline rendering
 }
 
 // UI text translations
@@ -156,6 +157,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   onClose,
   onSelectResponse,
   onToggleHelp,
+  variant = 'modal', // Default to modal behavior
 }) => {
   const [scaleAnim] = useState(new Animated.Value(0));
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['responses']));
@@ -287,28 +289,16 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     }
   };
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={handleClose}
+  // Content component (can be wrapped in Modal or rendered inline)
+  const HelpContent = (
+    <Animated.View
+      style={[
+        variant === 'inline' ? styles.inlineContainer : styles.modalContainer,
+        variant === 'modal' && {
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}
     >
-      <BlurView intensity={80} style={styles.blurContainer}>
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={handleClose}
-        />
-
-        <Animated.View
-          style={[
-            styles.modalContainer,
-            {
-              transform: [{ scale: scaleAnim }],
-            },
-          ]}
-        >
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -531,7 +521,29 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
               </View>
             )}
           </ScrollView>
-        </Animated.View>
+    </Animated.View>
+  );
+
+  // Return based on variant
+  if (variant === 'inline') {
+    return visible ? HelpContent : null;
+  }
+
+  // Modal variant (default)
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={handleClose}
+    >
+      <BlurView intensity={80} style={styles.blurContainer}>
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
+        {HelpContent}
       </BlurView>
     </Modal>
   );
@@ -562,6 +574,26 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 10,
+      },
+    }),
+  },
+  inlineContainer: {
+    width: SCREEN_WIDTH - 32, // Account for conversation padding
+    maxHeight: SCREEN_HEIGHT * 0.5, // Smaller than modal
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginVertical: 12,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
       },
     }),
   },
