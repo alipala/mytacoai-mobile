@@ -294,11 +294,9 @@ export const LoginScreen = ({ navigation }: any) => {
 
     try {
       await AuthenticationService.registerApiAuthRegisterPost({
-        requestBody: {
-          email: signupEmail.toLowerCase().trim(),
-          password: signupPassword,
-          name: fullName.trim(),
-        },
+        email: signupEmail.toLowerCase().trim(),
+        password: signupPassword,
+        name: fullName.trim(),
       });
 
       // Mark as email signup
@@ -375,9 +373,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
       console.log('📡 Calling backend API...');
       const response = await AuthenticationService.googleLoginApiAuthGoogleLoginPost({
-        requestBody: {
-          token: tokens.idToken,
-        },
+        token: tokens.idToken,
       });
       console.log('✅ Backend response received:', response.access_token ? 'token present' : 'NO token');
 

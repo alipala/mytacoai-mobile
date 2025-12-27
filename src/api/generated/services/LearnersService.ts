@@ -12,14 +12,13 @@ export class LearnersService {
     /**
      * Enroll Learner
      * Admin enrolls a learner (sends invitation)
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static enrollLearnerLearnersEnrollPost({
-        requestBody,
-    }: {
+    public static enrollLearnerLearnersEnrollPost(
         requestBody: LearnerEnrollRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/learners/enroll',
@@ -33,14 +32,13 @@ export class LearnersService {
     /**
      * Self Signup
      * Learner signs up using institution code
+     * @param requestBody
      * @returns LearnerSelfSignupResponse Successful Response
      * @throws ApiError
      */
-    public static selfSignupLearnersSelfSignupPost({
-        requestBody,
-    }: {
+    public static selfSignupLearnersSelfSignupPost(
         requestBody: LearnerSelfSignupRequest,
-    }): CancelablePromise<LearnerSelfSignupResponse> {
+    ): CancelablePromise<LearnerSelfSignupResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/learners/self-signup',
@@ -54,14 +52,13 @@ export class LearnersService {
     /**
      * Get Tutor Learners
      * Get all learners assigned to a tutor
+     * @param tutorId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getTutorLearnersLearnersTutorTutorIdGet({
-        tutorId,
-    }: {
+    public static getTutorLearnersLearnersTutorTutorIdGet(
         tutorId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/learners/tutor/{tutor_id}',
@@ -76,14 +73,13 @@ export class LearnersService {
     /**
      * Get Institution Learners
      * Get all learners for an institution
+     * @param institutionId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getInstitutionLearnersLearnersInstitutionInstitutionIdGet({
-        institutionId,
-    }: {
+    public static getInstitutionLearnersLearnersInstitutionInstitutionIdGet(
         institutionId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/learners/institution/{institution_id}',

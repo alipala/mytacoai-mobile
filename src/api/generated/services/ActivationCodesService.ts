@@ -22,14 +22,13 @@ export class ActivationCodesService {
      * - **max_learners**: Maximum number of learners
      * - **contract_id**: Contract ID (required if is_trial=False)
      * - **notes**: Optional notes
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static generateActivationCodeApiAdminActivationCodesPost({
-        requestBody,
-    }: {
+    public static generateActivationCodeApiAdminActivationCodesPost(
         requestBody: GenerateActivationCodeRequest,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/activation_codes',
@@ -49,22 +48,21 @@ export class ActivationCodesService {
      * - **status_filter**: Filter by status (pending/active_trial/active_paid/expired/cancelled)
      * - **is_trial**: Filter by trial status (true/false)
      * - **institution_name**: Search by institution name
+     * @param page
+     * @param perPage
+     * @param statusFilter
+     * @param isTrial
+     * @param institutionName
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listActivationCodesApiAdminActivationCodesGet({
-        page = 1,
-        perPage = 25,
-        statusFilter,
-        isTrial,
-        institutionName,
-    }: {
-        page?: number,
-        perPage?: number,
+    public static listActivationCodesApiAdminActivationCodesGet(
+        page: number = 1,
+        perPage: number = 25,
         statusFilter?: (string | null),
         isTrial?: (boolean | null),
         institutionName?: (string | null),
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/activation_codes',
@@ -83,14 +81,13 @@ export class ActivationCodesService {
     /**
      * Get Activation Code
      * Get single activation code details by activation code or MongoDB ID
+     * @param codeOrId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getActivationCodeApiAdminActivationCodesCodeOrIdGet({
-        codeOrId,
-    }: {
+    public static getActivationCodeApiAdminActivationCodesCodeOrIdGet(
         codeOrId: string,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/activation_codes/{code_or_id}',
@@ -106,16 +103,15 @@ export class ActivationCodesService {
      * Convert To Paid
      * Convert trial activation code to paid
      * Updates the SAME code, does not create a new one
+     * @param code
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static convertToPaidApiAdminActivationCodesCodeConvertToPaidPut({
-        code,
-        requestBody,
-    }: {
+    public static convertToPaidApiAdminActivationCodesCodeConvertToPaidPut(
         code: string,
         requestBody: ConvertToPaidRequest,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/admin/activation_codes/{code}/convert-to-paid',
@@ -132,16 +128,15 @@ export class ActivationCodesService {
     /**
      * Extend Trial
      * Extend trial period for activation code
+     * @param code
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static extendTrialApiAdminActivationCodesCodeExtendTrialPut({
-        code,
-        requestBody,
-    }: {
+    public static extendTrialApiAdminActivationCodesCodeExtendTrialPut(
         code: string,
         requestBody: ExtendTrialRequest,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/admin/activation_codes/{code}/extend-trial',
@@ -158,14 +153,13 @@ export class ActivationCodesService {
     /**
      * Regenerate Code
      * Generate NEW code (only if original expired and unused)
+     * @param code
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static regenerateCodeApiAdminActivationCodesCodeRegeneratePost({
-        code,
-    }: {
+    public static regenerateCodeApiAdminActivationCodesCodeRegeneratePost(
         code: string,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/activation_codes/{code}/regenerate',
@@ -180,14 +174,13 @@ export class ActivationCodesService {
     /**
      * Cancel Code
      * Cancel activation code (soft delete, status → cancelled)
+     * @param code
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static cancelCodeApiAdminActivationCodesCodeDelete({
-        code,
-    }: {
+    public static cancelCodeApiAdminActivationCodesCodeDelete(
         code: string,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/admin/activation_codes/{code}',

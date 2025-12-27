@@ -11,16 +11,15 @@ export class ContextualChatService {
     /**
      * Get Contextual Knowledge
      * Answer questions using vector similarity search and GPT with user context awareness
+     * @param requestBody
+     * @param token
      * @returns ContextualChatResponse Successful Response
      * @throws ApiError
      */
-    public static getContextualKnowledgeApiChatContextualKnowledgePost({
-        requestBody,
-        token,
-    }: {
+    public static getContextualKnowledgeApiChatContextualKnowledgePost(
         requestBody: ContextualChatRequest,
         token?: (string | null),
-    }): CancelablePromise<ContextualChatResponse> {
+    ): CancelablePromise<ContextualChatResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/chat/contextual-knowledge',

@@ -19,5 +19,6 @@ export type UserResponse = {
     subscription_plan?: (string | null);
     subscription_period?: (string | null);
     subscription_price_id?: (string | null);
+    timezone?: (string | null);
 };
 

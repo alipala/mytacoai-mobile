@@ -12,14 +12,13 @@ export class ShareService {
     /**
      * Generate Progress Image
      * Generate a shareable progress image using OpenAI DALL-E 3
+     * @param requestBody
      * @returns ShareProgressResponse Successful Response
      * @throws ApiError
      */
-    public static generateProgressImageApiShareGenerateProgressImagePost({
-        requestBody,
-    }: {
+    public static generateProgressImageApiShareGenerateProgressImagePost(
         requestBody: ShareProgressRequest,
-    }): CancelablePromise<ShareProgressResponse> {
+    ): CancelablePromise<ShareProgressResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/share/generate-progress-image',
@@ -34,14 +33,13 @@ export class ShareService {
      * Proxy Image
      * Proxy route to download images from external URLs (like OpenAI)
      * This avoids CORS issues and authentication problems
+     * @param imageUrl
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static proxyImageApiShareProxyImageImageUrlGet({
-        imageUrl,
-    }: {
+    public static proxyImageApiShareProxyImageImageUrlGet(
         imageUrl: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/share/proxy-image/{image_url}',
@@ -57,14 +55,13 @@ export class ShareService {
      * Download Image
      * Download image from OpenAI URL to avoid CORS issues
      * DEPRECATED: Use proxy-image route instead
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static downloadImageApiShareDownloadImagePost({
-        requestBody,
-    }: {
+    public static downloadImageApiShareDownloadImagePost(
         requestBody: DownloadImageRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/share/download-image',
@@ -80,14 +77,13 @@ export class ShareService {
      * Get user's completed weeks for sharing
      * - If learning_plan_id is provided: return weeks for THAT specific plan only
      * - If no learning_plan_id: return aggregated weeks across ALL plans (global achievements)
+     * @param learningPlanId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getUserWeeksApiShareUserWeeksGet({
-        learningPlanId,
-    }: {
+    public static getUserWeeksApiShareUserWeeksGet(
         learningPlanId?: (string | null),
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/share/user-weeks',
@@ -102,14 +98,13 @@ export class ShareService {
     /**
      * Shorten Url
      * Create a shortened URL for sharing (simple implementation)
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static shortenUrlApiShareShortenUrlPost({
-        requestBody,
-    }: {
+    public static shortenUrlApiShareShortenUrlPost(
         requestBody: Record<string, any>,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/share/shorten-url',

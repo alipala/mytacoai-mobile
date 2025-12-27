@@ -12,14 +12,13 @@ export class ConsentService {
     /**
      * Grant Consent
      * Grant consent for data sharing with institution
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static grantConsentConsentGrantPost({
-        requestBody,
-    }: {
+    public static grantConsentConsentGrantPost(
         requestBody: ConsentGrantRequest,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/consent/grant',
@@ -33,14 +32,13 @@ export class ConsentService {
     /**
      * Revoke Consent
      * Revoke consent for data sharing
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static revokeConsentConsentRevokePost({
-        requestBody,
-    }: {
+    public static revokeConsentConsentRevokePost(
         requestBody: ConsentRevokeRequest,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/consent/revoke',
@@ -54,16 +52,15 @@ export class ConsentService {
     /**
      * Get Consent Status
      * Get consent status for a learner
+     * @param learnerId
+     * @param institutionId
      * @returns ConsentStatusResponse Successful Response
      * @throws ApiError
      */
-    public static getConsentStatusConsentStatusLearnerIdInstitutionIdGet({
-        learnerId,
-        institutionId,
-    }: {
+    public static getConsentStatusConsentStatusLearnerIdInstitutionIdGet(
         learnerId: string,
         institutionId: string,
-    }): CancelablePromise<ConsentStatusResponse> {
+    ): CancelablePromise<ConsentStatusResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/consent/status/{learner_id}/{institution_id}',

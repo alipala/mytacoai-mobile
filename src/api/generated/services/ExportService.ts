@@ -9,14 +9,13 @@ export class ExportService {
     /**
      * Export Learning Plans
      * Export learning plans and assessments
+     * @param format
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static exportLearningPlansApiExportLearningPlansGet({
-        format = 'json',
-    }: {
-        format?: string,
-    }): CancelablePromise<any> {
+    public static exportLearningPlansApiExportLearningPlansGet(
+        format: string = 'json',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/export/learning-plans',
@@ -31,14 +30,13 @@ export class ExportService {
     /**
      * Export Conversations
      * Export conversation history and analysis
+     * @param format
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static exportConversationsApiExportConversationsGet({
-        format = 'json',
-    }: {
-        format?: string,
-    }): CancelablePromise<any> {
+    public static exportConversationsApiExportConversationsGet(
+        format: string = 'json',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/export/conversations',
@@ -53,14 +51,13 @@ export class ExportService {
     /**
      * Export All Data
      * Export all user data
+     * @param format
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static exportAllDataApiExportDataGet({
-        format = 'json',
-    }: {
-        format?: string,
-    }): CancelablePromise<any> {
+    public static exportAllDataApiExportDataGet(
+        format: string = 'json',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/export/data',

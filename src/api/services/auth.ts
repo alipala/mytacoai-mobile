@@ -9,7 +9,8 @@ export const authService = {
    */
   login: async (email: string, password: string): Promise<Token> => {
     const response = await AuthenticationService.loginApiAuthLoginPost({
-      requestBody: { email, password }  // ← Fixed: wrapped in requestBody
+      email,
+      password
     });
 
     await AsyncStorage.setItem('auth_token', response.access_token);

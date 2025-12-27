@@ -13,6 +13,8 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  TextInput,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -299,6 +301,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [sessionCompletedNaturally, setSessionCompletedNaturally] = useState(false);
   const [autoSavePending, setAutoSavePending] = useState(false);
 
+  // Final assessment states
+  const [assessmentResult, setAssessmentResult] = useState<any>(null);
+  const [showAssessmentResults, setShowAssessmentResults] = useState(false);
+  const [showCreateNextPlanModal, setShowCreateNextPlanModal] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState<number | null>(null); // NO default - user must select
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]); // Predefined goals (optional)
+  const [customGoals, setCustomGoals] = useState<string>('');
+  const [creatingPlan, setCreatingPlan] = useState(false);
+
   // New progress tracking states
   const [sessionStats, setSessionStats] = useState<SessionStats | undefined>(undefined);
   const [sessionComparison, setSessionComparison] = useState<SessionComparison | undefined>(undefined);
@@ -416,7 +427,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         try {
           console.log(`[CONVERSATION] 📥 Fetching learning plan with ID: ${planId}`);
           setIsConnecting(true);
-          const plan = await LearningService.getLearningPlanApiLearningPlanPlanIdGet({ planId });
+          const plan = await LearningService.getLearningPlanApiLearningPlanPlanIdGet(planId);
           console.log('[CONVERSATION] ✅ Learning plan fetched successfully.');
           console.log('[CONVERSATION] 📊 Plan details:', {
             id: plan.id,
@@ -1161,6 +1172,19 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
         console.log('[AUTO_END] Session saved successfully:', result);
 
+        // Check if this is a final assessment
+        if (result.is_final_assessment) {
+          console.log('[FINAL_ASSESSMENT] 🎓 Final assessment results received!');
+          console.log('[FINAL_ASSESSMENT] Passed:', result.assessment_result.passed);
+          console.log('[FINAL_ASSESSMENT] Overall Score:', result.assessment_result.overall_score);
+
+          // Close saving modal and show assessment results
+          setShowSavingModal(false);
+          setAssessmentResult(result.assessment_result);
+          setShowAssessmentResults(true);
+          return;
+        }
+
         // Store the results (compatible with both responses)
         console.log('[AUTO_END] 🔍 Full result:', JSON.stringify(result, null, 2));
         console.log('[AUTO_END] 🔍 Background analyses:', result.background_analyses);
@@ -1319,7 +1343,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       <View style={styles.header}>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
-            {screenLanguage ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice` : 'Conversation'}
+            {learningPlan && (learningPlan.status === 'awaiting_final_assessment' || learningPlan.status === 'failed_assessment')
+              ? `Final Assessment - ${screenLanguage?.charAt(0).toUpperCase()}${screenLanguage?.slice(1)} ${learningPlan.proficiency_level || ''}`
+              : screenLanguage
+                ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice`
+                : 'Conversation'}
           </Text>
         </View>
 
@@ -1408,9 +1436,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             </Text>
           </View>
         ) : (
-          messages.map((message) => (
-            <AnimatedMessage key={message.id} message={message} voiceName={userVoice} />
-          ))
+          <>
+            {messages.map((message) => (
+              <AnimatedMessage key={message.id} message={message} voiceName={userVoice} />
+            ))}
+
+            {/* Inline Conversation Help - shown after last message */}
+            {conversationHelp.isModalVisible && (
+              <ConversationHelpModal
+                visible={true}
+                variant="inline"
+                helpData={conversationHelp.helpData}
+                isLoading={conversationHelp.isLoading}
+                targetLanguage={learningPlan?.language || language}
+                helpLanguage={conversationHelp.helpSettings.help_language || 'english'}
+                helpEnabled={conversationHelp.helpSettings.help_enabled}
+                onClose={conversationHelp.closeHelpModal}
+                onSelectResponse={(responseText) => {
+                  console.log('[CONVERSATION_HELP] User selected response:', responseText);
+                  conversationHelp.selectSuggestedResponse(responseText);
+                }}
+                onToggleHelp={(enabled) => {
+                  console.log('[CONVERSATION_HELP] User toggled help:', enabled);
+                  conversationHelp.updateHelpSettings({ help_enabled: enabled });
+                }}
+              />
+            )}
+          </>
         )}
       </ScrollView>
 
@@ -1509,6 +1561,29 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                     Engage in natural dialogue. The AI will help you improve as you speak
                   </Text>
                 </View>
+              </View>
+
+              {/* Conversation Help Toggle */}
+              <View style={[styles.infoCard, styles.helpToggleCard]}>
+                <Ionicons name="help-circle" size={24} color="#10B981" />
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoTitle}>Conversation Help</Text>
+                  <Text style={styles.infoText}>
+                    Get AI-powered suggestions and tips during your conversation
+                  </Text>
+                </View>
+                <Switch
+                  value={conversationHelp.helpSettings.help_enabled}
+                  onValueChange={(value) => {
+                    if (Platform.OS === 'ios') {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                    conversationHelp.updateHelpSettings({ help_enabled: value });
+                  }}
+                  trackColor={{ false: '#D1D5DB', true: '#86EFAC' }}
+                  thumbColor={conversationHelp.helpSettings.help_enabled ? '#10B981' : '#F3F4F6'}
+                  ios_backgroundColor="#D1D5DB"
+                />
               </View>
             </ScrollView>
 
@@ -1620,26 +1695,317 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         hasAnalyses={backgroundAnalyses.length > 0}
       />
 
-      {/* Conversation Help Modal */}
-      <ConversationHelpModal
-        visible={conversationHelp.isModalVisible}
-        helpData={conversationHelp.helpData}
-        isLoading={conversationHelp.isLoading}
-        targetLanguage={learningPlan?.language || language}
-        helpLanguage={conversationHelp.helpSettings.help_language || 'english'}
-        helpEnabled={conversationHelp.helpSettings.help_enabled}
-        onClose={conversationHelp.closeHelpModal}
-        onSelectResponse={(responseText) => {
-          // When user selects a suggested response, we could add it to the input
-          // For now, just close the modal and let them speak it
-          console.log('[CONVERSATION_HELP] User selected response:', responseText);
-          conversationHelp.selectSuggestedResponse(responseText);
-        }}
-        onToggleHelp={(enabled) => {
-          console.log('[CONVERSATION_HELP] User toggled help:', enabled);
-          conversationHelp.updateHelpSettings({ help_enabled: enabled });
-        }}
-      />
+      {/* Final Assessment Results Modal */}
+      {showAssessmentResults && assessmentResult && (
+        <Modal
+          visible={showAssessmentResults}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => {
+            setShowAssessmentResults(false);
+            handleGoDashboard();
+          }}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <View style={{ width: '100%', maxWidth: 500, maxHeight: '90%', backgroundColor: 'white', borderRadius: 20, overflow: 'hidden' }}>
+              <ScrollView contentContainerStyle={{ padding: 24 }}>
+                <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 16, color: assessmentResult.passed ? '#10B981' : '#EF4444' }}>
+                  {assessmentResult.passed ? '🎉 Assessment Passed!' : '📚 Keep Practicing'}
+                </Text>
+
+                <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
+                  {assessmentResult.current_level} Final Assessment
+                </Text>
+
+                <View style={{ backgroundColor: '#F3F4F6', padding: 16, borderRadius: 12, marginBottom: 16 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 14, color: '#6B7280' }}>Overall Score</Text>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1F2937' }}>{assessmentResult.overall_score}/100</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 14, color: '#6B7280' }}>{assessmentResult.current_level} Mastery</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{assessmentResult.current_level_mastery}/100</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 14, color: '#6B7280' }}>{assessmentResult.next_level} Readiness</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{assessmentResult.next_level_readiness}/100</Text>
+                  </View>
+                </View>
+
+                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>Skill Scores</Text>
+                <View style={{ marginBottom: 16 }}>
+                  {Object.entries(assessmentResult.scores).map(([skill, score]) => (
+                    <View key={skill} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <Text style={{ fontSize: 14, color: '#6B7280', textTransform: 'capitalize' }}>{skill}</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: '#1F2937' }}>{score}/100</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={{ fontSize: 14, color: '#4B5563', marginBottom: 16, lineHeight: 20 }}>
+                  {assessmentResult.feedback}
+                </Text>
+
+                {/* Next Level Plan Option (only if passed) */}
+                {assessmentResult.passed && (
+                  <View style={{ backgroundColor: '#ECFDF5', padding: 16, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: '#10B981' }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: '#065F46', marginBottom: 8 }}>
+                      🎓 Ready for {assessmentResult.next_level}?
+                    </Text>
+                    <Text style={{ fontSize: 14, color: '#047857', marginBottom: 12 }}>
+                      You've mastered {assessmentResult.current_level}! Continue your journey with a {assessmentResult.next_level} learning plan.
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        // Close assessment results and show next plan creation modal
+                        setShowAssessmentResults(false);
+                        setShowCreateNextPlanModal(true);
+                      }}
+                      style={{ backgroundColor: '#10B981', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 8 }}
+                    >
+                      <Text style={{ color: 'white', fontSize: 15, fontWeight: '600' }}>Create {assessmentResult.next_level} Plan</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setShowAssessmentResults(false);
+                        handleGoDashboard();
+                      }}
+                      style={{ backgroundColor: 'transparent', padding: 12, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#10B981' }}
+                    >
+                      <Text style={{ color: '#047857', fontSize: 15, fontWeight: '600' }}>Maybe Later</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Only show dashboard button if not passed or as fallback */}
+                {!assessmentResult.passed && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowAssessmentResults(false);
+                      handleGoDashboard();
+                    }}
+                    style={{ backgroundColor: '#4F46E5', padding: 16, borderRadius: 12, alignItems: 'center' }}
+                  >
+                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Go to Dashboard</Text>
+                  </TouchableOpacity>
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Create Next Level Plan Modal */}
+      {showCreateNextPlanModal && assessmentResult && learningPlan && (
+        <Modal
+          visible={showCreateNextPlanModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowCreateNextPlanModal(false)}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+            <View style={{ backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, height: '85%', flexDirection: 'column' }}>
+              {/* Header */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
+                <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#1F2937' }}>
+                  Create {assessmentResult.next_level} Plan
+                </Text>
+                <TouchableOpacity onPress={() => setShowCreateNextPlanModal(false)}>
+                  <Ionicons name="close-circle" size={28} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Scrollable Content */}
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+                <View style={{ backgroundColor: '#ECFDF5', padding: 12, borderRadius: 8, marginBottom: 20, borderLeftWidth: 4, borderLeftColor: '#10B981' }}>
+                  <Text style={{ fontSize: 14, color: '#047857' }}>
+                    📚 {learningPlan.language.charAt(0).toUpperCase() + learningPlan.language.slice(1)} • {assessmentResult.next_level} Level
+                  </Text>
+                </View>
+
+                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
+                  Choose Your Plan Duration
+                </Text>
+
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                  {[1, 2, 3, 4, 5, 6].map(months => (
+                    <TouchableOpacity
+                      key={months}
+                      onPress={() => setSelectedDuration(months)}
+                      style={{
+                        paddingVertical: 10,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        borderWidth: 2,
+                        borderColor: selectedDuration === months ? '#10B981' : '#E5E7EB',
+                        backgroundColor: selectedDuration === months ? '#ECFDF5' : 'white'
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: selectedDuration === months ? '#047857' : '#4B5563'
+                      }}>
+                        {months} {months === 1 ? 'Month' : 'Months'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
+                  Select Your Learning Goals
+                </Text>
+
+                {/* Predefined Goals */}
+                <View style={{ gap: 8, marginBottom: 16 }}>
+                  {['Business Communication', 'Travel & Tourism', 'Academic Writing', 'Daily Conversations', 'Professional Presentations', 'Job Interviews'].map(goal => (
+                    <TouchableOpacity
+                      key={goal}
+                      onPress={() => {
+                        setSelectedGoals(prev =>
+                          prev.includes(goal)
+                            ? prev.filter(g => g !== goal)
+                            : [...prev, goal]
+                        );
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: 12,
+                        borderRadius: 8,
+                        borderWidth: 2,
+                        borderColor: selectedGoals.includes(goal) ? '#10B981' : '#E5E7EB',
+                        backgroundColor: selectedGoals.includes(goal) ? '#ECFDF5' : 'white'
+                      }}
+                    >
+                      <View style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 4,
+                        borderWidth: 2,
+                        borderColor: selectedGoals.includes(goal) ? '#10B981' : '#D1D5DB',
+                        backgroundColor: selectedGoals.includes(goal) ? '#10B981' : 'white',
+                        marginRight: 12,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {selectedGoals.includes(goal) && (
+                          <Ionicons name="checkmark" size={14} color="white" />
+                        )}
+                      </View>
+                      <Text style={{
+                        fontSize: 15,
+                        fontWeight: '500',
+                        color: selectedGoals.includes(goal) ? '#047857' : '#4B5563'
+                      }}>
+                        {goal}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#6B7280' }}>
+                  Additional Goals (Optional)
+                </Text>
+
+                <TextInput
+                  value={customGoals}
+                  onChangeText={setCustomGoals}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: '#E5E7EB',
+                    borderRadius: 8,
+                    padding: 12,
+                    marginBottom: 20,
+                    fontSize: 14,
+                    minHeight: 60,
+                    textAlignVertical: 'top'
+                  }}
+                  placeholder="Any other specific goals..."
+                  multiline
+                  numberOfLines={2}
+                />
+              </ScrollView>
+
+              {/* Fixed Footer with Create Button */}
+              <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#E5E7EB', backgroundColor: 'white' }}>
+                <TouchableOpacity
+                  onPress={async () => {
+                    // Validation: Require at least duration selection (goals are optional)
+                    if (!selectedDuration) {
+                      Alert.alert('Duration Required', 'Please select a plan duration before creating your learning plan.');
+                      return;
+                    }
+
+                    setCreatingPlan(true);
+                    try {
+                      const token = await AsyncStorage.getItem('auth_token');
+
+                      // Combine selected goals and custom goals
+                      const allGoals = [...selectedGoals];
+                      if (customGoals.trim()) {
+                        allGoals.push(customGoals.trim());
+                      }
+
+                      console.log('[CREATE_PLAN] Creating plan with duration:', selectedDuration, 'goals:', allGoals);
+
+                      const response = await fetch(`${API_BASE_URL}/api/learning-plans/create-next-level`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                          current_plan_id: learningPlan.id,
+                          duration_months: selectedDuration,
+                          goals: allGoals.length > 0 ? allGoals : null,
+                          custom_goal: allGoals.length > 0 ? allGoals.join(', ') : null
+                        })
+                      });
+
+                      if (response.ok) {
+                        console.log('[CREATE_PLAN] ✅ Next level plan created successfully');
+                        setShowCreateNextPlanModal(false);
+                        setSelectedGoals([]);
+                        setCustomGoals('');
+                        setSelectedDuration(null); // Reset - user must select again
+                        handleGoDashboard();
+                      } else {
+                        const errorData = await response.json();
+                        console.error('[CREATE_PLAN] ❌ Failed to create plan:', errorData);
+                        Alert.alert('Error', 'Failed to create learning plan. Please try again.');
+                      }
+                    } catch (error) {
+                      console.error('[CREATE_PLAN] Error:', error);
+                      Alert.alert('Error', 'An error occurred. Please try again.');
+                    } finally {
+                      setCreatingPlan(false);
+                    }
+                  }}
+                  disabled={creatingPlan || !selectedDuration}
+                  style={{
+                    backgroundColor: (creatingPlan || !selectedDuration) ? '#9CA3AF' : '#10B981',
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    shadowColor: selectedDuration ? '#10B981' : '#9CA3AF',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: selectedDuration ? 0.3 : 0.1,
+                    shadowRadius: 8,
+                    elevation: selectedDuration ? 4 : 2
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
+                    {creatingPlan ? 'Creating...' : !selectedDuration ? 'Select Duration First' : 'Create Learning Plan'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Conversation Help is now rendered inline in the ScrollView above */}
     </SafeAreaView>
   );
 };
@@ -2038,13 +2404,13 @@ const styles = StyleSheet.create({
   },
   modalHeader: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1F2937',
-    marginTop: 12,
+    marginTop: 8,
   },
   modalBody: {
     maxHeight: SCREEN_HEIGHT * 0.5,
@@ -2053,29 +2419,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: '#F9FAFB',
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 10,
+  },
+  helpToggleCard: {
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
   },
   infoContent: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 12,
   },
   infoTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   infoText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   modalButtonRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
+    marginTop: 16,
   },
   modalButtonPrimary: {
     flex: 1,

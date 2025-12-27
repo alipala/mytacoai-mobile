@@ -2,13 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type SentenceForAnalysis = {
-    text: string;
-    timestamp: string;
-    messageIndex: number;
-    qualityScore?: number;
-};
-
 export type SaveConversationRequest = {
     language: string;
     level: string;
@@ -17,6 +10,6 @@ export type SaveConversationRequest = {
     duration_minutes: number;
     learning_plan_id?: (string | null);
     conversation_type?: (string | null);
-    sentences_for_analysis?: Array<SentenceForAnalysis> | null;
+    sentences_for_analysis?: null;
 };
 

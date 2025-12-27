@@ -337,12 +337,10 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       // Note: Send ONLY the base64 string without any data URI prefix
       // Backend expects clean base64 data, same as web app
       const response: SpeakingAssessmentResponse = await DefaultService.assessSpeakingApiSpeakingAssessPost({
-        requestBody: {
-          audio_base64: base64Audio,
-          language: language,
-          duration: duration,
-          prompt: prompt,
-        },
+        audio_base64: base64Audio,
+        language: language,
+        duration: duration,
+        prompt: prompt,
       });
 
       console.log('Assessment response received:', response);

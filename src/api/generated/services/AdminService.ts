@@ -13,14 +13,13 @@ export class AdminService {
     /**
      * Admin Login
      * Admin login endpoint
+     * @param requestBody
      * @returns AdminLoginResponse Successful Response
      * @throws ApiError
      */
-    public static adminLoginApiAdminLoginPost({
-        requestBody,
-    }: {
+    public static adminLoginApiAdminLoginPost(
         requestBody: AdminLoginRequest,
-    }): CancelablePromise<AdminLoginResponse> {
+    ): CancelablePromise<AdminLoginResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/login',
@@ -46,28 +45,27 @@ export class AdminService {
     /**
      * Get Users Admin
      * Get users with pagination and search for admin panel
+     * @param page
+     * @param perPage
+     * @param sortField
+     * @param sortOrder
+     * @param q
+     * @param isActive
+     * @param isVerified
+     * @param preferredLanguage
      * @returns UserListResponse Successful Response
      * @throws ApiError
      */
-    public static getUsersAdminApiAdminUsersGet({
-        page = 1,
-        perPage = 25,
-        sortField = 'created_at',
-        sortOrder = 'desc',
-        q,
-        isActive,
-        isVerified,
-        preferredLanguage,
-    }: {
-        page?: number,
-        perPage?: number,
-        sortField?: string,
-        sortOrder?: string,
+    public static getUsersAdminApiAdminUsersGet(
+        page: number = 1,
+        perPage: number = 25,
+        sortField: string = 'created_at',
+        sortOrder: string = 'desc',
         q?: (string | null),
         isActive?: (boolean | null),
         isVerified?: (boolean | null),
         preferredLanguage?: (string | null),
-    }): CancelablePromise<UserListResponse> {
+    ): CancelablePromise<UserListResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/users',
@@ -89,14 +87,13 @@ export class AdminService {
     /**
      * Create User Admin
      * Create a new user
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static createUserAdminApiAdminUsersPost({
-        requestBody,
-    }: {
+    public static createUserAdminApiAdminUsersPost(
         requestBody: Record<string, any>,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/users',
@@ -110,14 +107,13 @@ export class AdminService {
     /**
      * Get User Admin
      * Get single user details
+     * @param userId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getUserAdminApiAdminUsersUserIdGet({
-        userId,
-    }: {
+    public static getUserAdminApiAdminUsersUserIdGet(
         userId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/users/{user_id}',
@@ -132,16 +128,15 @@ export class AdminService {
     /**
      * Update User Admin
      * Update user details
+     * @param userId
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateUserAdminApiAdminUsersUserIdPut({
-        userId,
-        requestBody,
-    }: {
+    public static updateUserAdminApiAdminUsersUserIdPut(
         userId: string,
         requestBody: Record<string, any>,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/admin/users/{user_id}',
@@ -158,14 +153,13 @@ export class AdminService {
     /**
      * Delete User Admin
      * Delete a user (admin only)
+     * @param userId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static deleteUserAdminApiAdminUsersUserIdDelete({
-        userId,
-    }: {
+    public static deleteUserAdminApiAdminUsersUserIdDelete(
         userId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/admin/users/{user_id}',
@@ -180,20 +174,19 @@ export class AdminService {
     /**
      * Get Conversations Admin
      * Get conversation sessions with pagination for admin panel
+     * @param page
+     * @param perPage
+     * @param sortField
+     * @param sortOrder
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getConversationsAdminApiAdminConversationSessionsGet({
-        page = 1,
-        perPage = 25,
-        sortField = 'created_at',
-        sortOrder = 'desc',
-    }: {
-        page?: number,
-        perPage?: number,
-        sortField?: string,
-        sortOrder?: string,
-    }): CancelablePromise<any> {
+    public static getConversationsAdminApiAdminConversationSessionsGet(
+        page: number = 1,
+        perPage: number = 25,
+        sortField: string = 'created_at',
+        sortOrder: string = 'desc',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/conversation_sessions',
@@ -211,14 +204,13 @@ export class AdminService {
     /**
      * Get Conversation Admin
      * Get single conversation details
+     * @param conversationId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getConversationAdminApiAdminConversationSessionsConversationIdGet({
-        conversationId,
-    }: {
+    public static getConversationAdminApiAdminConversationSessionsConversationIdGet(
         conversationId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/conversation_sessions/{conversation_id}',
@@ -233,20 +225,19 @@ export class AdminService {
     /**
      * Get Learning Plans Admin
      * Get learning plans with pagination for admin panel
+     * @param page
+     * @param perPage
+     * @param sortField
+     * @param sortOrder
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getLearningPlansAdminApiAdminLearningPlansGet({
-        page = 1,
-        perPage = 25,
-        sortField = 'created_at',
-        sortOrder = 'desc',
-    }: {
-        page?: number,
-        perPage?: number,
-        sortField?: string,
-        sortOrder?: string,
-    }): CancelablePromise<any> {
+    public static getLearningPlansAdminApiAdminLearningPlansGet(
+        page: number = 1,
+        perPage: number = 25,
+        sortField: string = 'created_at',
+        sortOrder: string = 'desc',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/learning_plans',
@@ -264,20 +255,19 @@ export class AdminService {
     /**
      * Get User Stats Admin
      * Get user statistics with pagination for admin panel
+     * @param page
+     * @param perPage
+     * @param sortField
+     * @param sortOrder
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getUserStatsAdminApiAdminUserStatsGet({
-        page = 1,
-        perPage = 25,
-        sortField = 'created_at',
-        sortOrder = 'desc',
-    }: {
-        page?: number,
-        perPage?: number,
-        sortField?: string,
-        sortOrder?: string,
-    }): CancelablePromise<any> {
+    public static getUserStatsAdminApiAdminUserStatsGet(
+        page: number = 1,
+        perPage: number = 25,
+        sortField: string = 'created_at',
+        sortOrder: string = 'desc',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/user_stats',
@@ -295,20 +285,19 @@ export class AdminService {
     /**
      * Get Badges Admin
      * Get badges with pagination for admin panel
+     * @param page
+     * @param perPage
+     * @param sortField
+     * @param sortOrder
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getBadgesAdminApiAdminBadgesGet({
-        page = 1,
-        perPage = 25,
-        sortField = 'created_at',
-        sortOrder = 'desc',
-    }: {
-        page?: number,
-        perPage?: number,
-        sortField?: string,
-        sortOrder?: string,
-    }): CancelablePromise<any> {
+    public static getBadgesAdminApiAdminBadgesGet(
+        page: number = 1,
+        perPage: number = 25,
+        sortField: string = 'created_at',
+        sortOrder: string = 'desc',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/badges',
@@ -326,20 +315,19 @@ export class AdminService {
     /**
      * Get Assessment History Admin
      * Get assessment history with pagination for admin panel
+     * @param page
+     * @param perPage
+     * @param sortField
+     * @param sortOrder
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getAssessmentHistoryAdminApiAdminAssessmentHistoryGet({
-        page = 1,
-        perPage = 25,
-        sortField = 'created_at',
-        sortOrder = 'desc',
-    }: {
-        page?: number,
-        perPage?: number,
-        sortField?: string,
-        sortOrder?: string,
-    }): CancelablePromise<any> {
+    public static getAssessmentHistoryAdminApiAdminAssessmentHistoryGet(
+        page: number = 1,
+        perPage: number = 25,
+        sortField: string = 'created_at',
+        sortOrder: string = 'desc',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/assessment_history',
@@ -357,14 +345,13 @@ export class AdminService {
     /**
      * Fix Subscription Dates
      * Fix subscription dates by syncing from Stripe
+     * @param userId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static fixSubscriptionDatesApiAdminFixSubscriptionDatesUserIdPost({
-        userId,
-    }: {
+    public static fixSubscriptionDatesApiAdminFixSubscriptionDatesUserIdPost(
         userId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/fix-subscription-dates/{user_id}',

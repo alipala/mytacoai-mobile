@@ -51,9 +51,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
     try {
       // Call backend API
       await AuthenticationService.forgotPasswordApiAuthForgotPasswordPost({
-        requestBody: {
-          email: email.toLowerCase().trim(),
-        },
+        email: email.toLowerCase().trim(),
       });
 
       setEmailSent(true);

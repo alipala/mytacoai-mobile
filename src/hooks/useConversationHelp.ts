@@ -146,9 +146,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
       OpenAPI.TOKEN = token;
 
-      await ConversationHelpService.updateHelpSettingsApiConversationHelpSettingsPut({
-        requestBody: newSettings,
-      });
+      await ConversationHelpService.updateHelpSettingsApiConversationHelpSettingsPut(newSettings);
 
       console.log('[CONVERSATION_HELP] Settings updated successfully');
       trackHelpUsage('settings_updated');
@@ -204,9 +202,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
       console.log('[CONVERSATION_HELP] 📤 Sending API request with data:', JSON.stringify(requestData, null, 2));
 
-      const helpContent = await ConversationHelpService.generateHelpContentApiConversationHelpGeneratePost({
-        requestBody: requestData,
-      });
+      const helpContent = await ConversationHelpService.generateHelpContentApiConversationHelpGeneratePost(requestData);
 
       setHelpState(prev => ({
         ...prev,
@@ -332,10 +328,8 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
       }
 
       await ConversationHelpService.trackHelpSystemUsageApiConversationHelpTrackUsagePost({
-        requestBody: {
-          help_type: helpType,
-          language: targetLanguage,
-        },
+        help_type: helpType,
+        language: targetLanguage,
       });
     } catch (error) {
       console.error('[CONVERSATION_HELP] Error tracking usage:', error);

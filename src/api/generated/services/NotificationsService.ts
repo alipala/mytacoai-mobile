@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { NotificationCreate } from '../models/NotificationCreate';
+import type { NotificationDeleteRequest } from '../models/NotificationDeleteRequest';
 import type { NotificationListResponse } from '../models/NotificationListResponse';
 import type { NotificationMarkReadRequest } from '../models/NotificationMarkReadRequest';
 import type { NotificationResponse } from '../models/NotificationResponse';
@@ -13,14 +14,13 @@ export class NotificationsService {
     /**
      * Create Notification
      * Create a new notification (Admin only)
+     * @param requestBody
      * @returns NotificationResponse Successful Response
      * @throws ApiError
      */
-    public static createNotificationApiAdminNotificationsPost({
-        requestBody,
-    }: {
+    public static createNotificationApiAdminNotificationsPost(
         requestBody: NotificationCreate,
-    }): CancelablePromise<NotificationResponse> {
+    ): CancelablePromise<NotificationResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/notifications',
@@ -34,20 +34,19 @@ export class NotificationsService {
     /**
      * List Notifications Admin
      * List all notifications (Admin only)
+     * @param page
+     * @param perPage
+     * @param sortField
+     * @param sortOrder
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static listNotificationsAdminApiAdminNotificationsGet({
-        page = 1,
-        perPage = 25,
-        sortField = 'created_at',
-        sortOrder = 'desc',
-    }: {
-        page?: number,
-        perPage?: number,
-        sortField?: string,
-        sortOrder?: string,
-    }): CancelablePromise<any> {
+    public static listNotificationsAdminApiAdminNotificationsGet(
+        page: number = 1,
+        perPage: number = 25,
+        sortField: string = 'created_at',
+        sortOrder: string = 'desc',
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/notifications',
@@ -65,14 +64,13 @@ export class NotificationsService {
     /**
      * Get Notification Admin
      * Get a specific notification (Admin only)
+     * @param notificationId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getNotificationAdminApiAdminNotificationsNotificationIdGet({
-        notificationId,
-    }: {
+    public static getNotificationAdminApiAdminNotificationsNotificationIdGet(
         notificationId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/notifications/{notification_id}',
@@ -87,16 +85,15 @@ export class NotificationsService {
     /**
      * Update Notification Admin
      * Update a notification (Admin only)
+     * @param notificationId
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateNotificationAdminApiAdminNotificationsNotificationIdPut({
-        notificationId,
-        requestBody,
-    }: {
+    public static updateNotificationAdminApiAdminNotificationsNotificationIdPut(
         notificationId: string,
         requestBody: NotificationCreate,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/admin/notifications/{notification_id}',
@@ -113,14 +110,13 @@ export class NotificationsService {
     /**
      * Delete Notification Admin
      * Delete a notification (Admin only)
+     * @param notificationId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static deleteNotificationAdminApiAdminNotificationsNotificationIdDelete({
-        notificationId,
-    }: {
+    public static deleteNotificationAdminApiAdminNotificationsNotificationIdDelete(
         notificationId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/admin/notifications/{notification_id}',
@@ -135,18 +131,17 @@ export class NotificationsService {
     /**
      * Get User Notifications
      * Get notifications for the current user
+     * @param skip
+     * @param limit
+     * @param unreadOnly
      * @returns NotificationListResponse Successful Response
      * @throws ApiError
      */
-    public static getUserNotificationsApiGet({
-        skip,
-        limit = 20,
-        unreadOnly = false,
-    }: {
+    public static getUserNotificationsApiGet(
         skip?: number,
-        limit?: number,
-        unreadOnly?: boolean,
-    }): CancelablePromise<NotificationListResponse> {
+        limit: number = 20,
+        unreadOnly: boolean = false,
+    ): CancelablePromise<NotificationListResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/',
@@ -174,15 +169,14 @@ export class NotificationsService {
     }
     /**
      * Mark Notification Read
-     * Mark a notification as read
+     * Mark a notification as read (idempotent - safe to call multiple times)
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static markNotificationReadApiMarkReadPost({
-        requestBody,
-    }: {
+    public static markNotificationReadApiMarkReadPost(
         requestBody: NotificationMarkReadRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/mark-read',
@@ -203,6 +197,26 @@ export class NotificationsService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/mark-all-read',
+        });
+    }
+    /**
+     * Delete Notification
+     * Soft delete a notification for the current user
+     * @param requestBody
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static deleteNotificationApiNotificationsDeletePost(
+        requestBody: NotificationDeleteRequest,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/notifications/delete',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
     /**

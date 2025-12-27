@@ -89,9 +89,7 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
       setError(null);
       console.log('📥 Fetching enriched goals...');
 
-      const goals = await LearningService.getLearningGoalsApiLearningGoalsGet({
-        enriched: true,
-      });
+      const goals = await LearningService.getLearningGoalsApiLearningGoalsGet(true);
 
       console.log('✅ Enriched goals loaded:', goals);
       setMainGoals(goals as MainGoal[]);
@@ -115,9 +113,7 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
     try {
       console.log('📥 Fetching sub-goals for:', goalId);
 
-      const subGoalsData = await LearningService.getSubGoalsApiLearningGoalsGoalIdSubGoalsGet({
-        goalId,
-      });
+      const subGoalsData = await LearningService.getSubGoalsApiLearningGoalsGoalIdSubGoalsGet(goalId);
 
       console.log('✅ Sub-goals loaded:', subGoalsData);
       setSubGoals(subGoalsData as SubGoal[]);
@@ -174,9 +170,7 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
 
       console.log('📤 Creating plan with data:', planData);
 
-      const plan = await LearningService.createLearningPlanApiLearningPlanPost({
-        requestBody: planData,
-      });
+      const plan = await LearningService.createLearningPlanApiLearningPlanPost(planData);
 
       console.log('✅ Plan created successfully:', plan.id);
 

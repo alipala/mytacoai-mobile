@@ -18,6 +18,8 @@ interface LearningPlanCardProps {
   progressStats?: any;
   onContinue: () => void;
   onViewDetails: () => void;
+  onViewAssessment?: () => void;
+  onCreateNextPlan?: () => void;
 }
 
 // ==================== HELPER FUNCTIONS ====================
@@ -119,15 +121,8 @@ const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
         <View style={styles.progressTextContainer}>
           <Text style={styles.progressPercentage}>{percentage}%</Text>
         </View>
-        
-        {/* Checkmark Badge - OUTSIDE circle */}
-        {isComplete && (
-          <View style={styles.completeBadge}>
-            <Ionicons name="checkmark-circle" size={30} color="#10B981" />
-          </View>
-        )}
       </View>
-      
+
       {/* "Complete" label BELOW circle */}
       <Text style={styles.progressLabel}>
         {isComplete ? 'Completed!' : 'Complete'}
@@ -143,6 +138,8 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
   progressStats,
   onContinue,
   onViewDetails,
+  onViewAssessment,
+  onCreateNextPlan,
 }) => {
   const language = plan.language || plan.target_language || 'English';
   const level = plan.proficiency_level || plan.target_cefr_level || 'B1';
@@ -150,14 +147,48 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
   const totalSessions = plan.total_sessions || 16;
   const rawPercentage = plan.progress_percentage || (completedSessions / totalSessions) * 100;
   const percentage = Math.round(rawPercentage);
-  const isCompleted = percentage >= 100;
+
+  // NEW: Check final assessment status
+  const status = plan.status || 'in_progress';
+  const isAwaitingAssessment = status === 'awaiting_final_assessment';
+  const isAssessmentFailed = status === 'failed_assessment';
+  const isCompleted = status === 'completed';
+  const finalAssessment = plan.final_assessment || {};
+  const lastAttempt = finalAssessment.attempts?.length > 0
+    ? finalAssessment.attempts[finalAssessment.attempts.length - 1]
+    : null;
+
   const levelColors = getLevelColor(level);
+
+  // Check if this is a next level plan (created after passing previous level assessment)
+  const isNextLevelPlan = plan.from_final_assessment === true || plan.previous_plan_id;
+
+  // Check if user passed assessment and can create next level plan
+  const canCreateNextPlan = isCompleted && lastAttempt && lastAttempt.passed && onCreateNextPlan;
+
+  // Get next level for display (A1 -> A2, B1 -> B2, etc.)
+  const getNextLevel = (currentLevel: string): string => {
+    const levelMap: Record<string, string> = {
+      'A1': 'A2',
+      'A2': 'B1',
+      'B1': 'B2',
+      'B2': 'C1',
+      'C1': 'C2',
+    };
+    return levelMap[currentLevel.toUpperCase()] || 'Next Level';
+  };
 
   const handleContinuePress = () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    onContinue();
+
+    // If completed and passed, create next plan
+    if (canCreateNextPlan) {
+      onCreateNextPlan();
+    } else {
+      onContinue();
+    }
   };
 
   const handleViewDetailsPress = () => {
@@ -169,14 +200,56 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 
   return (
     <View style={styles.card}>
-      {/* Header Section - Premium */}
-      <View style={styles.header}>
+      {/* Corner Ribbon for Assessment Status */}
+      {isAwaitingAssessment && (
+        <View style={styles.assessmentRibbon}>
+          <Text style={styles.assessmentRibbonText}>ASSESSMENT</Text>
+        </View>
+      )}
+
+      {isAssessmentFailed && (
+        <View style={[styles.assessmentRibbon, styles.assessmentRibbonFailed]}>
+          <Text style={styles.assessmentRibbonText}>RETRY</Text>
+        </View>
+      )}
+
+      {isCompleted && (
+        <View style={[styles.assessmentRibbon, styles.assessmentRibbonCompleted]}>
+          <Text style={styles.assessmentRibbonText}>COMPLETED</Text>
+        </View>
+      )}
+
+      {!isAwaitingAssessment && !isAssessmentFailed && !isCompleted && (
+        <>
+          {completedSessions === 0 ? (
+            <View style={[styles.assessmentRibbon, styles.assessmentRibbonNew]}>
+              <Text style={styles.assessmentRibbonText}>NEW</Text>
+            </View>
+          ) : (
+            <View style={[styles.assessmentRibbon, styles.assessmentRibbonInProgress]}>
+              <Text style={styles.assessmentRibbonText}>IN PROGRESS</Text>
+            </View>
+          )}
+        </>
+      )}
+
+      {/* Main Content Area */}
+      <View>
+        {/* Header Section - Premium */}
+        <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.flagEmoji}>{getLanguageFlag(language)}</Text>
           <View>
-            <Text style={styles.languageName}>
-              {language.charAt(0).toUpperCase() + language.slice(1)}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.languageName}>
+                {language.charAt(0).toUpperCase() + language.slice(1)}
+              </Text>
+              {isNextLevelPlan && (
+                <View style={{ backgroundColor: '#DBEAFE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: '#1E40AF' }}>🎓 UPGRADED</Text>
+                </View>
+              )}
+            </View>
             <View style={[styles.levelBadge, { backgroundColor: levelColors.bg }]}>
               <Text style={[styles.levelText, { color: levelColors.text }]}>
                 {level} Level
@@ -188,7 +261,7 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
 
       {/* Progress Section - Premium */}
       <View style={styles.progressSection}>
-        <AnimatedProgressCircle percentage={percentage} size={110} strokeWidth={10} />
+        <AnimatedProgressCircle percentage={percentage} size={95} strokeWidth={9} />
       </View>
 
       {/* Stats Row - Premium */}
@@ -211,32 +284,85 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         {plan.duration_months || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
       </Text>
 
+        {/* Show last score for failed assessments */}
+        {isAssessmentFailed && lastAttempt && (
+          <Text style={[styles.planDescription, { color: '#EF4444', fontSize: 11, marginTop: 4 }]}>
+            Last score: {lastAttempt.overall_score}/100
+          </Text>
+        )}
+      </View>
+
       {/* Action Buttons - Premium Design INSIDE Card */}
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[styles.continueButton, isCompleted && styles.continueButtonDisabled]}
-          onPress={handleContinuePress}
-          disabled={isCompleted}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={isCompleted ? "checkmark-circle" : "play-circle"}
-            size={20}
-            color="#FFFFFF"
-          />
-          <Text style={styles.continueButtonText}>
-            {isCompleted ? 'Completed' : 'Continue'}
-          </Text>
-        </TouchableOpacity>
+        {/* Main Action Button */}
+        {!isCompleted || canCreateNextPlan ? (
+          <TouchableOpacity
+            style={[
+              styles.continueButton,
+              (isAwaitingAssessment || isAssessmentFailed) && styles.continueButtonAssessment,
+              canCreateNextPlan && styles.continueButtonCreatePlan
+            ]}
+            onPress={handleContinuePress}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={
+                canCreateNextPlan
+                  ? "add-circle"
+                  : isAwaitingAssessment || isAssessmentFailed
+                  ? "clipboard"
+                  : "play-circle"
+              }
+              size={20}
+              color="#FFFFFF"
+            />
+            <Text style={styles.continueButtonText}>
+              {canCreateNextPlan
+                ? `Create ${getNextLevel(level)} Plan`
+                : isAwaitingAssessment || isAssessmentFailed
+                ? 'Take Assessment'
+                : 'Continue'}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
 
-        <TouchableOpacity
-          style={styles.detailsButton}
-          onPress={handleViewDetailsPress}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="information-circle-outline" size={20} color="#4A5568" />
-          <Text style={styles.detailsButtonText}>Details</Text>
-        </TouchableOpacity>
+        {/* View Assessment or Details Button */}
+        {isCompleted && finalAssessment?.attempts?.length > 0 && onViewAssessment ? (
+          <TouchableOpacity
+            style={[
+              styles.detailsButton,
+              !canCreateNextPlan && styles.detailsButtonFullWidth
+            ]}
+            onPress={() => {
+              if (Platform.OS === 'ios') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              onViewAssessment();
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="stats-chart" size={20} color="#4A5568" />
+            <Text style={styles.detailsButtonText}>Assessment</Text>
+          </TouchableOpacity>
+        ) : !isCompleted || canCreateNextPlan ? (
+          <TouchableOpacity
+            style={styles.detailsButton}
+            onPress={handleViewDetailsPress}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="information-circle-outline" size={20} color="#4A5568" />
+            <Text style={styles.detailsButtonText}>Details</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.detailsButton, styles.detailsButtonFullWidth]}
+            onPress={handleViewDetailsPress}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="information-circle-outline" size={20} color="#4A5568" />
+            <Text style={styles.detailsButtonText}>Details</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

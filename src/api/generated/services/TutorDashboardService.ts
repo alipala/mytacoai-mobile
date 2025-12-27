@@ -15,14 +15,13 @@ export class TutorDashboardService {
      *
      * Returns JWT token and tutor information
      * Rejects if tutor is inactive or has no password set
+     * @param requestBody
      * @returns TutorLoginResponse Successful Response
      * @throws ApiError
      */
-    public static tutorLoginTutorLoginPost({
-        requestBody,
-    }: {
+    public static tutorLoginTutorLoginPost(
         requestBody: TutorLoginRequest,
-    }): CancelablePromise<TutorLoginResponse> {
+    ): CancelablePromise<TutorLoginResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/tutor/login',
@@ -39,14 +38,13 @@ export class TutorDashboardService {
      *
      * Validates current password and updates to new password
      * Clears first_login flag
+     * @param requestBody
      * @returns string Successful Response
      * @throws ApiError
      */
-    public static changePasswordTutorChangePasswordPost({
-        requestBody,
-    }: {
+    public static changePasswordTutorChangePasswordPost(
         requestBody: TutorChangePasswordRequest,
-    }): CancelablePromise<Record<string, string>> {
+    ): CancelablePromise<Record<string, string>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/tutor/change-password',
@@ -65,49 +63,27 @@ export class TutorDashboardService {
      * PHASE 2: Advanced filtering by language, level, status, activity
      *
      * Security: Verifies tutor can only access their own learners
+     * @param tutorId
+     * @param language Filter by language
+     * @param level Filter by proficiency level (A1-C2)
+     * @param status Filter by progress status (on_track|at_risk|inactive)
+     * @param lastActivity Filter by last activity (today|week|month|1month|2months)
+     * @param search Search by name or email
+     * @param page Page number (starts at 1)
+     * @param perPage Items per page (max 100)
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getAssignedLearnersTutorDashboardTutorIdLearnersGet({
-        tutorId,
-        language,
-        level,
-        status,
-        lastActivity,
-        search,
-        page = 1,
-        perPage = 10,
-    }: {
+    public static getAssignedLearnersTutorDashboardTutorIdLearnersGet(
         tutorId: string,
-        /**
-         * Filter by language
-         */
         language?: (string | null),
-        /**
-         * Filter by proficiency level (A1-C2)
-         */
         level?: (string | null),
-        /**
-         * Filter by progress status (on_track|at_risk|inactive)
-         */
         status?: (string | null),
-        /**
-         * Filter by last activity (today|week|month|1month|2months)
-         */
         lastActivity?: (string | null),
-        /**
-         * Search by name or email
-         */
         search?: (string | null),
-        /**
-         * Page number (starts at 1)
-         */
-        page?: number,
-        /**
-         * Items per page (max 100)
-         */
-        perPage?: number,
-    }): CancelablePromise<Record<string, any>> {
+        page: number = 1,
+        perPage: number = 10,
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/tutor/dashboard/{tutor_id}/learners',
@@ -136,16 +112,15 @@ export class TutorDashboardService {
      * - Verifies tutor_id matches authenticated tutor
      * - Checks learner is assigned to this tutor
      * - Respects consent_given field
+     * @param tutorId
+     * @param userId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getLearnerDetailsTutorDashboardTutorIdLearnerUserIdDetailsGet({
-        tutorId,
-        userId,
-    }: {
+    public static getLearnerDetailsTutorDashboardTutorIdLearnerUserIdDetailsGet(
         tutorId: string,
         userId: string,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/tutor/dashboard/{tutor_id}/learner/{user_id}/details',
@@ -163,14 +138,13 @@ export class TutorDashboardService {
      * Get tutor's personal statistics and analytics
      *
      * Returns overview of all assigned learners' progress
+     * @param tutorId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getTutorAnalyticsTutorDashboardTutorIdAnalyticsGet({
-        tutorId,
-    }: {
+    public static getTutorAnalyticsTutorDashboardTutorIdAnalyticsGet(
         tutorId: string,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/tutor/dashboard/{tutor_id}/analytics',
@@ -192,16 +166,15 @@ export class TutorDashboardService {
          * "sections": ["profile", "learning_plans", "assessment_results", ...],
          * "date_range": {"start": "2025-01-01", "end": "2025-10-05"}
          * }
+         * @param tutorId
+         * @param requestBody
          * @returns any Successful Response
          * @throws ApiError
          */
-        public static generateLearnerReportTutorDashboardTutorIdReportsGeneratePost({
-            tutorId,
-            requestBody,
-        }: {
+        public static generateLearnerReportTutorDashboardTutorIdReportsGeneratePost(
             tutorId: string,
             requestBody: Record<string, any>,
-        }): CancelablePromise<Record<string, any>> {
+        ): CancelablePromise<Record<string, any>> {
             return __request(OpenAPI, {
                 method: 'POST',
                 url: '/tutor/dashboard/{tutor_id}/reports/generate',
@@ -220,14 +193,13 @@ export class TutorDashboardService {
          * Download generated PDF report
          *
          * Returns: PDF file stream (to be implemented)
+         * @param reportId
          * @returns any Successful Response
          * @throws ApiError
          */
-        public static downloadReportTutorReportsReportIdDownloadGet({
-            reportId,
-        }: {
+        public static downloadReportTutorReportsReportIdDownloadGet(
             reportId: string,
-        }): CancelablePromise<Record<string, any>> {
+        ): CancelablePromise<Record<string, any>> {
             return __request(OpenAPI, {
                 method: 'GET',
                 url: '/tutor/reports/{report_id}/download',

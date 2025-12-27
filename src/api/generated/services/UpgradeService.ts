@@ -31,14 +31,13 @@ export class UpgradeService {
      *
      * Returns:
      * Dictionary with success status and details
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static processUpgradeApiUpgradeProcessPost({
-        requestBody,
-    }: {
+    public static processUpgradeApiUpgradeProcessPost(
         requestBody: UpgradeProcessRequest,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/upgrade/process',

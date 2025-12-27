@@ -13,14 +13,13 @@ export class InstitutionService {
     /**
      * Signup Institution
      * Register a new institution and admin account
+     * @param requestBody
      * @returns InstitutionSignupResponse Successful Response
      * @throws ApiError
      */
-    public static signupInstitutionInstitutionSignupPost({
-        requestBody,
-    }: {
+    public static signupInstitutionInstitutionSignupPost(
         requestBody: InstitutionSignupRequest,
-    }): CancelablePromise<InstitutionSignupResponse> {
+    ): CancelablePromise<InstitutionSignupResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/institution/signup',
@@ -34,14 +33,13 @@ export class InstitutionService {
     /**
      * Login Institution
      * Authenticate institution admin
+     * @param requestBody
      * @returns InstitutionLoginResponse Successful Response
      * @throws ApiError
      */
-    public static loginInstitutionInstitutionLoginPost({
-        requestBody,
-    }: {
+    public static loginInstitutionInstitutionLoginPost(
         requestBody: InstitutionLoginRequest,
-    }): CancelablePromise<InstitutionLoginResponse> {
+    ): CancelablePromise<InstitutionLoginResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/institution/login',
@@ -55,14 +53,13 @@ export class InstitutionService {
     /**
      * Get Institution
      * Get institution details
+     * @param institutionId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getInstitutionInstitutionInstitutionIdGet({
-        institutionId,
-    }: {
+    public static getInstitutionInstitutionInstitutionIdGet(
         institutionId: string,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/institution/{institution_id}',
@@ -77,14 +74,13 @@ export class InstitutionService {
     /**
      * Get Institution Stats
      * Get institution statistics
+     * @param institutionId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getInstitutionStatsInstitutionStatsInstitutionIdGet({
-        institutionId,
-    }: {
+    public static getInstitutionStatsInstitutionStatsInstitutionIdGet(
         institutionId: string,
-    }): CancelablePromise<Record<string, any>> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/institution/stats/{institution_id}',

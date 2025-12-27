@@ -32,14 +32,13 @@ export class ProgressService {
     /**
      * Save Conversation
      * Save a conversation session for a registered user with batch sentence analysis
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static saveConversationApiProgressSaveConversationPost({
-        requestBody,
-    }: {
+    public static saveConversationApiProgressSaveConversationPost(
         requestBody: SaveConversationRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/progress/save-conversation',
@@ -65,16 +64,15 @@ export class ProgressService {
     /**
      * Get Conversation History
      * Get user's conversation history
+     * @param limit
+     * @param offset
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getConversationHistoryApiProgressConversationsGet({
-        limit = 10,
-        offset,
-    }: {
-        limit?: number,
+    public static getConversationHistoryApiProgressConversationsGet(
+        limit: number = 10,
         offset?: number,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/progress/conversations',
@@ -90,14 +88,13 @@ export class ProgressService {
     /**
      * Get Conversation Analysis
      * Get enhanced analysis for a specific conversation session
+     * @param sessionId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getConversationAnalysisApiProgressConversationSessionIdAnalysisGet({
-        sessionId,
-    }: {
+    public static getConversationAnalysisApiProgressConversationSessionIdAnalysisGet(
         sessionId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/progress/conversation/{session_id}/analysis',
@@ -119,6 +116,36 @@ export class ProgressService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/progress/achievements',
+        });
+    }
+    /**
+     * Get Challenge Progress
+     * Get user's challenge completion statistics
+     *
+     * Returns:
+     * - completed_count: Total challenges completed for this language/level
+     * - completed_by_type: Dict of completed count per challenge type
+     * - total_available: Total challenges available (from reference)
+     * - progress_percentage: Overall progress percentage
+     * @param language
+     * @param level
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getChallengeProgressApiProgressChallengeStatsGet(
+        language: string,
+        level: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/progress/challenge-stats',
+            query: {
+                'language': language,
+                'level': level,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
 }

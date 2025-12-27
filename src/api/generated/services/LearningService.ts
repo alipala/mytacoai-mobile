@@ -14,14 +14,13 @@ export class LearningService {
      *
      * Args:
      * enriched: If True, return enriched goals with sub-goals. If False, return legacy format.
+     * @param enriched
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getLearningGoalsApiLearningGoalsGet({
-        enriched = false,
-    }: {
-        enriched?: boolean,
-    }): CancelablePromise<Array<Record<string, any>>> {
+    public static getLearningGoalsApiLearningGoalsGet(
+        enriched: boolean = false,
+    ): CancelablePromise<Array<Record<string, any>>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/learning/goals',
@@ -42,14 +41,13 @@ export class LearningService {
      *
      * Returns:
      * List of sub-goals with descriptions
+     * @param goalId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getSubGoalsApiLearningGoalsGoalIdSubGoalsGet({
-        goalId,
-    }: {
+    public static getSubGoalsApiLearningGoalsGoalIdSubGoalsGet(
         goalId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/learning/goals/{goal_id}/sub-goals',
@@ -66,14 +64,13 @@ export class LearningService {
      * Create a custom learning plan based on user's proficiency level, goals, and duration.
      * Authentication is required for assessment data processing.
      * 🔥 FIXED: Now handles missing required fields and different request formats gracefully
+     * @param requestBody
      * @returns LearningPlan Successful Response
      * @throws ApiError
      */
-    public static createLearningPlanApiLearningPlanPost({
-        requestBody,
-    }: {
+    public static createLearningPlanApiLearningPlanPost(
         requestBody: Record<string, any>,
-    }): CancelablePromise<LearningPlan> {
+    ): CancelablePromise<LearningPlan> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/learning/plan',
@@ -87,14 +84,13 @@ export class LearningService {
     /**
      * Get Learning Plan
      * Get a specific learning plan by ID
+     * @param planId
      * @returns LearningPlan Successful Response
      * @throws ApiError
      */
-    public static getLearningPlanApiLearningPlanPlanIdGet({
-        planId,
-    }: {
+    public static getLearningPlanApiLearningPlanPlanIdGet(
         planId: string,
-    }): CancelablePromise<LearningPlan> {
+    ): CancelablePromise<LearningPlan> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/learning/plan/{plan_id}',
@@ -109,14 +105,13 @@ export class LearningService {
     /**
      * Assign Plan To User
      * Assign an anonymous learning plan to the current user
+     * @param planId
      * @returns LearningPlan Successful Response
      * @throws ApiError
      */
-    public static assignPlanToUserApiLearningPlanPlanIdAssignPut({
-        planId,
-    }: {
+    public static assignPlanToUserApiLearningPlanPlanIdAssignPut(
         planId: string,
-    }): CancelablePromise<LearningPlan> {
+    ): CancelablePromise<LearningPlan> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/learning/plan/{plan_id}/assign',
@@ -143,16 +138,15 @@ export class LearningService {
     /**
      * Update Session Progress
      * Update the session progress for a learning plan
+     * @param planId
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateSessionProgressApiLearningPlanPlanIdProgressPut({
-        planId,
-        requestBody,
-    }: {
+    public static updateSessionProgressApiLearningPlanPlanIdProgressPut(
         planId: string,
         requestBody: SessionProgressUpdate,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/learning/plan/{plan_id}/progress',

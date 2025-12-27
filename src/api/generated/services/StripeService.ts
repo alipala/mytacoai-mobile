@@ -56,14 +56,13 @@ export class StripeService {
     /**
      * Track Usage
      * Track usage of practice sessions or assessments
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static trackUsageApiStripeTrackUsagePost({
-        requestBody,
-    }: {
+    public static trackUsageApiStripeTrackUsagePost(
         requestBody: UsageTrackingRequest,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/stripe/track-usage',
@@ -101,14 +100,13 @@ export class StripeService {
     /**
      * Can Access Feature
      * Check if user can access a specific feature
+     * @param featureType
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static canAccessFeatureApiStripeCanAccessFeatureTypeGet({
-        featureType,
-    }: {
+    public static canAccessFeatureApiStripeCanAccessFeatureTypeGet(
         featureType: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/stripe/can-access/{feature_type}',
@@ -135,14 +133,13 @@ export class StripeService {
     /**
      * Get Plan Details
      * Get details for a specific subscription plan
+     * @param planId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getPlanDetailsApiStripePlanPlanIdGet({
-        planId,
-    }: {
+    public static getPlanDetailsApiStripePlanPlanIdGet(
         planId: string,
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/stripe/plan/{plan_id}',
@@ -204,14 +201,13 @@ export class StripeService {
     }
     /**
      * Stripe Webhook
+     * @param stripeSignature
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static stripeWebhookApiStripeWebhookPost({
-        stripeSignature,
-    }: {
+    public static stripeWebhookApiStripeWebhookPost(
         stripeSignature?: (string | null),
-    }): CancelablePromise<any> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/stripe/webhook',
