@@ -308,19 +308,6 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     onClose();
   };
 
-  const handleToggleHelp = (value: boolean) => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    if (onToggleHelp) {
-      onToggleHelp(value);
-    }
-    // Close modal when help is disabled
-    if (!value) {
-      onClose();
-    }
-  };
-
   // Content component (can be wrapped in Modal or rendered inline)
   const HelpContent = (
     <Animated.View
@@ -343,14 +330,6 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
               <Text style={styles.title}>{uiText.conversationHelp}</Text>
             </View>
             <View style={styles.headerRight}>
-              <Switch
-                value={helpEnabled}
-                onValueChange={handleToggleHelp}
-                trackColor={{ false: '#D1D5DB', true: '#86EFAC' }}
-                thumbColor={helpEnabled ? '#10B981' : '#F3F4F6'}
-                ios_backgroundColor="#D1D5DB"
-                style={styles.toggle}
-              />
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color="#64748B" />
               </TouchableOpacity>
