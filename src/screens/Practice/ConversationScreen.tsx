@@ -416,7 +416,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         try {
           console.log(`[CONVERSATION] 📥 Fetching learning plan with ID: ${planId}`);
           setIsConnecting(true);
-          const plan = await LearningService.getLearningPlanApiLearningPlanPlanIdGet({ planId });
+          const plan = await LearningService.getLearningPlanApiLearningPlanPlanIdGet(planId);
           console.log('[CONVERSATION] ✅ Learning plan fetched successfully.');
           console.log('[CONVERSATION] 📊 Plan details:', {
             id: plan.id,

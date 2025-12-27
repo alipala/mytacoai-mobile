@@ -39,9 +39,7 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
       setLoading(true);
 
       await AuthenticationService.resendVerificationApiAuthResendVerificationPost({
-        requestBody: {
-          email: email,
-        },
+        email: email,
       });
 
       Alert.alert(
