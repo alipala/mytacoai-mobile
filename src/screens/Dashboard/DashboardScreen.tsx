@@ -76,6 +76,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   useEffect(() => {
     loadDashboardData();
 
+    // Refresh data when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadDashboardData();
+    });
+
     // Start button animations
     Animated.loop(
       Animated.sequence([
@@ -110,7 +115,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }),
       ])
     ).start();
-  }, []);
+
+    // Cleanup listener
+    return unsubscribe;
+  }, [navigation]);
 
   const loadDashboardData = async () => {
     try {
