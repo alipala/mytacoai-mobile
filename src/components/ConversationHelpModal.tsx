@@ -303,7 +303,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="chatbubble-ellipses" size={20} color="#8B5CF6" />
+                <Ionicons name="chatbubble-ellipses" size={16} color="#8B5CF6" />
               </View>
               <Text style={styles.title}>{uiText.conversationHelp}</Text>
             </View>
@@ -362,16 +362,10 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
             ) : helpData ? (
               /* Help Content */
               <View style={styles.contentContainer}>
-                {/* AI Response Summary */}
+                {/* AI Response Summary - No title, just content */}
                 {helpData?.ai_response_summary && (
-                  <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                      <Ionicons name="chatbubble-outline" size={18} color="#3B82F6" />
-                      <Text style={styles.sectionTitle}>{uiText.whatAiSaid}</Text>
-                    </View>
-                    <View style={styles.summaryCard}>
-                      <Text style={styles.summaryText}>{helpData.ai_response_summary}</Text>
-                    </View>
+                  <View style={styles.summaryCard}>
+                    <Text style={styles.summaryText}>{helpData.ai_response_summary}</Text>
                   </View>
                 )}
 
@@ -382,11 +376,11 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                       style={styles.sectionHeader}
                       onPress={() => toggleSection('responses')}
                     >
-                      <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                      <Ionicons name="checkmark-circle" size={16} color="#10B981" />
                       <Text style={styles.sectionTitle}>{uiText.suggestedResponses}</Text>
                       <Ionicons
                         name={expandedSections.has('responses') ? 'chevron-up' : 'chevron-down'}
-                        size={20}
+                        size={18}
                         color="#64748B"
                       />
                     </TouchableOpacity>
@@ -582,10 +576,10 @@ const styles = StyleSheet.create({
     minHeight: 300, // Ensure minimum height
     maxHeight: SCREEN_HEIGHT * 0.6, // Give more space
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 16, // All corners rounded
     marginHorizontal: 16,
     marginVertical: 12,
-    overflow: 'visible', // Changed from 'hidden' to show content
+    overflow: 'hidden', // Hide overflow for rounded corners
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -602,7 +596,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
     backgroundColor: '#FAFAFA',
@@ -621,23 +616,23 @@ const styles = StyleSheet.create({
     transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }],
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#F3E8FF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
     color: '#1E293B',
   },
   closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
@@ -647,7 +642,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   scrollContent: {
-    padding: 12,
+    padding: 10,
     flexGrow: 1,
   },
   loadingContainer: {
@@ -689,39 +684,40 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   section: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
+    gap: 5,
+    marginBottom: 5,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#1E293B',
     flex: 1,
   },
   summaryCard: {
     backgroundColor: '#EFF6FF',
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#DBEAFE',
+    marginBottom: 6,
   },
   summaryText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#1E40AF',
-    lineHeight: 18,
+    lineHeight: 16,
   },
   responsesContainer: {
-    gap: 8,
+    gap: 6,
   },
   responseCard: {
     backgroundColor: '#F0FDF4',
-    padding: 12,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: '#BBF7D0',
     ...Platform.select({
@@ -740,15 +736,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   responseText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#166534',
     flex: 1,
     marginRight: 8,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   responseActions: {
     flexDirection: 'row',
@@ -766,17 +762,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   explanationText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#166534',
-    lineHeight: 18,
-    marginBottom: 8,
+    lineHeight: 16,
+    marginBottom: 6,
   },
   tapHintRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-    paddingTop: 8,
+    gap: 5,
+    marginTop: 3,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: '#BBF7D0',
   },
@@ -787,7 +783,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tapHintText: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#10B981',
     fontWeight: '600',
     letterSpacing: 0.3,
