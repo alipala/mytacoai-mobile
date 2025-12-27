@@ -2,7 +2,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40;
-const CARD_HEIGHT = 450; // Optimized: 450px - Compact to fit assessment banner
+const CARD_HEIGHT = 420; // Optimized: 420px - Compact without banner
 
 export const styles = StyleSheet.create({
   card: {
@@ -16,6 +16,8 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 8,
+    overflow: 'hidden', // Enable corner ribbon
+    justifyContent: 'space-between', // Push buttons to bottom
   },
   header: {
     flexDirection: 'row',
@@ -49,7 +51,7 @@ export const styles = StyleSheet.create({
   },
   progressSection: {
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 8,
   },
   progressRingWrapper: {
     alignItems: 'center',
@@ -94,7 +96,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#F7FAFC',
     borderRadius: 12,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   statItem: {
     alignItems: 'center',
@@ -120,7 +122,7 @@ export const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 16,
-    marginBottom: 10,
+    marginBottom: 0,
     marginTop: 2,
   },
   // Buttons INSIDE card - Premium design
@@ -169,43 +171,46 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  // NEW: Final Assessment Banner Styles
-  assessmentBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    borderLeftWidth: 4,
-    borderLeftColor: '#F59E0B',
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 8,
-    gap: 8,
+  // Corner Ribbon Badge for Assessment Status
+  assessmentRibbon: {
+    position: 'absolute',
+    top: 20,
+    right: -30,
+    backgroundColor: '#F59E0B',
+    paddingVertical: 6,
+    paddingHorizontal: 40,
+    transform: [{ rotate: '45deg' }],
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  assessmentBannerFailed: {
-    backgroundColor: '#FEE2E2',
-    borderLeftColor: '#EF4444',
+  assessmentRibbonFailed: {
+    backgroundColor: '#EF4444',
   },
-  assessmentBannerIcon: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+  assessmentRibbonCompleted: {
+    backgroundColor: '#10B981',
   },
-  assessmentBannerContent: {
-    flex: 1,
+  assessmentRibbonInProgress: {
+    backgroundColor: '#3B82F6',
   },
-  assessmentBannerTitle: {
-    fontSize: 12,
+  assessmentRibbonNew: {
+    backgroundColor: '#8B5CF6', // Purple/violet for NEW
+  },
+  assessmentRibbonText: {
+    color: '#FFFFFF',
+    fontSize: 10,
     fontWeight: '700',
-    color: '#92400E',
-    marginBottom: 1,
-  },
-  assessmentBannerText: {
-    fontSize: 11,
-    color: '#78350F',
-    lineHeight: 15,
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
   continueButtonAssessment: {
     backgroundColor: '#F59E0B',
+  },
+  continueButtonCreatePlan: {
+    backgroundColor: '#3B82F6',
+    shadowColor: '#3B82F6',
   },
 });

@@ -14,6 +14,8 @@ import {
   Animated,
   Pressable,
   Easing,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,6 +32,7 @@ import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const API_BASE_URL = 'https://taco-voice-ai-e9b98ce8e7c5.herokuapp.com';
 
 interface DashboardScreenProps {
   navigation: any;
@@ -45,6 +48,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [progressStats, setProgressStats] = useState<any>(null);
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
+  const [selectedAssessmentPlan, setSelectedAssessmentPlan] = useState<LearningPlan | null>(null);
+  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
 
   // Subscription state
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
@@ -55,6 +60,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
+
+  // Create next plan modal state
+  const [showCreateNextPlanModal, setShowCreateNextPlanModal] = useState(false);
+  const [selectedCreatePlan, setSelectedCreatePlan] = useState<LearningPlan | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [customGoals, setCustomGoals] = useState('');
+  const [creatingPlan, setCreatingPlan] = useState(false);
 
   // Animation refs for Start New Session button
   const buttonFloatAnim = useRef(new Animated.Value(0)).current;
@@ -258,6 +271,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
     // Navigate to speaking assessment - required to create a learning plan
     navigation.navigate('AssessmentLanguageSelection');
+  };
+
+  const handleCreateNextPlan = (plan: LearningPlan) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    console.log('📝 Opening create next plan modal for plan:', plan.id);
+    setSelectedCreatePlan(plan);
+    setShowCreateNextPlanModal(true);
   };
 
 
@@ -507,16 +529,28 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             }}
             scrollEventThrottle={16}
           >
-            {learningPlans.map((plan, index) => (
-              <View key={plan.id || index} style={styles.cardContainer}>
-                <LearningPlanCard
-                  plan={plan}
-                  progressStats={progressStats}
-                  onContinue={() => handleContinueLearning(plan.id)}
-                  onViewDetails={() => handleViewDetails(plan)}
-                />
-              </View>
-            ))}
+            {learningPlans.map((plan, index) => {
+              // Check if a next-level plan already exists for this plan
+              const hasNextPlanCreated = learningPlans.some(
+                p => p.previous_plan_id === plan.id
+              );
+
+              return (
+                <View key={plan.id || index} style={styles.cardContainer}>
+                  <LearningPlanCard
+                    plan={plan}
+                    progressStats={progressStats}
+                    onContinue={() => handleContinueLearning(plan.id)}
+                    onViewDetails={() => handleViewDetails(plan)}
+                    onViewAssessment={() => {
+                      setSelectedAssessmentPlan(plan);
+                      setShowAssessmentModal(true);
+                    }}
+                    onCreateNextPlan={hasNextPlanCreated ? undefined : () => handleCreateNextPlan(plan)}
+                  />
+                </View>
+              );
+            })}
           </ScrollView>
 
           {/* Pagination Dots */}
@@ -622,6 +656,343 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onSelectQuickPractice={handleSelectQuickPractice}
         onSelectAssessment={handleSelectAssessment}
       />
+
+      {/* Assessment Results Modal */}
+      {showAssessmentModal && selectedAssessmentPlan && selectedAssessmentPlan.final_assessment?.attempts?.length > 0 && (
+        <Modal
+          visible={showAssessmentModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowAssessmentModal(false)}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <View style={{ width: '100%', maxWidth: 500, maxHeight: '85%', backgroundColor: 'white', borderRadius: 20, padding: 24 }}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {(() => {
+                  const lastAttempt = selectedAssessmentPlan.final_assessment.attempts[selectedAssessmentPlan.final_assessment.attempts.length - 1];
+                  return (
+                    <>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                        <Text style={{ fontSize: 24, fontWeight: 'bold', color: lastAttempt.passed ? '#10B981' : '#EF4444' }}>
+                          {lastAttempt.passed ? '🎉 Passed!' : '📚 Not Passed'}
+                        </Text>
+                        <TouchableOpacity onPress={() => setShowAssessmentModal(false)}>
+                          <Ionicons name="close-circle" size={28} color="#9CA3AF" />
+                        </TouchableOpacity>
+                      </View>
+
+                      <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 4, color: '#1F2937' }}>
+                        {selectedAssessmentPlan.language.charAt(0).toUpperCase() + selectedAssessmentPlan.language.slice(1)} {selectedAssessmentPlan.proficiency_level} Assessment
+                      </Text>
+                      <Text style={{ fontSize: 14, color: '#6B7280', marginBottom: 16 }}>
+                        {new Date(lastAttempt.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      </Text>
+
+                      <View style={{ backgroundColor: '#F3F4F6', padding: 16, borderRadius: 12, marginBottom: 16 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <Text style={{ fontSize: 14, color: '#6B7280' }}>Overall Score</Text>
+                          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1F2937' }}>{lastAttempt.overall_score}/100</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <Text style={{ fontSize: 14, color: '#6B7280' }}>{selectedAssessmentPlan.proficiency_level} Mastery</Text>
+                          <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{lastAttempt.current_level_mastery}/100</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, color: '#6B7280' }}>Next Level Readiness</Text>
+                          <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{lastAttempt.next_level_readiness}/100</Text>
+                        </View>
+                      </View>
+
+                      <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>Skill Scores</Text>
+                      <View style={{ marginBottom: 16 }}>
+                        {Object.entries(lastAttempt.scores).map(([skill, score]) => (
+                          <View key={skill} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <Text style={{ fontSize: 14, color: '#6B7280', textTransform: 'capitalize' }}>{skill}</Text>
+                            <Text style={{ fontSize: 14, fontWeight: '600', color: '#1F2937' }}>{score as number}/100</Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      {lastAttempt.strengths && lastAttempt.strengths.length > 0 && (
+                        <>
+                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#10B981' }}>✓ Strengths</Text>
+                          <View style={{ marginBottom: 16 }}>
+                            {lastAttempt.strengths.map((strength: string, idx: number) => (
+                              <Text key={idx} style={{ fontSize: 14, color: '#4B5563', marginBottom: 4 }}>• {strength}</Text>
+                            ))}
+                          </View>
+                        </>
+                      )}
+
+                      {lastAttempt.areas_for_improvement && lastAttempt.areas_for_improvement.length > 0 && (
+                        <>
+                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#F59E0B' }}>→ Areas for Improvement</Text>
+                          <View style={{ marginBottom: 16 }}>
+                            {lastAttempt.areas_for_improvement.map((area: string, idx: number) => (
+                              <Text key={idx} style={{ fontSize: 14, color: '#4B5563', marginBottom: 4 }}>• {area}</Text>
+                            ))}
+                          </View>
+                        </>
+                      )}
+
+                      {lastAttempt.feedback && (
+                        <>
+                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>Feedback</Text>
+                          <Text style={{ fontSize: 14, color: '#4B5563', marginBottom: 16, lineHeight: 20 }}>
+                            {lastAttempt.feedback}
+                          </Text>
+                        </>
+                      )}
+
+                      {selectedAssessmentPlan.final_assessment.attempts.length > 1 && (
+                        <Text style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center' }}>
+                          Attempt {selectedAssessmentPlan.final_assessment.attempts.length} of {selectedAssessmentPlan.final_assessment.attempts.length}
+                        </Text>
+                      )}
+                    </>
+                  );
+                })()}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Create Next Level Plan Modal */}
+      {showCreateNextPlanModal && selectedCreatePlan && (
+        <Modal
+          visible={showCreateNextPlanModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowCreateNextPlanModal(false)}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+            <View style={{ backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, height: '85%', flexDirection: 'column' }}>
+              {/* Header */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
+                <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#1F2937' }}>
+                  Create {(() => {
+                    const levelMap: Record<string, string> = {
+                      'A1': 'A2',
+                      'A2': 'B1',
+                      'B1': 'B2',
+                      'B2': 'C1',
+                      'C1': 'C2',
+                    };
+                    return levelMap[selectedCreatePlan.proficiency_level.toUpperCase()] || 'Next Level';
+                  })()} Plan
+                </Text>
+                <TouchableOpacity onPress={() => setShowCreateNextPlanModal(false)}>
+                  <Ionicons name="close-circle" size={28} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Scrollable Content */}
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+                <View style={{ backgroundColor: '#ECFDF5', padding: 12, borderRadius: 8, marginBottom: 20, borderLeftWidth: 4, borderLeftColor: '#10B981' }}>
+                  <Text style={{ fontSize: 14, color: '#047857' }}>
+                    📚 {selectedCreatePlan.language.charAt(0).toUpperCase() + selectedCreatePlan.language.slice(1)} • {(() => {
+                      const levelMap: Record<string, string> = {
+                        'A1': 'A2',
+                        'A2': 'B1',
+                        'B1': 'B2',
+                        'B2': 'C1',
+                        'C1': 'C2',
+                      };
+                      return levelMap[selectedCreatePlan.proficiency_level.toUpperCase()] || 'Next Level';
+                    })()} Level
+                  </Text>
+                </View>
+
+                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
+                  Choose Your Plan Duration
+                </Text>
+
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                  {[1, 2, 3, 4, 5, 6].map(months => (
+                    <TouchableOpacity
+                      key={months}
+                      onPress={() => setSelectedDuration(months)}
+                      style={{
+                        paddingVertical: 10,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        borderWidth: 2,
+                        borderColor: selectedDuration === months ? '#10B981' : '#E5E7EB',
+                        backgroundColor: selectedDuration === months ? '#ECFDF5' : 'white'
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: selectedDuration === months ? '#047857' : '#4B5563'
+                      }}>
+                        {months} {months === 1 ? 'Month' : 'Months'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
+                  Select Your Learning Goals
+                </Text>
+
+                {/* Predefined Goals */}
+                <View style={{ gap: 8, marginBottom: 16 }}>
+                  {['Business Communication', 'Travel & Tourism', 'Academic Writing', 'Daily Conversations', 'Professional Presentations', 'Job Interviews'].map(goal => (
+                    <TouchableOpacity
+                      key={goal}
+                      onPress={() => {
+                        setSelectedGoals(prev =>
+                          prev.includes(goal)
+                            ? prev.filter(g => g !== goal)
+                            : [...prev, goal]
+                        );
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: 12,
+                        borderRadius: 8,
+                        borderWidth: 2,
+                        borderColor: selectedGoals.includes(goal) ? '#10B981' : '#E5E7EB',
+                        backgroundColor: selectedGoals.includes(goal) ? '#ECFDF5' : 'white'
+                      }}
+                    >
+                      <View style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 4,
+                        borderWidth: 2,
+                        borderColor: selectedGoals.includes(goal) ? '#10B981' : '#D1D5DB',
+                        backgroundColor: selectedGoals.includes(goal) ? '#10B981' : 'white',
+                        marginRight: 12,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {selectedGoals.includes(goal) && (
+                          <Ionicons name="checkmark" size={14} color="white" />
+                        )}
+                      </View>
+                      <Text style={{
+                        fontSize: 15,
+                        fontWeight: '500',
+                        color: selectedGoals.includes(goal) ? '#047857' : '#4B5563'
+                      }}>
+                        {goal}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#6B7280' }}>
+                  Additional Goals (Optional)
+                </Text>
+
+                <TextInput
+                  value={customGoals}
+                  onChangeText={setCustomGoals}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: '#E5E7EB',
+                    borderRadius: 8,
+                    padding: 12,
+                    marginBottom: 20,
+                    fontSize: 14,
+                    minHeight: 60,
+                    textAlignVertical: 'top'
+                  }}
+                  placeholder="Any other specific goals..."
+                  multiline
+                  numberOfLines={2}
+                />
+              </ScrollView>
+
+              {/* Fixed Footer with Create Button */}
+              <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#E5E7EB', backgroundColor: 'white' }}>
+                <TouchableOpacity
+                  onPress={async () => {
+                    // Validation: Require at least duration selection (goals are optional)
+                    if (!selectedDuration) {
+                      Alert.alert('Duration Required', 'Please select a plan duration before creating your learning plan.');
+                      return;
+                    }
+
+                    setCreatingPlan(true);
+                    try {
+                      const token = await AsyncStorage.getItem('auth_token');
+
+                      // Combine selected goals and custom goals
+                      const allGoals = [...selectedGoals];
+                      if (customGoals.trim()) {
+                        allGoals.push(customGoals.trim());
+                      }
+
+                      console.log('[CREATE_PLAN] Creating plan with duration:', selectedDuration, 'goals:', allGoals);
+
+                      const response = await fetch(`${API_BASE_URL}/api/learning-plans/create-next-level`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                          current_plan_id: selectedCreatePlan.id,
+                          duration_months: selectedDuration,
+                          goals: allGoals.length > 0 ? allGoals : null,
+                          custom_goal: allGoals.length > 0 ? allGoals.join(', ') : null
+                        })
+                      });
+
+                      if (response.ok) {
+                        console.log('[CREATE_PLAN] ✅ Next level plan created successfully');
+                        setShowCreateNextPlanModal(false);
+                        setSelectedGoals([]);
+                        setCustomGoals('');
+                        setSelectedDuration(null); // Reset - user must select again
+
+                        // Refresh dashboard to show new plan
+                        await loadDashboardData();
+
+                        Alert.alert(
+                          'Success!',
+                          'Your next level learning plan has been created!',
+                          [{ text: 'OK' }]
+                        );
+                      } else {
+                        const errorData = await response.json();
+                        console.error('[CREATE_PLAN] ❌ Failed to create plan:', errorData);
+                        Alert.alert('Error', 'Failed to create learning plan. Please try again.');
+                      }
+                    } catch (error) {
+                      console.error('[CREATE_PLAN] Error:', error);
+                      Alert.alert('Error', 'An error occurred. Please try again.');
+                    } finally {
+                      setCreatingPlan(false);
+                    }
+                  }}
+                  disabled={creatingPlan || !selectedDuration}
+                  style={{
+                    backgroundColor: (creatingPlan || !selectedDuration) ? '#9CA3AF' : '#10B981',
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    shadowColor: selectedDuration ? '#10B981' : '#9CA3AF',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: selectedDuration ? 0.3 : 0.1,
+                    shadowRadius: 8,
+                    elevation: selectedDuration ? 4 : 2
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
+                    {creatingPlan ? 'Creating...' : !selectedDuration ? 'Select Duration First' : 'Create Learning Plan'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };
