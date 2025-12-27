@@ -295,45 +295,44 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
       {/* Action Buttons - Premium Design INSIDE Card */}
       <View style={styles.buttonsContainer}>
         {/* Main Action Button */}
-        <TouchableOpacity
-          style={[
-            styles.continueButton,
-            isCompleted && !canCreateNextPlan && styles.continueButtonDisabled,
-            (isAwaitingAssessment || isAssessmentFailed) && styles.continueButtonAssessment,
-            canCreateNextPlan && styles.continueButtonCreatePlan
-          ]}
-          onPress={handleContinuePress}
-          disabled={isCompleted && !canCreateNextPlan}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={
-              canCreateNextPlan
-                ? "add-circle"
-                : isCompleted
-                ? "checkmark-circle"
+        {!isCompleted || canCreateNextPlan ? (
+          <TouchableOpacity
+            style={[
+              styles.continueButton,
+              (isAwaitingAssessment || isAssessmentFailed) && styles.continueButtonAssessment,
+              canCreateNextPlan && styles.continueButtonCreatePlan
+            ]}
+            onPress={handleContinuePress}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={
+                canCreateNextPlan
+                  ? "add-circle"
+                  : isAwaitingAssessment || isAssessmentFailed
+                  ? "clipboard"
+                  : "play-circle"
+              }
+              size={20}
+              color="#FFFFFF"
+            />
+            <Text style={styles.continueButtonText}>
+              {canCreateNextPlan
+                ? `Create ${getNextLevel(level)} Plan`
                 : isAwaitingAssessment || isAssessmentFailed
-                ? "clipboard"
-                : "play-circle"
-            }
-            size={20}
-            color="#FFFFFF"
-          />
-          <Text style={styles.continueButtonText}>
-            {canCreateNextPlan
-              ? `Create ${getNextLevel(level)} Plan`
-              : isCompleted
-              ? 'Completed'
-              : isAwaitingAssessment || isAssessmentFailed
-              ? 'Take Assessment'
-              : 'Continue'}
-          </Text>
-        </TouchableOpacity>
+                ? 'Take Assessment'
+                : 'Continue'}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
 
         {/* View Assessment or Details Button */}
         {isCompleted && finalAssessment?.attempts?.length > 0 && onViewAssessment ? (
           <TouchableOpacity
-            style={styles.detailsButton}
+            style={[
+              styles.detailsButton,
+              !canCreateNextPlan && styles.detailsButtonFullWidth
+            ]}
             onPress={() => {
               if (Platform.OS === 'ios') {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -345,9 +344,18 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
             <Ionicons name="stats-chart" size={20} color="#4A5568" />
             <Text style={styles.detailsButtonText}>Assessment</Text>
           </TouchableOpacity>
-        ) : (
+        ) : !isCompleted || canCreateNextPlan ? (
           <TouchableOpacity
             style={styles.detailsButton}
+            onPress={handleViewDetailsPress}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="information-circle-outline" size={20} color="#4A5568" />
+            <Text style={styles.detailsButtonText}>Details</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.detailsButton, styles.detailsButtonFullWidth]}
             onPress={handleViewDetailsPress}
             activeOpacity={0.8}
           >

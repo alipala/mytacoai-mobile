@@ -166,6 +166,9 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 8,
   },
+  detailsButtonFullWidth: {
+    flex: 2,
+  },
   detailsButtonText: {
     color: '#4A5568',
     fontSize: 15,
