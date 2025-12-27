@@ -579,12 +579,13 @@ const styles = StyleSheet.create({
   },
   inlineContainer: {
     width: SCREEN_WIDTH - 32, // Account for conversation padding
-    maxHeight: SCREEN_HEIGHT * 0.5, // Smaller than modal
+    minHeight: 300, // Ensure minimum height
+    maxHeight: SCREEN_HEIGHT * 0.6, // Give more space
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     marginHorizontal: 16,
     marginVertical: 12,
-    overflow: 'hidden',
+    overflow: 'visible', // Changed from 'hidden' to show content
     ...Platform.select({
       ios: {
         shadowColor: '#000',
