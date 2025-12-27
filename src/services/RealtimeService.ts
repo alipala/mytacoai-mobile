@@ -80,15 +80,13 @@ export class RealtimeService {
       console.log('[RealtimeService] Creating session via backend...');
 
       const response = await DefaultService.generateTokenApiRealtimeTokenPost({
-        requestBody: {
-          language: this.config.language,
-          level: this.config.level,
-          topic: this.config.topic,
-          voice: this.config.voice || 'alloy',
-          user_prompt: this.config.userPrompt,
-          assessment_data: this.config.assessmentData,
-          research_data: this.config.researchData,
-        },
+        language: this.config.language,
+        level: this.config.level,
+        topic: this.config.topic,
+        voice: this.config.voice || 'alloy',
+        user_prompt: this.config.userPrompt,
+        assessment_data: this.config.assessmentData,
+        research_data: this.config.researchData,
       });
 
       if (!response.id || !response.client_secret?.value || !response.model) {
