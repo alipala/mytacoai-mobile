@@ -1468,20 +1468,45 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       {/* Footer with Help, Microphone, and End buttons */}
       <View style={styles.footerContainer}>
         {/* Animated Help Button - Left */}
-        {conversationHelp.helpSettings.help_enabled &&
-        (conversationHelp.isHelpReady || conversationHelp.isLoading) &&
-        messages.length > 0 ? (
-          <AnimatedHelpButton
-            isLoading={conversationHelp.isLoading}
-            isReady={conversationHelp.isHelpReady}
-            onPress={conversationHelp.showHelpModal}
-            disabled={false}
-          />
+        {conversationHelp.helpSettings.help_enabled ? (
+          // Help is enabled - show normal help button when ready
+          (conversationHelp.isHelpReady || conversationHelp.isLoading) && messages.length > 0 ? (
+            <AnimatedHelpButton
+              isLoading={conversationHelp.isLoading}
+              isReady={conversationHelp.isHelpReady}
+              onPress={conversationHelp.showHelpModal}
+              disabled={false}
+            />
+          ) : (
+            <View style={[styles.footerSideButton, { opacity: 0 }]}>
+              <Ionicons name="help-circle" size={24} color="transparent" />
+              <Text style={styles.footerButtonText}>Help</Text>
+            </View>
+          )
         ) : (
-          <View style={[styles.footerSideButton, { opacity: 0 }]}>
-            <Ionicons name="help-circle" size={24} color="transparent" />
-            <Text style={styles.footerButtonText}>Help</Text>
-          </View>
+          // Help is disabled - show enable button
+          messages.length > 0 ? (
+            <TouchableOpacity
+              style={styles.footerSideButton}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                conversationHelp.updateHelpSettings({ help_enabled: true });
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="help-circle-outline" size={24} color="#94A3B8" />
+              <Text style={[styles.footerButtonText, { color: '#94A3B8', fontSize: 11 }]}>
+                Enable Help
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={[styles.footerSideButton, { opacity: 0 }]}>
+              <Ionicons name="help-circle" size={24} color="transparent" />
+              <Text style={styles.footerButtonText}>Help</Text>
+            </View>
+          )
         )}
 
         {/* Enhanced Recording Button - Center */}
