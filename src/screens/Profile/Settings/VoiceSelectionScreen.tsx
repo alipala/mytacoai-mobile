@@ -186,7 +186,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       console.log('🎤 Attempting to change voice to:', selectedVoice);
 
       const response = await AuthenticationService.selectVoiceApiAuthSelectVoicePost({
-        requestBody: { voice: selectedVoice },
+        voice: selectedVoice,
       });
 
       console.log('✅ Voice change API response:', JSON.stringify(response, null, 2));
