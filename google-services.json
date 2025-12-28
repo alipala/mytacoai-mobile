@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "41687548204",
+    "project_id": "taalcoach-454822",
+    "storage_bucket": "taalcoach-454822.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41687548204:android:b98a4302cf729ec10bac89",
+        "android_client_info": {
+          "package_name": "com.bigdavinci.MyTacoAI"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "41687548204-0go9lqlnve4llpv3vdl48jujddlt2kp5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDy1S05VAZ77ibdDbycli8yQajsNBkQElY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "41687548204-0go9lqlnve4llpv3vdl48jujddlt2kp5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "41687548204-2gm0vhfjqub78lm5pqd7qh5drj6vmmrb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.anonymous.MyTacoAIMobile"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
