@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import LottieView from 'lottie-react-native';
 import { Challenge, ChallengeType } from '../services/mockChallengeData';
 import { COLORS } from '../constants/colors';
 import { ChallengeListItem } from './ChallengeListItem';
@@ -256,7 +257,12 @@ export function ExpandableChallengeCard({
           >
             {isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={accentColor} />
+                <LottieView
+                  source={require('../assets/lottie/loading.json')}
+                  autoPlay
+                  loop
+                  style={{ width: 120, height: 120 }}
+                />
                 <Text style={styles.loadingText}>Loading challenges...</Text>
               </View>
             ) : challenges.length > 0 ? (
