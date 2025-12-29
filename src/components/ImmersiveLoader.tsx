@@ -15,6 +15,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import LottieView from 'lottie-react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,12 +25,7 @@ interface ImmersiveLoaderProps {
 
 export default function ImmersiveLoader({ message = 'Loading your progress...' }: ImmersiveLoaderProps) {
   // Animations
-  const spinAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim1 = useRef(new Animated.Value(0.8)).current;
-  const scaleAnim2 = useRef(new Animated.Value(0.8)).current;
-  const scaleAnim3 = useRef(new Animated.Value(0.8)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const dotsAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Fade in
@@ -38,80 +34,7 @@ export default function ImmersiveLoader({ message = 'Loading your progress...' }
       duration: 300,
       useNativeDriver: true,
     }).start();
-
-    // Rotating circle
-    Animated.loop(
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
-
-    // Pulsing circles (staggered)
-    const pulseAnimation = (animValue: Animated.Value, delay: number) => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(animValue, {
-            toValue: 1.2,
-            duration: 600,
-            easing: Easing.ease,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animValue, {
-            toValue: 0.8,
-            duration: 600,
-            easing: Easing.ease,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    };
-
-    pulseAnimation(scaleAnim1, 0);
-    pulseAnimation(scaleAnim2, 200);
-    pulseAnimation(scaleAnim3, 400);
-
-    // Animated dots
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(dotsAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(dotsAnim, {
-          toValue: 2,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(dotsAnim, {
-          toValue: 3,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(dotsAnim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
   }, []);
-
-  // Spinning rotation
-  const spin = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  // Animated dots text
-  const getDots = () => {
-    const dotCount = Math.floor(dotsAnim._value);
-    return '.'.repeat(dotCount);
-  };
 
   return (
     <Animated.View style={[styles.container, { opacity: opacityAnim }]}>
@@ -121,58 +44,19 @@ export default function ImmersiveLoader({ message = 'Loading your progress...' }
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        {/* Animated circles */}
-        <View style={styles.circlesContainer}>
-          <Animated.View
-            style={[
-              styles.circle,
-              styles.circle1,
-              {
-                transform: [{ scale: scaleAnim1 }, { rotate: spin }],
-              },
-            ]}
-          >
-            <LinearGradient
-              colors={['#4ECFBF', '#14B8A6']}
-              style={styles.circleGradient}
-            />
-          </Animated.View>
-
-          <Animated.View
-            style={[
-              styles.circle,
-              styles.circle2,
-              {
-                transform: [{ scale: scaleAnim2 }],
-              },
-            ]}
-          >
-            <LinearGradient
-              colors={['#FFA955', '#F97316']}
-              style={styles.circleGradient}
-            />
-          </Animated.View>
-
-          <Animated.View
-            style={[
-              styles.circle,
-              styles.circle3,
-              {
-                transform: [{ scale: scaleAnim3 }],
-              },
-            ]}
-          >
-            <LinearGradient
-              colors={['#F75A5A', '#EF4444']}
-              style={styles.circleGradient}
-            />
-          </Animated.View>
+        {/* Lottie Animation */}
+        <View style={styles.lottieContainer}>
+          <LottieView
+            source={require('../assets/lottie/loading.json')}
+            autoPlay
+            loop
+            style={{ width: 240, height: 240 }}
+          />
         </View>
 
         {/* Loading text */}
         <View style={styles.textContainer}>
           <Text style={styles.loadingText}>{message}</Text>
-          <Text style={styles.dots}>{getDots()}</Text>
         </View>
 
         {/* Fun motivational messages */}
@@ -199,38 +83,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  circlesContainer: {
-    width: 120,
-    height: 120,
+  lottieContainer: {
+    width: 240,
+    height: 240,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 40,
   },
-  circle: {
-    position: 'absolute',
-    borderRadius: 9999,
-    overflow: 'hidden',
-  },
-  circle1: {
-    width: 100,
-    height: 100,
-    opacity: 0.3,
-  },
-  circle2: {
-    width: 70,
-    height: 70,
-    opacity: 0.5,
-  },
-  circle3: {
-    width: 40,
-    height: 40,
-    opacity: 0.8,
-  },
-  circleGradient: {
-    flex: 1,
-  },
   textContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 60,
   },
@@ -238,12 +98,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#0F172A',
-  },
-  dots: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#0F172A',
-    minWidth: 30,
   },
   tipsContainer: {
     flexDirection: 'row',
