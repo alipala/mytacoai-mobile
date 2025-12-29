@@ -23,9 +23,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useChallengeSession } from '../../contexts/ChallengeSessionContext';
+import { useFocus } from '../../contexts/FocusContext';
 import SessionProgressBar from '../../components/SessionProgressBar';
 import SessionSummary from '../../components/SessionSummary';
+import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
 import { SessionStats } from '../../types/session';
+import { OutOfHeartsData } from '../../types/focus';
 import { updateDailyStats, updateCategoryStats } from '../../services/dailyStatsService';
 
 // Import individual challenge screens
@@ -65,6 +68,11 @@ export default function ChallengeSessionScreen({
     challengeType: string;
     source: 'reference' | 'learning_plan';
   } | null>(null);
+
+  // Heart system integration
+  const { getOutOfHeartsData, config } = useFocus();
+  const [showOutOfHeartsModal, setShowOutOfHeartsModal] = useState(false);
+  const [outOfHeartsData, setOutOfHeartsData] = useState<OutOfHeartsData | null>(null);
 
   const currentChallenge = getCurrentChallenge();
 
@@ -219,6 +227,35 @@ export default function ChallengeSessionScreen({
   };
 
   /**
+   * Handle out of hearts situation
+   */
+  const handleOutOfHearts = (challengeType: string) => {
+    const data = getOutOfHeartsData(challengeType as any);
+    if (data) {
+      setOutOfHeartsData(data);
+      setShowOutOfHeartsModal(true);
+    }
+  };
+
+  /**
+   * Select alternative challenge type
+   */
+  const handleSelectAlternative = (challengeType: string) => {
+    setShowOutOfHeartsModal(false);
+    // Navigate back to explore with selected type
+    navigation.navigate('Explore', { selectChallengeType: challengeType });
+  };
+
+  /**
+   * Navigate to upgrade/pricing
+   */
+  const handleUpgrade = () => {
+    setShowOutOfHeartsModal(false);
+    // TODO: Navigate to pricing modal or checkout
+    console.log('Navigate to upgrade');
+  };
+
+  /**
    * Handle quit/back button
    */
   const handleQuit = () => {
@@ -318,6 +355,15 @@ export default function ChallengeSessionScreen({
           )}
         </SafeAreaView>
       </Modal>
+
+      {/* Out of Hearts Modal */}
+      <OutOfHeartsModal
+        visible={showOutOfHeartsModal}
+        data={outOfHeartsData}
+        onClose={() => setShowOutOfHeartsModal(false)}
+        onSelectAlternative={handleSelectAlternative}
+        onUpgrade={handleUpgrade}
+      />
     </SafeAreaView>
   );
 }

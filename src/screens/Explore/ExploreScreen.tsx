@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
+import LottieView from 'lottie-react-native';
 import { styles } from './styles/ExploreScreen.styles';
 import { ExpandableChallengeCard } from '../../components/ExpandableChallengeCard';
 import {
@@ -520,32 +521,13 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
             paddingHorizontal: 40,
             paddingTop: 60,
           }}>
-            {/* Custom Loading Animation */}
-            <View style={{
-              width: 120,
-              height: 120,
-              borderRadius: 60,
-              backgroundColor: '#F0FDFA',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 32,
-              shadowColor: '#4ECFBF',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.15,
-              shadowRadius: 16,
-              elevation: 8,
-            }}>
-              <View style={{
-                width: 100,
-                height: 100,
-                borderRadius: 50,
-                backgroundColor: '#FFFFFF',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-                <ActivityIndicator size="large" color="#4ECFBF" />
-              </View>
-            </View>
+            {/* Lottie Loading Animation */}
+            <LottieView
+              source={require('../../assets/lottie/loading.json')}
+              autoPlay
+              loop
+              style={{ width: 200, height: 200, marginBottom: 32 }}
+            />
 
             {/* Main Text */}
             <Text style={{
@@ -593,26 +575,6 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
                 </Text>
               </View>
             )}
-
-            {/* Progress dots */}
-            <View style={{
-              flexDirection: 'row',
-              gap: 8,
-              marginTop: 32,
-            }}>
-              {[0, 1, 2].map((i) => (
-                <View
-                  key={i}
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: '#4ECFBF',
-                    opacity: 0.3 + (i * 0.25),
-                  }}
-                />
-              ))}
-            </View>
           </View>
         )}
 

@@ -54,6 +54,7 @@ import {
 
 // Context Providers
 import { ChallengeSessionProvider } from './src/contexts/ChallengeSessionContext';
+import { FocusProvider } from './src/contexts/FocusContext.tsx';
 
 // Challenge Screens
 import ChallengeSessionScreen from './src/screens/Explore/ChallengeSessionScreen';
@@ -358,12 +359,13 @@ export default function App() {
   };
 
   return (
-    <ChallengeSessionProvider>
-      <NavigationContainer
-        ref={navigationRef}
-        linking={linking}
-        fallback={<LoadingScreen />}
-      >
+    <FocusProvider>
+      <ChallengeSessionProvider>
+        <NavigationContainer
+          ref={navigationRef}
+          linking={linking}
+          fallback={<LoadingScreen />}
+        >
         <Stack.Navigator
           initialRouteName={getInitialRouteName()}
           screenOptions={{
@@ -406,7 +408,8 @@ export default function App() {
           <Stack.Screen name="Main" component={MainTabs} />
         </Stack.Navigator>
       </NavigationContainer>
-    </ChallengeSessionProvider>
+      </ChallengeSessionProvider>
+    </FocusProvider>
   );
 }
 

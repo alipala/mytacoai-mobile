@@ -28,6 +28,7 @@ import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsMo
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
 import { SessionTypeModal } from '../../components/SessionTypeModal';
+import ImmersiveLoader from '../../components/ImmersiveLoader';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 
@@ -311,30 +312,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   // Loading State
   if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4FD1C5" />
-          <Text style={styles.loadingText}>Loading your learning journey...</Text>
-        </View>
-
-        {/* Pricing Modal */}
-        <PricingModal
-          visible={showPricingModal}
-          onClose={() => setShowPricingModal(false)}
-          onSelectPlan={handleSelectPlan}
-        />
-
-        {/* Session Type Modal */}
-        <SessionTypeModal
-          visible={showSessionTypeModal}
-          onClose={() => setShowSessionTypeModal(false)}
-          onSelectQuickPractice={handleSelectQuickPractice}
-          onSelectAssessment={handleSelectAssessment}
-        />
-
-      </SafeAreaView>
-    );
+    return <ImmersiveLoader message="Loading your learning journey..." />;
   }
 
   // Error State
