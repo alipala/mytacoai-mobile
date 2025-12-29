@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import LottieView from 'lottie-react-native';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
@@ -1178,7 +1179,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#14B8A6" />
+          <LottieView
+            source={require('../../assets/lottie/loading.json')}
+            autoPlay
+            loop
+            style={{ width: 200, height: 200 }}
+          />
         </View>
       </SafeAreaView>
     );

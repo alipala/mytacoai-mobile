@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import LottieView from 'lottie-react-native';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
 import { LearningPlanCard } from '../../components/LearningPlanCard';
@@ -314,7 +315,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4FD1C5" />
+          <LottieView
+            source={require('../../assets/lottie/loading.json')}
+            autoPlay
+            loop
+            style={{ width: 200, height: 200 }}
+          />
           <Text style={styles.loadingText}>Loading your learning journey...</Text>
         </View>
 
