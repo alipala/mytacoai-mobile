@@ -1178,13 +1178,41 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 40,
+          paddingTop: 60,
+        }}>
+          {/* Lottie Loading Animation */}
           <LottieView
             source={require('../../assets/lottie/loading.json')}
             autoPlay
             loop
-            style={{ width: 200, height: 200 }}
+            style={{ width: 200, height: 200, marginBottom: 32 }}
           />
+
+          {/* Main Text */}
+          <Text style={{
+            fontSize: 18,
+            fontWeight: '600',
+            color: '#1F2937',
+            textAlign: 'center',
+            marginBottom: 12,
+          }}>
+            Loading Your Profile
+          </Text>
+
+          {/* Subtitle */}
+          <Text style={{
+            fontSize: 14,
+            color: '#6B7280',
+            textAlign: 'center',
+            lineHeight: 20,
+          }}>
+            Almost there...
+          </Text>
         </View>
       </SafeAreaView>
     );
