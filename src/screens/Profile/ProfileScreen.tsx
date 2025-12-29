@@ -24,10 +24,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import LottieView from 'lottie-react-native';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
+import ImmersiveLoader from '../../components/ImmersiveLoader';
 import { styles } from './styles/ProfileScreen.styles';
 import { setBadgeCount } from '../../services/notificationService';
 
@@ -1176,46 +1176,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   );
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 40,
-          paddingTop: 60,
-        }}>
-          {/* Lottie Loading Animation */}
-          <LottieView
-            source={require('../../assets/lottie/loading.json')}
-            autoPlay
-            loop
-            style={{ width: 200, height: 200, marginBottom: 32 }}
-          />
-
-          {/* Main Text */}
-          <Text style={{
-            fontSize: 18,
-            fontWeight: '600',
-            color: '#1F2937',
-            textAlign: 'center',
-            marginBottom: 12,
-          }}>
-            Loading Your Profile
-          </Text>
-
-          {/* Subtitle */}
-          <Text style={{
-            fontSize: 14,
-            color: '#6B7280',
-            textAlign: 'center',
-            lineHeight: 20,
-          }}>
-            Almost there...
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <ImmersiveLoader message="Loading your profile..." />;
   }
 
   return (

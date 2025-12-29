@@ -21,7 +21,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import LottieView from 'lottie-react-native';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
 import { LearningPlanCard } from '../../components/LearningPlanCard';
@@ -29,6 +28,7 @@ import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsMo
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
 import { SessionTypeModal } from '../../components/SessionTypeModal';
+import ImmersiveLoader from '../../components/ImmersiveLoader';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 
@@ -312,62 +312,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   // Loading State
   if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 40,
-          paddingTop: 60,
-        }}>
-          {/* Lottie Loading Animation */}
-          <LottieView
-            source={require('../../assets/lottie/loading.json')}
-            autoPlay
-            loop
-            style={{ width: 200, height: 200, marginBottom: 32 }}
-          />
-
-          {/* Main Text */}
-          <Text style={{
-            fontSize: 18,
-            fontWeight: '600',
-            color: '#1F2937',
-            textAlign: 'center',
-            marginBottom: 12,
-          }}>
-            Loading Your Learning Journey
-          </Text>
-
-          {/* Subtitle */}
-          <Text style={{
-            fontSize: 14,
-            color: '#6B7280',
-            textAlign: 'center',
-            lineHeight: 20,
-          }}>
-            Almost there...
-          </Text>
-        </View>
-
-        {/* Pricing Modal */}
-        <PricingModal
-          visible={showPricingModal}
-          onClose={() => setShowPricingModal(false)}
-          onSelectPlan={handleSelectPlan}
-        />
-
-        {/* Session Type Modal */}
-        <SessionTypeModal
-          visible={showSessionTypeModal}
-          onClose={() => setShowSessionTypeModal(false)}
-          onSelectQuickPractice={handleSelectQuickPractice}
-          onSelectAssessment={handleSelectAssessment}
-        />
-
-      </SafeAreaView>
-    );
+    return <ImmersiveLoader message="Loading your learning journey..." />;
   }
 
   // Error State
