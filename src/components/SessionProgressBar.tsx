@@ -10,13 +10,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useChallengeSession } from '../contexts/ChallengeSessionContext';
+import { useFocus } from '../contexts/FocusContext';
 import { formatXP } from '../services/xpCalculator';
 import { ProgressPath } from './ProgressPath';
 import { ComboBadge } from './ComboBadge';
+import { HeartDisplay } from './HeartDisplay';
 
 interface SessionProgressBarProps {
   showXP?: boolean;
   showCombo?: boolean;
+  showHearts?: boolean;
   onComboMilestone?: (combo: number, message: string) => void;
   onComboLost?: () => void;
 }
@@ -24,21 +27,38 @@ interface SessionProgressBarProps {
 export default function SessionProgressBar({
   showXP = true,
   showCombo = true,
+  showHearts = true,
   onComboMilestone,
   onComboLost,
 }: SessionProgressBarProps) {
   const { session, getProgress } = useChallengeSession();
+  const { config } = useFocus();
   const progress = getProgress();
 
   if (!session) {
     return null;
   }
 
+  // Get the challenge type from the session
+  const challengeType = session.challengeType;
+
   return (
     <View style={styles.container}>
       {/* Top stats bar */}
       <View style={styles.statsRow}>
         <View style={styles.rightStats}>
+          {/* Hearts Display - Only show if not unlimited */}
+          {showHearts && !config.unlimitedHearts && (
+            <View style={styles.statBadge}>
+              <HeartDisplay
+                challengeType={challengeType}
+                showTimer={false}
+                size="small"
+                layout="horizontal"
+              />
+            </View>
+          )}
+
           {/* XP Badge */}
           {showXP && (
             <View style={styles.statBadge}>
