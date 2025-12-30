@@ -107,10 +107,8 @@ export default function ImmersiveHeader({
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        {/* Centered Title with Streak Badge */}
+        {/* Streak Badge Only */}
         <View style={styles.headerRow}>
-          <Text style={styles.mainTitle}>Ready to Level Up? 🚀</Text>
-
           {/* Streak Badge */}
           {streak > 0 && (
             <Animated.View
@@ -133,18 +131,18 @@ export default function ImmersiveHeader({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   gradient: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 10,
+    paddingVertical: 12,
+    paddingTop: 8,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   mainTitle: {

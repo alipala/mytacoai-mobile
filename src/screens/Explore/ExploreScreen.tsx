@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,8 @@ import { CompactLanguageSelector } from '../../components/CompactLanguageSelecto
 import { LanguageSelectionModal } from '../../components/LanguageSelectionModal';
 import { LearningService } from '../../api/generated/services/LearningService';
 import type { LearningPlan } from '../../api/generated';
+import { heartAPI } from '../../services/heartAPI';
+import { AllHeartsStatus } from '../../types/hearts';
 
 // Import challenge screens (will be created next)
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -73,6 +75,9 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   // Completion tracking
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
 
+  // Heart system state
+  const [heartsStatus, setHeartsStatus] = useState<AllHeartsStatus | null>(null);
+
   const isFocused = useIsFocused();
 
   // Load completions on mount and cleanup old data
@@ -85,12 +90,126 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
     initCompletions();
   }, []);
 
+  // Fetch hearts status
+  const fetchHeartsStatus = useCallback(async () => {
+    try {
+      console.log('🔍 Fetching hearts status from API...');
+      const status = await heartAPI.getAllHeartsStatus();
+      console.log('✅ Hearts status received:', JSON.stringify(status));
+      setHeartsStatus(status);
+      console.log('❤️  Hearts status loaded:', status);
+    } catch (error) {
+      console.error('❌ Failed to fetch hearts status:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+    }
+  }, []);
+
   // Load user data and challenge counts
   useEffect(() => {
+    console.log('🔍 [ExploreScreen] useEffect running, isFocused:', isFocused);
     if (isFocused) {
+      console.log('🔍 [ExploreScreen] Calling checkForLevelChange and fetchHeartsStatus');
       checkForLevelChange();
+      fetchHeartsStatus();
     }
   }, [isFocused]);
+
+  // Check if user changed their level in settings
+  const checkForLevelChange = async () => {
+    const levelChanged = await AsyncStorage.getItem('levelChanged');
+
+    if (levelChanged === 'true') {
+      const newLevel = await AsyncStorage.getItem('newLevel');
+      console.log('🔄 Level change detected! Reloading challenges with level:', newLevel);
+
+      await AsyncStorage.removeItem('levelChanged');
+      await AsyncStorage.removeItem('newLevel');
+
+      setCachedChallenges({});
+      setExpandedCardType(null);
+
+      setIsLoading(true);
+      await loadExploreData();
+    } else {
+      await loadExploreData();
+    }
+  };
+
+  const loadExploreData = async () => {
+    try {
+      setErrorMessage(null);
+
+      const userStr = await AsyncStorage.getItem('user');
+      const token = await AsyncStorage.getItem('auth_token');
+      let level: CEFRLevel = 'B1';
+      let language: Language = 'english';
+
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setUserName(user.name || 'there');
+        level = (user.preferred_level || 'B1') as CEFRLevel;
+        setUserLevel(level);
+
+        console.log('🔍 Checking for learning plans... Token exists:', !!token);
+        if (token) {
+          try {
+            console.log('📡 Fetching learning plans from API...');
+            const plans = await LearningService.getUserLearningPlansApiLearningPlansGet();
+            console.log(`✅ Found ${plans.length} learning plan(s) for user`);
+            setUserLearningPlans(plans);
+
+            if (plans.length > 0) {
+              const sortedPlans = [...plans].sort((a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              );
+              const defaultActivePlan = activeLearningPlan || sortedPlans[0];
+              setActiveLearningPlan(defaultActivePlan);
+              console.log(`🎯 Active plan set to: ${defaultActivePlan.language} ${defaultActivePlan.proficiency_level}`);
+
+              if (isInLearningPlanMode && defaultActivePlan) {
+                language = defaultActivePlan.language as Language;
+                level = defaultActivePlan.proficiency_level as CEFRLevel;
+                console.log(`📚 Using active learning plan: ${language} ${level}`);
+              }
+            } else {
+              setActiveLearningPlan(null);
+              setIsInLearningPlanMode(false);
+              console.log('ℹ️ No learning plans found, using freestyle mode');
+            }
+          } catch (planError: any) {
+            console.error('❌ Error fetching learning plans:', planError);
+            setUserLearningPlans([]);
+            setActiveLearningPlan(null);
+            setIsInLearningPlanMode(false);
+          }
+        } else {
+          console.log('⚠️ No token found, skipping learning plan fetch');
+          setUserLearningPlans([]);
+          setActiveLearningPlan(null);
+          setIsInLearningPlanMode(false);
+        }
+      } else {
+        setUserName('there');
+        setUserLevel('B1');
+        setUserLearningPlans([]);
+        setActiveLearningPlan(null);
+        setIsInLearningPlanMode(false);
+      }
+
+      setSelectedLanguage(language);
+      setSelectedLevel(level);
+
+      console.log('📚 Loading challenge pool for level:', level, 'language:', language);
+
+      await loadChallengeCounts(language, level);
+
+    } catch (error) {
+      console.error('❌ Error loading explore data:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to load challenge pool');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Reload challenges when language or level changes
   useEffect(() => {
@@ -103,122 +222,6 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
       loadChallengeCounts();
     }
   }, [selectedLanguage, selectedLevel]);
-
-  // Check if user changed their level in settings
-  const checkForLevelChange = async () => {
-    const levelChanged = await AsyncStorage.getItem('levelChanged');
-
-    if (levelChanged === 'true') {
-      const newLevel = await AsyncStorage.getItem('newLevel');
-      console.log('🔄 Level change detected! Reloading challenges with level:', newLevel);
-
-      // Clear the flags
-      await AsyncStorage.removeItem('levelChanged');
-      await AsyncStorage.removeItem('newLevel');
-
-      // Clear cached challenges to force fresh fetch
-      setCachedChallenges({});
-      setExpandedCardType(null);
-
-      // Force reload
-      setIsLoading(true);
-      await loadExploreData();
-    } else {
-      // Normal load
-      await loadExploreData();
-    }
-  };
-
-  const loadExploreData = async () => {
-    try {
-      setErrorMessage(null); // Clear any previous errors
-
-      // Get user data from AsyncStorage
-      const userStr = await AsyncStorage.getItem('user');
-      const token = await AsyncStorage.getItem('auth_token'); // FIXED: Use correct AsyncStorage key
-      let level: CEFRLevel = 'B1';
-      let language: Language = 'english';
-
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        setUserName(user.name || 'there');
-        // Get user's CEFR level from preferred_level or default to B1
-        level = (user.preferred_level || 'B1') as CEFRLevel;
-        setUserLevel(level);
-
-        // Fetch user's learning plans from API if authenticated
-        console.log('🔍 Checking for learning plans... Token exists:', !!token);
-        if (token) {
-          try {
-            console.log('📡 Fetching learning plans from API...');
-            const plans = await LearningService.getUserLearningPlansApiLearningPlansGet();
-            console.log(`✅ Found ${plans.length} learning plan(s) for user`);
-            console.log('📚 Plans:', JSON.stringify(plans.map(p => ({ id: p.id, lang: p.language, level: p.proficiency_level }))));
-            setUserLearningPlans(plans);
-
-            // If user has plans, set the first one as active (or keep existing active plan)
-            if (plans.length > 0) {
-              // Find active plan (most recently created by default)
-              const sortedPlans = [...plans].sort((a, b) =>
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-              );
-              const defaultActivePlan = activeLearningPlan || sortedPlans[0];
-              setActiveLearningPlan(defaultActivePlan);
-              console.log(`🎯 Active plan set to: ${defaultActivePlan.language} ${defaultActivePlan.proficiency_level}`);
-
-              // If in learning plan mode, use the active plan's settings
-              if (isInLearningPlanMode && defaultActivePlan) {
-                language = defaultActivePlan.language as Language;
-                level = defaultActivePlan.proficiency_level as CEFRLevel;
-                console.log(`📚 Using active learning plan: ${language} ${level}`);
-              }
-            } else {
-              // No learning plans
-              setActiveLearningPlan(null);
-              setIsInLearningPlanMode(false);
-              console.log('ℹ️ No learning plans found, using freestyle mode');
-            }
-          } catch (planError: any) {
-            console.error('❌ Error fetching learning plans:', planError);
-            console.error('❌ Error details:', planError.message, planError.stack);
-            // Continue with default settings if plan fetch fails
-            setUserLearningPlans([]);
-            setActiveLearningPlan(null);
-            setIsInLearningPlanMode(false);
-          }
-        } else {
-          // Not authenticated
-          console.log('⚠️ No token found, skipping learning plan fetch');
-          setUserLearningPlans([]);
-          setActiveLearningPlan(null);
-          setIsInLearningPlanMode(false);
-        }
-      } else {
-        // Guest user - default to B1 and english
-        setUserName('there');
-        setUserLevel('B1');
-        setUserLearningPlans([]);
-        setActiveLearningPlan(null);
-        setIsInLearningPlanMode(false);
-      }
-
-      // Initialize selected language and level
-      setSelectedLanguage(language);
-      setSelectedLevel(level);
-
-      console.log('📚 Loading challenge pool for level:', level, 'language:', language);
-
-      // Load challenge counts for categories (pool system)
-      // Pass language/level directly to avoid state synchronization issues
-      await loadChallengeCounts(language, level);
-
-    } catch (error) {
-      console.error('❌ Error loading explore data:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to load challenge pool');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const loadChallengeCounts = async (language?: Language, level?: CEFRLevel) => {
     try {
@@ -649,6 +652,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
                   isExpanded={isExpanded}
                   isLoading={isLoading}
                   completedToday={completedToday}
+                  heartPool={heartsStatus?.[category.type as keyof AllHeartsStatus] || null}
                   onToggle={() => handleCardToggle(category.type)}
                   onChallengePress={handleChallengePress}
                 />

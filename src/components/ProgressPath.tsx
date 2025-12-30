@@ -307,7 +307,7 @@ export function ProgressPath({ style }: ProgressPathProps) {
 const styles = StyleSheet.create({
   container: {
     height: 70,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     paddingHorizontal: 20,

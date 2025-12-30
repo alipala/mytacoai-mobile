@@ -44,12 +44,14 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 interface MicroQuizScreenProps {
   challenge: MicroQuizChallenge;
   onComplete: (challengeId: string, isCorrect: boolean, details?: any) => void;
+  onWrongAnswerSelected?: () => void;
   onClose: () => void;
 }
 
 export default function MicroQuizScreen({
   challenge,
   onComplete,
+  onWrongAnswerSelected,
   onClose,
 }: MicroQuizScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -69,10 +71,7 @@ export default function MicroQuizScreen({
   const backgroundOpacity = useSharedValue(0);
   const screenOpacity = useSharedValue(1);
 
-  // Breathing animation for question
-  useEffect(() => {
-    questionScale.value = createBreathingAnimation(1.0);
-  }, []);
+  // No breathing animation for question box - removed for cleaner look
 
   // Reset state when challenge changes with fade animation
   useEffect(() => {
@@ -100,24 +99,30 @@ export default function MicroQuizScreen({
     const isCorrect = option.isCorrect;
 
     setSelectedOption(optionId);
-    // Removed anticipation state - go straight to feedback
+
+    // TRIGGER WRONG ANSWER ANIMATIONS IMMEDIATELY
+    if (!isCorrect && onWrongAnswerSelected) {
+      onWrongAnswerSelected();
+    }
 
     // Wait briefly before showing feedback
     setTimeout(() => {
       setShowFeedback(true);
       reactToAnswer(isCorrect);
 
-      // Haptic and audio feedback
+      // Haptic and audio feedback - Skip for wrong answers (already done in WrongAnswerFeedback)
       if (Platform.OS !== 'web') {
         if (isCorrect) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } else {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
+        // Removed wrong answer haptic - handled by WrongAnswerFeedback component
       }
 
-      // Play sound effect
-      play(isCorrect ? 'correct_answer' : 'wrong_answer');
+      // Play sound effect - Skip for wrong answers (already done in WrongAnswerFeedback)
+      if (isCorrect) {
+        play('correct_answer');
+      }
+      // Removed wrong answer sound - handled by WrongAnswerFeedback component
 
       // Calculate XP for correct answers
       if (isCorrect) {
@@ -209,10 +214,10 @@ export default function MicroQuizScreen({
 
             {/* Title removed - only companion animation shown */}
 
-            {/* Question with breathing animation */}
-            <Animated.View style={[styles.questionContainer, questionAnimatedStyle]}>
+            {/* Question container (no animation) */}
+            <View style={styles.questionContainer}>
               <Text style={styles.question}>{challenge.question}</Text>
-            </Animated.View>
+            </View>
 
             {/* Options with dynamic layout */}
             <View style={styles.optionsContainer}>
@@ -376,7 +381,7 @@ function OptionButton({ option, index, isSelected, onPress }: OptionButtonProps)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#FAFAFA', // Clean whitish background
   },
   successBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -385,8 +390,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    justifyContent: 'center',
     zIndex: 1,
   },
   companionContainer: {
@@ -407,7 +414,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF7ED',
     padding: 24,
     borderRadius: 20,
-    marginBottom: 28,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#FED7AA',
+    shadowColor: '#92400E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   question: {
     fontSize: 20,
@@ -418,6 +432,7 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     gap: 12,
+    marginTop: 8,
   },
   optionButton: {
     backgroundColor: '#FFFFFF',

@@ -24,6 +24,8 @@ import { calculateXP } from '../services/xpCalculator';
 import { checkSessionAchievements, calculateSessionStats } from '../services/achievementService';
 import { completeSession as completeSessionAPI } from '../services/achievementAPI';
 import { refreshStatsAfterSession } from '../services/statsService';
+import { heartAPI } from '../services/heartAPI';
+import { CHALLENGE_TYPE_API_NAMES } from '../types/hearts';
 
 const SESSION_STORAGE_KEY = '@challenge_session';
 
@@ -126,6 +128,20 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
       setIsLoading(true);
 
       try {
+        // Convert challenge type to API format
+        const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[params.challengeType] || params.challengeType;
+
+        // Fetch heart status for this challenge type
+        const heartPool = await heartAPI.getHeartStatus(challengeTypeAPI);
+
+        // Check if user has hearts to start session
+        if (heartPool.currentHearts === 0) {
+          throw new Error(
+            `No hearts available for ${params.challengeType}. ` +
+            `Next heart in ${Math.ceil(heartPool.refillInfo?.nextHeartInMinutes || 0)} minutes.`
+          );
+        }
+
         let challenges: Challenge[];
 
         // Use specific challenges if provided (for review sessions), otherwise fetch new ones
@@ -169,14 +185,28 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
           startTime: new Date(),
           challengeStartTime: new Date(),
           answerTimes: [],
+          // Heart System
+          heartPool: heartPool,
+          lastHeartResponse: null,
+          endedEarly: false,
+          // State
           isActive: true,
           isPaused: false,
         };
 
         setSession(newSession);
         console.log('✅ Session started:', newSession.id);
+        console.log(`❤️  Starting with ${heartPool.currentHearts}/${heartPool.maxHearts} hearts`);
       } catch (error) {
-        console.error('Failed to start session:', error);
+        // Check if it's a heart-related error
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('No hearts available')) {
+          // Log as info instead of error to avoid error toast
+          console.log('💔 Cannot start session: No hearts available');
+        } else {
+          // Log other errors normally
+          console.error('Failed to start session:', error);
+        }
         throw error;
       } finally {
         setIsLoading(false);
@@ -189,13 +219,15 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
    * Answer current challenge
    */
   const answerChallenge = useCallback(
-    (challengeId: string, isCorrect: boolean) => {
-      if (!session || !session.isActive || session.isPaused) {
+    async (challengeId: string, isCorrect: boolean) => {
+      // Use sessionRef to avoid stale closure
+      const currentSession = sessionRef.current;
+      if (!currentSession || !currentSession.isActive || currentSession.isPaused) {
         console.warn('Cannot answer challenge: no active session');
         return;
       }
 
-      const currentChallenge = session.challenges[session.currentIndex];
+      const currentChallenge = currentSession.challenges[currentSession.currentIndex];
       if (!currentChallenge || currentChallenge.id !== challengeId) {
         console.warn('Challenge ID mismatch');
         return;
@@ -203,44 +235,78 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
 
       // Calculate time spent on this challenge
       const now = new Date();
-      const timeSpent = session.challengeStartTime
-        ? (now.getTime() - new Date(session.challengeStartTime).getTime()) / 1000
+      const timeSpent = currentSession.challengeStartTime
+        ? (now.getTime() - new Date(currentSession.challengeStartTime).getTime()) / 1000
         : 0;
 
       // Calculate XP earned
-      const xpResult = calculateXP(isCorrect, timeSpent, session.currentCombo);
+      const xpResult = calculateXP(isCorrect, timeSpent, currentSession.currentCombo);
 
-      // Update combo
-      const newCombo = isCorrect ? session.currentCombo + 1 : 1;
-      const newMaxCombo = Math.max(session.maxCombo, newCombo);
+      // NEW: Consume heart via API
+      const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[currentSession.challengeType] || currentSession.challengeType;
+      const heartResponse = await heartAPI.consumeHeart(
+        challengeTypeAPI,
+        isCorrect,
+        currentSession.id
+      );
 
-      // Track incorrect challenges
-      const updatedIncorrectIds = isCorrect
-        ? session.incorrectChallengeIds
-        : [...session.incorrectChallengeIds, challengeId];
+      // Use functional setState to avoid race conditions
+      setSession((prevSession) => {
+        if (!prevSession) return null;
 
-      // Update session
-      setSession({
-        ...session,
-        completedChallenges: session.completedChallenges + 1,
-        correctAnswers: session.correctAnswers + (isCorrect ? 1 : 0),
-        wrongAnswers: session.wrongAnswers + (isCorrect ? 0 : 1),
-        currentCombo: newCombo,
-        maxCombo: newMaxCombo,
-        totalXP: session.totalXP + xpResult.totalXP,
-        incorrectChallengeIds: updatedIncorrectIds,
-        answerTimes: [...session.answerTimes, timeSpent],
-        challengeStartTime: null, // Stop timer for current challenge
+        // Update combo
+        const newCombo = isCorrect ? prevSession.currentCombo + 1 : 1;
+        const newMaxCombo = Math.max(prevSession.maxCombo, newCombo);
+
+        // Track incorrect challenges
+        const updatedIncorrectIds = isCorrect
+          ? prevSession.incorrectChallengeIds
+          : [...prevSession.incorrectChallengeIds, challengeId];
+
+        return {
+          ...prevSession,
+          completedChallenges: prevSession.completedChallenges + 1,
+          correctAnswers: prevSession.correctAnswers + (isCorrect ? 1 : 0),
+          wrongAnswers: prevSession.wrongAnswers + (isCorrect ? 0 : 1),
+          currentCombo: newCombo,
+          maxCombo: newMaxCombo,
+          totalXP: prevSession.totalXP + xpResult.totalXP,
+          incorrectChallengeIds: updatedIncorrectIds,
+          answerTimes: [...prevSession.answerTimes, timeSpent],
+          challengeStartTime: null, // Stop timer for current challenge
+          // Heart System updates
+          heartPool: prevSession.heartPool ? {
+            ...prevSession.heartPool,
+            currentHearts: heartResponse.heartsRemaining,
+            shieldActive: heartResponse.shieldActive,
+            currentStreak: heartResponse.currentStreak,
+            refillInProgress: heartResponse.outOfHearts,
+            refillInfo: heartResponse.refillInfo
+          } : null,
+          lastHeartResponse: heartResponse,
+        };
       });
 
       console.log(`📊 Challenge answered:`, {
         correct: isCorrect,
         timeSpent: `${timeSpent.toFixed(1)}s`,
         xpEarned: xpResult.totalXP,
-        combo: newCombo,
+        combo: isCorrect ? currentSession.currentCombo + 1 : 1,
+        hearts: `${heartResponse.heartsRemaining} remaining`,
+        shield: heartResponse.shieldActive ? '🛡️ Active' : '❌',
       });
+
+      // Check if out of hearts
+      if (heartResponse.outOfHearts) {
+        console.warn('❤️  Out of hearts! Ending session early...');
+        // Pass the updated session info for early end
+        const finalSession = sessionRef.current;
+        if (finalSession) {
+          await endSessionEarly(finalSession);
+        }
+      }
     },
-    [session]
+    [] // No dependencies - uses sessionRef instead
   );
 
   /**
@@ -296,6 +362,64 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         challengeStartTime: new Date(), // Restart timer
       };
     });
+  }, []);
+
+  /**
+   * End session early due to no hearts
+   * Saves progress and logs event
+   */
+  const endSessionEarly = useCallback(async (updatedSession: ChallengeSession) => {
+    console.warn('💔 Session ending early: out of hearts');
+
+    // Mark session as ended early
+    const finalSession = {
+      ...updatedSession,
+      isActive: false,
+      endedEarly: true,
+      completedAt: new Date(),
+    };
+
+    setSession(finalSession);
+
+    // Log session ended early event
+    const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[finalSession.challengeType] || finalSession.challengeType;
+    await heartAPI.logSessionEndedEarly(
+      challengeTypeAPI,
+      finalSession.id,
+      finalSession.completedChallenges,
+      finalSession.challenges.length
+    );
+
+    // Calculate and save stats for challenges completed before running out
+    const stats = calculateSessionStats(finalSession);
+
+    // Save progress to backend (if any challenges were completed)
+    if (finalSession.completedChallenges > 0) {
+      try {
+        await completeSessionAPI(
+          finalSession.id,
+          finalSession.correctAnswers,
+          finalSession.wrongAnswers,
+          finalSession.maxCombo,
+          finalSession.totalXP,
+          finalSession.answerTimes,
+          [], // No achievements for early-ended sessions
+          finalSession.language,
+          finalSession.level,
+          finalSession.challengeType
+        );
+
+        // Refresh stats cache
+        await refreshStatsAfterSession();
+
+        console.log('✅ Early-ended session progress saved to backend');
+      } catch (error) {
+        console.error('Failed to save early-ended session:', error);
+      }
+    }
+
+    // Session will stay in state to show OutOfHeartsModal
+    // Don't clear session yet - let the UI handle it
   }, []);
 
   /**

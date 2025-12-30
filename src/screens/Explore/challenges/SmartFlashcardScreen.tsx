@@ -70,10 +70,7 @@ export default function SmartFlashcardScreen({
   const cardScale = useSharedValue(1);
   const screenOpacity = useSharedValue(1);
 
-  // Breathing animation for card
-  useEffect(() => {
-    cardScale.value = createBreathingAnimation(1.0);
-  }, []);
+  // No breathing animation for card - removed for cleaner look
 
   // Reset state when challenge changes with fade animation
   useEffect(() => {
@@ -319,7 +316,7 @@ export default function SmartFlashcardScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#FAFAFA', // Clean whitish background
   },
   celebrationCompanion: {
     position: 'absolute',

@@ -5,6 +5,7 @@
  */
 
 import { Challenge, Language, CEFRLevel } from '../services/mockChallengeData';
+import { HeartPool, ConsumeHeartResponse } from './hearts';
 
 /**
  * Main session state
@@ -35,6 +36,11 @@ export interface ChallengeSession {
   startTime: Date;
   challengeStartTime: Date | null;
   answerTimes: number[]; // Time taken per challenge in seconds
+
+  // Heart System (Focus Energy)
+  heartPool: HeartPool | null;
+  lastHeartResponse: ConsumeHeartResponse | null;
+  endedEarly: boolean; // True if session ended due to no hearts
 
   // State
   isActive: boolean;

@@ -42,6 +42,9 @@ import ImmersiveLoader from '../../components/ImmersiveLoader';
 import HorizontalStatsCarousel from '../../components/HorizontalStatsCarousel';
 import PlaceholderStatsCard from '../../components/PlaceholderStatsCard';
 import { useDailyStats, useRecentPerformance } from '../../hooks/useStats';
+import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
+import { heartAPI } from '../../services/heartAPI';
+import { CHALLENGE_TYPE_API_NAMES } from '../../types/hearts';
 
 // Challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -180,6 +183,14 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   const [categoryStats, setCategoryStats] = useState<Record<string, CategoryStats>>({});
   const [loadingStats, setLoadingStats] = useState(true);
 
+  // Pre-session out of hearts modal
+  const [showPreSessionHeartsModal, setShowPreSessionHeartsModal] = useState(false);
+  const [preSessionErrorInfo, setPreSessionErrorInfo] = useState<{
+    challengeType: string;
+    refillInfo: any;
+  } | null>(null);
+  const [userSubscriptionPlan, setUserSubscriptionPlan] = useState<string>('try_learn');
+
   // Load initial data and reload when screen is focused (e.g., returning from session)
   useEffect(() => {
     if (isFocused) {
@@ -258,11 +269,12 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
     try {
       setIsLoading(true);
 
-      // Load user name
+      // Load user name and subscription plan
       const userStr = await AsyncStorage.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
         setUserName(user.name || 'there');
+        setUserSubscriptionPlan(user.subscription_plan || 'try_learn');
       }
 
       // Load completed learning plans
@@ -595,7 +607,32 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
       // Navigate to the gamified session screen
       navigation.navigate('ChallengeSession');
     } catch (error) {
-      console.error(`❌ Error starting session:`, error);
+      // Check if error is due to no hearts available
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('No hearts available')) {
+        console.log('💔 Out of hearts before session start - showing modal');
+
+        // Fetch current heart status to get refill info
+        try {
+          const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[categoryType] || categoryType;
+          const heartStatus = await heartAPI.getHeartStatus(challengeTypeAPI);
+
+          console.log('❤️  Heart status for modal:', JSON.stringify(heartStatus, null, 2));
+
+          setPreSessionErrorInfo({
+            challengeType: challengeTypeAPI,
+            refillInfo: heartStatus.refillInfo,
+          });
+          setShowPreSessionHeartsModal(true);
+        } catch (heartError) {
+          console.warn('Failed to fetch heart status for modal:', heartError);
+          // Show error alert as fallback
+          alert('No hearts available for this challenge. Please wait for them to refill.');
+        }
+      } else {
+        // Only log as error if it's NOT a heart-related error (to avoid error toast)
+        console.error(`❌ Error starting session:`, error);
+      }
     } finally {
       setLoadingChallenges(false);
     }
@@ -678,17 +715,9 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
     >
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Immersive Header */}
-        <ImmersiveHeader
-          userName={userName || 'Learner'}
-          streak={daily?.streak?.current || 0}
-          totalXP={daily?.overall?.total_xp || 0}
-          challengesToday={daily?.overall?.total_challenges || 0}
-        />
-
         {/* Show placeholder for new users, carousel for active users */}
         {(() => {
           const showPlaceholder = !daily || (daily?.overall?.total_challenges === 0 && (!recent || recent.summary.total_challenges === 0));
@@ -699,7 +728,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
         })()}
 
         {/* Section Title */}
-        <View style={{ marginBottom: 12, marginTop: 0, paddingHorizontal: 0 }}>
+        <View style={{ marginBottom: 8, marginTop: 0, paddingHorizontal: 0 }}>
           <Text style={{
             fontSize: 22,
             fontWeight: '700',
@@ -710,7 +739,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
         </View>
 
         {/* Quest Cards - Side by Side */}
-        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 4 }}>
           {/* Completed Plans Card */}
           <Animated.View
             style={{
@@ -1622,6 +1651,29 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
             initialLevel={selectedLevel}
           />
         </View>
+      )}
+
+      {/* Pre-Session Out of Hearts Modal */}
+      {showPreSessionHeartsModal && preSessionErrorInfo && (
+        <OutOfHeartsModal
+          visible={showPreSessionHeartsModal}
+          challengeType={preSessionErrorInfo.challengeType}
+          refillInfo={preSessionErrorInfo.refillInfo}
+          subscriptionPlan={userSubscriptionPlan}
+          onUpgrade={() => {
+            console.log('🚀 User clicked upgrade from pre-session modal');
+            setShowPreSessionHeartsModal(false);
+            navigation.navigate('Checkout');
+          }}
+          onWait={() => {
+            console.log('⏰ User chose to wait for refill');
+            setShowPreSessionHeartsModal(false);
+          }}
+          onDismiss={() => {
+            console.log('❌ User dismissed pre-session hearts modal');
+            setShowPreSessionHeartsModal(false);
+          }}
+        />
       )}
     </SafeAreaView>
   );

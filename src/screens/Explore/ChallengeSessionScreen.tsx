@@ -21,12 +21,17 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useChallengeSession } from '../../contexts/ChallengeSessionContext';
 import SessionProgressBar from '../../components/SessionProgressBar';
 import SessionSummary from '../../components/SessionSummary';
 import { SessionStats } from '../../types/session';
 import { updateDailyStats, updateCategoryStats } from '../../services/dailyStatsService';
+import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
+import { WrongAnswerFeedback } from '../../components/WrongAnswerFeedback';
+import { CHALLENGE_TYPE_API_NAMES } from '../../types/hearts';
+import { heartAPI } from '../../services/heartAPI';
 
 // Import individual challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -65,20 +70,78 @@ export default function ChallengeSessionScreen({
     challengeType: string;
     source: 'reference' | 'learning_plan';
   } | null>(null);
+  const [showOutOfHeartsModal, setShowOutOfHeartsModal] = useState(false);
+  const [userSubscriptionPlan, setUserSubscriptionPlan] = useState<string>('try_learn');
+  const [showWrongAnswerFeedback, setShowWrongAnswerFeedback] = useState(false);
 
   const currentChallenge = getCurrentChallenge();
 
-  // Check if session is complete
+  // Get background color - clean whitish for all challenge types
+  const getBackgroundColor = () => {
+    return '#FAFAFA'; // Clean whitish background
+  };
+
+  // Load user subscription plan
   useEffect(() => {
-    if (isSessionComplete()) {
+    const loadUserData = async () => {
+      try {
+        const userStr = await AsyncStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          setUserSubscriptionPlan(user.subscription_plan || 'try_learn');
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+    loadUserData();
+  }, []);
+
+  // Watch for out-of-hearts
+  useEffect(() => {
+    if (session?.lastHeartResponse?.outOfHearts) {
+      setShowOutOfHeartsModal(true);
+
+      // Log modal shown
+      if (session.challengeType) {
+        const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType;
+        heartAPI.logModalInteraction(
+          challengeTypeAPI,
+          'shown',
+          session.id,
+          {
+            completed: session.completedChallenges,
+            total: session.challenges.length
+          }
+        );
+      }
+    }
+  }, [session?.lastHeartResponse]);
+
+  // Check if session is complete (but NOT if ended early due to no hearts)
+  useEffect(() => {
+    if (isSessionComplete() && !session?.endedEarly) {
       handleSessionComplete();
     }
-  }, [session?.isActive]);
+  }, [session?.isActive, session?.endedEarly]);
+
+  /**
+   * Handle wrong answer selection (separate from completion)
+   * Triggers animations immediately when wrong answer is selected
+   */
+  const handleWrongAnswerSelected = () => {
+    console.log('💔 Wrong answer selected - triggering animations');
+    setShowWrongAnswerFeedback(true);
+  };
 
   /**
    * Handle challenge answer and advance
    */
-  const handleChallengeAnswer = async (challengeId: string, isCorrect: boolean, details?: any) => {
+  const handleChallengeAnswer = async (
+    challengeId: string,
+    isCorrect: boolean,
+    details?: any
+  ) => {
     if (!session) return;
 
     console.log(`📝 Challenge answered:`, { challengeId, isCorrect, details });
@@ -253,6 +316,7 @@ export default function ChallengeSessionScreen({
     const challengeProps = {
       challenge: currentChallenge,
       onComplete: handleChallengeAnswer,
+      onWrongAnswerSelected: handleWrongAnswerSelected,
       onClose: handleQuit,
     };
 
@@ -280,11 +344,13 @@ export default function ChallengeSessionScreen({
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={[styles.container, { backgroundColor: getBackgroundColor() }]}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
-      {/* Session Progress Bar - Only show if session exists */}
-      {session && !showLoading && <SessionProgressBar />}
+      <SafeAreaView style={styles.safeArea}>
+        {/* Session Progress Bar - Only show if session exists */}
+        {session && !showLoading && <SessionProgressBar heartPool={session.heartPool} />}
+      </SafeAreaView>
 
       {/* Loading Screen - Show while calculating stats */}
       {showLoading && (
@@ -318,17 +384,75 @@ export default function ChallengeSessionScreen({
           )}
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+
+      {/* Wrong Answer Feedback - Synchronized animations */}
+      <WrongAnswerFeedback
+        visible={showWrongAnswerFeedback}
+        intensity="medium"
+        onAnimationComplete={() => {
+          setShowWrongAnswerFeedback(false);
+        }}
+      />
+
+      {/* Out of Hearts Modal */}
+      {session && showOutOfHeartsModal && session.lastHeartResponse && (
+        <OutOfHeartsModal
+          visible={showOutOfHeartsModal}
+          challengeType={CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType}
+          refillInfo={session.lastHeartResponse.refillInfo!}
+          subscriptionPlan={userSubscriptionPlan}
+          onUpgrade={() => {
+            // Log upgrade click
+            const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType;
+            heartAPI.logModalInteraction(
+              challengeTypeAPI,
+              'upgrade',
+              session.id,
+              { completed: session.completedChallenges, total: session.challenges.length }
+            );
+            setShowOutOfHeartsModal(false);
+            navigation.navigate('Checkout');
+          }}
+          onWait={() => {
+            // Log wait click
+            const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType;
+            heartAPI.logModalInteraction(
+              challengeTypeAPI,
+              'wait',
+              session.id,
+              { completed: session.completedChallenges, total: session.challenges.length }
+            );
+            setShowOutOfHeartsModal(false);
+            navigation.goBack();
+          }}
+          onDismiss={() => {
+            // Log dismiss
+            const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType;
+            heartAPI.logModalInteraction(
+              challengeTypeAPI,
+              'dismissed',
+              session.id,
+              { completed: session.completedChallenges, total: session.challenges.length }
+            );
+            setShowOutOfHeartsModal(false);
+            navigation.goBack();
+          }}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+  },
+  safeArea: {
+    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     flex: 1,

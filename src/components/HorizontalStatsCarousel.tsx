@@ -111,7 +111,7 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 16, // Spacing above "Choose Your Quest" buttons
     marginHorizontal: -20, // Break out of parent's padding
   },
   header: {
@@ -143,5 +143,6 @@ const styles = StyleSheet.create({
   cardWrapper: {
     width: CARD_WIDTH,
     marginRight: CARD_SPACING,
+    // No fixed height - let content determine card height naturally
   },
 });

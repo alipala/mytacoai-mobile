@@ -44,12 +44,14 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 interface NativeCheckScreenProps {
   challenge: NativeCheckChallenge;
   onComplete: (challengeId: string, isCorrect: boolean, details?: any) => void;
+  onWrongAnswerSelected?: () => void;
   onClose: () => void;
 }
 
 export default function NativeCheckScreen({
   challenge,
   onComplete,
+  onWrongAnswerSelected,
   onClose,
 }: NativeCheckScreenProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
@@ -69,10 +71,7 @@ export default function NativeCheckScreen({
   const backgroundOpacity = useSharedValue(0);
   const screenOpacity = useSharedValue(1);
 
-  // Breathing animation for sentence
-  useEffect(() => {
-    sentenceScale.value = createBreathingAnimation(1.0);
-  }, []);
+  // No breathing animation for question box - removed for cleaner look
 
   // Reset state when challenge changes with fade animation
   useEffect(() => {
@@ -97,24 +96,30 @@ export default function NativeCheckScreen({
     const isCorrect = answer === challenge.isNatural;
 
     setSelectedAnswer(answer);
-    // Removed anticipation state - go straight to feedback
+
+    // TRIGGER WRONG ANSWER ANIMATIONS IMMEDIATELY
+    if (!isCorrect && onWrongAnswerSelected) {
+      onWrongAnswerSelected();
+    }
 
     // Wait briefly before showing feedback
     setTimeout(() => {
       setShowFeedback(true);
       reactToAnswer(isCorrect);
 
-      // Haptic and audio feedback
+      // Haptic and audio feedback - Skip for wrong answers (already done in WrongAnswerFeedback)
       if (Platform.OS !== 'web') {
         if (isCorrect) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } else {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
+        // Removed wrong answer haptic - handled by WrongAnswerFeedback component
       }
 
-      // Play sound effect
-      play(isCorrect ? 'correct_answer' : 'wrong_answer');
+      // Play sound effect - Skip for wrong answers (already done in WrongAnswerFeedback)
+      if (isCorrect) {
+        play('correct_answer');
+      }
+      // Removed wrong answer sound - handled by WrongAnswerFeedback component
 
       // Calculate XP for correct answers
       if (isCorrect) {
@@ -206,10 +211,10 @@ export default function NativeCheckScreen({
 
             {/* Title removed - only companion animation shown */}
 
-            {/* Sentence with breathing animation */}
-            <Animated.View style={[styles.sentenceContainer, sentenceAnimatedStyle]}>
+            {/* Sentence container (no animation) */}
+            <View style={styles.sentenceContainer}>
               <Text style={styles.sentence}>"{challenge.sentence}"</Text>
-            </Animated.View>
+            </View>
 
             {/* Question */}
             <Text style={styles.question}>
@@ -395,7 +400,7 @@ function AnswerButton({ label, emoji, isYes, isSelected, onPress }: AnswerButton
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#FAFAFA', // Clean whitish background
   },
   successBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -404,13 +409,15 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    justifyContent: 'center',
     zIndex: 1,
   },
   companionContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   titleSection: {
     alignItems: 'center',
@@ -424,26 +431,33 @@ const styles = StyleSheet.create({
   },
   sentenceContainer: {
     backgroundColor: '#FFFBEB',
-    padding: 28,
+    padding: 24,
     borderRadius: 20,
-    marginBottom: 24,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#FEF3C7',
+    shadowColor: '#92400E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
   },
   sentence: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600',
     color: COLORS.textDark,
     textAlign: 'center',
-    lineHeight: 34,
+    lineHeight: 30,
   },
   question: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: COLORS.textGray,
-    marginBottom: 28,
+    marginBottom: 32,
     textAlign: 'center',
   },
   answerContainer: {
-    gap: 16,
+    gap: 14,
   },
   answerButton: {
     flexDirection: 'row',

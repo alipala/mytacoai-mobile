@@ -16,6 +16,8 @@ import LottieView from 'lottie-react-native';
 import { Challenge, ChallengeType } from '../services/mockChallengeData';
 import { COLORS } from '../constants/colors';
 import { ChallengeListItem } from './ChallengeListItem';
+import { HeartDisplay } from './HeartDisplay';
+import { HeartPool } from '../types/hearts';
 
 interface ExpandableChallengeCardProps {
   type: ChallengeType;
@@ -28,6 +30,7 @@ interface ExpandableChallengeCardProps {
   isExpanded: boolean;
   isLoading: boolean;
   completedToday: Set<string>;
+  heartPool?: HeartPool | null;
   onToggle: () => void;
   onChallengePress: (challenge: Challenge) => void;
 }
@@ -82,6 +85,7 @@ export function ExpandableChallengeCard({
   isExpanded,
   isLoading,
   completedToday,
+  heartPool,
   onToggle,
   onChallengePress,
 }: ExpandableChallengeCardProps) {
@@ -209,6 +213,18 @@ export function ExpandableChallengeCard({
             <View style={styles.textContainer}>
               <Text style={styles.cardTitle}>{title}</Text>
               <Text style={styles.cardDescription}>{description}</Text>
+
+              {/* Heart Display below description */}
+              {heartPool && (
+                <View style={{ marginTop: 8 }}>
+                  <HeartDisplay
+                    heartPool={heartPool}
+                    size="small"
+                    showShield={true}
+                    showCount={true}
+                  />
+                </View>
+              )}
             </View>
 
             {/* Badge & Chevron */}

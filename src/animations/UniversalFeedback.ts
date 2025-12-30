@@ -148,12 +148,15 @@ export const animateFailure = (
  *
  * Continuous subtle scale oscillation for living feel
  */
-export const createBreathingAnimation = (baseScale: number = 1.0) => {
+export const createBreathingAnimation = (baseScale: number = 1.0, intensity: 'subtle' | 'normal' = 'normal') => {
   'worklet';
+
+  // Intensity determines scale factor
+  const scaleFactor = intensity === 'subtle' ? 1.03 : 1.06;
 
   return withRepeat(
     withSequence(
-      withTiming(baseScale * 1.03, {
+      withTiming(baseScale * scaleFactor, {
         duration: 2000,
         easing: Easing.inOut(Easing.ease),
       }),

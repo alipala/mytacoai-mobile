@@ -324,7 +324,7 @@ export default function SwipeFixScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#FAFAFA', // Clean whitish background
   },
   celebrationCompanion: {
     position: 'absolute',

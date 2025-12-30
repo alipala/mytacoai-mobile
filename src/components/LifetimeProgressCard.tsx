@@ -539,7 +539,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 0,
-    marginBottom: 16,
+    marginBottom: 0,
   },
   whiteCard: {
     backgroundColor: '#FFFFFF',
