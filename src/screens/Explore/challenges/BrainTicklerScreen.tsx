@@ -39,9 +39,11 @@ import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
 import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
+import { useFocus } from '../../../contexts/FocusContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
+import { HeartLossAnimation } from '../../../components/HeartLossAnimation';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -66,8 +68,11 @@ export default function BrainTicklerScreen({
   const [showParticleBurst, setShowParticleBurst] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
+  const [showHeartLoss, setShowHeartLoss] = useState(false);
+  const [heartLossPosition, setHeartLossPosition] = useState({ x: 0, y: 0 });
 
   const { session } = useChallengeSession();
+  const { consumeHeart, shield, incrementStreak, resetStreak, consumeShield, config } = useFocus();
   const { characterState, reactToAnswer, reactToSelection, updateState } = useCharacterState();
   const { play, stopAll: stopAllAudio } = useAudio();
 
@@ -123,6 +128,7 @@ export default function BrainTicklerScreen({
     setTimerActive(true);
     setShowXPAnimation(false);
     setShowParticleBurst(false);
+    setShowHeartLoss(false);
     progressPercent.value = 0;
     timerScale.value = 1;
     backgroundOpacity.value = 0;
@@ -180,6 +186,28 @@ export default function BrainTicklerScreen({
         if (prev <= 1) {
           // IMMEDIATELY stop ALL timers synchronously
           stopAllTimers();
+
+          // Handle hearts on timeout (unless unlimited hearts)
+          if (!config.unlimitedHearts) {
+            const shouldUseShield = shield.isActive;
+            const result = consumeHeart('brain_tickler', shouldUseShield);
+
+            // Reset streak on timeout
+            resetStreak();
+
+            // Show heart loss animation at center (unless shield was used)
+            if (!shouldUseShield && result.success) {
+              setHeartLossPosition({ x: SCREEN_WIDTH / 2, y: 200 });
+              setShowHeartLoss(true);
+            }
+
+            // Check if out of hearts
+            if (!result.success && result.shouldShowModal) {
+              // Will be handled by ChallengeSessionScreen via session context
+              onClose();
+              return 0;
+            }
+          }
 
           // Set states
           setTimerActive(false);
@@ -240,6 +268,34 @@ export default function BrainTicklerScreen({
 
     // Stop ALL timers immediately
     stopAllTimers();
+
+    // Handle hearts and streak (unless unlimited hearts)
+    if (!config.unlimitedHearts) {
+      if (isCorrect) {
+        // Increment streak on correct answer
+        incrementStreak();
+      } else {
+        // Wrong answer: consume heart or shield
+        const shouldUseShield = shield.isActive;
+        const result = consumeHeart('brain_tickler', shouldUseShield);
+
+        // Reset streak on wrong answer
+        resetStreak();
+
+        // Show heart loss animation (unless shield was used)
+        if (!shouldUseShield && result.success) {
+          setHeartLossPosition({ x: pageX, y: pageY });
+          setShowHeartLoss(true);
+        }
+
+        // Check if out of hearts
+        if (!result.success && result.shouldShowModal) {
+          // Will be handled by ChallengeSessionScreen via session context
+          onClose();
+          return;
+        }
+      }
+    }
 
     // Removed anticipation state - go straight to feedback
 
@@ -515,6 +571,15 @@ export default function BrainTicklerScreen({
           speedBonus={speedBonus}
           onComplete={() => setShowXPAnimation(false)}
           delay={0}
+        />
+      )}
+
+      {/* Heart Loss Animation */}
+      {showHeartLoss && (
+        <HeartLossAnimation
+          x={heartLossPosition.x}
+          y={heartLossPosition.y}
+          onComplete={() => setShowHeartLoss(false)}
         />
       )}
     </Animated.View>

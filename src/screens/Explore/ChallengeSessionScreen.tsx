@@ -27,6 +27,7 @@ import { useFocus } from '../../contexts/FocusContext';
 import SessionProgressBar from '../../components/SessionProgressBar';
 import SessionSummary from '../../components/SessionSummary';
 import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
+import { PricingModal } from '../../components/PricingModal';
 import { SessionStats } from '../../types/session';
 import { OutOfHeartsData } from '../../types/focus';
 import { updateDailyStats, updateCategoryStats } from '../../services/dailyStatsService';
@@ -73,6 +74,7 @@ export default function ChallengeSessionScreen({
   const { getOutOfHeartsData, config } = useFocus();
   const [showOutOfHeartsModal, setShowOutOfHeartsModal] = useState(false);
   const [outOfHeartsData, setOutOfHeartsData] = useState<OutOfHeartsData | null>(null);
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   const currentChallenge = getCurrentChallenge();
 
@@ -251,8 +253,18 @@ export default function ChallengeSessionScreen({
    */
   const handleUpgrade = () => {
     setShowOutOfHeartsModal(false);
-    // TODO: Navigate to pricing modal or checkout
-    console.log('Navigate to upgrade');
+    setShowPricingModal(true);
+  };
+
+  const handleSelectPlan = (planId: string, period: 'monthly' | 'annual') => {
+    console.log(`Selected plan: ${planId} (${period})`);
+    setShowPricingModal(false);
+    // TODO: Implement actual purchase flow with in-app purchases
+    Alert.alert(
+      'Upgrade Selected',
+      `You selected ${planId} (${period}). In-app purchase flow would continue here.`,
+      [{ text: 'OK' }]
+    );
   };
 
   /**
@@ -363,6 +375,13 @@ export default function ChallengeSessionScreen({
         onClose={() => setShowOutOfHeartsModal(false)}
         onSelectAlternative={handleSelectAlternative}
         onUpgrade={handleUpgrade}
+      />
+
+      {/* Pricing Modal */}
+      <PricingModal
+        visible={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        onSelectPlan={handleSelectPlan}
       />
     </SafeAreaView>
   );

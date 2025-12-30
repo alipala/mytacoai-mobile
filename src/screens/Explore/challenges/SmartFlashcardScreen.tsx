@@ -36,6 +36,7 @@ import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
 import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
+import { useFocus } from '../../../contexts/FocusContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
@@ -62,6 +63,7 @@ export default function SmartFlashcardScreen({
   const [speedBonus, setSpeedBonus] = useState(0);
 
   const { session } = useChallengeSession();
+  const { incrementStreak, config } = useFocus();
   const { characterState, reactToAnswer, updateState } = useCharacterState();
   const { play } = useAudio();
 
@@ -119,6 +121,11 @@ export default function SmartFlashcardScreen({
 
     setXPValue(xpResult.baseXP);
     setSpeedBonus(xpResult.speedBonus);
+
+    // Increment streak (unless unlimited hearts - then streaks don't matter)
+    if (!config.unlimitedHearts) {
+      incrementStreak();
+    }
 
     // Show celebration
     setShowCelebration(true);

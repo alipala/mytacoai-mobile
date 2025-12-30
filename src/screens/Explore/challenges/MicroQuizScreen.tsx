@@ -35,9 +35,11 @@ import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
 import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
+import { useFocus } from '../../../contexts/FocusContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
+import { HeartLossAnimation } from '../../../components/HeartLossAnimation';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -59,8 +61,11 @@ export default function MicroQuizScreen({
   const [showParticleBurst, setShowParticleBurst] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
+  const [showHeartLoss, setShowHeartLoss] = useState(false);
+  const [heartLossPosition, setHeartLossPosition] = useState({ x: 0, y: 0 });
 
   const { session } = useChallengeSession();
+  const { consumeHeart, shield, incrementStreak, resetStreak, consumeShield, config } = useFocus();
   const { characterState, reactToAnswer, reactToSelection } = useCharacterState();
   const { play } = useAudio();
 
@@ -84,6 +89,7 @@ export default function MicroQuizScreen({
     setShowFeedback(false);
     setShowXPAnimation(false);
     setShowParticleBurst(false);
+    setShowHeartLoss(false);
     backgroundOpacity.value = 0;
   }, [challenge.id]);
 
@@ -101,6 +107,34 @@ export default function MicroQuizScreen({
 
     setSelectedOption(optionId);
     // Removed anticipation state - go straight to feedback
+
+    // Handle hearts and streak (unless unlimited hearts)
+    if (!config.unlimitedHearts) {
+      if (isCorrect) {
+        // Increment streak on correct answer
+        incrementStreak();
+      } else {
+        // Wrong answer: consume heart or shield
+        const shouldUseShield = shield.isActive;
+        const result = consumeHeart('micro_quiz', shouldUseShield);
+
+        // Reset streak on wrong answer
+        resetStreak();
+
+        // Show heart loss animation (unless shield was used)
+        if (!shouldUseShield && result.success) {
+          setHeartLossPosition({ x: pageX, y: pageY });
+          setShowHeartLoss(true);
+        }
+
+        // Check if out of hearts
+        if (!result.success && result.shouldShowModal) {
+          // Will be handled by ChallengeSessionScreen via session context
+          onClose();
+          return;
+        }
+      }
+    }
 
     // Wait briefly before showing feedback
     setTimeout(() => {
@@ -324,6 +358,15 @@ export default function MicroQuizScreen({
           speedBonus={speedBonus}
           onComplete={() => setShowXPAnimation(false)}
           delay={0}
+        />
+      )}
+
+      {/* Heart Loss Animation */}
+      {showHeartLoss && (
+        <HeartLossAnimation
+          x={heartLossPosition.x}
+          y={heartLossPosition.y}
+          onComplete={() => setShowHeartLoss(false)}
         />
       )}
     </View>

@@ -15,6 +15,7 @@ import { formatXP } from '../services/xpCalculator';
 import { ProgressPath } from './ProgressPath';
 import { ComboBadge } from './ComboBadge';
 import { HeartDisplay } from './HeartDisplay';
+import { StreakShieldIndicator } from './StreakShieldIndicator';
 
 interface SessionProgressBarProps {
   showXP?: boolean;
@@ -57,6 +58,11 @@ export default function SessionProgressBar({
                 layout="horizontal"
               />
             </View>
+          )}
+
+          {/* Streak Shield Indicator - Only show if not unlimited */}
+          {!config.unlimitedHearts && (
+            <StreakShieldIndicator size="small" showLabel={true} />
           )}
 
           {/* XP Badge */}
