@@ -272,9 +272,6 @@ export function ProgressPath({ style }: ProgressPathProps) {
               // Completed - check if it was correct or incorrect
               const wasIncorrect = incorrectChallengeIds.includes(challenge.id);
               state = wasIncorrect ? 'completed_incorrect' : 'completed_correct';
-
-              // Debug logging
-              console.log(`Node ${index + 1} (${challenge.id}): ${state}, wasIncorrect: ${wasIncorrect}, incorrectIds:`, incorrectChallengeIds);
             } else if (index === currentIndex) {
               state = 'current';
             } else {

@@ -20,15 +20,18 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useChallengeSession } from '../../contexts/ChallengeSessionContext';
 import SessionProgressBar from '../../components/SessionProgressBar';
 import SessionSummary from '../../components/SessionSummary';
 import { SessionStats } from '../../types/session';
 import { updateDailyStats, updateCategoryStats } from '../../services/dailyStatsService';
 import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
+import { PricingModal } from '../../components/PricingModal';
 import { WrongAnswerFeedback } from '../../components/WrongAnswerFeedback';
 import { CHALLENGE_TYPE_API_NAMES } from '../../types/hearts';
 import { heartAPI } from '../../services/heartAPI';
@@ -56,6 +59,7 @@ export default function ChallengeSessionScreen({
     answerChallenge,
     nextChallenge,
     endSession,
+    quitSession,
     getCurrentChallenge,
     isSessionComplete,
   } = useChallengeSession();
@@ -74,12 +78,29 @@ export default function ChallengeSessionScreen({
   const [userSubscriptionPlan, setUserSubscriptionPlan] = useState<string>('try_learn');
   const [showWrongAnswerFeedback, setShowWrongAnswerFeedback] = useState(false);
 
+  // Pricing modal state
+  const [showPricingModal, setShowPricingModal] = useState(false);
+
+  // Quit confirmation modal state
+  const [showQuitModal, setShowQuitModal] = useState(false);
+  const [isQuitting, setIsQuitting] = useState(false);
+
+  // Ref to track if we're currently showing the quit modal
+  const isShowingQuitModalRef = React.useRef(false);
+
   const currentChallenge = getCurrentChallenge();
 
   // Get background color - clean whitish for all challenge types
   const getBackgroundColor = () => {
     return '#FAFAFA'; // Clean whitish background
   };
+
+  // Disable swipe-back gesture when session is active
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: !session?.isActive,
+    });
+  }, [navigation, session?.isActive]);
 
   // Load user subscription plan
   useEffect(() => {
@@ -283,28 +304,85 @@ export default function ChallengeSessionScreen({
 
   /**
    * Handle quit/back button
+   * Shows custom confirmation modal before allowing navigation
+   * Note: Swipe gestures are disabled during active session (gestureEnabled: false)
    */
   const handleQuit = () => {
-    if (!session) {
+    if (!session || !session.isActive) {
       navigation.goBack();
       return;
     }
 
-    Alert.alert(
-      'Quit Session?',
-      `You've completed ${session.completedChallenges}/${session.challenges.length} challenges. Your progress will be saved.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
+    // Show custom quit modal
+    setShowQuitModal(true);
+  };
+
+  /**
+   * Handle quit confirmation
+   */
+  const handleConfirmQuit = async () => {
+    try {
+      // Show loading immediately for feedback
+      setIsQuitting(true);
+
+      // Haptic feedback
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+
+      console.log('🚪 Quitting session and saving progress...');
+      await quitSession();
+      console.log('✅ Quit complete, navigating back...');
+
+      // Close modal and navigate
+      setShowQuitModal(false);
+      setIsQuitting(false);
+      navigation.goBack();
+    } catch (error) {
+      console.error('❌ Error during quit:', error);
+      setIsQuitting(false);
+      setShowQuitModal(false);
+    }
+  };
+
+  /**
+   * Handle quit cancellation
+   */
+  const handleCancelQuit = () => {
+    console.log('❌ User cancelled quit');
+    setShowQuitModal(false);
+  };
+
+  // Pricing and upgrade handlers
+  const handleUpgradePress = () => {
+    console.log('🚀 User clicked upgrade from out of hearts modal');
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    // Log upgrade click
+    if (session?.challengeType) {
+      const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType;
+      heartAPI.logModalInteraction(
+        challengeTypeAPI,
+        'upgrade_clicked',
+        session.id,
         {
-          text: 'Quit',
-          style: 'destructive',
-          onPress: () => {
-            // Save progress and exit
-            navigation.goBack();
-          },
-        },
-      ]
-    );
+          completed: session.completedChallenges,
+          total: session.challenges.length
+        }
+      );
+    }
+
+    setShowOutOfHeartsModal(false);
+    setShowPricingModal(true);
+  };
+
+  const handleSelectPlan = (planId: string, period: 'monthly' | 'annual') => {
+    console.log(`💳 User selected plan: ${planId} (${period})`);
+    setShowPricingModal(false);
+    // Navigate to checkout screen with plan details
+    navigation.navigate('Checkout', { planId, period });
   };
 
   // Render current challenge based on type
@@ -351,6 +429,17 @@ export default function ChallengeSessionScreen({
         {/* Session Progress Bar - Only show if session exists */}
         {session && !showLoading && <SessionProgressBar heartPool={session.heartPool} />}
       </SafeAreaView>
+
+      {/* Close Button - Floating in top-left corner */}
+      {session && !showLoading && !showSummary && (
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={handleQuit}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="close" size={28} color="#6B7280" />
+        </TouchableOpacity>
+      )}
 
       {/* Loading Screen - Show while calculating stats */}
       {showLoading && (
@@ -401,18 +490,7 @@ export default function ChallengeSessionScreen({
           challengeType={CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType}
           refillInfo={session.lastHeartResponse.refillInfo!}
           subscriptionPlan={userSubscriptionPlan}
-          onUpgrade={() => {
-            // Log upgrade click
-            const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType;
-            heartAPI.logModalInteraction(
-              challengeTypeAPI,
-              'upgrade',
-              session.id,
-              { completed: session.completedChallenges, total: session.challenges.length }
-            );
-            setShowOutOfHeartsModal(false);
-            navigation.navigate('Checkout');
-          }}
+          onUpgrade={handleUpgradePress}
           onWait={() => {
             // Log wait click
             const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[session.challengeType] || session.challengeType;
@@ -439,6 +517,92 @@ export default function ChallengeSessionScreen({
           }}
         />
       )}
+
+      {/* Pricing Modal */}
+      <PricingModal
+        visible={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        onSelectPlan={handleSelectPlan}
+      />
+
+      {/* Custom Quit Confirmation Modal */}
+      <Modal
+        visible={showQuitModal}
+        transparent={true}
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View style={styles.quitModalOverlay}>
+          <View style={styles.quitModalContent}>
+            {/* Icon */}
+            <View style={styles.quitModalIcon}>
+              <Ionicons name="alert-circle" size={56} color="#F59E0B" />
+            </View>
+
+            {/* Title */}
+            <Text style={styles.quitModalTitle}>Quit Session?</Text>
+
+            {/* Message */}
+            {session && (
+              <View style={styles.quitModalMessage}>
+                {session.completedChallenges > 0 ? (
+                  <>
+                    <Text style={styles.quitModalText}>
+                      You've completed <Text style={styles.quitModalTextBold}>{session.completedChallenges}/{session.challenges.length}</Text> challenges.
+                    </Text>
+                    <View style={styles.quitModalInfoRow}>
+                      <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                      <Text style={styles.quitModalInfoText}>Your progress will be saved</Text>
+                    </View>
+                    <View style={styles.quitModalInfoRow}>
+                      <Ionicons name="warning" size={20} color="#F59E0B" />
+                      <Text style={styles.quitModalInfoText}>Hearts used will NOT be refunded</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.quitModalText}>
+                      You haven't completed any challenges yet.
+                    </Text>
+                    <View style={styles.quitModalInfoRow}>
+                      <Ionicons name="warning" size={20} color="#F59E0B" />
+                      <Text style={styles.quitModalInfoText}>Hearts used will NOT be refunded</Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
+
+            {/* Buttons */}
+            <View style={styles.quitModalButtons}>
+              <TouchableOpacity
+                style={[styles.quitModalButton, styles.quitModalButtonCancel]}
+                onPress={handleCancelQuit}
+                activeOpacity={0.8}
+                disabled={isQuitting}
+              >
+                <Text style={styles.quitModalButtonTextCancel}>Keep Playing</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.quitModalButton,
+                  styles.quitModalButtonQuit,
+                  isQuitting && styles.quitModalButtonDisabled
+                ]}
+                onPress={handleConfirmQuit}
+                activeOpacity={0.8}
+                disabled={isQuitting}
+              >
+                {isQuitting ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.quitModalButtonTextQuit}>Quit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -470,5 +634,114 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
     overflow: 'hidden', // Hide anything that extends beyond bounds
+  },
+  closeButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 20, // Account for status bar + safe area
+    right: 16, // Move to RIGHT side to avoid hearts
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  // Custom Quit Modal Styles
+  quitModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  quitModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  quitModalIcon: {
+    marginBottom: 20,
+  },
+  quitModalTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  quitModalMessage: {
+    width: '100%',
+    marginBottom: 28,
+  },
+  quitModalText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  quitModalTextBold: {
+    fontWeight: '700',
+    color: '#111827',
+  },
+  quitModalInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 8,
+  },
+  quitModalInfoText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginLeft: 10,
+    flex: 1,
+  },
+  quitModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  quitModalButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quitModalButtonCancel: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  quitModalButtonQuit: {
+    backgroundColor: '#EF4444',
+  },
+  quitModalButtonDisabled: {
+    backgroundColor: '#FCA5A5',
+    opacity: 0.7,
+  },
+  quitModalButtonTextCancel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  quitModalButtonTextQuit: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

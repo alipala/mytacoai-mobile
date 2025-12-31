@@ -36,11 +36,19 @@ export default function SessionProgressBar({
   const { session, getProgress } = useChallengeSession();
   const progress = getProgress();
   const [previousHearts, setPreviousHearts] = useState<number | undefined>(undefined);
+  const previousHeartsRef = React.useRef<number | undefined>(undefined);
 
-  // Track heart changes for animation
+  // Track heart changes for animation - use ref to avoid double triggers
   useEffect(() => {
-    if (heartPool) {
-      setPreviousHearts(heartPool.currentHearts);
+    if (heartPool && previousHeartsRef.current !== heartPool.currentHearts) {
+      // Store current value for next comparison
+      const oldValue = previousHeartsRef.current;
+      previousHeartsRef.current = heartPool.currentHearts;
+
+      // Only update state if we have a previous value (not first render)
+      if (oldValue !== undefined) {
+        setPreviousHearts(oldValue);
+      }
     }
   }, [heartPool?.currentHearts]);
 
@@ -103,7 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 12,
     backgroundColor: '#F9FAFB',
     borderRadius: 16,
@@ -114,36 +122,42 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    minHeight: 64, // Increased for 2 rows of hearts
+    overflow: 'visible', // Prevent clipping of hearts
   },
   heartsSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 12,
+    paddingRight: 8,
+    flexShrink: 0, // Prevent shrinking
   },
   verticalDivider: {
     width: 1,
-    height: 32,
+    height: 40,
     backgroundColor: '#D1D5DB',
     marginHorizontal: 8,
+    alignSelf: 'center',
   },
   rightStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
     justifyContent: 'flex-end',
+    paddingLeft: 8,
   },
   statBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E0F2FE',
+    minWidth: 70,
+    justifyContent: 'center',
   },
   statValue: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: '#0891B2',
     letterSpacing: -0.2,

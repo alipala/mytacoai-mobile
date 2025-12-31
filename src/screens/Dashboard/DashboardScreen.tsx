@@ -399,23 +399,96 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             Start practicing right away or create a personalized learning plan!
           </Text>
 
-          {/* Quick Practice Button */}
-          <TouchableOpacity
-            style={styles.quickPracticeButton}
-            onPress={() => navigation.navigate('LanguageSelection', { mode: 'practice' })}
-          >
-            <Ionicons name="chatbubbles" size={20} color="#FFFFFF" />
-            <Text style={styles.quickPracticeButtonText}>Start Quick Practice</Text>
-          </TouchableOpacity>
+          {/* Session Cards Container */}
+          <View style={styles.sessionCardsContainer}>
+            {/* Quick Practice Card */}
+            <TouchableOpacity
+              style={styles.sessionCard}
+              onPress={handleSelectQuickPractice}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={[COLORS.turquoise, '#3DA89D']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.sessionCardGradient}
+              >
+                <View style={styles.sessionCardContent}>
+                  <View style={styles.sessionCardHeader}>
+                    <View style={styles.sessionIconContainer}>
+                      <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
+                    </View>
+                    <View style={styles.popularBadge}>
+                      <Ionicons name="star" size={9} color="#FFD63A" />
+                      <Text style={styles.popularText}>POPULAR</Text>
+                    </View>
+                  </View>
 
-          {/* Create Plan Button */}
-          <TouchableOpacity
-            style={styles.createPlanButton}
-            onPress={handleCreatePlan}
-          >
-            <Ionicons name="add-circle" size={20} color="#4FD1C5" />
-            <Text style={styles.createPlanButtonText}>Create Learning Plan</Text>
-          </TouchableOpacity>
+                  <Text style={styles.sessionCardTitle}>Quick Practice</Text>
+                  <Text style={styles.sessionCardDescription}>
+                    Start a real conversation to improve your skills
+                  </Text>
+
+                  <View style={styles.sessionFeatures}>
+                    <View style={styles.featureBadge}>
+                      <Ionicons name="time" size={12} color="rgba(255,255,255,0.9)" />
+                      <Text style={styles.featureBadgeText}>Flexible</Text>
+                    </View>
+                    <View style={styles.featureBadge}>
+                      <Ionicons name="chatbox-ellipses" size={12} color="rgba(255,255,255,0.9)" />
+                      <Text style={styles.featureBadgeText}>Real-time</Text>
+                    </View>
+                    <View style={styles.featureBadge}>
+                      <Ionicons name="rocket" size={12} color="rgba(255,255,255,0.9)" />
+                      <Text style={styles.featureBadgeText}>Instant start</Text>
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Create Learning Plan Card */}
+            <TouchableOpacity
+              style={styles.sessionCard}
+              onPress={handleCreatePlan}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={['#3B82F6', '#2563EB']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.sessionCardGradient}
+              >
+                <View style={styles.sessionCardContent}>
+                  <View style={styles.sessionCardHeader}>
+                    <View style={styles.sessionIconContainer}>
+                      <Ionicons name="calendar" size={24} color="#FFFFFF" />
+                    </View>
+                  </View>
+
+                  <Text style={styles.sessionCardTitle}>Create Learning Plan</Text>
+                  <Text style={styles.sessionCardDescription}>
+                    Build a personalized plan to reach your goals
+                  </Text>
+
+                  <View style={styles.sessionFeatures}>
+                    <View style={styles.featureBadge}>
+                      <Ionicons name="person" size={12} color="rgba(255,255,255,0.9)" />
+                      <Text style={styles.featureBadgeText}>Personalized</Text>
+                    </View>
+                    <View style={styles.featureBadge}>
+                      <Ionicons name="list" size={12} color="rgba(255,255,255,0.9)" />
+                      <Text style={styles.featureBadgeText}>Structured</Text>
+                    </View>
+                    <View style={styles.featureBadge}>
+                      <Ionicons name="trophy" size={12} color="rgba(255,255,255,0.9)" />
+                      <Text style={styles.featureBadgeText}>Track progress</Text>
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
 
         {/* Pricing Modal */}

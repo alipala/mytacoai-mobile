@@ -41,6 +41,7 @@ interface SessionContextValue {
   pauseSession: () => void;
   resumeSession: () => void;
   endSession: () => Promise<SessionStats>;
+  quitSession: () => Promise<void>;
 
   // Session info
   getCurrentChallenge: () => Challenge | null;
@@ -423,6 +424,82 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
   }, []);
 
   /**
+   * Quit session and save progress
+   * Similar to endSessionEarly but triggered by user quit action
+   */
+  const quitSession = useCallback(async () => {
+    const currentSession = sessionRef.current;
+
+    if (!currentSession) {
+      console.warn('No active session to quit');
+      return;
+    }
+
+    console.log('🚪 User quitting session, saving progress...');
+
+    // Mark session as ended (user quit)
+    const finalSession = {
+      ...currentSession,
+      isActive: false,
+      endedEarly: true,
+      completedAt: new Date(),
+    };
+
+    setSession(finalSession);
+
+    // Log quit event (reuse the session ended early tracking)
+    // Fire and forget - don't block navigation for analytics
+    const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[finalSession.challengeType] || finalSession.challengeType;
+    heartAPI.logSessionEndedEarly(
+      challengeTypeAPI,
+      finalSession.id,
+      finalSession.completedChallenges,
+      finalSession.challenges.length
+    ).catch(err => console.warn('Failed to log quit event:', err));
+
+    // Calculate and save stats for challenges completed before quitting
+    const stats = calculateSessionStats(finalSession);
+
+    // Save progress to backend (even if 0 challenges completed, to track quit events)
+    // Do this in background - don't block navigation!
+    completeSessionAPI(
+      finalSession.id,
+      finalSession.correctAnswers,
+      finalSession.wrongAnswers,
+      finalSession.maxCombo,
+      finalSession.totalXP,
+      finalSession.answerTimes,
+      [], // No achievements for quit sessions
+      finalSession.language,
+      finalSession.level,
+      finalSession.challengeType
+    ).then(() => {
+      console.log('✅ Quit session progress saved to backend');
+      console.log('📊 Saved stats:', {
+        completed: finalSession.completedChallenges,
+        correctAnswers: finalSession.correctAnswers,
+        wrongAnswers: finalSession.wrongAnswers,
+        totalXP: finalSession.totalXP,
+        maxCombo: finalSession.maxCombo,
+      });
+
+      // Refresh stats cache in background (don't block navigation)
+      refreshStatsAfterSession().catch(err => {
+        console.warn('Failed to refresh stats:', err);
+      });
+    }).catch(error => {
+      console.error('❌ Failed to save quit session:', error);
+    });
+
+    // Clear session from storage and state
+    await clearSessionFromStorage();
+    setSession(null);
+
+    console.log('🧹 Session cleared from state and storage');
+    console.log('⚡ Quit complete! (stats saving in background)');
+  }, []);
+
+  /**
    * End session and calculate final stats
    * Uses sessionRef to always get the latest session state (avoids closure stale state)
    */
@@ -554,6 +631,7 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
     pauseSession,
     resumeSession,
     endSession,
+    quitSession,
     getCurrentChallenge,
     getProgress,
     canAdvance,

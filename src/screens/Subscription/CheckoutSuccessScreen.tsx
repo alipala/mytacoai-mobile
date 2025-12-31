@@ -10,6 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../../api/config';
 
 interface CheckoutSuccessScreenProps {
   navigation: any;
@@ -20,13 +22,68 @@ const CheckoutSuccessScreen: React.FC<CheckoutSuccessScreenProps> = ({ navigatio
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+
+    // Sync hearts with subscription after successful checkout
+    syncHeartsWithSubscription();
   }, []);
+
+  const syncHeartsWithSubscription = async () => {
+    try {
+      console.log('🔄 Syncing hearts with subscription after checkout...');
+      const token = await AsyncStorage.getItem('auth_token');
+
+      if (!token) {
+        console.warn('⚠️  No auth token found, skipping heart sync');
+        return;
+      }
+
+      // Step 1: Sync hearts with subscription
+      const syncResponse = await fetch(`${API_BASE_URL}/hearts/sync-with-subscription`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (syncResponse.ok) {
+        const data = await syncResponse.json();
+        console.log('✅ Hearts synced successfully:', data);
+      } else {
+        console.error('❌ Failed to sync hearts:', syncResponse.status);
+      }
+
+      // Step 2: Fetch fresh user data from API to update AsyncStorage
+      const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
+        console.log('✅ User data refreshed:', userData.subscription_plan);
+      } else {
+        console.error('❌ Failed to refresh user data:', userResponse.status);
+      }
+    } catch (error) {
+      console.error('❌ Error syncing hearts:', error);
+      // Don't block the user experience if sync fails
+    }
+  };
 
   const handleContinue = () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    navigation.navigate('Main', { screen: 'Dashboard' });
+    // Navigate to Challenges tab (ExploreScreenRedesigned) with upgrade success flag
+    navigation.navigate('Main', {
+      screen: 'Challenges',
+      params: { upgradeSuccess: true }
+    });
   };
 
   return (

@@ -11,6 +11,7 @@ import {
   Dimensions,
   Platform,
   FlatList,
+  Modal,
 } from 'react-native';
 import ReanimatedAnimated, {
   useSharedValue,
@@ -43,6 +44,7 @@ import HorizontalStatsCarousel from '../../components/HorizontalStatsCarousel';
 import PlaceholderStatsCard from '../../components/PlaceholderStatsCard';
 import { useDailyStats, useRecentPerformance } from '../../hooks/useStats';
 import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
+import { PricingModal } from '../../components/PricingModal';
 import { heartAPI } from '../../services/heartAPI';
 import { CHALLENGE_TYPE_API_NAMES } from '../../types/hearts';
 
@@ -191,6 +193,12 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   } | null>(null);
   const [userSubscriptionPlan, setUserSubscriptionPlan] = useState<string>('try_learn');
 
+  // Pricing modal state
+  const [showPricingModal, setShowPricingModal] = useState(false);
+
+  // Upgrade success modal state
+  const [showUpgradeSuccessModal, setShowUpgradeSuccessModal] = useState(false);
+
   // Load initial data and reload when screen is focused (e.g., returning from session)
   useEffect(() => {
     if (isFocused) {
@@ -215,6 +223,35 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
       navigation.setParams({ reset: undefined });
     }
   }, [route?.params?.reset]);
+
+  // Handle upgrade success notification
+  useEffect(() => {
+    if (route?.params?.upgradeSuccess) {
+      console.log('🎉 Showing upgrade success modal');
+      setShowUpgradeSuccessModal(true);
+
+      // Reload user data to get updated subscription plan
+      reloadUserSubscription();
+
+      // Clear the param to avoid showing it again
+      navigation.setParams({ upgradeSuccess: undefined });
+    }
+  }, [route?.params?.upgradeSuccess]);
+
+  // Reload user subscription from AsyncStorage and API
+  const reloadUserSubscription = async () => {
+    try {
+      console.log('🔄 Reloading user subscription after upgrade...');
+      const userStr = await AsyncStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setUserSubscriptionPlan(user.subscription_plan || 'try_learn');
+        console.log('✅ Updated subscription plan:', user.subscription_plan);
+      }
+    } catch (error) {
+      console.error('❌ Error reloading user subscription:', error);
+    }
+  };
 
   // Reload daily stats (used when returning from a session)
   const reloadDailyStats = async () => {
@@ -702,6 +739,23 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
     }).start(() => {
       setSelectedChallenge(null);
     });
+  };
+
+  // Pricing and upgrade handlers
+  const handleUpgradePress = () => {
+    console.log('🚀 User clicked upgrade from out of hearts modal');
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setShowPreSessionHeartsModal(false);
+    setShowPricingModal(true);
+  };
+
+  const handleSelectPlan = (planId: string, period: 'monthly' | 'annual') => {
+    console.log(`💳 User selected plan: ${planId} (${period})`);
+    setShowPricingModal(false);
+    // Navigate to checkout screen with plan details
+    navigation.navigate('Checkout', { planId, period });
   };
 
   // Render functions for each screen
@@ -1660,11 +1714,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           challengeType={preSessionErrorInfo.challengeType}
           refillInfo={preSessionErrorInfo.refillInfo}
           subscriptionPlan={userSubscriptionPlan}
-          onUpgrade={() => {
-            console.log('🚀 User clicked upgrade from pre-session modal');
-            setShowPreSessionHeartsModal(false);
-            navigation.navigate('Checkout');
-          }}
+          onUpgrade={handleUpgradePress}
           onWait={() => {
             console.log('⏰ User chose to wait for refill');
             setShowPreSessionHeartsModal(false);
@@ -1675,6 +1725,168 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           }}
         />
       )}
+
+      {/* Pricing Modal */}
+      <PricingModal
+        visible={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        onSelectPlan={handleSelectPlan}
+      />
+
+      {/* Upgrade Success Modal */}
+      <Modal
+        visible={showUpgradeSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowUpgradeSuccessModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}>
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 24,
+            padding: 32,
+            maxWidth: 380,
+            width: '100%',
+            alignItems: 'center',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.3,
+            shadowRadius: 20,
+            elevation: 10,
+          }}>
+            {/* Success Icon */}
+            <View style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              backgroundColor: '#10B981',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 24,
+            }}>
+              <Ionicons name="checkmark" size={48} color="#FFFFFF" />
+            </View>
+
+            {/* Title */}
+            <Text style={{
+              fontSize: 24,
+              fontWeight: '800',
+              color: '#111827',
+              marginBottom: 12,
+              textAlign: 'center',
+            }}>
+              Upgrade Successful!
+            </Text>
+
+            {/* Subtitle */}
+            <Text style={{
+              fontSize: 16,
+              color: '#6B7280',
+              textAlign: 'center',
+              lineHeight: 24,
+              marginBottom: 28,
+            }}>
+              You now have more hearts and can practice longer. Keep up the great work!
+            </Text>
+
+            {/* Benefits */}
+            <View style={{
+              width: '100%',
+              backgroundColor: '#F0FDFA',
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 24,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 12,
+              }}>
+                <View style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#4ECFBF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                }}>
+                  <Text style={{ fontSize: 18 }}>❤️</Text>
+                </View>
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: '#111827',
+                  flex: 1,
+                }}>
+                  More hearts to practice
+                </Text>
+              </View>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+                <View style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#4ECFBF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                }}>
+                  <Text style={{ fontSize: 18 }}>⚡</Text>
+                </View>
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: '#111827',
+                  flex: 1,
+                }}>
+                  Faster heart refill time
+                </Text>
+              </View>
+            </View>
+
+            {/* Start Practicing Button */}
+            <TouchableOpacity
+              style={{
+                width: '100%',
+                backgroundColor: '#4ECFBF',
+                paddingVertical: 16,
+                borderRadius: 12,
+                alignItems: 'center',
+                shadowColor: '#4ECFBF',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 4,
+              }}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                }
+                setShowUpgradeSuccessModal(false);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={{
+                fontSize: 17,
+                fontWeight: '700',
+                color: '#FFFFFF',
+              }}>
+                Start Practicing
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

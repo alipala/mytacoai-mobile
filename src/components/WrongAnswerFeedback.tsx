@@ -42,8 +42,6 @@ export function WrongAnswerFeedback({
   const redFlashOpacity = useSharedValue(0);
   const screenShakeX = useSharedValue(0);
   const screenShakeY = useSharedValue(0);
-  const lottieOpacity = useSharedValue(0);
-  const lottieRef = useRef<LottieView>(null);
   const { play } = useAudio();
 
   useEffect(() => {
@@ -54,7 +52,6 @@ export function WrongAnswerFeedback({
       redFlashOpacity.value = 0;
       screenShakeX.value = 0;
       screenShakeY.value = 0;
-      lottieOpacity.value = 0;
     }
   }, [visible]);
 
@@ -93,20 +90,12 @@ export function WrongAnswerFeedback({
       withTiming(0, { duration: 50 })
     );
 
-    // STEP 4: Show disappointed Lottie animation (100ms delay)
+    // STEP 4: Complete animation callback (disabled Lottie for now)
     setTimeout(() => {
-      lottieOpacity.value = withTiming(1, { duration: 200 });
-      lottieRef.current?.play();
-
-      // STEP 5: Hide Lottie and complete (after 1200ms total)
-      setTimeout(() => {
-        lottieOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
-          if (finished && onAnimationComplete) {
-            runOnJS(onAnimationComplete)();
-          }
-        });
-      }, 1000);
-    }, 100);
+      if (onAnimationComplete) {
+        runOnJS(onAnimationComplete)();
+      }
+    }, 600); // Reduced time since no Lottie animation
   };
 
   const redFlashStyle = useAnimatedStyle(() => ({
@@ -118,10 +107,6 @@ export function WrongAnswerFeedback({
       { translateX: screenShakeX.value },
       { translateY: screenShakeY.value },
     ],
-  }));
-
-  const lottieStyle = useAnimatedStyle(() => ({
-    opacity: lottieOpacity.value,
   }));
 
   if (!visible) return null;
@@ -140,18 +125,18 @@ export function WrongAnswerFeedback({
         pointerEvents="none"
       />
 
-      {/* Disappointed Lottie Animation */}
-      <Animated.View
+      {/* Disappointed Lottie Animation - DISABLED for now */}
+      {/* <Animated.View
         style={[styles.lottieContainer, lottieStyle]}
         pointerEvents="none"
       >
         <LottieView
           ref={lottieRef}
-          source={require('../assets/lottie/companion_disappointed.json')}
+          source={require('../assets/lottie/companion_disappeared.json')}
           loop={false}
           style={styles.lottie}
         />
-      </Animated.View>
+      </Animated.View> */}
     </>
   );
 }

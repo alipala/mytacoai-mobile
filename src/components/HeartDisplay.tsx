@@ -37,28 +37,32 @@ const AnimatedHeart = ({
   isFilled,
   index,
   size,
+  heartSize,
   shouldAnimate,
   animationType
 }: {
   isFilled: boolean;
   index: number;
   size: 'small' | 'medium' | 'large';
+  heartSize: number; // Actual pixel size for the heart
   shouldAnimate: boolean;
   animationType: 'lose' | 'gain' | 'none';
 }) => {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
-
-  const sizes = {
-    small: 20,
-    medium: 28,
-    large: 36,
-  };
-
-  const heartSize = sizes[size];
+  const lastAnimationRef = React.useRef<string>('');
 
   useEffect(() => {
+    // Create unique key for this animation to prevent double triggers
+    const animationKey = `${shouldAnimate}-${animationType}-${isFilled}`;
+
     if (shouldAnimate && animationType === 'lose') {
+      // Prevent double animation of the same event
+      if (lastAnimationRef.current === animationKey) {
+        return;
+      }
+      lastAnimationRef.current = animationKey;
+
       // Heart loss: Scale down + fade out
       scale.value = withSequence(
         withTiming(1.2, { duration: 100, easing: Easing.out(Easing.quad) }),
@@ -69,6 +73,12 @@ const AnimatedHeart = ({
         withTiming(0.3, { duration: 300 })
       );
     } else if (shouldAnimate && animationType === 'gain') {
+      // Prevent double animation of the same event
+      if (lastAnimationRef.current === animationKey) {
+        return;
+      }
+      lastAnimationRef.current = animationKey;
+
       // Heart gain: Pop in with bounce
       scale.value = 0;
       opacity.value = 0;
@@ -168,12 +178,18 @@ export function HeartDisplay({
   separateShield = false,
 }: HeartDisplayProps) {
   const containerShake = useSharedValue(0);
+  const prevHeartsRef = React.useRef<number | undefined>(previousHearts);
 
-  // Detect heart changes
+  // Detect heart changes - only trigger once per actual heart loss
   useEffect(() => {
-    if (previousHearts === undefined) return;
+    // Update ref with latest previousHearts value
+    const oldPrevious = prevHeartsRef.current;
+    prevHeartsRef.current = previousHearts;
 
-    if (heartPool.currentHearts < previousHearts) {
+    // Only trigger if hearts actually decreased (not just previousHearts prop changing)
+    if (previousHearts === undefined || oldPrevious === undefined) return;
+
+    if (heartPool.currentHearts < previousHearts && heartPool.currentHearts < oldPrevious) {
       // Heart lost - NO shake animation (WrongAnswerFeedback handles screen shake)
       // Just trigger callback if needed
       if (onHeartLost) {
@@ -206,33 +222,79 @@ export function HeartDisplay({
     );
   }
 
+  // Determine if we should use compact mode (2 rows for 10 hearts)
+  const useCompactMode = heartPool.maxHearts > 5;
+  const heartsPerRow = useCompactMode ? 5 : heartPool.maxHearts;
+
   const sizes = {
     small: { heart: 20, gap: 4 },
-    medium: { heart: 28, gap: 6 },
+    medium: { heart: useCompactMode ? 20 : 28, gap: useCompactMode ? 3 : 6 }, // Smaller for 10 hearts
     large: { heart: 36, gap: 8 },
   };
 
-  // Render individual hearts
+  // Render individual hearts (split into rows if needed)
   const renderHearts = () => {
-    const hearts = [];
+    const heartSizePixels = sizes[size].heart;
+
+    if (!useCompactMode) {
+      // Single row for 5 or fewer hearts
+      const hearts = [];
+      for (let i = 0; i < heartPool.maxHearts; i++) {
+        const isFilled = i < heartPool.currentHearts;
+        const shouldAnimate =
+          animationType !== 'none' &&
+          (animationType === 'lose' ? i === heartPool.currentHearts : i === heartPool.currentHearts - 1);
+
+        hearts.push(
+          <AnimatedHeart
+            key={i}
+            isFilled={isFilled}
+            index={i}
+            size={size}
+            heartSize={heartSizePixels}
+            shouldAnimate={shouldAnimate}
+            animationType={animationType}
+          />
+        );
+      }
+      return <View style={[styles.heartsRow, { gap: sizes[size].gap }]}>{hearts}</View>;
+    }
+
+    // Compact mode: 2 rows of 5 hearts each
+    const topRow = [];
+    const bottomRow = [];
+
     for (let i = 0; i < heartPool.maxHearts; i++) {
       const isFilled = i < heartPool.currentHearts;
       const shouldAnimate =
         animationType !== 'none' &&
         (animationType === 'lose' ? i === heartPool.currentHearts : i === heartPool.currentHearts - 1);
 
-      hearts.push(
+      const heart = (
         <AnimatedHeart
           key={i}
           isFilled={isFilled}
           index={i}
           size={size}
+          heartSize={heartSizePixels}
           shouldAnimate={shouldAnimate}
           animationType={animationType}
         />
       );
+
+      if (i < 5) {
+        topRow.push(heart);
+      } else {
+        bottomRow.push(heart);
+      }
     }
-    return hearts;
+
+    return (
+      <View style={styles.compactHeartsContainer}>
+        <View style={[styles.heartsRow, { gap: sizes[size].gap }]}>{topRow}</View>
+        <View style={[styles.heartsRow, { gap: sizes[size].gap, marginTop: 2 }]}>{bottomRow}</View>
+      </View>
+    );
   };
 
   return (
@@ -247,10 +309,8 @@ export function HeartDisplay({
         <View style={styles.shieldDivider} />
       )}
 
-      {/* Hearts Row */}
-      <View style={[styles.heartsRow, { gap: sizes[size].gap }]}>
-        {renderHearts()}
-      </View>
+      {/* Hearts (single row or 2 rows) */}
+      {renderHearts()}
 
       {/* Refill timer (if refilling) */}
       {heartPool.refillInProgress && heartPool.refillInfo && heartPool.currentHearts === 0 && (
@@ -273,6 +333,11 @@ const styles = StyleSheet.create({
   heartsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  compactHeartsContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heart: {
     lineHeight: undefined, // Let the emoji determine its own height
