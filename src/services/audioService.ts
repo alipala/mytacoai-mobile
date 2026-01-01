@@ -17,7 +17,8 @@ export type SoundType =
   | 'wrong_answer'
   | 'session_complete'
   | 'timer_tick'
-  | 'card_flip';
+  | 'card_flip'
+  | 'snap';
 
 // Sound file mappings
 const SOUND_FILES: Record<SoundType, any> = {
@@ -26,6 +27,7 @@ const SOUND_FILES: Record<SoundType, any> = {
   session_complete: require('../assets/sounds/session_complete.mp3'),
   timer_tick: require('../assets/sounds/timer_tick.mp3'),
   card_flip: require('../assets/sounds/card_flip.mp3'),
+  snap: require('../assets/sounds/snap.mp3'),
 };
 
 // Storage keys

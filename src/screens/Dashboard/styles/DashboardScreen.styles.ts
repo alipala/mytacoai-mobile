@@ -5,7 +5,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FA',
+    backgroundColor: '#4FD1C5',
   },
   // iOS-Native Header - Premium Design with Larger Logo (matches bottom tab height)
   header: {
@@ -42,6 +42,7 @@ export const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    backgroundColor: '#F7F9FA',
   },
   scrollContent: {
     paddingBottom: 20, // Reduced from 30
@@ -62,6 +63,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
     gap: 16,
+    backgroundColor: '#F7F9FA',
   },
   errorTitle: {
     fontSize: 20,
@@ -96,6 +98,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
     gap: 16,
+    backgroundColor: '#F7F9FA',
   },
   emptyTitle: {
     fontSize: 24,

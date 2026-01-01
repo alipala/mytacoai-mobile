@@ -117,6 +117,12 @@ export const CHALLENGE_TYPES = [
     emoji: '⚡',
     description: 'Beat the clock!',
   },
+  {
+    type: 'story_builder',
+    title: 'Story Builder',
+    emoji: '📖',
+    description: 'Drag words to complete the story',
+  },
 ] as const;
 
 /**

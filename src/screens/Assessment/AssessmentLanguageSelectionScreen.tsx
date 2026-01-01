@@ -12,6 +12,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
+// Import SVG flags as components
+import EnglishFlag from '../../assets/flags/english.svg';
+import SpanishFlag from '../../assets/flags/spanish.svg';
+import FrenchFlag from '../../assets/flags/french.svg';
+import GermanFlag from '../../assets/flags/german.svg';
+import PortugueseFlag from '../../assets/flags/portuguese.svg';
+import DutchFlag from '../../assets/flags/dutch.svg';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface AssessmentLanguageSelectionScreenProps {
@@ -22,7 +30,7 @@ interface Language {
   id: string;
   name: string;
   nativeName: string;
-  icon: string;
+  FlagComponent: React.FC<any>;
   color: string;
 }
 
@@ -31,42 +39,42 @@ const LANGUAGES: Language[] = [
     id: 'english',
     name: 'English',
     nativeName: 'English',
-    icon: '🇬🇧',
+    FlagComponent: EnglishFlag,
     color: '#3B82F6',
   },
   {
     id: 'spanish',
     name: 'Spanish',
     nativeName: 'Español',
-    icon: '🇪🇸',
+    FlagComponent: SpanishFlag,
     color: '#EF4444',
   },
   {
     id: 'french',
     name: 'French',
     nativeName: 'Français',
-    icon: '🇫🇷',
+    FlagComponent: FrenchFlag,
     color: '#8B5CF6',
   },
   {
     id: 'german',
     name: 'German',
     nativeName: 'Deutsch',
-    icon: '🇩🇪',
+    FlagComponent: GermanFlag,
     color: '#F59E0B',
   },
   {
     id: 'dutch',
     name: 'Dutch',
     nativeName: 'Nederlands',
-    icon: '🇳🇱',
+    FlagComponent: DutchFlag,
     color: '#10B981',
   },
   {
     id: 'portuguese',
     name: 'Portuguese',
     nativeName: 'Português',
-    icon: '🇵🇹',
+    FlagComponent: PortugueseFlag,
     color: '#06B6D4',
   },
 ];
@@ -150,7 +158,7 @@ const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScr
               activeOpacity={0.7}
             >
               <View style={styles.languageContent}>
-                <Text style={styles.flagIcon}>{language.icon}</Text>
+                <language.FlagComponent width={48} height={48} style={styles.flagIcon} />
                 <View style={styles.languageInfo}>
                   <Text style={styles.languageName}>{language.name}</Text>
                   <Text style={styles.languageNativeName}>
@@ -272,7 +280,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   flagIcon: {
-    fontSize: 40,
     marginRight: 16,
   },
   languageInfo: {

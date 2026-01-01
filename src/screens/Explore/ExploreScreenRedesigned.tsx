@@ -103,6 +103,10 @@ const getCategoryGradient = (type: string): [string, string] => {
     case 'swipe_fix':
       return ['#FFA955', '#FF9635'];
 
+    // 📖 CREATIVE - Story building (Purple/Indigo gradient)
+    case 'story_builder':
+      return ['#8B5CF6', '#7C3AED'];
+
     // 🚫 INACTIVE - Locked
     default:
       return ['#95A5A6', '#7F8C8D'];
@@ -124,6 +128,8 @@ const getChallengeIcon = (type: string): keyof typeof Ionicons.glyphMap => {
       return 'layers'; // Layers/cards (solid)
     case 'swipe_fix':
       return 'swap-horizontal'; // Swap arrows (solid)
+    case 'story_builder':
+      return 'book'; // Book icon for story building
     default:
       return 'help-circle'; // Default fallback
   }
@@ -1375,6 +1381,12 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
       c.type === 'error_spotting' || c.type === 'smart_flashcard' || c.type === 'swipe_fix'
     );
 
+    // Story Builder - Second hero challenge at bottom
+    const storyBuilderChallenge = CHALLENGE_TYPES.find(c => c.type === 'story_builder');
+    const storyBuilderCount = challengeCounts['story_builder'] || 0;
+    const storyBuilderStats = categoryStats['story_builder'] || { completed: 0, total: storyBuilderCount, accuracy: 0 };
+    const [storyBuilderColor1, storyBuilderColor2] = getCategoryGradient('story_builder');
+
     return (
       <Animated.View
         style={{
@@ -1420,6 +1432,18 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
             color2={featuredColor2}
             onPress={() => handleCategoryPress(featuredChallenge.type)}
           />
+
+          {/* 🔥 SECOND HERO CARD - Story Builder */}
+          {storyBuilderChallenge && (
+            <GameLobbyHeroCard
+              challenge={storyBuilderChallenge}
+              count={storyBuilderCount}
+              stats={storyBuilderStats}
+              color1={storyBuilderColor1}
+              color2={storyBuilderColor2}
+              onPress={() => handleCategoryPress('story_builder')}
+            />
+          )}
 
           {/* ⚡ PRIMARY MODES - Larger landscape cards */}
           <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
@@ -1887,6 +1911,43 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           </View>
         </View>
       </Modal>
+
+      {/* Loading Overlay for Challenge Fetching */}
+      {loadingChallenges && (
+        <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+        }}>
+          <View style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: 20,
+            padding: 32,
+            alignItems: 'center',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.3,
+            shadowRadius: 20,
+            elevation: 10,
+          }}>
+            <ActivityIndicator size="large" color="#4ECFBF" />
+            <Text style={{
+              marginTop: 16,
+              fontSize: 16,
+              fontWeight: '600',
+              color: '#1F2937',
+            }}>
+              Loading challenges...
+            </Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1944,7 +2005,7 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.6}
       disabled={isDisabled}
       style={{ marginBottom: 20 }}
     >
@@ -2046,20 +2107,17 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
               <View />
             )}
 
-            {/* Start Button with Arrow */}
+            {/* Arrow Button */}
             <View style={{
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              paddingHorizontal: 20,
+              paddingHorizontal: 16,
               paddingVertical: 10,
               borderRadius: 12,
               flexDirection: 'row',
               alignItems: 'center',
-              gap: 6,
+              justifyContent: 'center',
             }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: color1 }}>
-                START
-              </Text>
-              <Ionicons name="arrow-forward" size={18} color={color1} />
+              <Ionicons name="arrow-forward" size={20} color={color1} />
             </View>
           </View>
         </LinearGradient>
@@ -2093,7 +2151,7 @@ function GameLobbyPrimaryCard({ challenge, count, stats, color1, color2, onPress
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.6}
       disabled={isDisabled}
       style={{ flex: 1 }}
     >
@@ -2225,7 +2283,7 @@ function GameLobbySecondaryCard({ challenge, count, stats, color1, color2, onPre
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.6}
       disabled={isDisabled}
       style={{ flex: 1 }}
     >

@@ -111,10 +111,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 16,
+    marginRight: 60, // Add right margin to create space for the X button notch
     paddingHorizontal: 14,
     paddingVertical: 12,
     backgroundColor: '#F9FAFB',
     borderRadius: 16,
+    borderTopRightRadius: 0, // Remove top-right radius to create notch effect
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',

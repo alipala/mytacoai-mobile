@@ -24,6 +24,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Language, CEFRLevel } from '../../services/mockChallengeData';
 
+// Import SVG flags as components
+import EnglishFlag from '../../assets/flags/english.svg';
+import SpanishFlag from '../../assets/flags/spanish.svg';
+import FrenchFlag from '../../assets/flags/french.svg';
+import GermanFlag from '../../assets/flags/german.svg';
+import PortugueseFlag from '../../assets/flags/portuguese.svg';
+import DutchFlag from '../../assets/flags/dutch.svg';
+
 const { width, height } = Dimensions.get('window');
 
 interface Props {
@@ -34,13 +42,13 @@ interface Props {
 }
 
 // Language options with beautiful gradients
-const LANGUAGES: { value: Language; label: string; emoji: string; gradient: [string, string] }[] = [
-  { value: 'english', label: 'English', emoji: '🇬🇧', gradient: ['#667eea', '#764ba2'] },
-  { value: 'spanish', label: 'Español', emoji: '🇪🇸', gradient: ['#f093fb', '#f5576c'] },
-  { value: 'french', label: 'Français', emoji: '🇫🇷', gradient: ['#4facfe', '#00f2fe'] },
-  { value: 'german', label: 'Deutsch', emoji: '🇩🇪', gradient: ['#43e97b', '#38f9d7'] },
-  { value: 'portuguese', label: 'Português', emoji: '🇵🇹', gradient: ['#fa709a', '#fee140'] },
-  { value: 'dutch', label: 'Nederlands', emoji: '🇳🇱', gradient: ['#30cfd0', '#330867'] },
+const LANGUAGES: { value: Language; label: string; FlagComponent: React.FC<any>; gradient: [string, string] }[] = [
+  { value: 'english', label: 'English', FlagComponent: EnglishFlag, gradient: ['#667eea', '#764ba2'] },
+  { value: 'spanish', label: 'Español', FlagComponent: SpanishFlag, gradient: ['#f093fb', '#f5576c'] },
+  { value: 'french', label: 'Français', FlagComponent: FrenchFlag, gradient: ['#4facfe', '#00f2fe'] },
+  { value: 'german', label: 'Deutsch', FlagComponent: GermanFlag, gradient: ['#43e97b', '#38f9d7'] },
+  { value: 'portuguese', label: 'Português', FlagComponent: PortugueseFlag, gradient: ['#fa709a', '#fee140'] },
+  { value: 'dutch', label: 'Nederlands', FlagComponent: DutchFlag, gradient: ['#30cfd0', '#330867'] },
 ];
 
 // Level options
@@ -385,7 +393,7 @@ export default function AnimatedLanguageLevelSelector({
           <View style={styles.languageCarousel}>
             <Animated.View style={[styles.languageCard, { opacity: languageCardOpacity }]}>
               <LinearGradient colors={currentLanguage.gradient} style={styles.languageGradient}>
-                <Text style={styles.languageEmoji}>{currentLanguage.emoji}</Text>
+                <currentLanguage.FlagComponent width={80} height={80} style={styles.languageFlag} />
                 <Text style={styles.languageLabel}>{currentLanguage.label}</Text>
               </LinearGradient>
             </Animated.View>
@@ -640,8 +648,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  languageEmoji: {
-    fontSize: 72,
+  languageFlag: {
     marginBottom: 12,
   },
   languageLabel: {
