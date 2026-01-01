@@ -14,7 +14,8 @@ export type ChallengeType =
   | 'micro_quiz'
   | 'smart_flashcard'
   | 'native_check'
-  | 'brain_tickler';
+  | 'brain_tickler'
+  | 'story_builder';
 
 export interface ChallengeBase {
   id: string;
@@ -88,13 +89,29 @@ export interface BrainTicklerChallenge extends ChallengeBase {
   explanation: string;
 }
 
+export interface StoryBuilderChallenge extends ChallengeBase {
+  type: 'story_builder';
+  storyText: string; // Story with ___ placeholders
+  gaps: Array<{
+    id: string;
+    correctWord: string;
+    positionIndex: number;
+    alternativeCorrectWords?: string[];
+  }>;
+  wordBank: string[]; // All words including distractors
+  explanation: string;
+  styleNote?: string | null; // For C1-C2 nuance
+  tags: string[];
+}
+
 export type Challenge =
   | ErrorSpottingChallenge
   | SwipeFixChallenge
   | MicroQuizChallenge
   | SmartFlashcardChallenge
   | NativeCheckChallenge
-  | BrainTicklerChallenge;
+  | BrainTicklerChallenge
+  | StoryBuilderChallenge;
 
 // Mock data by CEFR level
 const errorSpottingByLevel: Record<CEFRLevel, ErrorSpottingChallenge[]> = {

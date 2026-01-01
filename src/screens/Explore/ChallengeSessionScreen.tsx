@@ -43,6 +43,7 @@ import MicroQuizScreen from './challenges/MicroQuizScreen';
 import SmartFlashcardScreen from './challenges/SmartFlashcardScreen';
 import NativeCheckScreen from './challenges/NativeCheckScreen';
 import BrainTicklerScreen from './challenges/BrainTicklerScreen';
+import StoryBuilderScreen from './challenges/StoryBuilderScreen';
 
 interface ChallengeSessionScreenProps {
   navigation: any;
@@ -411,6 +412,8 @@ export default function ChallengeSessionScreen({
         return <NativeCheckScreen key={currentChallenge.id} {...challengeProps} />;
       case 'brain_tickler':
         return <BrainTicklerScreen key={currentChallenge.id} {...challengeProps} />;
+      case 'story_builder':
+        return <StoryBuilderScreen key={currentChallenge.id} challenge={currentChallenge as any} onComplete={challengeProps.onComplete} onWrongAnswerSelected={challengeProps.onWrongAnswerSelected} onClose={challengeProps.onClose} />;
       default:
         return null;
     }
