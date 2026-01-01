@@ -106,19 +106,6 @@ export function LearningCompanion({
           loop={shouldLoop}
           speed={1}
         />
-
-        {/* Combo overlay for streaks - only show during celebrate/legendary */}
-        {combo >= 3 && (currentState === 'celebrate' || currentState === 'legendary') && (
-          <View style={styles.comboOverlay}>
-            <LottieView
-              source={require('../assets/lottie/companion_celebrate.json')}
-              style={styles.comboAnimation}
-              autoPlay
-              loop={false}
-              speed={0.8}
-            />
-          </View>
-        )}
       </Animated.View>
 
       {/* Glow effect for high combos */}

@@ -32,6 +32,7 @@ export interface AllHeartsStatus {
   smart_flashcard: HeartPool;
   native_check: HeartPool;
   brain_tickler: HeartPool;
+  story_builder: HeartPool;
   subscriptionPlan: string;
   subscriptionStatus: string;
 }
@@ -73,7 +74,8 @@ export const CHALLENGE_TYPE_NAMES: Record<string, string> = {
   micro_quiz: 'Micro Quiz',
   smart_flashcard: 'Smart Flashcard',
   native_check: 'Native Check',
-  brain_tickler: 'Brain Tickler'
+  brain_tickler: 'Brain Tickler',
+  story_builder: 'Story Builder'
 };
 
 // Challenge type to snake_case mapping (for API calls)
@@ -83,5 +85,6 @@ export const CHALLENGE_TYPE_API_NAMES: Record<string, string> = {
   'Micro Quiz': 'micro_quiz',
   'Smart Flashcard': 'smart_flashcard',
   'Native Check': 'native_check',
-  'Brain Tickler': 'brain_tickler'
+  'Brain Tickler': 'brain_tickler',
+  'Story Builder': 'story_builder'
 };

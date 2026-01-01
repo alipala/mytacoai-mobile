@@ -112,7 +112,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
       checkForLevelChange();
       fetchHeartsStatus();
     }
-  }, [isFocused]);
+  }, [isFocused, fetchHeartsStatus]);
 
   // Check if user changed their level in settings
   const checkForLevelChange = async () => {

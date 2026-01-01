@@ -48,6 +48,7 @@
   "devDependencies": {
     "@types/react": "~19.1.10",
     "openapi-typescript-codegen": "^0.29.0",
+    "react-native-svg-transformer": "^1.5.2",
     "typescript": "~5.9.2"
   }
 }

@@ -16,6 +16,7 @@ import {
   Easing,
   TextInput,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -319,6 +320,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
           <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
@@ -352,6 +354,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   if (learningPlans.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
         {/* iOS-Native Header WITH USER BUTTON */}
         <View style={styles.header}>
           <Image
@@ -512,6 +515,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
       {/* iOS-Native Header WITH USER BUTTON - THIS IS WHAT YOU WANT! */}
       <View style={styles.header}>
         <Image

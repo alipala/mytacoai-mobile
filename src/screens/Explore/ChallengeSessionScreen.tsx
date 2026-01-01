@@ -24,6 +24,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import * as Haptics from 'expo-haptics';
 import { useChallengeSession } from '../../contexts/ChallengeSessionContext';
 import SessionProgressBar from '../../components/SessionProgressBar';
@@ -43,6 +44,7 @@ import MicroQuizScreen from './challenges/MicroQuizScreen';
 import SmartFlashcardScreen from './challenges/SmartFlashcardScreen';
 import NativeCheckScreen from './challenges/NativeCheckScreen';
 import BrainTicklerScreen from './challenges/BrainTicklerScreen';
+import StoryBuilderScreen from './challenges/StoryBuilderScreen';
 
 interface ChallengeSessionScreenProps {
   navigation: any;
@@ -195,8 +197,8 @@ export default function ChallengeSessionScreen({
     // Check if this is the last challenge BEFORE advancing
     const isLastChallenge = session.completedChallenges + 1 >= session.challenges.length;
 
-    // Record answer in session
-    answerChallenge(challengeId, isCorrect);
+    // Record answer in session - MUST AWAIT to prevent race condition with progress indicator
+    await answerChallenge(challengeId, isCorrect);
 
     if (isLastChallenge) {
       // This was the last challenge - show summary
@@ -411,6 +413,8 @@ export default function ChallengeSessionScreen({
         return <NativeCheckScreen key={currentChallenge.id} {...challengeProps} />;
       case 'brain_tickler':
         return <BrainTicklerScreen key={currentChallenge.id} {...challengeProps} />;
+      case 'story_builder':
+        return <StoryBuilderScreen key={currentChallenge.id} challenge={currentChallenge as any} onComplete={challengeProps.onComplete} onWrongAnswerSelected={challengeProps.onWrongAnswerSelected} onClose={challengeProps.onClose} />;
       default:
         return null;
     }
@@ -444,7 +448,12 @@ export default function ChallengeSessionScreen({
       {/* Loading Screen - Show while calculating stats */}
       {showLoading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#06B6D4" />
+          <LottieView
+            source={require('../../assets/lottie/calculating.json')}
+            autoPlay
+            loop
+            style={styles.calculatingAnimation}
+          />
           <Text style={styles.loadingText}>Calculating results...</Text>
         </View>
       )}
@@ -624,6 +633,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
   },
+  calculatingAnimation: {
+    width: 200,
+    height: 200,
+  },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
@@ -637,15 +650,15 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 20, // Account for status bar + safe area
-    right: 16, // Move to RIGHT side to avoid hearts
+    top: Platform.OS === 'ios' ? 52 : 12, // Positioned to sit in the notch
+    right: 8, // Right side with small margin
     width: 44,
     height: 44,
     borderRadius: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
+    zIndex: 1001, // Higher z-index to sit above stats card
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
