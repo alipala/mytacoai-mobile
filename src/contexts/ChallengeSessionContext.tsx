@@ -300,10 +300,23 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
       // Check if out of hearts
       if (heartResponse.outOfHearts) {
         console.warn('❤️  Out of hearts! Ending session early...');
-        // Pass the updated session info for early end
-        const finalSession = sessionRef.current;
-        if (finalSession) {
-          await endSessionEarly(finalSession);
+        // Get current session and ensure lastHeartResponse is included
+        const currentSessionData = sessionRef.current;
+        if (currentSessionData) {
+          // Create updated session with the heart response data
+          const sessionWithHeartResponse = {
+            ...currentSessionData,
+            lastHeartResponse: heartResponse,
+            heartPool: currentSessionData.heartPool ? {
+              ...currentSessionData.heartPool,
+              currentHearts: heartResponse.heartsRemaining,
+              shieldActive: heartResponse.shieldActive,
+              currentStreak: heartResponse.currentStreak,
+              refillInProgress: heartResponse.outOfHearts,
+              refillInfo: heartResponse.refillInfo
+            } : null,
+          };
+          await endSessionEarly(sessionWithHeartResponse);
         }
       }
     },

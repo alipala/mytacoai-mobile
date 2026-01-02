@@ -90,7 +90,15 @@ export default function ChallengeSessionScreen({
   // Ref to track if we're currently showing the quit modal
   const isShowingQuitModalRef = React.useRef(false);
 
+  // Ref to always have the latest session (fixes closure stale state in setTimeout callbacks)
+  const sessionRef = React.useRef(session);
+
   const currentChallenge = getCurrentChallenge();
+
+  // Update sessionRef whenever session changes
+  React.useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   // Get background color - clean whitish for all challenge types
   const getBackgroundColor = () => {
@@ -200,18 +208,27 @@ export default function ChallengeSessionScreen({
     // Record answer in session - MUST AWAIT to prevent race condition with progress indicator
     await answerChallenge(challengeId, isCorrect);
 
-    if (isLastChallenge) {
-      // This was the last challenge - show summary
-      console.log('🎊 Last challenge completed, showing summary');
-      // ⏱️ Wait for state update to complete before ending session
-      // This prevents a race condition where the last answer isn't counted
-      setTimeout(() => {
+    // IMPORTANT: Check if out of hearts after answering
+    // We need to wait a tick for React state to update after answerChallenge completes
+    setTimeout(() => {
+      // Use ref to get the latest session state (avoids stale closure)
+      const latestSession = sessionRef.current;
+
+      // If out of hearts, don't advance - let the OutOfHeartsModal show
+      if (latestSession?.lastHeartResponse?.outOfHearts || latestSession?.endedEarly) {
+        console.log('❤️  Out of hearts detected - stopping challenge advancement');
+        return;
+      }
+
+      if (isLastChallenge) {
+        // This was the last challenge - show summary
+        console.log('🎊 Last challenge completed, showing summary');
         handleSessionComplete();
-      }, 0);
-    } else {
-      // Advance to next challenge
-      nextChallenge();
-    }
+      } else {
+        // Advance to next challenge
+        nextChallenge();
+      }
+    }, 0);
   };
 
   /**

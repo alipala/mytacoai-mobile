@@ -96,7 +96,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
     try {
       setSaving(true);
       await AuthenticationService.updateProfileApiAuthUpdateProfilePut({
-        requestBody: { name: name.trim() },
+        name: name.trim(),
       });
 
       // Update local storage
@@ -181,10 +181,8 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
     try {
       setSaving(true);
       await AuthenticationService.updatePasswordApiAuthUpdatePasswordPost({
-        requestBody: {
-          current_password: currentPassword,
-          new_password: newPassword,
-        },
+        current_password: currentPassword,
+        new_password: newPassword,
       });
 
       if (Platform.OS === 'ios') {
