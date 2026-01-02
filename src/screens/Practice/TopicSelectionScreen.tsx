@@ -224,12 +224,10 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
 
       // Call the research endpoint
       const researchData = await DefaultService.researchCustomTopicApiCustomTopicResearchPost({
-        requestBody: {
-          language: language || 'english',
-          level: 'A1', // Default level, will be updated in next screen
-          user_prompt: customTopicText,
-          topic: 'custom',
-        },
+        language: language || 'english',
+        level: 'A1', // Default level, will be updated in next screen
+        user_prompt: customTopicText,
+        topic: 'custom',
       });
 
       console.log('✅ Topic research completed:', researchData);
