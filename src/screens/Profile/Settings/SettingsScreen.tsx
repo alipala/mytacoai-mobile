@@ -20,8 +20,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AccountPreferencesScreen from './AccountPreferencesScreen';
 import VoiceSelectionScreen from './VoiceSelectionScreen';
 import NotificationSettingsScreen from './NotificationSettingsScreen';
+import SubscriptionManagementScreen from './SubscriptionManagementScreen';
 
-type SettingsView = 'main' | 'account' | 'voice' | 'notifications';
+type SettingsView = 'main' | 'account' | 'voice' | 'notifications' | 'subscription';
 
 interface SettingsScreenProps {
   onClose: () => void;
@@ -91,6 +92,10 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
 
   if (currentView === 'notifications') {
     return <NotificationSettingsScreen onBack={handleBack} />;
+  }
+
+  if (currentView === 'subscription') {
+    return <SubscriptionManagementScreen onBack={handleBack} />;
   }
 
   // Main Settings Menu
@@ -166,6 +171,24 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Text style={styles.menuLabel}>Notification Settings</Text>
             <Text style={styles.menuDescription}>
               Customize reminders and notification preferences
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+
+        {/* Subscription Management */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => handleNavigate('subscription')}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.menuIcon, { backgroundColor: '#F59E0B20' }]}>
+            <Ionicons name="card-outline" size={24} color="#F59E0B" />
+          </View>
+          <View style={styles.menuInfo}>
+            <Text style={styles.menuLabel}>Subscription</Text>
+            <Text style={styles.menuDescription}>
+              Manage your subscription and billing
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
