@@ -386,7 +386,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         >
           {/* Subscription Banner for empty state */}
           {subscriptionStatus && !bannerDismissed && (
-            <View style={{ width: '100%', paddingBottom: 20 }}>
+            <View style={{ width: '100%', marginBottom: 16 }}>
               <SubscriptionBanner
                 plan={subscriptionStatus.plan}
                 sessionsRemaining={subscriptionStatus.limits?.sessions_remaining || 0}
@@ -396,7 +396,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             </View>
           )}
 
-          <Ionicons name="book-outline" size={80} color="#D1D5DB" />
+          <Ionicons name="book-outline" size={72} color="#D1D5DB" />
           <Text style={styles.emptyTitle}>No Learning Plans Yet</Text>
           <Text style={styles.emptyMessage}>
             Start practicing right away or create a personalized learning plan!
@@ -419,7 +419,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 <View style={styles.sessionCardContent}>
                   <View style={styles.sessionCardHeader}>
                     <View style={styles.sessionIconContainer}>
-                      <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
+                      <Ionicons name="chatbubbles" size={26} color="#FFFFFF" />
                     </View>
                     <View style={styles.popularBadge}>
                       <Ionicons name="star" size={9} color="#FFD63A" />
@@ -465,7 +465,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 <View style={styles.sessionCardContent}>
                   <View style={styles.sessionCardHeader}>
                     <View style={styles.sessionIconContainer}>
-                      <Ionicons name="calendar" size={24} color="#FFFFFF" />
+                      <Ionicons name="calendar" size={26} color="#FFFFFF" />
                     </View>
                   </View>
 
