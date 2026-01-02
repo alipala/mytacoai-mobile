@@ -43,7 +43,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
 
   const fetchPreferences = async () => {
     try {
-      const token = await AsyncStorage.getItem('@auth_token');
+      const token = await AsyncStorage.getItem('auth_token');
       if (!token) {
         console.log('No auth token found, using defaults');
         setIsLoading(false);
@@ -106,7 +106,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
     // Save to backend
     try {
       setIsSaving(true);
-      const token = await AsyncStorage.getItem('@auth_token');
+      const token = await AsyncStorage.getItem('auth_token');
 
       if (!token) {
         console.log('No auth token, skipping backend sync');
