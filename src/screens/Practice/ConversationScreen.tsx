@@ -1165,7 +1165,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               duration_minutes: sessionDuration / 60,
               learning_plan_id: null,
               conversation_type: 'practice',
-              sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : null,
+              sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : [],
             },
           });
         }

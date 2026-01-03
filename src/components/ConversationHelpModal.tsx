@@ -534,14 +534,16 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <BlurView intensity={80} style={styles.blurContainer}>
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={handleClose}
-        />
-        {HelpContent}
-      </BlurView>
+      <TouchableOpacity
+        style={styles.blurContainer}
+        activeOpacity={1}
+        onPress={handleClose}
+      >
+        <BlurView intensity={80} style={StyleSheet.absoluteFill} pointerEvents="none" />
+        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+          {HelpContent}
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -551,16 +553,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    paddingHorizontal: 20,
   },
   modalContainer: {
-    width: SCREEN_WIDTH * 0.92,
-    maxHeight: SCREEN_HEIGHT * 0.75,
+    width: '100%',
+    maxWidth: SCREEN_WIDTH - 40,
+    maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    overflow: 'visible',
+    overflow: 'hidden',
+    alignSelf: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -644,8 +646,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
     paddingTop: 12,
+    paddingBottom: 24,
     flexGrow: 1,
   },
   loadingContainer: {
@@ -720,14 +723,16 @@ const styles = StyleSheet.create({
   },
   responseCard: {
     backgroundColor: '#FFFFFF',
-    padding: 18,
+    padding: 20,
+    paddingTop: 16,
     paddingLeft: 22,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#10B981',
-    minHeight: 80,
+    minHeight: 85,
     justifyContent: 'center',
     position: 'relative',
+    marginBottom: 4,
     ...Platform.select({
       ios: {
         shadowColor: '#10B981',
