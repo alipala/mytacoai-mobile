@@ -1364,7 +1364,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         <View style={styles.timerBadgeContainer}>
           <View style={styles.timerBadge}>
             <Ionicons name="timer-outline" size={16} color="#14B8A6" />
-            <Text style={styles.timerText}>{formatDuration(maxDuration - sessionDuration)}</Text>
+            <Text style={styles.timerText}>{formatDuration(Math.max(0, maxDuration - sessionDuration))}</Text>
             <Text style={styles.timerLabel}>left</Text>
           </View>
         </View>
