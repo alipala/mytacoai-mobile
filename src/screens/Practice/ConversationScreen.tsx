@@ -919,11 +919,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     conversationState.setUserSpeaking(newRecordingState);
 
     // Keep conversation help visible while recording so user can read suggestions
-    // Only close the modal if it's open, but keep the button visible
-    if (newRecordingState && conversationHelp.isModalVisible) {
-      console.log('[CONVERSATION_HELP] User started speaking, closing modal but keeping help button visible');
-      conversationHelp.closeHelpModal();
-    }
+    // DISABLED: Don't auto-close modal when speaking - let user manually close via X button
+    // if (newRecordingState && conversationHelp.isModalVisible) {
+    //   console.log('[CONVERSATION_HELP] User started speaking, closing modal but keeping help button visible');
+    //   conversationHelp.closeHelpModal();
+    // }
 
     // Mute/unmute the microphone
     realtimeServiceRef.current.setMuted(!newRecordingState);
@@ -1153,20 +1153,18 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           // Original logic for practice sessions
           console.log('[AUTO_END] Saving practice session via original endpoint...');
           result = await ProgressService.saveConversationApiProgressSaveConversationPost({
-            requestBody: {
-              language: language,
-              level: level,
-              topic: topic || null,
-              messages: messages.map(msg => ({
-                role: msg.role,
-                content: msg.content,
-                timestamp: msg.timestamp,
-              })),
-              duration_minutes: sessionDuration / 60,
-              learning_plan_id: null,
-              conversation_type: 'practice',
-              sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : null,
-            },
+            language: language,
+            level: level,
+            topic: topic || null,
+            messages: messages.map(msg => ({
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp,
+            })),
+            duration_minutes: sessionDuration / 60,
+            learning_plan_id: null,
+            conversation_type: 'practice',
+            sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : [],
           });
         }
 
@@ -1361,13 +1359,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </View>
       </View>
 
-      {/* Timer Badge - Clean design below header */}
+      {/* Timer Badge - Countdown design below header */}
       {sessionStartTime && (
         <View style={styles.timerBadgeContainer}>
           <View style={styles.timerBadge}>
-            <Ionicons name="time-outline" size={16} color="#14B8A6" />
-            <Text style={styles.timerText}>{formatDuration(sessionDuration)}</Text>
-            <Text style={styles.timerLabel}>/ {formatDuration(maxDuration)}</Text>
+            <Ionicons name="timer-outline" size={16} color="#14B8A6" />
+            <Text style={styles.timerText}>{formatDuration(Math.max(0, maxDuration - sessionDuration))}</Text>
+            <Text style={styles.timerLabel}>left</Text>
           </View>
         </View>
       )}
@@ -2128,7 +2126,7 @@ const styles = StyleSheet.create({
   // Timer Badge Styles
   timerBadgeContainer: {
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     backgroundColor: '#F0FDFA',
     borderBottomWidth: 1,
@@ -2138,10 +2136,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 24,
+    gap: 8,
     shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -2151,15 +2149,18 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   timerText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: '#14B8A6',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   timerLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#6B7280',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#14B8A6',
+    opacity: 0.7,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   // Progress Bar Styles
   progressBarContainer: {

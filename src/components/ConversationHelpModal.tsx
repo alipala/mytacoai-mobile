@@ -404,31 +404,20 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                         {helpData.suggested_responses?.map((response, index) => (
                           <TouchableOpacity
                             key={index}
-                            style={styles.responseCard}
+                            style={[
+                              styles.responseCard,
+                              index === 0 && styles.responseCardFirst,
+                            ]}
                             onPress={() => handleSelectResponse(response.text || '')}
-                            activeOpacity={0.7}
+                            activeOpacity={0.8}
                           >
-                            <View style={styles.responseHeader}>
-                              <Text style={styles.responseText}>{response.text}</Text>
-                              <View style={styles.responseActions}>
-                                <TouchableOpacity
-                                  onPress={(e) => {
-                                    e.stopPropagation();
-                                    playPronunciation(response.text || '');
-                                  }}
-                                  style={styles.pronunciationButton}
-                                >
-                                  <Ionicons name="volume-medium" size={18} color="#10B981" />
-                                </TouchableOpacity>
-                              </View>
+                            <View style={[
+                              styles.responseNumberBadge,
+                              index === 0 && styles.responseNumberBadgeFirst,
+                            ]}>
+                              <Text style={styles.responseNumberText}>{index + 1}</Text>
                             </View>
-                            {response.explanation && (
-                              <Text style={styles.explanationText}>{response.explanation}</Text>
-                            )}
-                            <View style={styles.tapHintRow}>
-                              <Ionicons name="hand-left-outline" size={14} color="#10B981" />
-                              <Text style={styles.tapHintText}>{uiText.tapToSelect}</Text>
-                            </View>
+                            <Text style={styles.responseText}>{response.text}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -543,16 +532,12 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={handleClose}
+      onRequestClose={() => {}} // Prevent automatic closing - only X button can close
     >
-      <BlurView intensity={80} style={styles.blurContainer}>
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={handleClose}
-        />
+      <View style={styles.blurContainer} pointerEvents="box-none">
+        <BlurView intensity={80} style={StyleSheet.absoluteFill} pointerEvents="none" />
         {HelpContent}
-      </BlurView>
+      </View>
     </Modal>
   );
 };
@@ -563,16 +548,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
   modalContainer: {
-    width: SCREEN_WIDTH * 0.9,
-    maxHeight: SCREEN_HEIGHT * 0.85,
-    minHeight: 500,
+    width: SCREEN_WIDTH * 0.85,
+    maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    overflow: 'visible',
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -586,14 +567,14 @@ const styles = StyleSheet.create({
     }),
   },
   inlineContainer: {
-    width: SCREEN_WIDTH - 32, // Account for conversation padding
-    minHeight: 300, // Ensure minimum height
-    maxHeight: SCREEN_HEIGHT * 0.6, // Give more space
+    width: SCREEN_WIDTH * 0.85, // 15% smaller, centered
+    minHeight: 300,
+    maxHeight: SCREEN_HEIGHT * 0.6,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16, // All corners rounded
-    marginHorizontal: 16,
+    borderRadius: 24,
     marginVertical: 12,
-    overflow: 'hidden', // Hide overflow for rounded corners
+    alignSelf: 'center', // Center horizontally
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -656,7 +637,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   scrollContent: {
-    padding: 10,
+    padding: 18,
+    paddingTop: 12,
+    paddingBottom: 24,
     flexGrow: 1,
   },
   loadingContainer: {
@@ -726,81 +709,85 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   responsesContainer: {
-    gap: 6,
+    gap: 14,
+    marginTop: 4,
   },
   responseCard: {
-    backgroundColor: '#F0FDF4',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    paddingTop: 16,
+    paddingLeft: 22,
+    borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#BBF7D0',
+    borderColor: '#10B981',
+    minHeight: 85,
+    justifyContent: 'center',
+    position: 'relative',
+    marginBottom: 4,
     ...Platform.select({
       ios: {
         shadowColor: '#10B981',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 2,
+        elevation: 4,
       },
     }),
   },
-  responseHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 4,
+  responseCardFirst: {
+    borderColor: '#8B5CF6',
+    backgroundColor: '#FEFEFE',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#8B5CF6',
+      },
+    }),
+  },
+  responseNumberBadge: {
+    position: 'absolute',
+    top: -8,
+    left: 14,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  responseNumberBadgeFirst: {
+    backgroundColor: '#8B5CF6',
+  },
+  responseNumberText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   responseText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#166534',
-    flex: 1,
-    marginRight: 8,
-    lineHeight: 20,
-  },
-  responseActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    color: '#1E293B',
+    lineHeight: 22,
+    letterSpacing: 0.2,
   },
   pronunciationButton: {
     padding: 6,
     backgroundColor: '#DCFCE7',
     borderRadius: 6,
-  },
-  pronunciationText: {
-    fontSize: 12,
-    color: '#15803D',
-    marginBottom: 8,
-  },
-  explanationText: {
-    fontSize: 11,
-    color: '#166534',
-    lineHeight: 16,
-    marginBottom: 6,
-  },
-  tapHintRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 3,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#BBF7D0',
-  },
-  tapHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  tapHintText: {
-    fontSize: 10,
-    color: '#10B981',
-    fontWeight: '600',
-    letterSpacing: 0.3,
   },
   vocabularyContainer: {
     gap: 12,

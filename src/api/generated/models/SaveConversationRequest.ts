@@ -10,6 +10,6 @@ export type SaveConversationRequest = {
     duration_minutes: number;
     learning_plan_id?: (string | null);
     conversation_type?: (string | null);
-    sentences_for_analysis?: null;
+    sentences_for_analysis?: Array<Record<string, any>> | null;
 };
 
