@@ -532,9 +532,9 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={handleClose}
+      onRequestClose={() => {}} // Prevent automatic closing - only X button can close
     >
-      <View style={styles.blurContainer}>
+      <View style={styles.blurContainer} pointerEvents="box-none">
         <BlurView intensity={80} style={StyleSheet.absoluteFill} pointerEvents="none" />
         {HelpContent}
       </View>
@@ -547,15 +547,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
   },
   modalContainer: {
-    width: SCREEN_WIDTH - 32,
+    width: SCREEN_WIDTH * 0.85,
     maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     overflow: 'hidden',
-    alignSelf: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
