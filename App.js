@@ -7,7 +7,7 @@ import { View, ActivityIndicator, Text, StyleSheet, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
 // Onboarding Screens
-import { SplashScreen, OnboardingSlider, WelcomeScreen } from './src/screens/Onboarding';
+import { OnboardingSlider, WelcomeScreen } from './src/screens/Onboarding';
 
 // Auth Screens
 import { LoginScreen } from './src/screens/Auth/LoginScreen.tsx';
@@ -328,7 +328,7 @@ export default function App() {
    * Determine initial route based on app state:
    * 1. If authenticated -> Main app
    * 2. If onboarding completed but not authenticated -> Welcome (with guest option)
-   * 3. If onboarding not completed -> Splash (will show onboarding)
+   * 3. If onboarding not completed -> Onboarding (skip splash)
    */
   const getInitialRouteName = () => {
     if (isAuthenticated) {
@@ -337,7 +337,7 @@ export default function App() {
     if (onboardingCompleted) {
       return 'Welcome';
     }
-    return 'Splash';
+    return 'Onboarding';
   };
 
   // Deep linking configuration
@@ -371,7 +371,6 @@ export default function App() {
           }}
         >
           {/* Onboarding Flow */}
-          <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingSlider} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
 
