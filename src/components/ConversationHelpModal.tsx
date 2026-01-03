@@ -534,16 +534,21 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <TouchableOpacity
-        style={styles.blurContainer}
-        activeOpacity={1}
-        onPress={handleClose}
-      >
+      <View style={styles.blurContainer}>
         <BlurView intensity={80} style={StyleSheet.absoluteFill} pointerEvents="none" />
-        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+
+        {/* Backdrop - only this should close the modal */}
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
+
+        {/* Modal content - clicks should not propagate */}
+        <View style={styles.modalWrapper} pointerEvents="box-none">
           {HelpContent}
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 };
@@ -553,16 +558,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  modalWrapper: {
+    width: SCREEN_WIDTH - 32,
+    maxHeight: SCREEN_HEIGHT * 0.8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContainer: {
     width: '100%',
-    maxWidth: SCREEN_WIDTH - 40,
     maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     overflow: 'hidden',
-    alignSelf: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
