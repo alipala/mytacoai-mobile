@@ -22,7 +22,8 @@ import { setOnboardingCompleted } from '../../utils/storage';
 interface OnboardingSlide {
   key: string;
   title: string;
-  description: string;
+  highlight: string;
+  subtext: string;
   backgroundColor: string;
   iconEmoji: string;
 }
@@ -33,31 +34,39 @@ interface OnboardingSliderProps {
 
 const { width } = Dimensions.get('window');
 
-// Onboarding slide data
+// Onboarding slide data - Value-driven messaging with highlight + subtext
 const slides: OnboardingSlide[] = [
   {
     key: '1',
-    title: 'Speak Confidently in Any Language',
-    description:
-      'Practice real conversations with AI tutors designed to help you overcome speaking anxiety',
+    title: "Real Conversations Shouldn't Cost a Fortune",
+    highlight: "No financial pain",
+    subtext: "Join 50,000+ learners speaking daily without breaking the bank.",
     backgroundColor: COLORS.turquoiseLight,
     iconEmoji: 'animation',
   },
   {
     key: '2',
-    title: 'Real-Time Voice Practice',
-    description:
-      'Build confidence through natural conversations with AI tutors who adapt to your learning pace and goals',
+    title: "Make Mistakes 100 Times!",
+    highlight: "Practice without judgment.",
+    subtext: "Unlimited do-overs without the fear that stops most learners.",
     backgroundColor: COLORS.coralLight,
     iconEmoji: 'chat-animation',
   },
   {
     key: '3',
-    title: 'Track Your Progress',
-    description:
-      'Watch your confidence grow with personalized feedback, progress reports, and achievement milestones',
+    title: "Your Pace. Your Schedule",
+    highlight: "Learning that adapts to your life.",
+    subtext: "Speak when you can. Play challenges when you can't.",
     backgroundColor: COLORS.yellowLight,
     iconEmoji: 'goal-animation',
+  },
+  {
+    key: '4',
+    title: "Speak Confidently in Real Life",
+    highlight: "Order in restaurants. Make friends. Land that job.",
+    subtext: "Go from practicing alone to speaking freely with real people.",
+    backgroundColor: COLORS.orangeLight,
+    iconEmoji: 'success-animation',
   },
 ];
 
@@ -134,23 +143,30 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
               { backgroundColor: item.backgroundColor },
             ]}
           >
-            {item.iconEmoji === 'animation' ? (
+            {item.key === '1' ? (
               <LottieView
-                source={require('../../assets/LargeMicrophone.json')}
+                source={require('../../assets/1st-screen.json')}
                 autoPlay
                 loop
                 style={styles.lottieAnimation}
               />
-            ) : item.iconEmoji === 'chat-animation' ? (
+            ) : item.key === '2' ? (
               <LottieView
-                source={require('../../assets/Chat.json')}
+                source={require('../../assets/2nd-screen.json')}
                 autoPlay
                 loop
                 style={styles.lottieAnimation}
               />
-            ) : item.iconEmoji === 'goal-animation' ? (
+            ) : item.key === '3' ? (
               <LottieView
-                source={require('../../assets/GoalAchieved.json')}
+                source={require('../../assets/3rd-screen.json')}
+                autoPlay
+                loop
+                style={styles.lottieAnimation}
+              />
+            ) : item.key === '4' ? (
+              <LottieView
+                source={require('../../assets/4th-screen.json')}
                 autoPlay
                 loop
                 style={styles.lottieAnimation}
@@ -164,7 +180,8 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
         {/* Text Content */}
         <View style={styles.textContainer}>
           <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.description}>{item.description}</Text>
+          <Text style={styles.highlight}>{item.highlight}</Text>
+          <Text style={styles.subtext}>{item.subtext}</Text>
         </View>
       </View>
     );
@@ -256,7 +273,6 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
         onSlideChange={(index) => setCurrentIndex(index)}
         showNextButton={false}
         showDoneButton={false}
-        showPagination={false}
         activeDotStyle={{ display: 'none' }}
         dotStyle={{ display: 'none' }}
       />
@@ -277,38 +293,50 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    top: 50,
+    right: 24,
     zIndex: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   skipButtonText: {
     fontSize: 14,
-    fontWeight: '400',
-    color: COLORS.textLight,
+    fontWeight: '600',
+    color: COLORS.textGray,
   },
   slide: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 220,
+    justifyContent: 'flex-start',
+    paddingHorizontal: 24,
+    paddingTop: 80,
+    paddingBottom: 230,
   },
   illustrationContainer: {
     width: '100%',
-    height: 400,
+    height: 300,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   illustration: {
-    width: 300,
-    height: 300,
-    borderRadius: 150,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
   },
   emoji: {
     fontSize: 80,
@@ -320,30 +348,41 @@ const styles = StyleSheet.create({
 
   textContainer: {
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 20,
+    maxWidth: 500,
   },
   title: {
     fontSize: 28,
     fontWeight: '600',
     color: COLORS.textDark,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
     letterSpacing: -0.5,
+    lineHeight: 36,
   },
-  description: {
+  highlight: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    textAlign: 'center',
+    marginBottom: 12,
+    letterSpacing: 0,
+    lineHeight: 28,
+  },
+  subtext: {
     fontSize: 16,
     fontWeight: '400',
     color: COLORS.textGray,
     textAlign: 'center',
     lineHeight: 24,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 150,
+    bottom: 140,
     left: 0,
     right: 0,
   },
@@ -352,57 +391,72 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: COLORS.border,
-    marginHorizontal: 4,
+    marginHorizontal: 5,
   },
   paginationDotActive: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 28,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: COLORS.turquoise,
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: 60,
-    left: 20,
-    right: 20,
+    bottom: 50,
+    left: 24,
+    right: 24,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   backButton: {
     paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
   },
   backButtonText: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: COLORS.textLight,
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textGray,
   },
   spacer: {
     width: 60,
   },
   nextButton: {
     backgroundColor: COLORS.white,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    minWidth: 160,
+    paddingVertical: 18,
+    paddingHorizontal: 36,
+    borderRadius: 16,
+    minWidth: 140,
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: COLORS.turquoise,
+    shadowColor: COLORS.turquoise,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   getStartedButton: {
     backgroundColor: COLORS.turquoise,
-    minWidth: 200,
+    minWidth: 180,
+    borderWidth: 0,
+    shadowColor: COLORS.turquoise,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   nextButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: COLORS.darkNavy,
+    color: COLORS.turquoise,
+    letterSpacing: 0.5,
   },
   getStartedButtonText: {
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.white,
+    letterSpacing: 0.5,
   },
 });
