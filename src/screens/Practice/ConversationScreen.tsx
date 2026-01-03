@@ -19,7 +19,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import { BlurView } from 'expo-blur';
 import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, GuestService, GuestAnalysisResponse } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
@@ -1154,20 +1153,18 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           // Original logic for practice sessions
           console.log('[AUTO_END] Saving practice session via original endpoint...');
           result = await ProgressService.saveConversationApiProgressSaveConversationPost({
-            requestBody: {
-              language: language,
-              level: level,
-              topic: topic || null,
-              messages: messages.map(msg => ({
-                role: msg.role,
-                content: msg.content,
-                timestamp: msg.timestamp,
-              })),
-              duration_minutes: sessionDuration / 60,
-              learning_plan_id: null,
-              conversation_type: 'practice',
-              sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : [],
-            },
+            language: language,
+            level: level,
+            topic: topic || null,
+            messages: messages.map(msg => ({
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp,
+            })),
+            duration_minutes: sessionDuration / 60,
+            learning_plan_id: null,
+            conversation_type: 'practice',
+            sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : [],
           });
         }
 
@@ -2032,30 +2029,23 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
   const secondsRemaining = maxDuration - duration;
   const isCountingDown = secondsRemaining <= 10 && secondsRemaining >= 0;
 
-  // Modern 2025 gradient: Purple → Pink → Orange for urgency
-  const gradientStart = colorAnim.interpolate({
+  // Color interpolation: gradient colors
+  const backgroundColor = colorAnim.interpolate({
     inputRange: [0, 5, 10],
-    outputRange: ['#FF6B6B', '#FF8E53', '#A78BFA'], // orange-red → coral → purple
-  });
-
-  const gradientEnd = colorAnim.interpolate({
-    inputRange: [0, 5, 10],
-    outputRange: ['#FF8E53', '#FFC371', '#EC4899'], // coral → peach → pink
+    outputRange: ['rgba(239, 68, 68, 0.95)', 'rgba(245, 158, 11, 0.95)', 'rgba(20, 184, 166, 0.95)'], // red → orange → teal
   });
 
   const ringColor = colorAnim.interpolate({
     inputRange: [0, 5, 10],
-    outputRange: ['#FF6B6B', '#FF8E53', '#A78BFA'],
+    outputRange: ['#EF4444', '#F59E0B', '#14B8A6'],
   });
 
-  // Progress percentage (for visual ring)
-  const progress = (secondsRemaining / 10) * 100;
-
   if (!isCountingDown) {
+    // Don't show timer when not in countdown mode
     return null;
   }
 
-  // 2025 Modern Glassmorphic Design
+  // Countdown mode with modern floating design
   return (
     <Animated.View
       style={[
@@ -2065,56 +2055,27 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
         },
       ]}
     >
-      {/* Gradient Background Glow */}
       <Animated.View
         style={[
-          styles.glowEffect,
+          styles.countdownCard,
           {
-            backgroundColor: gradientStart,
-            opacity: 0.2,
+            backgroundColor,
+            transform: [{ scale: scaleAnim }],
           },
         ]}
-      />
-
-      {/* Glassmorphic Card with Blur */}
-      <BlurView intensity={80} tint="dark" style={styles.blurContainer}>
-        <Animated.View
-          style={[
-            styles.countdownCard,
-            {
-              transform: [{ scale: scaleAnim }],
-            },
-          ]}
-        >
-          {/* Circular Progress Ring */}
-          <Animated.View style={styles.progressCircle}>
-            {/* Background Circle */}
-            <View style={styles.progressBackground} />
-
-            {/* Animated Progress Ring */}
-            <Animated.View
-              style={[
-                styles.progressRing,
-                {
-                  borderColor: ringColor,
-                  borderWidth: 6,
-                },
-              ]}
-            >
-              {/* Center Content */}
-              <View style={styles.countdownContent}>
-                <Text style={styles.countdownNumber}>{secondsRemaining}</Text>
-              </View>
-            </Animated.View>
-          </Animated.View>
-
-          {/* Minimal Label */}
-          <View style={styles.countdownLabelContainer}>
-            <Ionicons name="hourglass-outline" size={14} color="#FFFFFF" style={{ opacity: 0.9 }} />
-            <Text style={styles.countdownLabel}>Ending soon</Text>
+      >
+        {/* Animated Ring */}
+        <Animated.View style={[styles.countdownRing, { borderColor: ringColor }]}>
+          <View style={styles.countdownContent}>
+            {/* Large Countdown Number */}
+            <Text style={styles.countdownNumber}>{secondsRemaining}</Text>
+            <Text style={styles.countdownLabel}>SECONDS</Text>
           </View>
         </Animated.View>
-      </BlurView>
+
+        {/* Session Ending Message */}
+        <Text style={styles.sessionEndingText}>Session Ending...</Text>
+      </Animated.View>
     </Animated.View>
   );
 };
@@ -2596,88 +2557,63 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  // 2025 Modern Glassmorphic Countdown Timer Styles
+  // Modern Floating Countdown Timer Styles
   floatingCountdownContainer: {
     position: 'absolute',
-    top: 70,
+    top: 80,
     left: 0,
     right: 0,
     alignItems: 'center',
     zIndex: 1000,
   },
-  blurContainer: {
-    borderRadius: 30,
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
-    elevation: 16,
-  },
   countdownCard: {
-    paddingVertical: 20,
-    paddingHorizontal: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 32,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent overlay on blur
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  progressCircle: {
-    width: 100,
-    height: 100,
+  countdownRing: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     marginBottom: 12,
-  },
-  progressBackground: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  progressRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   countdownContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   countdownNumber: {
-    fontSize: 42,
-    fontWeight: '800',
+    fontSize: 48,
+    fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -1,
-  },
-  countdownLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
+    letterSpacing: -2,
   },
   countdownLabel: {
-    fontSize: 12,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+    opacity: 0.9,
+    marginTop: 4,
+  },
+  sessionEndingText: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
-    letterSpacing: 0.3,
     opacity: 0.95,
-  },
-  glowEffect: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    zIndex: -1,
-    top: -50,
+    letterSpacing: 0.5,
   },
 });
 
