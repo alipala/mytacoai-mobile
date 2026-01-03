@@ -567,14 +567,14 @@ const styles = StyleSheet.create({
     }),
   },
   inlineContainer: {
-    width: SCREEN_WIDTH - 32, // Account for conversation padding
-    minHeight: 300, // Ensure minimum height
-    maxHeight: SCREEN_HEIGHT * 0.6, // Give more space
+    width: SCREEN_WIDTH * 0.85, // 15% smaller, centered
+    minHeight: 300,
+    maxHeight: SCREEN_HEIGHT * 0.6,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16, // All corners rounded
-    marginHorizontal: 16,
+    borderRadius: 24,
     marginVertical: 12,
-    overflow: 'hidden', // Hide overflow for rounded corners
+    alignSelf: 'center', // Center horizontally
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',

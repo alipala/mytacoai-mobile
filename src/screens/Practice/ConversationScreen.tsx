@@ -919,11 +919,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     conversationState.setUserSpeaking(newRecordingState);
 
     // Keep conversation help visible while recording so user can read suggestions
-    // Only close the modal if it's open, but keep the button visible
-    if (newRecordingState && conversationHelp.isModalVisible) {
-      console.log('[CONVERSATION_HELP] User started speaking, closing modal but keeping help button visible');
-      conversationHelp.closeHelpModal();
-    }
+    // DISABLED: Don't auto-close modal when speaking - let user manually close via X button
+    // if (newRecordingState && conversationHelp.isModalVisible) {
+    //   console.log('[CONVERSATION_HELP] User started speaking, closing modal but keeping help button visible');
+    //   conversationHelp.closeHelpModal();
+    // }
 
     // Mute/unmute the microphone
     realtimeServiceRef.current.setMuted(!newRecordingState);
