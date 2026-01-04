@@ -19,7 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, GuestService, GuestAnalysisResponse } from '../../api/generated';
+import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, DefaultService } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
@@ -1032,9 +1032,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         };
 
         // Call guest analysis API
-        const analysis: GuestAnalysisResponse = await GuestService.analyzeGuestSessionApiGuestAnalyzeSessionPost({
-          requestBody: guestAnalysisRequest,
-        });
+        const analysis: any = await DefaultService.analyzeGuestSessionApiGuestAnalyzeSessionPost(guestAnalysisRequest);
 
         console.log('[GUEST_END] ✅ Guest analysis complete:', analysis);
 

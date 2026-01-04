@@ -10,7 +10,6 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { GuestAnalysisResponse } from '../../api/generated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -18,7 +17,7 @@ interface GuestSessionResultsScreenProps {
   navigation: any;
   route: {
     params: {
-      analysis: GuestAnalysisResponse;
+      analysis: any;
     };
   };
 }
