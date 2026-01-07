@@ -13,9 +13,10 @@
       "backgroundColor": "#4FD1C5"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.bigdavinci.mytaco",
       "infoPlist": {
+        "UIDeviceFamily": [1],
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice conversations for language practice.",
         "NSCameraUsageDescription": "This app may need access to your camera for future video features.",
