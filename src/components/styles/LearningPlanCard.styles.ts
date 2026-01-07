@@ -30,6 +30,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  languageFlag: {
+    // Minimal styling for SVG flag, no rounding
+  },
   flagEmoji: {
     fontSize: 32, // OPTIMIZED: 32px - More compact
   },

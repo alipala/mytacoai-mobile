@@ -11,6 +11,14 @@ import Svg, { Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { styles } from './styles/LearningPlanCard.styles';
 
+// Import SVG flags
+import EnglishFlag from '../assets/flags/english.svg';
+import SpanishFlag from '../assets/flags/spanish.svg';
+import FrenchFlag from '../assets/flags/french.svg';
+import GermanFlag from '../assets/flags/german.svg';
+import PortugueseFlag from '../assets/flags/portuguese.svg';
+import DutchFlag from '../assets/flags/dutch.svg';
+
 // ==================== TYPES ====================
 
 interface LearningPlanCardProps {
@@ -24,21 +32,16 @@ interface LearningPlanCardProps {
 
 // ==================== HELPER FUNCTIONS ====================
 
-const getLanguageFlag = (language: string): string => {
-  const flags: Record<string, string> = {
-    'english': '🇺🇸',
-    'spanish': '🇪🇸',
-    'french': '🇫🇷',
-    'german': '🇩🇪',
-    'dutch': '🇳🇱',
-    'portuguese': '🇵🇹',
-    'italian': '🇮🇹',
-    'chinese': '🇨🇳',
-    'japanese': '🇯🇵',
-    'korean': '🇰🇷',
-    'turkish': '🇹🇷'
+const getLanguageFlagComponent = (language: string): React.FC<any> | null => {
+  const flags: Record<string, React.FC<any>> = {
+    'english': EnglishFlag,
+    'spanish': SpanishFlag,
+    'french': FrenchFlag,
+    'german': GermanFlag,
+    'dutch': DutchFlag,
+    'portuguese': PortugueseFlag,
   };
-  return flags[language.toLowerCase()] || '🌍';
+  return flags[language.toLowerCase()] || null;
 };
 
 const getLevelColor = (level: string): { bg: string; text: string } => {
@@ -238,7 +241,14 @@ export const LearningPlanCard: React.FC<LearningPlanCardProps> = ({
         {/* Header Section - Premium */}
         <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.flagEmoji}>{getLanguageFlag(language)}</Text>
+          {(() => {
+            const FlagComponent = getLanguageFlagComponent(language);
+            return FlagComponent ? (
+              <FlagComponent width={40} height={40} style={styles.languageFlag} />
+            ) : (
+              <Text style={styles.flagEmoji}>🌍</Text>
+            );
+          })()}
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={styles.languageName}>

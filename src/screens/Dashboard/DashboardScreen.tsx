@@ -167,11 +167,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet(),
       ]);
 
-      // Sort learning plans from latest to earliest
+      // Sort learning plans by most recently interacted (updated_at) first
+      // If updated_at doesn't exist, fallback to created_at
       const sortedPlans = (plansResponse as LearningPlan[]).sort((a, b) => {
-        const dateA = new Date(a.created_at || '').getTime();
-        const dateB = new Date(b.created_at || '').getTime();
-        return dateB - dateA; // Latest first
+        const dateA = new Date(a.updated_at || a.created_at || '').getTime();
+        const dateB = new Date(b.updated_at || b.created_at || '').getTime();
+        return dateB - dateA; // Most recently interacted first
+      });
+
+      console.log('📚 Learning plans sorted by last interaction:');
+      sortedPlans.forEach((plan, index) => {
+        console.log(`  ${index + 1}. ${plan.language} (${plan.proficiency_level}) - Last updated: ${plan.updated_at || plan.created_at}`);
       });
 
       setLearningPlans(sortedPlans);

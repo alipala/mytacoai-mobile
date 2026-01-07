@@ -13,6 +13,7 @@ export type LearningPlan = {
     plan_content: Record<string, any>;
     assessment_data?: (Record<string, any> | null);
     created_at: string;
+    updated_at?: (string | null);
     total_sessions?: (number | null);
     completed_sessions?: (number | null);
     progress_percentage?: (number | null);
