@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AppleLoginRequest } from '../models/AppleLoginRequest';
 import type { Body_login_for_access_token_api_auth_token_post } from '../models/Body_login_for_access_token_api_auth_token_post';
 import type { EmailCheckRequest } from '../models/EmailCheckRequest';
 import type { EmailVerificationConfirm } from '../models/EmailVerificationConfirm';
@@ -115,6 +116,27 @@ export class AuthenticationService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/auth/google-login',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Apple Login
+     * Login with Apple Sign-In token
+     * Handles new user creation, existing user login, and account linking
+     * @param requestBody
+     * @returns Token Successful Response
+     * @throws ApiError
+     */
+    public static appleLoginApiAuthAppleLoginPost(
+        requestBody: AppleLoginRequest,
+    ): CancelablePromise<Token> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/apple-login',
             body: requestBody,
             mediaType: 'application/json',
             errors: {

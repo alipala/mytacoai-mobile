@@ -384,114 +384,207 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          {/* Subscription Banner for empty state */}
-          {subscriptionStatus && !bannerDismissed && (
-            <View style={{ width: '100%', marginBottom: 16 }}>
-              <SubscriptionBanner
-                plan={subscriptionStatus.plan}
-                sessionsRemaining={subscriptionStatus.limits?.sessions_remaining || 0}
-                onUpgradePress={handleUpgradePress}
-                onDismiss={handleDismissBanner}
-              />
-            </View>
-          )}
+          {/* Determine if user is subscribed */}
+          {(() => {
+            // Premium plans: fluency_builder, team_mastery
+            // Free plan: try_learn, free
+            const isSubscribed = subscriptionStatus &&
+              !['try_learn', 'free'].includes(subscriptionStatus.plan);
+            const sessionLimit = subscriptionStatus?.limits?.sessions_remaining || 0;
+            const minutesRemaining = subscriptionStatus?.limits?.minutes_remaining || 0;
 
-          <Ionicons name="book-outline" size={72} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>No Learning Plans Yet</Text>
-          <Text style={styles.emptyMessage}>
-            Start practicing right away or create a personalized learning plan!
-          </Text>
-
-          {/* Session Cards Container */}
-          <View style={styles.sessionCardsContainer}>
-            {/* Quick Practice Card */}
-            <TouchableOpacity
-              style={styles.sessionCard}
-              onPress={handleSelectQuickPractice}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={[COLORS.turquoise, '#3DA89D']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.sessionCardGradient}
-              >
-                <View style={styles.sessionCardContent}>
-                  <View style={styles.sessionCardHeader}>
-                    <View style={styles.sessionIconContainer}>
-                      <Ionicons name="chatbubbles" size={26} color="#FFFFFF" />
+            return (
+              <>
+                {/* Premium User Welcome Section */}
+                {isSubscribed && (
+                  <View style={styles.welcomeSection}>
+                    <View style={styles.premiumBadge}>
+                      <Ionicons name="star" size={16} color="#FFD63A" />
+                      <Text style={styles.premiumBadgeText}>Premium Member</Text>
                     </View>
-                    <View style={styles.popularBadge}>
-                      <Ionicons name="star" size={9} color="#FFD63A" />
-                      <Text style={styles.popularText}>POPULAR</Text>
-                    </View>
+                    <Text style={styles.welcomeTitle}>Welcome back, {userName}!</Text>
+                    <Text style={styles.welcomeMessage}>
+                      You have unlimited access! Let's create your learning plan to maximize your results.
+                    </Text>
                   </View>
+                )}
 
-                  <Text style={styles.sessionCardTitle}>Quick Practice</Text>
-                  <Text style={styles.sessionCardDescription}>
-                    Start a real conversation to improve your skills
-                  </Text>
+                {/* Free User - Action Cards Only (No Header) */}
+                {!isSubscribed && (
+                  <View style={styles.freeUserContainer}>
+                    {/* SECONDARY - Quick Practice (Smaller, above primary) */}
+                    <TouchableOpacity
+                      style={styles.secondaryCardNew}
+                      onPress={handleSelectQuickPractice}
+                      activeOpacity={0.9}
+                    >
+                      <View style={styles.secondaryCardIcon}>
+                        <Ionicons name="mic-circle" size={32} color={COLORS.turquoise} />
+                      </View>
+                      <View style={styles.secondaryCardText}>
+                        <Text style={styles.secondaryCardTitleNew}>Quick Practice</Text>
+                        <Text style={styles.secondaryCardSubtitle}>5-min conversation • Start now</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                    </TouchableOpacity>
 
-                  <View style={styles.sessionFeatures}>
-                    <View style={styles.featureBadge}>
-                      <Ionicons name="time" size={12} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.featureBadgeText}>Flexible</Text>
+                    {/* PRIMARY - Create Learning Plan (Larger, Turquoise) */}
+                    <TouchableOpacity
+                      style={styles.primaryCardNew}
+                      onPress={handleCreatePlan}
+                      activeOpacity={0.9}
+                    >
+                      <LinearGradient
+                        colors={[COLORS.turquoise, '#3DA89D']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.primaryCardGradientNew}
+                      >
+                        <View style={styles.primaryCardHeaderNew}>
+                          <View style={styles.primaryIconContainerNew}>
+                            <Ionicons name="pulse" size={36} color="#FFFFFF" />
+                          </View>
+                        </View>
+
+                        <Text style={styles.primaryCardTitleNew}>Create Your Learning Plan</Text>
+                        <Text style={styles.primaryCardDescriptionNew}>
+                          Get started with a personalized assessment and learning roadmap
+                        </Text>
+
+                        <View style={styles.primaryFeaturesNew}>
+                          <View style={styles.featurePill}>
+                            <Ionicons name="person-outline" size={14} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.featurePillText}>Personalized</Text>
+                          </View>
+                          <View style={styles.featurePill}>
+                            <Ionicons name="list-outline" size={14} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.featurePillText}>Structured</Text>
+                          </View>
+                          <View style={styles.featurePill}>
+                            <Ionicons name="trophy-outline" size={14} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.featurePillText}>Track progress</Text>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+
+                    {/* Usage Limits - Subtle Banner */}
+                    <View style={styles.usageLimitsBanner}>
+                      <Ionicons name="time-outline" size={18} color="#FFA955" />
+                      <Text style={styles.usageLimitsText}>
+                        You have{' '}
+                        <Text style={styles.usageLimitsHighlight}>
+                          {minutesRemaining > 0
+                            ? `${Math.round(minutesRemaining)} minutes`
+                            : `${sessionLimit} practice sessions`
+                          }
+                        </Text>
+                        {' '}left on Free plan
+                      </Text>
                     </View>
-                    <View style={styles.featureBadge}>
-                      <Ionicons name="chatbox-ellipses" size={12} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.featureBadgeText}>Real-time</Text>
-                    </View>
-                    <View style={styles.featureBadge}>
-                      <Ionicons name="rocket" size={12} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.featureBadgeText}>Instant start</Text>
-                    </View>
+
+                    {/* Upgrade Link - More Noticeable */}
+                    <TouchableOpacity
+                      style={styles.upgradeLinkContainer}
+                      onPress={handleUpgradePress}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.upgradeIconCircle}>
+                        <Ionicons name="sparkles" size={18} color="#FFD63A" />
+                      </View>
+                      <Text style={styles.upgradeLinkText}>Unlock your full potential</Text>
+                      <Ionicons name="arrow-forward" size={16} color="#4ECFBF" />
+                    </TouchableOpacity>
                   </View>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+                )}
 
-            {/* Create Learning Plan Card */}
-            <TouchableOpacity
-              style={styles.sessionCard}
-              onPress={handleCreatePlan}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={['#3B82F6', '#2563EB']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.sessionCardGradient}
-              >
-                <View style={styles.sessionCardContent}>
-                  <View style={styles.sessionCardHeader}>
-                    <View style={styles.sessionIconContainer}>
-                      <Ionicons name="calendar" size={26} color="#FFFFFF" />
-                    </View>
+                {/* Premium User - Original Cards */}
+                {isSubscribed && (
+                  <>
+                    <TouchableOpacity
+                      style={styles.primaryCard}
+                      onPress={handleCreatePlan}
+                      activeOpacity={0.9}
+                    >
+                      <LinearGradient
+                        colors={['#3B82F6', '#2563EB']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.primaryCardGradient}
+                      >
+                        <View style={styles.primaryCardContent}>
+                          <View style={styles.primaryCardHeader}>
+                            <View style={styles.primaryIconContainer}>
+                              <Ionicons name="calendar" size={32} color="#FFFFFF" />
+                            </View>
+                            <View style={styles.starBadge}>
+                              <Ionicons name="star" size={12} color="#FFD63A" />
+                            </View>
+                          </View>
+
+                          <Text style={styles.primaryCardTitle}>Create Your Learning Plan</Text>
+                          <Text style={styles.primaryCardDescription}>
+                            Build a personalized plan to reach your goals faster
+                          </Text>
+
+                          <View style={styles.primaryFeatures}>
+                            <View style={styles.primaryFeatureBadge}>
+                              <Ionicons name="person" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.primaryFeatureBadgeText}>Personalized</Text>
+                            </View>
+                            <View style={styles.primaryFeatureBadge}>
+                              <Ionicons name="list" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.primaryFeatureBadgeText}>Structured</Text>
+                            </View>
+                            <View style={styles.primaryFeatureBadge}>
+                              <Ionicons name="trophy" size={14} color="rgba(255,255,255,0.9)" />
+                              <Text style={styles.primaryFeatureBadgeText}>Track progress</Text>
+                            </View>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+
+                    <Text style={styles.orText}>Or start practicing right away</Text>
+
+                    <TouchableOpacity
+                      style={styles.secondaryCard}
+                      onPress={handleSelectQuickPractice}
+                      activeOpacity={0.9}
+                    >
+                      <LinearGradient
+                        colors={[COLORS.turquoise, '#3DA89D']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.secondaryCardGradient}
+                      >
+                        <View style={styles.secondaryCardContent}>
+                          <View style={styles.secondaryIconContainer}>
+                            <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
+                          </View>
+
+                          <Text style={styles.secondaryCardTitle}>Quick Practice</Text>
+                          <Text style={styles.secondaryCardDescription}>
+                            5-min conversation
+                          </Text>
+                        </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* Tip for Premium Users */}
+                {isSubscribed && (
+                  <View style={styles.tipContainer}>
+                    <Ionicons name="bulb-outline" size={16} color="#F59E0B" />
+                    <Text style={styles.tipText}>
+                      Tip: Learning plans help you reach fluency 3x faster!
+                    </Text>
                   </View>
-
-                  <Text style={styles.sessionCardTitle}>Create Learning Plan</Text>
-                  <Text style={styles.sessionCardDescription}>
-                    Build a personalized plan to reach your goals
-                  </Text>
-
-                  <View style={styles.sessionFeatures}>
-                    <View style={styles.featureBadge}>
-                      <Ionicons name="person" size={12} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.featureBadgeText}>Personalized</Text>
-                    </View>
-                    <View style={styles.featureBadge}>
-                      <Ionicons name="list" size={12} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.featureBadgeText}>Structured</Text>
-                    </View>
-                    <View style={styles.featureBadge}>
-                      <Ionicons name="trophy" size={12} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.featureBadgeText}>Track progress</Text>
-                    </View>
-                  </View>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+                )}
+              </>
+            );
+          })()}
         </ScrollView>
 
         {/* Pricing Modal */}

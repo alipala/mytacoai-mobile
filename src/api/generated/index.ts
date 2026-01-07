@@ -11,6 +11,7 @@ export type { AchievementUnlockRequest } from './models/AchievementUnlockRequest
 export type { AdminLoginRequest } from './models/AdminLoginRequest';
 export type { AdminLoginResponse } from './models/AdminLoginResponse';
 export type { AdminUser } from './models/AdminUser';
+export type { AppleLoginRequest } from './models/AppleLoginRequest';
 export type { BackgroundAnalysisRequest } from './models/BackgroundAnalysisRequest';
 export type { BackgroundAnalysisResponse } from './models/BackgroundAnalysisResponse';
 export type { Body_bulk_import_learners_institution_dashboard__institution_id__learners_bulk_import_post } from './models/Body_bulk_import_learners_institution_dashboard__institution_id__learners_bulk_import_post';

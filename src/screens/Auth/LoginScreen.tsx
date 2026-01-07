@@ -31,6 +31,7 @@ import { showToast, GlobalToast } from '../../components/CustomToast';
 import { authService } from '../../api/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { AuthenticationService } from '../../api/generated';
 import { styles } from './LoginScreen.styles';
 import { AuthResultModal } from '../../components/AuthResultModal';
@@ -424,6 +425,91 @@ export const LoginScreen = ({ navigation }: any) => {
     }
   };
 
+  /**
+   * Handle Apple Sign-In
+   */
+  const handleAppleSignIn = async () => {
+    try {
+      console.log('🍎 Starting Apple Sign-In...');
+      setLoading(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      // Request Apple authentication
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      console.log('✅ Apple credential received:', credential.user);
+
+      // Extract user data (email and name only available on first sign-in)
+      const email = credential.email;
+      const fullName = credential.fullName;
+      const name = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : null;
+
+      console.log('📡 Calling backend API...');
+
+      // Send to backend
+      const response = await AuthenticationService.appleLoginApiAuthAppleLoginPost({
+        token: credential.identityToken!,
+        user_identifier: credential.user,
+        email: email || undefined,
+        name: name || undefined,
+      });
+
+      console.log('✅ Backend response received:', response.access_token ? 'token present' : 'NO token');
+
+      // Store auth token
+      await AsyncStorage.setItem('auth_token', response.access_token);
+
+      // Fetch user info
+      console.log('👤 Fetching user info...');
+      const user = await AuthenticationService.getUserMeApiAuthMeGet();
+      console.log('✅ User info received:', user.email);
+
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      await AsyncStorage.setItem('auth_provider', 'apple');
+
+      // Show beautiful success modal
+      setAuthModalType('success');
+      setAuthModalTitle('Welcome!');
+      setAuthModalMessage('Successfully signed in with Apple. Loading your dashboard...');
+      setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
+      setShowAuthModal(true);
+
+      console.log('🧭 Navigating to Main screen...');
+      setTimeout(() => {
+        navigation.replace('Main');
+        console.log('✅ Navigation complete');
+      }, 3000);
+
+    } catch (error: any) {
+      console.error('❌ Apple Sign-In Error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+      // User cancelled sign-in - no error message needed
+      if (error.code === 'ERR_CANCELED') {
+        console.log('ℹ️ User cancelled Apple Sign-In');
+        return;
+      }
+
+      // Show error modal for other errors
+      setAuthModalType('error');
+      setAuthModalTitle('Apple Sign-In Failed');
+      setAuthModalMessage(error.message || 'Please try again or use email sign-in.');
+      setAuthModalUserName('');
+      setShowAuthModal(true);
+    } finally {
+      console.log('🏁 Apple Sign-In flow finished');
+      setLoading(false);
+    }
+  };
+
   const handleForgotPassword = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     navigation.navigate('ForgotPassword');
@@ -650,6 +736,19 @@ export const LoginScreen = ({ navigation }: any) => {
                       <Text style={styles.dividerText}>Or continue with</Text>
                       <View style={styles.divider} />
                     </View>
+
+                    {/* Apple Sign-In Button (iOS only) */}
+                    {Platform.OS === 'ios' && (
+                      <TouchableOpacity
+                        style={styles.appleButton}
+                        onPress={handleAppleSignIn}
+                        disabled={loading}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="logo-apple" size={20} color="white" />
+                        <Text style={styles.appleButtonText}>Sign in with Apple</Text>
+                      </TouchableOpacity>
+                    )}
 
                     {/* Google Sign-In Button */}
                     <TouchableOpacity

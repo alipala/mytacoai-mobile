@@ -15,8 +15,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.bigdavinci.mytaco",
+      "usesAppleSignIn": true,
       "infoPlist": {
-        "UIDeviceFamily": [1],
+        "UIDeviceFamily": [
+          1
+        ],
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice conversations for language practice.",
         "NSCameraUsageDescription": "This app may need access to your camera for future video features.",
@@ -30,7 +33,8 @@
             ]
           }
         ]
-      }
+      },
+      "appleTeamId": "WD9KS62P6X"
     },
     "scheme": "mytacoai",
     "android": {

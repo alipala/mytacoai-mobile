@@ -200,6 +200,29 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
+  // Apple Sign-In Button (Apple HIG compliant)
+  appleButton: {
+    backgroundColor: '#000000',
+    borderRadius: 12,
+    height: 56,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  appleButtonText: {
+    fontFamily: 'Inter_600SemiBold',
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
   // Google Sign-In Button
   googleButton: {
     backgroundColor: '#FFFFFF',
