@@ -395,17 +395,25 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
             return (
               <>
-                {/* Premium User Welcome Section */}
+                {/* Premium User - Clear Status Badge */}
                 {isSubscribed && (
-                  <View style={styles.welcomeSection}>
-                    <View style={styles.premiumBadge}>
-                      <Ionicons name="star" size={16} color="#FFD63A" />
-                      <Text style={styles.premiumBadgeText}>Premium Member</Text>
-                    </View>
-                    <Text style={styles.welcomeTitle}>Welcome back, {userName}!</Text>
-                    <Text style={styles.welcomeMessage}>
-                      You have unlimited access! Let's create your learning plan to maximize your results.
-                    </Text>
+                  <View style={styles.premiumStatusBadgeContainer}>
+                    <LinearGradient
+                      colors={['#FFF8E1', '#FFFBF0']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.premiumStatusBadge}
+                    >
+                      <View style={styles.premiumStatusIconCircle}>
+                        <Text style={styles.crownEmoji}>👑</Text>
+                      </View>
+                      <View style={styles.premiumStatusTextContainer}>
+                        <Text style={styles.premiumStatusTitle}>Premium Active</Text>
+                        <Text style={styles.premiumStatusSubtitle}>
+                          {minutesRemaining} minutes remaining
+                        </Text>
+                      </View>
+                    </LinearGradient>
                   </View>
                 )}
 
@@ -498,79 +506,74 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 )}
 
-                {/* Premium User - Original Cards */}
+                {/* Premium User - Focused Activation Flow */}
                 {isSubscribed && (
-                  <>
+                  <View style={styles.premiumUserContainer}>
+                    {/* PRIMARY CTA - Speaking Assessment (Dominant, Full Focus) */}
                     <TouchableOpacity
-                      style={styles.primaryCard}
+                      style={styles.premiumPrimaryCard}
                       onPress={handleCreatePlan}
-                      activeOpacity={0.9}
-                    >
-                      <LinearGradient
-                        colors={['#3B82F6', '#2563EB']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.primaryCardGradient}
-                      >
-                        <View style={styles.primaryCardContent}>
-                          <View style={styles.primaryCardHeader}>
-                            <View style={styles.primaryIconContainer}>
-                              <Ionicons name="calendar" size={32} color="#FFFFFF" />
-                            </View>
-                            <View style={styles.starBadge}>
-                              <Ionicons name="star" size={12} color="#FFD63A" />
-                            </View>
-                          </View>
-
-                          <Text style={styles.primaryCardTitle}>Create Your Learning Plan</Text>
-                          <Text style={styles.primaryCardDescription}>
-                            Build a personalized plan to reach your goals faster
-                          </Text>
-
-                          <View style={styles.primaryFeatures}>
-                            <View style={styles.primaryFeatureBadge}>
-                              <Ionicons name="person" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.primaryFeatureBadgeText}>Personalized</Text>
-                            </View>
-                            <View style={styles.primaryFeatureBadge}>
-                              <Ionicons name="list" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.primaryFeatureBadgeText}>Structured</Text>
-                            </View>
-                            <View style={styles.primaryFeatureBadge}>
-                              <Ionicons name="trophy" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.primaryFeatureBadgeText}>Track progress</Text>
-                            </View>
-                          </View>
-                        </View>
-                      </LinearGradient>
-                    </TouchableOpacity>
-
-                    <Text style={styles.orText}>Or start practicing right away</Text>
-
-                    <TouchableOpacity
-                      style={styles.secondaryCard}
-                      onPress={handleSelectQuickPractice}
                       activeOpacity={0.9}
                     >
                       <LinearGradient
                         colors={[COLORS.turquoise, '#3DA89D']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={styles.secondaryCardGradient}
+                        style={styles.premiumPrimaryGradient}
                       >
-                        <View style={styles.secondaryCardContent}>
-                          <View style={styles.secondaryIconContainer}>
-                            <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
-                          </View>
+                        <View style={styles.premiumPrimaryIconContainer}>
+                          <Ionicons name="analytics" size={40} color="#FFFFFF" />
+                        </View>
 
-                          <Text style={styles.secondaryCardTitle}>Quick Practice</Text>
-                          <Text style={styles.secondaryCardDescription}>
-                            5-min conversation
-                          </Text>
+                        <Text style={styles.premiumPrimaryTitle}>Create Your Personalized Learning Plan</Text>
+                        <Text style={styles.premiumPrimarySubtitle}>
+                          Start with a short speaking assessment
+                        </Text>
+
+                        <View style={styles.premiumFeaturePills}>
+                          <View style={styles.premiumPill}>
+                            <Ionicons name="person-outline" size={13} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.premiumPillText}>Custom</Text>
+                          </View>
+                          <View style={styles.premiumPill}>
+                            <Ionicons name="list-outline" size={13} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.premiumPillText}>Structured</Text>
+                          </View>
+                          <View style={styles.premiumPill}>
+                            <Ionicons name="trophy-outline" size={13} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.premiumPillText}>Track progress</Text>
+                          </View>
                         </View>
                       </LinearGradient>
                     </TouchableOpacity>
-                  </>
+
+                    {/* Reassurance Section */}
+                    <View style={styles.reassuranceSection}>
+                      <View style={styles.reassuranceItem}>
+                        <Ionicons name="time-outline" size={16} color="#6B7280" />
+                        <Text style={styles.reassuranceText}>~5 min</Text>
+                      </View>
+                      <View style={styles.reassuranceItem}>
+                        <Ionicons name="chatbubble-ellipses-outline" size={16} color="#6B7280" />
+                        <Text style={styles.reassuranceText}>Casual talk</Text>
+                      </View>
+                      <View style={styles.reassuranceItem}>
+                        <Ionicons name="shield-checkmark-outline" size={16} color="#6B7280" />
+                        <Text style={styles.reassuranceText}>No stress</Text>
+                      </View>
+                    </View>
+
+                    {/* SECONDARY CTA - Quick Practice (Optional, Clearly Secondary) */}
+                    <TouchableOpacity
+                      style={styles.premiumSecondaryCard}
+                      onPress={handleSelectQuickPractice}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="mic-circle-outline" size={24} color="#4ECFBF" />
+                      <Text style={styles.premiumSecondaryText}>Or start a quick conversation</Text>
+                      <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+                    </TouchableOpacity>
+                  </View>
                 )}
 
                 {/* Tip for Premium Users */}
@@ -653,20 +656,33 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </>
         )}
 
-        {/* Hero Greeting Section - Premium Design */}
-        <View style={styles.titleSection}>
-          <View style={styles.greetingContainer}>
-            <Text style={styles.greetingText}>{getTimeBasedGreeting()}</Text>
+        {/* Premium Status Badge - Show for subscribed users */}
+        {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
+          <View style={styles.premiumStatusBadgeContainer}>
+            <LinearGradient
+              colors={['#FFF8E1', '#FFFBF0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.premiumStatusBadge}
+            >
+              <View style={styles.premiumStatusIconCircle}>
+                <Text style={styles.crownEmoji}>👑</Text>
+              </View>
+              <View style={styles.premiumStatusTextContainer}>
+                <Text style={styles.premiumStatusTitle}>Premium Active</Text>
+                <Text style={styles.premiumStatusSubtitle}>
+                  {subscriptionStatus?.limits?.minutes_remaining || 0} minutes remaining
+                </Text>
+              </View>
+            </LinearGradient>
           </View>
-          <View style={styles.statsContainer}>
-            <View style={styles.statBadge}>
-              <Ionicons name="flame" size={16} color="#D97706" />
-              <Text style={styles.statBadgeText}>3 day streak</Text>
-            </View>
-            <View style={styles.levelBadge}>
-              <Ionicons name="trophy" size={16} color="#1D4ED8" />
-              <Text style={styles.levelBadgeText}>{userLevel.toUpperCase()}</Text>
-            </View>
+        )}
+
+        {/* Streak Badge - Show for all users */}
+        <View style={styles.streakBadgeContainer}>
+          <View style={styles.statBadge}>
+            <Ionicons name="flame" size={16} color="#D97706" />
+            <Text style={styles.statBadgeText}>3 day streak</Text>
           </View>
         </View>
 
