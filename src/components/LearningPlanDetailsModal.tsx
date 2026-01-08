@@ -155,13 +155,36 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   const level = plan?.proficiency_level || plan?.target_cefr_level || 'B1';
   const levelColors = getLevelColor(level);
 
-  // Calculate estimated practice time for this specific learning plan
-  // Using average session duration based on typical conversation length
-  const avgMinutesPerSession = 15; // Increased to be more realistic
-  const practiceTimeMinutes = completedSessions * avgMinutesPerSession;
+  // Get actual practice minutes used from the plan (tracked by backend)
+  // Fallback to estimated calculation if not available
+  const actualMinutesUsed = plan?.practice_minutes_used || 0;
+  const avgMinutesPerSession = 15;
+  const estimatedMinutes = completedSessions * avgMinutesPerSession;
+  const practiceTimeMinutes = actualMinutesUsed > 0 ? actualMinutesUsed : estimatedMinutes;
 
-  // Calculate current week based on sessions completed (assuming 3 sessions per week)
-  const currentWeek = Math.max(1, Math.ceil(completedSessions / 3));
+  console.log(`📊 [LearningPlanDetailsModal] Practice time calculation:
+    - Plan has practice_minutes_used field: ${plan?.practice_minutes_used !== undefined}
+    - Actual minutes from backend: ${actualMinutesUsed}
+    - Estimated (${completedSessions} sessions × 15 min): ${estimatedMinutes}
+    - Displaying: ${practiceTimeMinutes} min
+    - Plan ID: ${plan?.id}
+    - Language: ${language} (${level})
+  `);
+
+  // Calculate current week from weekly_schedule (find the last week with completed sessions)
+  const weeklySchedule = planContent?.weekly_schedule || [];
+  let currentWeek = 1;
+
+  // Find the last week that has completed sessions
+  for (let i = 0; i < weeklySchedule.length; i++) {
+    const week = weeklySchedule[i];
+    const sessionsInWeek = week?.sessions_completed || 0;
+    if (sessionsInWeek > 0) {
+      currentWeek = i + 1; // Week numbers start at 1
+    }
+  }
+
+  console.log(`📅 Current week calculation: Week ${currentWeek} (from weekly_schedule)`);
 
   // CRITICAL: Simple, reliable animation
   useEffect(() => {
@@ -281,10 +304,12 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <View style={styles.statCard}>
                   <View style={styles.statCardLeft}>
                     <Ionicons name="time-outline" size={24} color="#3B82F6" />
-                    <Text style={styles.statCardLabel}>Est. Time</Text>
+                    <Text style={styles.statCardLabel}>
+                      {actualMinutesUsed > 0 ? 'Spoken Time' : 'Est. Time'}
+                    </Text>
                   </View>
                   <Text style={styles.statCardValue}>
-                    ~{practiceTimeMinutes} min
+                    {actualMinutesUsed > 0 ? `${Math.round(practiceTimeMinutes)} min` : `~${practiceTimeMinutes} min`}
                   </Text>
                 </View>
 
