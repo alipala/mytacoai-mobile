@@ -392,7 +392,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         >
           {/* Determine if user is subscribed */}
           {(() => {
-            // Premium plans: fluency_builder, team_mastery
+            // Premium plans: fluency_builder, language_mastery (formerly team_mastery)
             // Free plan: try_learn, free
             const isSubscribed = subscriptionStatus &&
               !['try_learn', 'free'].includes(subscriptionStatus.plan);

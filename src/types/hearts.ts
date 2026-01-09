@@ -60,6 +60,12 @@ export const HEART_CONFIG = {
     refillMinutes: 60, // 1 hour
     displayName: 'Fluency Builder'
   },
+  language_mastery: {
+    maxHearts: 999999, // Unlimited
+    refillMinutes: 0,
+    displayName: 'Language Mastery'
+  },
+  // Backward compatibility for old plan ID
   team_mastery: {
     maxHearts: 999999, // Unlimited
     refillMinutes: 0,

@@ -15,6 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.bigdavinci.mytaco",
+      "buildNumber": "11",
       "usesAppleSignIn": true,
       "infoPlist": {
         "UIDeviceFamily": [

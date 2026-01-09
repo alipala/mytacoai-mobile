@@ -9,13 +9,20 @@ import {
   Dimensions,
   Platform,
   Animated,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH - 60;
-const CARD_SPACING = 20;
+
+// Detect iPad (tablets have width > 768)
+const isTablet = SCREEN_WIDTH >= 768;
+
+// Card dimensions optimized for both iPhone and iPad
+const CARD_WIDTH = isTablet ? SCREEN_WIDTH * 0.45 : SCREEN_WIDTH - 60; // Side-by-side on iPad
+const CARD_SPACING = isTablet ? 30 : 20;
+const CARD_MARGIN = isTablet ? 40 : 30;
 
 interface PricingPlan {
   id: string;
@@ -24,7 +31,11 @@ interface PricingPlan {
   annualPrice: string;
   annualSavings: string;
   shortDescription: string;
-  features: {
+  monthlyFeatures: {
+    icon: string;
+    text: string;
+  }[];
+  annualFeatures: {
     icon: string;
     text: string;
   }[];
@@ -43,31 +54,51 @@ const PRICING_PLANS: PricingPlan[] = [
     id: 'fluency_builder',
     name: 'Fluency Builder',
     monthlyPrice: '$19.99',
-    annualPrice: '$199.99',
-    annualSavings: 'Save $39.89',
+    annualPrice: '$119.00',
+    annualSavings: 'Save $120.88',
     shortDescription: 'Perfect for consistent learners',
     highlight: '🎉 7-day free trial',
     isPopular: true,
-    features: [
-      { icon: 'chatbubbles', text: '30 sessions monthly' },
-      { icon: 'mic', text: '2 assessments' },
+    monthlyFeatures: [
+      { icon: 'chatbubbles', text: '150 min speaking/month' },
+      { icon: 'mic', text: '2 assessments/month' },
+      { icon: 'heart', text: '10 hearts for challenges' },
+      { icon: 'time', text: 'Refills every 1 hour' },
       { icon: 'trophy', text: 'Advanced tracking' },
-      { icon: 'star', text: 'All AI voices' },
+      { icon: 'star', text: 'All conversation topics' },
+    ],
+    annualFeatures: [
+      { icon: 'chatbubbles', text: '1800 min speaking/year' },
+      { icon: 'mic', text: '24 assessments/year' },
+      { icon: 'heart', text: '10 hearts for challenges' },
+      { icon: 'time', text: 'Refills every 1 hour' },
+      { icon: 'trophy', text: 'Advanced tracking' },
+      { icon: 'star', text: 'All conversation topics' },
     ],
   },
   {
-    id: 'team_mastery',
+    id: 'language_mastery',
     name: 'Language Mastery',
     monthlyPrice: '$39.99',
-    annualPrice: '$399.99',
-    annualSavings: 'Save $79.89',
+    annualPrice: '$239.00',
+    annualSavings: 'Save $240.88',
     shortDescription: 'Ultimate learning experience',
     highlight: '🎉 7-day free trial',
-    features: [
-      { icon: 'infinite', text: 'Unlimited sessions' },
-      { icon: 'analytics', text: 'Advanced analytics' },
-      { icon: 'bulb', text: 'AI recommendations' },
-      { icon: 'flash', text: 'Priority support' },
+    monthlyFeatures: [
+      { icon: 'infinite', text: 'UNLIMITED speaking' },
+      { icon: 'analytics', text: 'UNLIMITED assessments' },
+      { icon: 'heart', text: 'UNLIMITED hearts' },
+      { icon: 'flash', text: 'Instant heart refills' },
+      { icon: 'bulb', text: 'Premium learning plans' },
+      { icon: 'rocket', text: 'Advanced analytics' },
+    ],
+    annualFeatures: [
+      { icon: 'infinite', text: 'UNLIMITED speaking' },
+      { icon: 'analytics', text: 'UNLIMITED assessments' },
+      { icon: 'heart', text: 'UNLIMITED hearts' },
+      { icon: 'flash', text: 'Instant heart refills' },
+      { icon: 'bulb', text: 'Premium learning plans' },
+      { icon: 'rocket', text: 'Advanced analytics' },
     ],
   },
 ];
@@ -162,7 +193,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 Annual
               </Text>
               <View style={styles.savingsBadge}>
-                <Text style={styles.savingsBadgeText}>Save 17%</Text>
+                <Text style={styles.savingsBadgeText}>Save 50%</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -171,13 +202,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         {/* Pricing Cards Carousel */}
         <ScrollView
           ref={scrollViewRef}
-          horizontal
-          pagingEnabled
+          horizontal={!isTablet}
+          pagingEnabled={!isTablet}
           showsHorizontalScrollIndicator={false}
           decelerationRate="fast"
-          snapToInterval={CARD_WIDTH + CARD_SPACING}
-          contentContainerStyle={styles.carouselContent}
-          onScroll={handleScroll}
+          snapToInterval={isTablet ? undefined : CARD_WIDTH + CARD_SPACING}
+          contentContainerStyle={[
+            styles.carouselContent,
+            isTablet && styles.carouselContentTablet,
+          ]}
+          onScroll={!isTablet ? handleScroll : undefined}
           scrollEventThrottle={16}
         >
           {PRICING_PLANS.map((plan, index) => {
@@ -185,14 +219,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             const monthlyEquivalent = isAnnual
               ? `$${(parseFloat(plan.annualPrice.slice(1)) / 12).toFixed(2)}/mo`
               : null;
+            const features = isAnnual ? plan.annualFeatures : plan.monthlyFeatures;
 
             return (
               <View
                 key={plan.id}
                 style={[
                   styles.planCard,
-                  index === 0 && { marginLeft: 30 },
-                  index === PRICING_PLANS.length - 1 && { marginRight: 30 },
+                  !isTablet && index === 0 && { marginLeft: CARD_MARGIN },
+                  !isTablet && index === PRICING_PLANS.length - 1 && { marginRight: CARD_MARGIN },
+                  isTablet && { marginHorizontal: CARD_SPACING / 2 },
                   plan.isPopular && styles.planCardPopular,
                 ]}
               >
@@ -241,16 +277,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
                 {/* Features - Compact Grid */}
                 <View style={styles.featuresGrid}>
-                  {plan.features.map((feature, idx) => (
+                  {features.map((feature, idx) => (
                     <View key={idx} style={styles.featureItem}>
                       <View style={styles.featureIconContainer}>
                         <Ionicons
                           name={feature.icon as any}
-                          size={18}
+                          size={16}
                           color="#4ECFBF"
                         />
                       </View>
-                      <Text style={styles.featureText} numberOfLines={1}>{feature.text}</Text>
+                      <Text style={styles.featureText}>{feature.text}</Text>
                     </View>
                   ))}
                 </View>
@@ -283,18 +319,20 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           })}
         </ScrollView>
 
-        {/* Pagination Dots */}
-        <View style={styles.paginationContainer}>
-          {PRICING_PLANS.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.paginationDot,
-                index === currentIndex && styles.paginationDotActive,
-              ]}
-            />
-          ))}
-        </View>
+        {/* Pagination Dots - Hidden on iPad */}
+        {!isTablet && (
+          <View style={styles.paginationContainer}>
+            {PRICING_PLANS.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDot,
+                  index === currentIndex && styles.paginationDotActive,
+                ]}
+              />
+            ))}
+          </View>
+        )}
 
         {/* Footer Info */}
         <View style={styles.footer}>
@@ -307,6 +345,23 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           <View style={styles.footerRow}>
             <Ionicons name="lock-closed" size={16} color="#10B981" />
             <Text style={styles.footerText}>Secure payment with Stripe</Text>
+          </View>
+
+          {/* Legal Links */}
+          <View style={styles.legalLinks}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://www.mytacoai.com/terms')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.legalLinkText}>Terms of Use</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalSeparator}>•</Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://www.mytacoai.com/privacy')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Maybe Later Option */}
@@ -409,6 +464,11 @@ const styles = StyleSheet.create({
   carouselContent: {
     paddingVertical: 14,
   },
+  carouselContentTablet: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
   planCard: {
     width: CARD_WIDTH,
     backgroundColor: '#FFFFFF',
@@ -422,8 +482,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
-    minHeight: SCREEN_HEIGHT * 0.58,
-    maxHeight: SCREEN_HEIGHT * 0.58,
+    // Removed fixed height to allow dynamic content
   },
   planCardPopular: {
     borderColor: '#4ECFBF',
@@ -454,7 +513,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   planHeader: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   planName: {
     fontSize: 22,
@@ -469,9 +528,9 @@ const styles = StyleSheet.create({
   highlightContainer: {
     backgroundColor: '#FEF3C7',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 10,
-    marginBottom: 8,
+    marginBottom: 6,
     alignSelf: 'flex-start',
   },
   highlightText: {
@@ -481,11 +540,11 @@ const styles = StyleSheet.create({
   },
   pricingContainer: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: '#F3F4F6',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   priceRow: {
     flexDirection: 'row',
@@ -522,17 +581,17 @@ const styles = StyleSheet.create({
     color: '#059669',
   },
   featuresGrid: {
-    marginBottom: 12,
-    gap: 10,
+    marginBottom: 14,
+    gap: 8,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   featureIconContainer: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#F0FDFA',
     alignItems: 'center',
     justifyContent: 'center',
@@ -540,7 +599,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     color: '#374151',
   },
@@ -608,6 +667,24 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 6,
     fontWeight: '500',
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  legalLinkText: {
+    fontSize: 11,
+    color: '#6B7280',
+    textDecorationLine: 'underline',
+    fontWeight: '500',
+  },
+  legalSeparator: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginHorizontal: 8,
   },
   maybeLaterButton: {
     paddingVertical: 10,

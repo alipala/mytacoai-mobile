@@ -30,6 +30,11 @@ const PRICE_IDS = {
     monthly: 'price_1RdxNjJcquSiYwWN2XQMwwYW',
     annual: 'price_1RdxNjJcquSiYwWNIpmYrKSE',
   },
+  language_mastery: {
+    monthly: 'price_1RdxlGJcquSiYwWNWvyEgmgL',
+    annual: 'price_1RdxmRJcquSiYwWN7Oc6NnNe',
+  },
+  // Backward compatibility for old plan ID
   team_mastery: {
     monthly: 'price_1RdxlGJcquSiYwWNWvyEgmgL',
     annual: 'price_1RdxmRJcquSiYwWN7Oc6NnNe',
