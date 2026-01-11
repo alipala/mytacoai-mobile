@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    height: SCREEN_HEIGHT * 0.9, // CRITICAL: Fixed height
+    maxHeight: SCREEN_HEIGHT < 700 ? SCREEN_HEIGHT * 0.85 : SCREEN_HEIGHT * 0.9,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,

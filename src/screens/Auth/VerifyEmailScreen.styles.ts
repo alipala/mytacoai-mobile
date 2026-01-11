@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
@@ -15,9 +17,9 @@ export const styles = StyleSheet.create({
     marginBottom: 30,
   },
   iconCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: SCREEN_WIDTH < 400 ? Math.min(100, SCREEN_WIDTH * 0.27) : 120,
+    height: SCREEN_WIDTH < 400 ? Math.min(100, SCREEN_WIDTH * 0.27) : 120,
+    borderRadius: SCREEN_WIDTH < 400 ? Math.min(50, SCREEN_WIDTH * 0.135) : 60,
     backgroundColor: '#E6F7F5', // Light teal background
     justifyContent: 'center',
     alignItems: 'center',

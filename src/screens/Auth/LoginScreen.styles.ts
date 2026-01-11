@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
@@ -27,8 +29,8 @@ export const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoImage: {
-    width: 340,
-    height: 107,
+    width: Math.min(320, SCREEN_WIDTH * 0.85),
+    height: Math.min(101, (SCREEN_WIDTH * 0.85) * 0.315),
   },
 
   // Card Design with Glassmorphism

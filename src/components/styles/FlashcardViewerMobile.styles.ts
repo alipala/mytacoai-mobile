@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
@@ -58,7 +60,7 @@ export const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   cardContainer: {
-    height: 350,
+    height: SCREEN_HEIGHT < 700 ? 300 : 350,
     marginBottom: 24,
     position: 'relative',
   },

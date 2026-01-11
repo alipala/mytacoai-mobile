@@ -1,8 +1,8 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40;
-const CARD_HEIGHT = 420; // Optimized: 420px - Compact without banner
+const CARD_HEIGHT = SCREEN_HEIGHT < 700 ? 380 : 420; // Responsive: smaller on compact phones
 
 export const styles = StyleSheet.create({
   card: {
