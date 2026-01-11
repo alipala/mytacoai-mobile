@@ -104,14 +104,14 @@ export function OutOfHeartsModal({
         name: 'Fluency Builder',
         hearts: 10,
         refillTime: '1 hour',
-        price: '$19.99/mo'
+        price: '€19.99/mo'
       };
     } else if (subscriptionPlan === 'fluency_builder') {
       return {
         name: 'Language Mastery',
         hearts: '∞',
         refillTime: 'No wait',
-        price: '$39.99/mo'
+        price: '€39.99/mo'
       };
     }
     return null;

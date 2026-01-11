@@ -42,9 +42,9 @@ const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'fluency_builder',
     name: 'Fluency Builder',
-    monthlyPrice: '$19.99',
-    annualPrice: '$119.00',
-    annualSavings: 'Save $120.88',
+    monthlyPrice: '€19.99',
+    annualPrice: '€119.00',
+    annualSavings: 'Save €120.88',
     shortDescription: 'Perfect for consistent learners',
     highlight: '🎉 7-day free trial',
     isPopular: true,
@@ -68,9 +68,9 @@ const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'language_mastery',
     name: 'Language Mastery',
-    monthlyPrice: '$39.99',
-    annualPrice: '$239.00',
-    annualSavings: 'Save $240.88',
+    monthlyPrice: '€39.99',
+    annualPrice: '€239.00',
+    annualSavings: 'Save €240.88',
     shortDescription: 'Ultimate learning experience',
     highlight: '🎉 7-day free trial',
     monthlyFeatures: [
@@ -206,7 +206,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           {PRICING_PLANS.map((plan, index) => {
             const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
             const monthlyEquivalent = isAnnual
-              ? `$${(parseFloat(plan.annualPrice.slice(1)) / 12).toFixed(2)}/mo`
+              ? `€${(parseFloat(plan.annualPrice.slice(1)) / 12).toFixed(2)}/mo`
               : null;
             const features = isAnnual ? plan.annualFeatures : plan.monthlyFeatures;
 
@@ -339,14 +339,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           {/* Legal Links */}
           <View style={styles.legalLinks}>
             <TouchableOpacity
-              onPress={() => Linking.openURL('https://www.mytacoai.com/terms')}
+              onPress={() => Linking.openURL('https://mytacoai.com/terms')}
               activeOpacity={0.7}
             >
               <Text style={styles.legalLinkText}>Terms of Use</Text>
             </TouchableOpacity>
             <Text style={styles.legalSeparator}>•</Text>
             <TouchableOpacity
-              onPress={() => Linking.openURL('https://www.mytacoai.com/privacy')}
+              onPress={() => Linking.openURL('https://mytacoai.com/privacy')}
               activeOpacity={0.7}
             >
               <Text style={styles.legalLinkText}>Privacy Policy</Text>
