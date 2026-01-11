@@ -1,6 +1,6 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
@@ -18,8 +18,8 @@ export const styles = StyleSheet.create({
     height: 90, // Increased from 68 to 90 (matches typical iOS tab bar)
   },
   logo: {
-    width: 220, // Increased from 180 to 220 (22% bigger)
-    height: 70, // Increased from 57 to 70 (23% bigger) - maintains aspect ratio
+    width: SCREEN_WIDTH < 400 ? 160 : 220, // Responsive: smaller on small phones
+    height: SCREEN_WIDTH < 400 ? 51 : 70, // Maintain aspect ratio
   },
   headerActions: {
     flexDirection: 'row',
@@ -229,7 +229,7 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
   },
   greetingText: {
-    fontSize: 28,
+    fontSize: SCREEN_HEIGHT < 700 ? 24 : 28,
     fontWeight: '700',
     color: '#1F2937',
   },

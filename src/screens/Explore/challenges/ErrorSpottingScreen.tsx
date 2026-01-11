@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     backgroundColor: COLORS.darkNavy,
-    paddingHorizontal: 48,
+    paddingHorizontal: SCREEN_WIDTH < 400 ? 32 : 48,
     paddingVertical: 16,
     borderRadius: 12,
     ...Platform.select({

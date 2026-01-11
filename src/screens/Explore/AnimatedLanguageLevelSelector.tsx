@@ -699,7 +699,7 @@ const styles = StyleSheet.create({
   levelLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 60,
+    paddingHorizontal: width < 400 ? 20 : 60,
     marginBottom: 16,
   },
   levelLabel: {
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
   sliderTrack: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 60,
+    paddingHorizontal: width < 400 ? 20 : 60,
     position: 'absolute',
     top: 40,
     left: 0,
