@@ -1,10 +1,10 @@
 /**
  * Apple In-App Purchase Service
- * Handles StoreKit integration for iOS subscriptions
+ * Handles StoreKit integration for iOS subscriptions using expo-in-app-purchases
  */
 
 import { Platform } from 'react-native';
-import * as StoreKit from 'expo-store-review';
+import * as InAppPurchases from 'expo-in-app-purchases';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OpenAPI } from '../api/generated/core/OpenAPI';
 
@@ -33,6 +33,7 @@ export interface PurchaseResult {
 class AppleIAPService {
   private products: IAPProduct[] = [];
   private isInitialized = false;
+  private purchaseListener: { remove: () => void } | null = null;
 
   /**
    * Initialize StoreKit connection
@@ -43,19 +44,128 @@ class AppleIAPService {
       return false;
     }
 
-    try {
-      console.log('[APPLE_IAP] Initializing StoreKit...');
+    // Already initialized, don't set up listener again
+    if (this.isInitialized && this.purchaseListener) {
+      console.log('[APPLE_IAP] Already initialized, reusing existing connection');
+      return true;
+    }
 
-      // Note: expo-store-review doesn't handle IAP purchases directly
-      // For now, we'll use a simplified flow that goes through Stripe
-      // until we add react-native-iap or expo-in-app-purchases
+    try {
+      console.log('[APPLE_IAP] Initializing expo-in-app-purchases...');
+
+      // Connect to App Store
+      await InAppPurchases.connectAsync();
+      console.log('[APPLE_IAP] Connected to App Store');
+
+      // Set up purchase listener (only once)
+      if (!this.purchaseListener) {
+        this.purchaseListener = InAppPurchases.setPurchaseListener(
+          this.handlePurchaseUpdate.bind(this)
+        );
+        console.log('[APPLE_IAP] Purchase listener set up');
+      }
 
       this.isInitialized = true;
-      console.log('[APPLE_IAP] Initialized (using Stripe fallback for now)');
+      console.log('[APPLE_IAP] Initialization complete');
       return true;
     } catch (error) {
       console.error('[APPLE_IAP] Initialization failed:', error);
       return false;
+    }
+  }
+
+  /**
+   * Handle purchase updates from StoreKit
+   */
+  private async handlePurchaseUpdate(purchase: InAppPurchases.InAppPurchase) {
+    const { acknowledged, purchaseState, productId } = purchase;
+
+    console.log('[APPLE_IAP] Purchase update received:', {
+      productId,
+      purchaseState,
+      acknowledged,
+    });
+
+    // Handle successful purchase
+    if (purchaseState === InAppPurchases.InAppPurchaseState.PURCHASED && !acknowledged) {
+      console.log('[APPLE_IAP] Processing successful purchase...');
+
+      try {
+        // Get receipt from transaction (iOS only)
+        const receipt = purchase.transactionReceipt;
+        if (receipt) {
+          const verifyResult = await this.verifyReceipt(receipt, productId);
+
+          if (verifyResult.success) {
+            // Acknowledge the purchase
+            await InAppPurchases.finishTransactionAsync(purchase, true);
+            console.log('[APPLE_IAP] Purchase acknowledged and verified');
+
+            // Show success alert (using React Native Alert)
+            const { Alert } = require('react-native');
+            Alert.alert(
+              '✅ Purchase Successful',
+              'Your subscription has been activated! Enjoy unlimited access to all premium features.',
+              [{ text: 'Great!', style: 'default' }]
+            );
+          } else {
+            throw new Error('Receipt verification failed');
+          }
+        } else {
+          console.error('[APPLE_IAP] No receipt found in purchase');
+          await InAppPurchases.finishTransactionAsync(purchase, false);
+
+          const { Alert } = require('react-native');
+          Alert.alert(
+            'Purchase Error',
+            'Could not verify your purchase. Please contact support if you were charged.',
+            [{ text: 'OK' }]
+          );
+        }
+      } catch (error) {
+        console.error('[APPLE_IAP] Failed to process purchase:', error);
+        // Finish transaction even on error to prevent stuck purchases
+        await InAppPurchases.finishTransactionAsync(purchase, false);
+
+        const { Alert } = require('react-native');
+        Alert.alert(
+          'Verification Error',
+          'Your purchase could not be verified. Please contact support if you were charged.',
+          [{ text: 'OK' }]
+        );
+      }
+    }
+
+    // Handle restored purchase
+    if (purchaseState === InAppPurchases.InAppPurchaseState.RESTORED && !acknowledged) {
+      console.log('[APPLE_IAP] Processing restored purchase...');
+      await InAppPurchases.finishTransactionAsync(purchase, true);
+
+      const { Alert } = require('react-native');
+      Alert.alert(
+        'Purchase Restored',
+        'Your subscription has been restored successfully.',
+        [{ text: 'OK' }]
+      );
+    }
+
+    // Handle failed/cancelled purchase
+    if (purchaseState === InAppPurchases.InAppPurchaseState.FAILED) {
+      console.log('[APPLE_IAP] Purchase failed or cancelled by user');
+      await InAppPurchases.finishTransactionAsync(purchase, false);
+      // Don't show alert for cancellation - user knows they cancelled
+    }
+
+    // Handle deferred purchase (Ask to Buy)
+    if (purchaseState === InAppPurchases.InAppPurchaseState.DEFERRED) {
+      console.log('[APPLE_IAP] Purchase deferred (Ask to Buy)');
+
+      const { Alert } = require('react-native');
+      Alert.alert(
+        'Purchase Pending',
+        'Your purchase requires approval. You will receive a notification when approved.',
+        [{ text: 'OK' }]
+      );
     }
   }
 
@@ -68,42 +178,25 @@ class AppleIAPService {
     }
 
     try {
-      console.log('[APPLE_IAP] Fetching products...');
+      console.log('[APPLE_IAP] Fetching products from App Store...');
 
-      // For now, return mock product data
-      // In production, this would fetch from App Store
-      this.products = [
-        {
-          productId: APPLE_IAP_PRODUCTS.fluency_builder_monthly,
-          price: '19.99',
-          localizedPrice: '€19.99',
-          title: 'Fluency Builder Monthly',
-          description: 'Monthly subscription to Fluency Builder plan',
-        },
-        {
-          productId: APPLE_IAP_PRODUCTS.fluency_builder_annual,
-          price: '119.00',
-          localizedPrice: '€119.00',
-          title: 'Fluency Builder Annual',
-          description: 'Annual subscription to Fluency Builder plan',
-        },
-        {
-          productId: APPLE_IAP_PRODUCTS.language_mastery_monthly,
-          price: '39.99',
-          localizedPrice: '€39.99',
-          title: 'Language Mastery Monthly',
-          description: 'Monthly subscription to Language Mastery plan',
-        },
-        {
-          productId: APPLE_IAP_PRODUCTS.language_mastery_annual,
-          price: '239.00',
-          localizedPrice: '€239.00',
-          title: 'Language Mastery Annual',
-          description: 'Annual subscription to Language Mastery plan',
-        },
-      ];
+      const productIds = Object.values(APPLE_IAP_PRODUCTS);
+      const { results, responseCode } = await InAppPurchases.getProductsAsync(productIds);
 
-      console.log(`[APPLE_IAP] Retrieved ${this.products.length} products`);
+      if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
+        console.error('[APPLE_IAP] Failed to fetch products, response code:', responseCode);
+        return [];
+      }
+
+      this.products = results.map((product) => ({
+        productId: product.productId,
+        price: product.price,
+        localizedPrice: product.price, // Already formatted with currency symbol
+        title: product.title,
+        description: product.description,
+      }));
+
+      console.log(`[APPLE_IAP] Successfully fetched ${this.products.length} products`);
       return this.products;
     } catch (error) {
       console.error('[APPLE_IAP] Failed to get products:', error);
@@ -112,9 +205,7 @@ class AppleIAPService {
   }
 
   /**
-   * Purchase a subscription product
-   * For now, this redirects to Stripe checkout
-   * TODO: Implement actual StoreKit purchase flow when ready
+   * Purchase a subscription product via StoreKit
    */
   async purchaseProduct(productId: string): Promise<PurchaseResult> {
     if (Platform.OS !== 'ios') {
@@ -124,16 +215,29 @@ class AppleIAPService {
       };
     }
 
-    try {
-      console.log(`[APPLE_IAP] Purchase requested for: ${productId}`);
+    if (!this.isInitialized) {
+      console.log('[APPLE_IAP] Not initialized, initializing now...');
+      const initialized = await this.initialize();
+      if (!initialized) {
+        return {
+          success: false,
+          error: 'Failed to initialize IAP',
+        };
+      }
+    }
 
-      // For now, we'll use Stripe as fallback
-      // This allows testing the full flow while we wait for Apple review
-      console.log('[APPLE_IAP] Using Stripe checkout as fallback');
+    try {
+      console.log(`[APPLE_IAP] Initiating purchase for: ${productId}`);
+
+      // Trigger the purchase
+      await InAppPurchases.purchaseItemAsync(productId);
+
+      // Note: The actual purchase result will be handled in handlePurchaseUpdate
+      // This just initiates the purchase flow
+      console.log('[APPLE_IAP] Purchase initiated successfully');
 
       return {
-        success: false,
-        error: 'Use Stripe checkout for now (Apple IAP coming soon)',
+        success: true,
       };
     } catch (error) {
       console.error('[APPLE_IAP] Purchase failed:', error);
@@ -154,7 +258,7 @@ class AppleIAPService {
     try {
       console.log('[APPLE_IAP] Verifying receipt with backend...');
 
-      const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem('auth_token');
       if (!token) {
         throw new Error('No auth token found');
       }
@@ -201,11 +305,33 @@ class AppleIAPService {
       };
     }
 
+    if (!this.isInitialized) {
+      const initialized = await this.initialize();
+      if (!initialized) {
+        return {
+          success: false,
+          error: 'Failed to initialize IAP',
+        };
+      }
+    }
+
     try {
       console.log('[APPLE_IAP] Restoring purchases...');
 
-      // This would restore previous purchases from App Store
-      // For now, return placeholder
+      const { results, responseCode } = await InAppPurchases.getPurchaseHistoryAsync();
+
+      if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
+        throw new Error('Failed to restore purchases');
+      }
+
+      console.log(`[APPLE_IAP] Found ${results?.length || 0} previous purchases`);
+
+      // Process each restored purchase
+      if (results && results.length > 0) {
+        for (const purchase of results) {
+          await this.handlePurchaseUpdate(purchase);
+        }
+      }
 
       return {
         success: true,
@@ -220,16 +346,35 @@ class AppleIAPService {
   }
 
   /**
-   * Check if Apple IAP is available and products are approved
+   * Check if Apple IAP is available and ready
    */
   async isAvailable(): Promise<boolean> {
     if (Platform.OS !== 'ios') {
       return false;
     }
 
-    // For now, return false until Apple approves IAPs
-    // This will make app fall back to Stripe
-    return false;
+    // Check if we can initialize (will return true if already initialized)
+    if (!this.isInitialized) {
+      return await this.initialize();
+    }
+
+    return this.isInitialized;
+  }
+
+  /**
+   * Disconnect and cleanup
+   */
+  async disconnect(): Promise<void> {
+    if (this.purchaseListener) {
+      this.purchaseListener.remove();
+      this.purchaseListener = null;
+    }
+
+    if (this.isInitialized) {
+      await InAppPurchases.disconnectAsync();
+      this.isInitialized = false;
+      console.log('[APPLE_IAP] Disconnected');
+    }
   }
 }
 

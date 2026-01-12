@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Animated,
   Linking,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { styles, CARD_WIDTH, CARD_SPACING, CARD_MARGIN, isTablet } from './styles/PricingModal.styles';
+import AppleIAPService, { APPLE_IAP_PRODUCTS } from '../services/AppleIAPService';
 
 interface PricingPlan {
   id: string;
@@ -99,8 +100,46 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 }) => {
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [appleIAPAvailable, setAppleIAPAvailable] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
+
+  // Initialize Apple IAP when modal opens on iOS
+  useEffect(() => {
+    if (visible && Platform.OS === 'ios') {
+      initializeAppleIAP();
+    }
+
+    // Cleanup function - but DON'T disconnect, keep listener active
+    return () => {
+      // Keep the listener active for background purchase processing
+      // Apple IAP service will remain connected for the app lifetime
+    };
+  }, [visible]);
+
+  const initializeAppleIAP = async () => {
+    try {
+      // Initialize IAP service (sets up purchase listener)
+      const initialized = await AppleIAPService.initialize();
+      if (!initialized) {
+        setAppleIAPAvailable(false);
+        return;
+      }
+
+      // Check availability
+      const available = await AppleIAPService.isAvailable();
+      setAppleIAPAvailable(available);
+      console.log('[PRICING_MODAL] Apple IAP available:', available);
+
+      if (available) {
+        // CRITICAL: Fetch products from App Store before purchase
+        const products = await AppleIAPService.getProducts();
+        console.log('[PRICING_MODAL] Loaded products:', products.length);
+      }
+    } catch (error) {
+      console.error('[PRICING_MODAL] Failed to initialize Apple IAP:', error);
+      setAppleIAPAvailable(false);
+    }
+  };
 
   const handleTogglePeriod = () => {
     if (Platform.OS === 'ios') {
@@ -109,12 +148,62 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     setIsAnnual(!isAnnual);
   };
 
-  const handleSelectPlan = (planId: string) => {
+  const handleSelectPlan = async (planId: string) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     const period = isAnnual ? 'annual' : 'monthly';
-    onSelectPlan(planId, period);
+
+    // Use Apple IAP on iOS if available, otherwise fall back to Stripe
+    if (Platform.OS === 'ios' && appleIAPAvailable) {
+      console.log('[PRICING_MODAL] Using Apple IAP for purchase');
+      await handleAppleIAPPurchase(planId, period);
+    } else {
+      console.log('[PRICING_MODAL] Using Stripe for purchase');
+      onSelectPlan(planId, period); // This will navigate to Stripe checkout
+    }
+  };
+
+  const handleAppleIAPPurchase = async (planId: string, period: 'monthly' | 'annual') => {
+    try {
+      // Map plan ID to Apple product ID
+      const productKey = `${planId}_${period}` as keyof typeof APPLE_IAP_PRODUCTS;
+      const productId = APPLE_IAP_PRODUCTS[productKey];
+
+      if (!productId) {
+        throw new Error('Invalid product ID');
+      }
+
+      console.log('[PRICING_MODAL] Initiating Apple IAP purchase:', productId);
+
+      // Initiate purchase - this just opens the purchase dialog
+      const result = await AppleIAPService.purchaseProduct(productId);
+
+      if (result.success) {
+        console.log('[PRICING_MODAL] Purchase dialog opened');
+        // Don't close modal or show alert yet - wait for actual purchase result
+        // The AppleIAPService purchase listener will handle the actual result
+      } else {
+        throw new Error(result.error || 'Purchase failed');
+      }
+    } catch (error) {
+      console.error('[PRICING_MODAL] Apple IAP purchase failed:', error);
+
+      Alert.alert(
+        'Purchase Error',
+        error instanceof Error ? error.message : 'Failed to open purchase dialog. Please try again.',
+        [
+          {
+            text: 'Try Again',
+            onPress: () => handleAppleIAPPurchase(planId, period),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+    }
   };
 
   const handleClose = () => {
@@ -325,32 +414,35 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
         {/* Footer Info */}
         <View style={styles.footer}>
-          <View style={styles.footerRow}>
-            <Ionicons name="shield-checkmark" size={16} color="#10B981" />
-            <Text style={styles.footerText}>
-              Cancel anytime during free trial
-            </Text>
-          </View>
-          <View style={styles.footerRow}>
-            <Ionicons name="lock-closed" size={16} color="#10B981" />
-            <Text style={styles.footerText}>Secure payment with Stripe</Text>
+          <View style={styles.footerInfoRow}>
+            <View style={styles.footerInfoItem}>
+              <Ionicons name="shield-checkmark" size={14} color="#10B981" />
+              <Text style={styles.footerInfoText}>Cancel anytime</Text>
+            </View>
+            <View style={styles.footerInfoItem}>
+              <Ionicons name="lock-closed" size={14} color="#10B981" />
+              <Text style={styles.footerInfoText}>Secure payment</Text>
+            </View>
           </View>
 
-          {/* Legal Links */}
-          <View style={styles.legalLinks}>
-            <TouchableOpacity
-              onPress={() => Linking.openURL('https://mytacoai.com/terms')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.legalLinkText}>Terms of Use</Text>
-            </TouchableOpacity>
-            <Text style={styles.legalSeparator}>•</Text>
-            <TouchableOpacity
-              onPress={() => Linking.openURL('https://mytacoai.com/privacy')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.legalLinkText}>Privacy Policy</Text>
-            </TouchableOpacity>
+          {/* Legal Links - Required by Apple for Auto-Renewable Subscriptions */}
+          <View style={styles.legalLinksContainer}>
+            <Text style={styles.legalLinksHeader}>SUBSCRIPTION TERMS</Text>
+            <View style={styles.legalLinks}>
+              <TouchableOpacity
+                onPress={() => Linking.openURL('https://mytacoai.com/terms')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.legalLinkText}>Terms of Use</Text>
+              </TouchableOpacity>
+              <Text style={styles.legalSeparator}>•</Text>
+              <TouchableOpacity
+                onPress={() => Linking.openURL('https://mytacoai.com/privacy')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.legalLinkText}>Privacy Policy</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Maybe Later Option */}

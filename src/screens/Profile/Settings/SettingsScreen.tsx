@@ -21,8 +21,11 @@ import AccountPreferencesScreen from './AccountPreferencesScreen';
 import VoiceSelectionScreen from './VoiceSelectionScreen';
 import NotificationSettingsScreen from './NotificationSettingsScreen';
 import SubscriptionManagementScreen from './SubscriptionManagementScreen';
+import LegalDocumentsScreen from './LegalDocumentsScreen';
+import DocumentViewerScreen from './DocumentViewerScreen';
 
-type SettingsView = 'main' | 'account' | 'voice' | 'notifications' | 'subscription';
+type SettingsView = 'main' | 'account' | 'voice' | 'notifications' | 'subscription' | 'legal' | 'document';
+type DocumentType = 'terms' | 'privacy' | null;
 
 interface SettingsScreenProps {
   onClose: () => void;
@@ -31,6 +34,7 @@ interface SettingsScreenProps {
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) => {
   const [currentView, setCurrentView] = useState<SettingsView>('main');
+  const [currentDocument, setCurrentDocument] = useState<DocumentType>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleNavigate = (view: SettingsView) => {
@@ -45,6 +49,22 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setCurrentView('main');
+  };
+
+  const handleNavigateToDocument = (documentType: 'terms' | 'privacy') => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setCurrentDocument(documentType);
+    setCurrentView('document');
+  };
+
+  const handleBackFromDocument = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setCurrentView('legal');
+    setCurrentDocument(null);
   };
 
   const handleLogoutPress = () => {
@@ -96,6 +116,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
 
   if (currentView === 'subscription') {
     return <SubscriptionManagementScreen onBack={handleBack} />;
+  }
+
+  if (currentView === 'legal') {
+    return <LegalDocumentsScreen onBack={handleBack} onNavigateToDocument={handleNavigateToDocument} />;
+  }
+
+  if (currentView === 'document' && currentDocument) {
+    return <DocumentViewerScreen onBack={handleBackFromDocument} documentType={currentDocument} />;
   }
 
   // Main Settings Menu
@@ -189,6 +217,24 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Text style={styles.menuLabel}>Subscription</Text>
             <Text style={styles.menuDescription}>
               Manage your subscription and billing
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+
+        {/* Legal & Privacy */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => handleNavigate('legal')}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.menuIcon, { backgroundColor: '#6366F120' }]}>
+            <Ionicons name="document-text-outline" size={24} color="#6366F1" />
+          </View>
+          <View style={styles.menuInfo}>
+            <Text style={styles.menuLabel}>Legal & Privacy</Text>
+            <Text style={styles.menuDescription}>
+              Terms of Use and Privacy Policy
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />

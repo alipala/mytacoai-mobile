@@ -14,17 +14,26 @@
     },
     "ios": {
       "supportsTablet": false,
+      "requiresFullScreen": true,
       "bundleIdentifier": "com.bigdavinci.mytaco",
-      "buildNumber": "11",
+      "buildNumber": "12",
       "usesAppleSignIn": true,
       "infoPlist": {
         "UIDeviceFamily": [
           1
         ],
+        "UIRequiresFullScreen": true,
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait"
+        ],
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice conversations for language practice.",
         "NSCameraUsageDescription": "This app may need access to your camera for future video features.",
         "NSUserNotificationsUsageDescription": "This app uses notifications to send you important updates and reminders about your language learning progress.",
+        "LSApplicationQueriesSchemes": [
+          "mailto",
+          "tel"
+        ],
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
