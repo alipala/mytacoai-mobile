@@ -5,18 +5,23 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 export const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end', // CRITICAL!
+    justifyContent: 'flex-end',
   },
   backdropTouchable: {
-    flex: 1,
-    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1,
   },
   modalContainer: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: SCREEN_HEIGHT < 700 ? SCREEN_HEIGHT * 0.85 : SCREEN_HEIGHT * 0.9,
+    height: SCREEN_HEIGHT < 700 ? SCREEN_HEIGHT * 0.85 : SCREEN_HEIGHT * 0.9,
+    zIndex: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,

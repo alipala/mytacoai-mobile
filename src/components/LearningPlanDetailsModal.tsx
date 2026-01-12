@@ -7,9 +7,9 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-  SafeAreaView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { styles } from './styles/LearningPlanDetailsModal.styles';
@@ -240,15 +240,15 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
       onRequestClose={handleClose}
       statusBarTranslucent={true}
     >
-      {/* Backdrop - Press to close */}
       <View style={styles.backdrop}>
-        <TouchableOpacity 
+        {/* Backdrop Touchable - Behind modal */}
+        <TouchableOpacity
           style={styles.backdropTouchable}
           activeOpacity={1}
           onPress={handleClose}
         />
-        
-        {/* Modal Container - Slides up */}
+
+        {/* Modal Container - Slides up - On top */}
         <Animated.View
           style={[
             styles.modalContainer,
