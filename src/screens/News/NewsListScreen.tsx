@@ -123,42 +123,59 @@ export default function NewsListScreen({ navigation }: any) {
     ? newsData?.articles || []
     : newsData?.articles.filter(a => a.category === selectedCategory) || [];
 
-  const renderArticle = ({ item }: { item: NewsArticle }) => (
-    <TouchableOpacity
-      style={styles.articleCard}
-      onPress={() => handleArticlePress(item)}
-      activeOpacity={0.7}
-    >
-      {/* Article Image */}
-      {item.image_url ? (
-        <Image source={{ uri: item.image_url }} style={styles.articleImage} />
-      ) : (
-        <View style={[styles.articleImage, styles.placeholderImage]}>
-          <Ionicons name="newspaper-outline" size={40} color="#9CA3AF" />
-        </View>
-      )}
+  // Get accent color for card based on index (rotate through brand colors)
+  const getAccentColor = (index: number) => {
+    const brandColors = ['#4ECFBF', '#FFD63A', '#F75A5A', '#FFA955'];
+    return brandColors[index % brandColors.length];
+  };
 
-      {/* Category Badge */}
-      <View
-        style={[
-          styles.categoryBadge,
-          { backgroundColor: getCategoryColor(item.category) },
-        ]}
+  const renderArticle = ({ item, index }: { item: NewsArticle; index: number }) => {
+    const accentColor = getAccentColor(index);
+
+    return (
+      <TouchableOpacity
+        style={[styles.articleCard, { borderLeftColor: accentColor }]}
+        onPress={() => handleArticlePress(item)}
+        activeOpacity={0.7}
       >
-        <Text style={styles.categoryText}>
-          {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
-        </Text>
-      </View>
+        {/* Article Image with Gradient Overlay */}
+        <View style={styles.imageContainer}>
+          {item.image_url ? (
+            <Image source={{ uri: item.image_url }} style={styles.articleImage} />
+          ) : (
+            <View style={[styles.articleImage, styles.placeholderImage]}>
+              <Ionicons name="newspaper-outline" size={40} color="#9CA3AF" />
+            </View>
+          )}
+          {/* Dark gradient overlay for better text contrast */}
+          <View style={styles.imageOverlay} />
 
-      {/* Article Content */}
-      <View style={styles.articleContent}>
-        <Text style={styles.articleTitle} numberOfLines={3}>
-          {item.title}
-        </Text>
-        <Text style={styles.articleSource}>{item.source}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+          {/* Category Badge */}
+          <View
+            style={[
+              styles.categoryBadge,
+              { backgroundColor: getCategoryColor(item.category) },
+            ]}
+          >
+            <Text style={styles.categoryText}>
+              {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Article Content */}
+        <View style={styles.articleContent}>
+          <Text style={styles.articleTitle} numberOfLines={3}>
+            {item.title}
+          </Text>
+          <View style={styles.articleFooter}>
+            <Text style={styles.articleSource}>{item.source}</Text>
+            <View style={[styles.accentDot, { backgroundColor: accentColor }]} />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -317,18 +334,33 @@ const styles = StyleSheet.create({
   articleCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    marginBottom: 16,
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 5,
     overflow: 'hidden',
+    borderLeftWidth: 4,
+    // borderLeftColor set dynamically per card
+  },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 180,
   },
   articleImage: {
     width: '100%',
-    height: 200,
+    height: 180,
     backgroundColor: '#E5E7EB',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   placeholderImage: {
     justifyContent: 'center',
@@ -336,30 +368,48 @@ const styles = StyleSheet.create({
   },
   categoryBadge: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    top: 14,
+    left: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
   },
   categoryText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   articleContent: {
-    padding: 16,
+    padding: 18,
   },
   articleTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 12,
     lineHeight: 24,
   },
+  articleFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   articleSource: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
+    fontWeight: '500',
+  },
+  accentDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    opacity: 0.8,
   },
   loadingContainer: {
     flex: 1,
