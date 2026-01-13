@@ -171,7 +171,7 @@ export default function NewsListScreen({ navigation }: any) {
           {/* Engaging Lottie Animation Prompt */}
           <View style={styles.lottiePrompt}>
             <LottieView
-              source={require('../../assets/lottie/companion_anticipation.json')}
+              source={require('../../assets/lottie/companion_idle.json')}
               autoPlay
               loop
               style={styles.lottieAnimation}

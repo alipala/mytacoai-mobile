@@ -522,11 +522,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '600',
     color: '#111827',
     lineHeight: 30,
     marginBottom: 16,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   statsBar: {
     flexDirection: 'row',
