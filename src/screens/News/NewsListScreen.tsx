@@ -171,13 +171,12 @@ export default function NewsListScreen({ navigation }: any) {
           {/* Engaging Lottie Animation Prompt */}
           <View style={styles.lottiePrompt}>
             <LottieView
-              source={require('../../assets/LargeMicrophone.json')}
-              // Alternative option: require('../../assets/lottie/companion_anticipation.json')
+              source={require('../../assets/lottie/companion_anticipation.json')}
               autoPlay
               loop
               style={styles.lottieAnimation}
             />
-            <Text style={styles.lottieText}>Tap to speak</Text>
+            <Text style={styles.lottieText}>See the details before speak</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -413,22 +412,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 12,
     marginTop: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   lottieAnimation: {
-    width: 50,
-    height: 50,
+    width: 45,
+    height: 45,
   },
   lottieText: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     color: '#FFFFFF',
-    marginLeft: 12,
-    letterSpacing: 0.3,
+    marginLeft: 10,
+    letterSpacing: 0.2,
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,

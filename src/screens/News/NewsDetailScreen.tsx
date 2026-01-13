@@ -521,11 +521,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#111827',
-    lineHeight: 28,
+    lineHeight: 30,
     marginBottom: 16,
+    letterSpacing: -0.5,
   },
   statsBar: {
     flexDirection: 'row',
