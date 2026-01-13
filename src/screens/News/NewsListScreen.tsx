@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,9 @@ import {
   RefreshControl,
   SafeAreaView,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -32,6 +32,42 @@ interface NewsList {
   fallback_used: boolean;
   available_languages: string[];
 }
+
+// Animated Arrow Component
+const AnimatedArrowPrompt = () => {
+  const bounceAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [bounceAnim]);
+
+  const translateX = bounceAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 8],
+  });
+
+  return (
+    <View style={styles.arrowPrompt}>
+      <Text style={styles.arrowPromptText}>Tap to read & discuss</Text>
+      <Animated.View style={{ transform: [{ translateX }] }}>
+        <Ionicons name="arrow-forward-circle" size={28} color="#FFFFFF" />
+      </Animated.View>
+    </View>
+  );
+};
 
 export default function NewsListScreen({ navigation }: any) {
   const [newsData, setNewsData] = useState<NewsList | null>(null);
@@ -168,16 +204,8 @@ export default function NewsListScreen({ navigation }: any) {
           </Text>
           <Text style={styles.articleSource}>{item.source}</Text>
 
-          {/* Engaging Lottie Animation Prompt */}
-          <View style={styles.lottiePrompt}>
-            <LottieView
-              source={require('../../assets/lottie/companion_idle.json')}
-              autoPlay
-              loop
-              style={styles.lottieAnimation}
-            />
-            <Text style={styles.lottieText}>See the details before speak</Text>
-          </View>
+          {/* Animated Arrow Prompt */}
+          <AnimatedArrowPrompt />
         </View>
       </TouchableOpacity>
     );
@@ -408,27 +436,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 12,
   },
-  lottiePrompt: {
+  arrowPrompt: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     borderRadius: 12,
     marginTop: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
-  lottieAnimation: {
-    width: 45,
-    height: 45,
-  },
-  lottieText: {
-    fontSize: 13,
+  arrowPromptText: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginLeft: 10,
-    letterSpacing: 0.2,
-    flex: 1,
+    letterSpacing: 0.3,
   },
   loadingContainer: {
     flex: 1,
