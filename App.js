@@ -58,6 +58,9 @@ import { ChallengeSessionProvider } from './src/contexts/ChallengeSessionContext
 // Challenge Screens
 import ChallengeSessionScreen from './src/screens/Explore/ChallengeSessionScreen';
 
+// News Screens (Daily News Tab Feature)
+import { NewsListScreen, NewsDetailScreen } from './src/screens/News';
+
 import './src/api/config'; // Initialize API config
 
 const Stack = createStackNavigator();
@@ -97,6 +100,9 @@ function MainTabs() {
           } else if (route.name === 'Explore') {
             // Trophy icon for Challenges
             iconName = focused ? 'trophy' : 'trophy-outline';
+          } else if (route.name === 'News') {
+            // Calendar/Today icon - emphasizes daily fresh content
+            iconName = focused ? 'today' : 'today-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -111,6 +117,16 @@ function MainTabs() {
         component={DashboardScreen}
         options={{
           tabBarLabel: 'Learn',
+          headerShown: false,
+        }}
+      />
+
+      {/* News Tab (Daily News Feature) - MOVED TO 2ND POSITION */}
+      <Tab.Screen
+        name="News"
+        component={NewsListScreen}
+        options={{
+          tabBarLabel: 'Today',
           headerShown: false,
         }}
       />
@@ -389,8 +405,12 @@ export default function App() {
           <Stack.Screen name="LevelSelection" component={LevelSelectionScreen} />
           <Stack.Screen name="ConversationLoading" component={ConversationLoadingScreen} />
           <Stack.Screen name="Conversation" component={ConversationScreen} />
+          <Stack.Screen name="ConversationScreen" component={ConversationScreen} />
           <Stack.Screen name="SentenceAnalysis" component={SentenceAnalysisScreen} />
           <Stack.Screen name="GuestSessionResults" component={GuestSessionResultsScreen} />
+
+          {/* News Flow Screens */}
+          <Stack.Screen name="NewsDetail" component={NewsDetailScreen} />
 
           {/* Assessment Flow Screens */}
           <Stack.Screen name="AssessmentLanguageSelection" component={AssessmentLanguageSelectionScreen} />

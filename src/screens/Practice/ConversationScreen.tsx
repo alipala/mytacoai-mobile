@@ -239,7 +239,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { mode, language, topic, level, planId, customTopicText, researchData } = route.params;
+  const { mode, language, topic, level, planId, customTopicText, researchData, newsContext, sessionType, newsTitle } = route.params;
 
   // Add state for the fetched learning plan
   const [learningPlan, setLearningPlan] = useState<LearningPlan | null>(null);
@@ -254,7 +254,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       planId,
       customTopicText,
       hasResearchData: !!researchData,
+      sessionType,
+      hasNewsContext: !!newsContext,
     });
+
+    // Log news context details if present
+    if (sessionType === 'news' && newsContext) {
+      console.log('[CONVERSATION] 📰 NEWS SESSION DETECTED');
+      console.log('[CONVERSATION] News context keys:', Object.keys(newsContext));
+      console.log('[CONVERSATION] News title:', newsContext.title || 'NO TITLE');
+      console.log('[CONVERSATION] News summary length:', newsContext.summary?.length || 0);
+    }
 
     // Log custom topic details if present
     if (topic === 'custom' && customTopicText) {
@@ -697,6 +707,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       // Update state with selected voice
       setUserVoice(selectedVoice);
 
+      // Log news context before creating RealtimeService
+      if (sessionType === 'news' && newsContext) {
+        console.log('[CONVERSATION] 🎯 Passing news context to RealtimeService');
+        console.log('[CONVERSATION] News title:', newsContext.title);
+        console.log('[CONVERSATION] News context object:', JSON.stringify(newsContext).substring(0, 300));
+      }
+
       // Create and configure RealtimeService
       realtimeServiceRef.current = new RealtimeService({
         language: sessionLanguage,
@@ -706,6 +723,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         voice: selectedVoice,
         userPrompt: topic === 'custom' ? customTopicText : undefined,
         researchData: topic === 'custom' && researchData ? JSON.stringify(researchData) : undefined,
+        newsContext: sessionType === 'news' ? newsContext : undefined, // Pass news context for news conversations
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);
@@ -1145,8 +1163,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           result = await response.json();
 
         } else {
-          // Original logic for practice sessions
-          console.log('[AUTO_END] Saving practice session via original endpoint...');
+          // Original logic for practice sessions (including news)
+          console.log(`[AUTO_END] Saving ${sessionType || 'practice'} session via original endpoint...`);
           result = await ProgressService.saveConversationApiProgressSaveConversationPost({
             language: language,
             level: level,
@@ -1158,7 +1176,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             })),
             duration_minutes: sessionDuration / 60,
             learning_plan_id: null,
-            conversation_type: 'practice',
+            conversation_type: sessionType || 'practice', // Use sessionType if available (e.g., 'news')
             sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : [],
           });
         }
@@ -1338,9 +1356,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           <Text style={styles.headerTitle}>
             {learningPlan && (learningPlan.status === 'awaiting_final_assessment' || learningPlan.status === 'failed_assessment')
               ? `Final Assessment - ${screenLanguage?.charAt(0).toUpperCase()}${screenLanguage?.slice(1)} ${learningPlan.proficiency_level || ''}`
-              : screenLanguage
-                ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice`
-                : 'Conversation'}
+              : sessionType === 'news' && newsTitle
+                ? (() => {
+                    // Extract 3-word summary from news title (without language)
+                    const words = newsTitle.split(' ').filter((w: string) => w.length > 0);
+                    return words.slice(0, 3).join(' ');
+                  })()
+                : screenLanguage
+                  ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice`
+                  : 'Conversation'}
           </Text>
         </View>
 

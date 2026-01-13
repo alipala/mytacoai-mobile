@@ -79,6 +79,16 @@ export class RealtimeService {
     try {
       console.log('[RealtimeService] Creating session via backend...');
 
+      // Log news context if present
+      if (this.config.newsContext) {
+        console.log('[RealtimeService] 📰 NEWS CONTEXT DETECTED');
+        console.log('[RealtimeService] News context object:', this.config.newsContext);
+        console.log('[RealtimeService] News title:', (this.config.newsContext as any).title);
+        const stringified = JSON.stringify(this.config.newsContext);
+        console.log('[RealtimeService] Stringified length:', stringified.length);
+        console.log('[RealtimeService] Stringified preview:', stringified.substring(0, 200));
+      }
+
       const response = await DefaultService.generateTokenApiRealtimeTokenPost({
         language: this.config.language,
         level: this.config.level,
@@ -87,7 +97,10 @@ export class RealtimeService {
         user_prompt: this.config.userPrompt,
         assessment_data: this.config.assessmentData,
         research_data: this.config.researchData,
+        news_context: this.config.newsContext ? JSON.stringify(this.config.newsContext) : undefined,
       });
+
+      console.log('[RealtimeService] ✅ Session created, checking if news context was sent...');
 
       if (!response.id || !response.client_secret?.value || !response.model) {
         throw new Error('Invalid session response from backend. Missing id, client_secret, or model.');

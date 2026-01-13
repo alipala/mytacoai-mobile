@@ -38,6 +38,7 @@ export interface RealtimeServiceConfig {
   userPrompt?: string;
   assessmentData?: any;
   researchData?: string;
+  newsContext?: any; // News article context for news conversations
   onEvent?: (event: RealtimeEvent) => void;
   onTranscript?: (transcript: string, role: 'user' | 'assistant') => void;
   onError?: (error: Error) => void;
