@@ -305,12 +305,6 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 
   const categoryColor = getCategoryColor(newsContent.original.category);
 
-  // Extract short title (first 5-6 words)
-  const getShortTitle = (fullTitle: string) => {
-    const words = fullTitle.split(' ');
-    return words.slice(0, 6).join(' ') + (words.length > 6 ? '...' : '');
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Subtle loading overlay when switching variations */}
@@ -348,7 +342,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 
         {/* Title and Meta Info */}
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>{getShortTitle(newsContent.original.title)}</Text>
+          <Text style={styles.title}>{newsContent.original.title}</Text>
 
           {/* Stats Bar */}
           <View style={styles.statsBar}>
@@ -527,10 +521,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#111827',
-    lineHeight: 34,
+    lineHeight: 28,
     marginBottom: 16,
   },
   statsBar: {

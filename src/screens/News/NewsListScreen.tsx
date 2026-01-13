@@ -124,19 +124,13 @@ export default function NewsListScreen({ navigation }: any) {
     : newsData?.articles.filter(a => a.category === selectedCategory) || [];
 
   const renderArticle = ({ item, index }: { item: NewsArticle; index: number }) => {
-    // Use category color for accent
-    const accentColor = getCategoryColor(item.category);
+    // Use category color for entire card
+    const categoryColor = getCategoryColor(item.category);
     const categoryConfig = getCategoryConfig(item.category);
-
-    // Extract short title (first 5-6 words)
-    const getShortTitle = (fullTitle: string) => {
-      const words = fullTitle.split(' ');
-      return words.slice(0, 6).join(' ') + (words.length > 6 ? '...' : '');
-    };
 
     return (
       <TouchableOpacity
-        style={[styles.articleCard, { borderLeftColor: accentColor }]}
+        style={[styles.articleCard, { backgroundColor: categoryColor }]}
         onPress={() => handleArticlePress(item)}
         activeOpacity={0.7}
       >
@@ -153,19 +147,14 @@ export default function NewsListScreen({ navigation }: any) {
           <View style={styles.imageOverlay} />
 
           {/* Category Badge */}
-          <View
-            style={[
-              styles.categoryBadge,
-              { backgroundColor: accentColor },
-            ]}
-          >
+          <View style={styles.categoryBadge}>
             <Ionicons
               name={categoryConfig.icon as any}
               size={12}
-              color="#FFFFFF"
+              color={categoryColor}
               style={{ marginRight: 4 }}
             />
-            <Text style={styles.categoryText}>
+            <Text style={[styles.categoryText, { color: categoryColor }]}>
               {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
             </Text>
           </View>
@@ -173,16 +162,16 @@ export default function NewsListScreen({ navigation }: any) {
 
         {/* Article Content */}
         <View style={styles.articleContent}>
-          <Text style={styles.articleTitle} numberOfLines={2}>
-            {getShortTitle(item.title)}
+          <Text style={styles.articleTitle} numberOfLines={3}>
+            {item.title}
           </Text>
           <Text style={styles.articleSource}>{item.source}</Text>
 
           {/* Engaging Conversation Prompt */}
-          <View style={[styles.conversationPrompt, { backgroundColor: `${accentColor}15` }]}>
+          <View style={styles.conversationPrompt}>
             <View style={styles.promptHeader}>
-              <Ionicons name="chatbubbles" size={16} color={accentColor} />
-              <Text style={[styles.promptTitle, { color: accentColor }]}>
+              <Ionicons name="mic" size={18} color="#FFFFFF" />
+              <Text style={styles.promptTitle}>
                 Practice Speaking
               </Text>
             </View>
@@ -350,17 +339,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   articleCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 5,
     overflow: 'hidden',
-    borderLeftWidth: 4,
-    // borderLeftColor set dynamically per card
+    // backgroundColor set dynamically per card with category color
   },
   imageContainer: {
     position: 'relative',
@@ -391,6 +378,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -402,22 +390,22 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#FFFFFF',
+    // color set dynamically to match category color in component
     letterSpacing: 0.5,
   },
   articleContent: {
     padding: 18,
   },
   articleTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 8,
-    lineHeight: 25,
+    lineHeight: 22,
   },
   articleSource: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.85)',
     fontWeight: '500',
     marginBottom: 12,
   },
@@ -426,6 +414,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 12,
     marginTop: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   promptHeader: {
     flexDirection: 'row',
@@ -435,11 +424,12 @@ const styles = StyleSheet.create({
   promptTitle: {
     fontSize: 13,
     fontWeight: '700',
-    marginLeft: 6,
+    marginLeft: 8,
+    color: '#FFFFFF',
   },
   promptText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 17,
   },
   loadingContainer: {
