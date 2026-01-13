@@ -87,17 +87,28 @@ export default function NewsListScreen({ navigation }: any) {
   };
 
   const getCategoryConfig = (category: string) => {
+    // Normalize category to lowercase for matching
+    const normalizedCategory = category.toLowerCase();
+
     const configs: { [key: string]: { color: string; icon: string } } = {
-      All: { color: '#06B6D4', icon: 'apps' },
-      Technology: { color: '#06B6D4', icon: 'hardware-chip' },
-      Science: { color: '#8B5CF6', icon: 'flask' },
-      Culture: { color: '#F59E0B', icon: 'color-palette' },
-      Sports: { color: '#EF4444', icon: 'football' },
-      Environment: { color: '#10B981', icon: 'leaf' },
-      Health: { color: '#EC4899', icon: 'heart' },
-      Business: { color: '#3B82F6', icon: 'briefcase' },
+      all: { color: '#06B6D4', icon: 'apps' },
+      technology: { color: '#3B82F6', icon: 'hardware-chip' },
+      science: { color: '#8B5CF6', icon: 'flask' },
+      culture: { color: '#F59E0B', icon: 'color-palette' },
+      sports: { color: '#EF4444', icon: 'football' },
+      environment: { color: '#14B8A6', icon: 'leaf' },
+      health: { color: '#EC4899', icon: 'heart' },
+      business: { color: '#10B981', icon: 'briefcase' },
+      entertainment: { color: '#F43F5E', icon: 'sparkles' },
+      education: { color: '#6366F1', icon: 'school' },
+      politics: { color: '#64748B', icon: 'megaphone' },
+      finance: { color: '#059669', icon: 'cash' },
+      travel: { color: '#0EA5E9', icon: 'airplane' },
+      food: { color: '#F97316', icon: 'restaurant' },
+      fashion: { color: '#A855F7', icon: 'shirt' },
+      automotive: { color: '#71717A', icon: 'car-sport' },
     };
-    return configs[category] || { color: '#6B7280', icon: 'ellipse' };
+    return configs[normalizedCategory] || { color: '#6B7280', icon: 'ellipse' };
   };
 
   const getCategoryColor = (category: string) => {
@@ -134,7 +145,9 @@ export default function NewsListScreen({ navigation }: any) {
           { backgroundColor: getCategoryColor(item.category) },
         ]}
       >
-        <Text style={styles.categoryText}>{item.category}</Text>
+        <Text style={styles.categoryText}>
+          {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+        </Text>
       </View>
 
       {/* Article Content */}
@@ -230,7 +243,7 @@ export default function NewsListScreen({ navigation }: any) {
                     isSelected && styles.filterChipTextActive,
                   ]}
                 >
-                  {category}
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
                 </Text>
               </TouchableOpacity>
             );
