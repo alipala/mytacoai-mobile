@@ -123,14 +123,16 @@ export default function NewsListScreen({ navigation }: any) {
     ? newsData?.articles || []
     : newsData?.articles.filter(a => a.category === selectedCategory) || [];
 
-  // Get accent color for card based on index (rotate through brand colors)
-  const getAccentColor = (index: number) => {
-    const brandColors = ['#4ECFBF', '#FFD63A', '#F75A5A', '#FFA955'];
-    return brandColors[index % brandColors.length];
-  };
-
   const renderArticle = ({ item, index }: { item: NewsArticle; index: number }) => {
-    const accentColor = getAccentColor(index);
+    // Use category color for accent
+    const accentColor = getCategoryColor(item.category);
+    const categoryConfig = getCategoryConfig(item.category);
+
+    // Extract short title (first 5-6 words)
+    const getShortTitle = (fullTitle: string) => {
+      const words = fullTitle.split(' ');
+      return words.slice(0, 6).join(' ') + (words.length > 6 ? '...' : '');
+    };
 
     return (
       <TouchableOpacity
@@ -154,9 +156,15 @@ export default function NewsListScreen({ navigation }: any) {
           <View
             style={[
               styles.categoryBadge,
-              { backgroundColor: getCategoryColor(item.category) },
+              { backgroundColor: accentColor },
             ]}
           >
+            <Ionicons
+              name={categoryConfig.icon as any}
+              size={12}
+              color="#FFFFFF"
+              style={{ marginRight: 4 }}
+            />
             <Text style={styles.categoryText}>
               {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
             </Text>
@@ -165,12 +173,22 @@ export default function NewsListScreen({ navigation }: any) {
 
         {/* Article Content */}
         <View style={styles.articleContent}>
-          <Text style={styles.articleTitle} numberOfLines={3}>
-            {item.title}
+          <Text style={styles.articleTitle} numberOfLines={2}>
+            {getShortTitle(item.title)}
           </Text>
-          <View style={styles.articleFooter}>
-            <Text style={styles.articleSource}>{item.source}</Text>
-            <View style={[styles.accentDot, { backgroundColor: accentColor }]} />
+          <Text style={styles.articleSource}>{item.source}</Text>
+
+          {/* Engaging Conversation Prompt */}
+          <View style={[styles.conversationPrompt, { backgroundColor: `${accentColor}15` }]}>
+            <View style={styles.promptHeader}>
+              <Ionicons name="chatbubbles" size={16} color={accentColor} />
+              <Text style={[styles.promptTitle, { color: accentColor }]}>
+                Practice Speaking
+              </Text>
+            </View>
+            <Text style={styles.promptText} numberOfLines={2}>
+              Discuss this topic in a 5-minute AI conversation
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -370,17 +388,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 14,
     left: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   categoryText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.5,
@@ -389,27 +409,38 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   articleTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 12,
-    lineHeight: 24,
-  },
-  articleFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    marginBottom: 8,
+    lineHeight: 25,
   },
   articleSource: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 12,
+    color: '#9CA3AF',
     fontWeight: '500',
+    marginBottom: 12,
   },
-  accentDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    opacity: 0.8,
+  conversationPrompt: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  promptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  promptTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginLeft: 6,
+  },
+  promptText: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 17,
   },
   loadingContainer: {
     flex: 1,

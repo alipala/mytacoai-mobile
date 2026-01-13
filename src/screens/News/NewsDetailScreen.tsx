@@ -281,37 +281,95 @@ export default function NewsDetailScreen({ route, navigation }: any) {
     return null;
   }
 
+  // Helper function to get category color
+  const getCategoryColor = (category: string) => {
+    const colors: { [key: string]: string } = {
+      technology: '#3B82F6',
+      science: '#8B5CF6',
+      health: '#EC4899',
+      sports: '#EF4444',
+      environment: '#14B8A6',
+      business: '#10B981',
+      culture: '#F59E0B',
+      entertainment: '#F43F5E',
+      education: '#6366F1',
+      politics: '#64748B',
+      finance: '#059669',
+      travel: '#0EA5E9',
+      food: '#F97316',
+      fashion: '#A855F7',
+      automotive: '#71717A',
+    };
+    return colors[category.toLowerCase()] || '#6B7280';
+  };
+
+  const categoryColor = getCategoryColor(newsContent.original.category);
+
+  // Extract short title (first 5-6 words)
+  const getShortTitle = (fullTitle: string) => {
+    const words = fullTitle.split(' ');
+    return words.slice(0, 6).join(' ') + (words.length > 6 ? '...' : '');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Subtle loading overlay when switching variations */}
       {switchingVariation && (
         <View style={styles.switchingOverlay}>
-          <ActivityIndicator size="small" color="#06B6D4" />
+          <ActivityIndicator size="small" color={categoryColor} />
         </View>
       )}
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>News Detail</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Hero Image */}
-        {newsContent.original.image_url ? (
-          <Image source={{ uri: newsContent.original.image_url }} style={styles.heroImage} />
-        ) : (
-          <View style={[styles.heroImage, styles.placeholderImage]}>
-            <Ionicons name="newspaper-outline" size={60} color="#9CA3AF" />
-          </View>
-        )}
+        {/* Hero Image with Gradient Overlay and Back Button */}
+        <View style={styles.heroContainer}>
+          {newsContent.original.image_url ? (
+            <Image source={{ uri: newsContent.original.image_url }} style={styles.heroImage} />
+          ) : (
+            <View style={[styles.heroImage, styles.placeholderImage]}>
+              <Ionicons name="newspaper-outline" size={60} color="#9CA3AF" />
+            </View>
+          )}
+          {/* Dark gradient overlay */}
+          <View style={styles.heroOverlay} />
 
-        {/* Title */}
-        <Text style={styles.title}>{newsContent.original.title}</Text>
-        <Text style={styles.source}>{newsContent.original.source}</Text>
+          {/* Back button on image */}
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {/* Category badge on image */}
+          <View style={[styles.heroCategoryBadge, { backgroundColor: categoryColor }]}>
+            <Text style={styles.heroCategoryText}>
+              {newsContent.original.category.charAt(0).toUpperCase() + newsContent.original.category.slice(1)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Title and Meta Info */}
+        <View style={styles.contentContainer}>
+          <Text style={styles.title}>{getShortTitle(newsContent.original.title)}</Text>
+
+          {/* Stats Bar */}
+          <View style={styles.statsBar}>
+            <View style={styles.statItem}>
+              <Ionicons name="time-outline" size={16} color={categoryColor} />
+              <Text style={styles.statText}>~3 min read</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Ionicons name="library-outline" size={16} color={categoryColor} />
+              <Text style={styles.statText}>{newsContent.vocabulary.length} words</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Ionicons name="school-outline" size={16} color={categoryColor} />
+              <Text style={styles.statText}>{selectedLevel}</Text>
+            </View>
+          </View>
+
+          <Text style={styles.source}>By {newsContent.original.source}</Text>
+        </View>
 
         {/* Language Selector */}
         {renderLanguageSelector()}
@@ -400,21 +458,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    backgroundColor: '#F9FAFB',
   },
   scrollView: {
     flex: 1,
@@ -422,28 +466,104 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
+  heroContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 280,
+  },
   heroImage: {
     width: '100%',
-    height: 240,
+    height: 280,
     backgroundColor: '#E5E7EB',
+  },
+  heroOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   placeholderImage: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
+  backButton: {
+    position: 'absolute',
+    top: 48,
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroCategoryBadge: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  heroCategoryText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  contentContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: -24,
+    paddingTop: 24,
     paddingHorizontal: 20,
-    marginTop: 20,
-    lineHeight: 32,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#111827',
+    lineHeight: 34,
+    marginBottom: 16,
+  },
+  statsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  statItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  statDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#E5E7EB',
+  },
+  statText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   source: {
-    fontSize: 14,
-    color: '#6B7280',
-    paddingHorizontal: 20,
-    marginTop: 8,
+    fontSize: 13,
+    color: '#9CA3AF',
+    fontWeight: '500',
+    marginBottom: 20,
   },
   selectorContainer: {
     paddingHorizontal: 20,
