@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -167,17 +168,16 @@ export default function NewsListScreen({ navigation }: any) {
           </Text>
           <Text style={styles.articleSource}>{item.source}</Text>
 
-          {/* Engaging Conversation Prompt */}
-          <View style={styles.conversationPrompt}>
-            <View style={styles.promptHeader}>
-              <Ionicons name="mic" size={18} color="#FFFFFF" />
-              <Text style={styles.promptTitle}>
-                Practice Speaking
-              </Text>
-            </View>
-            <Text style={styles.promptText} numberOfLines={2}>
-              Discuss this topic in a 5-minute AI conversation
-            </Text>
+          {/* Engaging Lottie Animation Prompt */}
+          <View style={styles.lottiePrompt}>
+            <LottieView
+              source={require('../../assets/LargeMicrophone.json')}
+              // Alternative option: require('../../assets/lottie/companion_anticipation.json')
+              autoPlay
+              loop
+              style={styles.lottieAnimation}
+            />
+            <Text style={styles.lottieText}>Tap to speak</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -409,28 +409,26 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 12,
   },
-  conversationPrompt: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    marginTop: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  promptHeader: {
+  lottiePrompt: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginTop: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
-  promptTitle: {
-    fontSize: 13,
+  lottieAnimation: {
+    width: 50,
+    height: 50,
+  },
+  lottieText: {
+    fontSize: 14,
     fontWeight: '700',
-    marginLeft: 8,
     color: '#FFFFFF',
-  },
-  promptText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 17,
+    marginLeft: 12,
+    letterSpacing: 0.3,
   },
   loadingContainer: {
     flex: 1,
