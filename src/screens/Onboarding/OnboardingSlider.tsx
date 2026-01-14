@@ -12,7 +12,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -31,8 +31,6 @@ interface OnboardingSlide {
 interface OnboardingSliderProps {
   navigation: any;
 }
-
-const { width } = Dimensions.get('window');
 
 // Onboarding slide data - Value-driven messaging with highlight + subtext
 const slides: OnboardingSlide[] = [
@@ -70,9 +68,193 @@ const slides: OnboardingSlide[] = [
   },
 ];
 
+// Create dynamic styles based on device type
+const createDynamicStyles = (isIPad: boolean) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  skipButton: {
+    position: 'absolute',
+    top: 50,
+    right: 24,
+    zIndex: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  skipButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textGray,
+  },
+  slide: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 24,
+    paddingTop: 80,
+    paddingBottom: 230,
+  },
+  illustrationContainer: {
+    width: '100%',
+    height: isIPad ? 380 : 300,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: isIPad ? 40 : 32,
+  },
+  illustration: {
+    width: isIPad ? 340 : 260,
+    height: isIPad ? 340 : 260,
+    borderRadius: isIPad ? 170 : 130,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  emoji: {
+    fontSize: isIPad ? 100 : 80,
+  },
+  lottieAnimation: {
+    width: isIPad ? 260 : 200,
+    height: isIPad ? 260 : 200,
+  },
+  textContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    maxWidth: 500,
+  },
+  title: {
+    fontSize: isIPad ? 34 : 28,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    textAlign: 'center',
+    marginBottom: isIPad ? 24 : 20,
+    letterSpacing: -0.5,
+    lineHeight: isIPad ? 42 : 36,
+  },
+  highlight: {
+    fontSize: isIPad ? 24 : 20,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    textAlign: 'center',
+    marginBottom: isIPad ? 14 : 12,
+    letterSpacing: 0,
+    lineHeight: isIPad ? 32 : 28,
+  },
+  subtext: {
+    fontSize: isIPad ? 18 : 16,
+    fontWeight: '400',
+    color: COLORS.textGray,
+    textAlign: 'center',
+    lineHeight: isIPad ? 28 : 24,
+    letterSpacing: 0.1,
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 140,
+    left: 0,
+    right: 0,
+  },
+  paginationDot: {
+    width: isIPad ? 10 : 8,
+    height: isIPad ? 10 : 8,
+    borderRadius: isIPad ? 5 : 4,
+    backgroundColor: COLORS.border,
+    marginHorizontal: isIPad ? 6 : 5,
+  },
+  paginationDotActive: {
+    width: isIPad ? 32 : 28,
+    height: isIPad ? 10 : 8,
+    borderRadius: isIPad ? 5 : 4,
+    backgroundColor: COLORS.turquoise,
+  },
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 50,
+    left: 24,
+    right: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backButton: {
+    paddingVertical: isIPad ? 18 : 16,
+    paddingHorizontal: isIPad ? 28 : 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+  },
+  backButtonText: {
+    fontSize: isIPad ? 16 : 15,
+    fontWeight: '600',
+    color: COLORS.textGray,
+  },
+  spacer: {
+    width: 60,
+  },
+  nextButton: {
+    backgroundColor: COLORS.white,
+    paddingVertical: isIPad ? 20 : 18,
+    paddingHorizontal: isIPad ? 42 : 36,
+    borderRadius: 16,
+    minWidth: isIPad ? 160 : 140,
+    alignItems: 'center',
+    borderWidth: 2.5,
+    borderColor: COLORS.turquoise,
+    shadowColor: COLORS.turquoise,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  getStartedButton: {
+    backgroundColor: COLORS.turquoise,
+    minWidth: isIPad ? 200 : 180,
+    borderWidth: 0,
+    shadowColor: COLORS.turquoise,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  nextButtonText: {
+    fontSize: isIPad ? 16 : 15,
+    fontWeight: '700',
+    color: COLORS.turquoise,
+    letterSpacing: 0.5,
+  },
+  getStartedButtonText: {
+    fontSize: isIPad ? 17 : 16,
+    fontWeight: '700',
+    color: COLORS.white,
+    letterSpacing: 0.5,
+  },
+});
+
 export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
   navigation,
 }) => {
+  // Use dynamic dimensions hook
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
+  const isIPad = SCREEN_WIDTH >= 768;
+
+  console.log('🔍 [OnboardingSlider] Dynamic - Width:', SCREEN_WIDTH, 'isIPad:', isIPad);
+
+  // Create dynamic styles based on current dimensions
+  const styles = createDynamicStyles(isIPad);
+
   const sliderRef = useRef<AppIntroSlider>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -286,177 +468,3 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  skipButton: {
-    position: 'absolute',
-    top: 50,
-    right: 24,
-    zIndex: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  skipButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textGray,
-  },
-  slide: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 230,
-  },
-  illustrationContainer: {
-    width: '100%',
-    height: 300,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  illustration: {
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  emoji: {
-    fontSize: 80,
-  },
-  lottieAnimation: {
-    width: 200,
-    height: 200,
-  },
-
-  textContainer: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    maxWidth: 500,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    textAlign: 'center',
-    marginBottom: 20,
-    letterSpacing: -0.5,
-    lineHeight: 36,
-  },
-  highlight: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textDark,
-    textAlign: 'center',
-    marginBottom: 12,
-    letterSpacing: 0,
-    lineHeight: 28,
-  },
-  subtext: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: COLORS.textGray,
-    textAlign: 'center',
-    lineHeight: 24,
-    letterSpacing: 0.1,
-  },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 140,
-    left: 0,
-    right: 0,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 5,
-  },
-  paginationDotActive: {
-    width: 28,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.turquoise,
-  },
-  bottomContainer: {
-    position: 'absolute',
-    bottom: 50,
-    left: 24,
-    right: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
-  },
-  backButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textGray,
-  },
-  spacer: {
-    width: 60,
-  },
-  nextButton: {
-    backgroundColor: COLORS.white,
-    paddingVertical: 18,
-    paddingHorizontal: 36,
-    borderRadius: 16,
-    minWidth: 140,
-    alignItems: 'center',
-    borderWidth: 2.5,
-    borderColor: COLORS.turquoise,
-    shadowColor: COLORS.turquoise,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  getStartedButton: {
-    backgroundColor: COLORS.turquoise,
-    minWidth: 180,
-    borderWidth: 0,
-    shadowColor: COLORS.turquoise,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  nextButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.turquoise,
-    letterSpacing: 0.5,
-  },
-  getStartedButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
-    letterSpacing: 0.5,
-  },
-});

@@ -8,10 +8,11 @@ import {
   Platform,
   Linking,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { styles, CARD_WIDTH, CARD_SPACING, CARD_MARGIN, isTablet } from './styles/PricingModal.styles';
+import { createStyles } from './styles/PricingModal.styles';
 import AppleIAPService, { APPLE_IAP_PRODUCTS } from '../services/AppleIAPService';
 
 interface PricingPlan {
@@ -98,6 +99,24 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   onClose,
   onSelectPlan,
 }) => {
+  // Use dynamic dimensions hook (updates on rotation/resize)
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
+
+  // Calculate responsive values dynamically
+  const isTablet = SCREEN_WIDTH >= 768;
+  const CARD_WIDTH = isTablet
+    ? SCREEN_WIDTH * 0.45
+    : SCREEN_WIDTH < 400
+      ? SCREEN_WIDTH - 32
+      : SCREEN_WIDTH - 60;
+  const CARD_SPACING = isTablet ? 30 : (SCREEN_WIDTH < 400 ? 16 : 20);
+  const CARD_MARGIN = isTablet ? 40 : (SCREEN_WIDTH < 400 ? 16 : 30);
+
+  // Create styles with current dimensions
+  const styles = createStyles(SCREEN_WIDTH, isTablet);
+
+  console.log('🔍 [PricingModal] Dynamic - Width:', SCREEN_WIDTH, 'isTablet:', isTablet);
+
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
   const [currentIndex, setCurrentIndex] = useState(0);
   const [appleIAPAvailable, setAppleIAPAvailable] = useState(false);

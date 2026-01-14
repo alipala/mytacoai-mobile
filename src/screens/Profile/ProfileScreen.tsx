@@ -735,10 +735,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   </View>
                   <View style={styles.activityInfo}>
                     <Text style={styles.activityTitle}>
-                      {session.topic.charAt(0).toUpperCase() + session.topic.slice(1)}
+                      {session.topic
+                        ? session.topic.charAt(0).toUpperCase() + session.topic.slice(1)
+                        : session.conversation_type === 'news'
+                          ? 'Daily News'
+                          : 'Practice Session'}
                     </Text>
                     <Text style={styles.activitySubtitle}>
-                      {session.language.charAt(0).toUpperCase() + session.language.slice(1)} • {session.level}
+                      {session.language?.charAt(0).toUpperCase() + session.language?.slice(1) || 'English'} • {session.level}
                     </Text>
                   </View>
                   <Text style={styles.activityDate}>{formatDate(session.created_at)}</Text>
