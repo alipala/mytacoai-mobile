@@ -24,6 +24,8 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'center',
     minWidth: 80,
+    maxWidth: '35%', // Prevent overlap with centered avatar
+    paddingRight: 8,
   },
   headerCenter: {
     alignItems: 'center',
@@ -38,6 +40,8 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
     minWidth: 80,
+    maxWidth: '35%', // Prevent overlap with centered avatar
+    paddingLeft: 8,
   },
   headerTitle: {
     fontSize: 18,

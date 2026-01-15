@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NewsDetailModal from '../../components/NewsDetailModal';
 
 interface NewsArticle {
   id: string;
@@ -76,6 +77,10 @@ export default function NewsListScreen({ navigation }: any) {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
+  // Modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+
   useEffect(() => {
     fetchNews();
   }, []);
@@ -115,11 +120,36 @@ export default function NewsListScreen({ navigation }: any) {
   };
 
   const handleArticlePress = (article: NewsArticle) => {
-    navigation.navigate('NewsDetail', {
-      newsId: article.id,
-      title: article.title,
-      recommendedLevel: newsData?.recommended_level || 'B1',
-      availableLanguages: newsData?.available_languages || ['en', 'es', 'nl'],
+    setSelectedArticle(article);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedArticle(null);
+  };
+
+  const handleStartConversation = (params: {
+    sessionId: string;
+    newsContext: any;
+    language: string;
+    level: string;
+    newsTitle: string;
+    newsUrl: string;
+  }) => {
+    // Close modal first
+    setModalVisible(false);
+    setSelectedArticle(null);
+
+    // Navigate to conversation screen
+    navigation.navigate('ConversationScreen', {
+      sessionType: 'news',
+      sessionId: params.sessionId,
+      newsContext: params.newsContext,
+      language: params.language,
+      level: params.level,
+      newsTitle: params.newsTitle,
+      newsUrl: params.newsUrl,
     });
   };
 
@@ -322,6 +352,19 @@ export default function NewsListScreen({ navigation }: any) {
           </View>
         }
       />
+
+      {/* News Detail Modal */}
+      {selectedArticle && (
+        <NewsDetailModal
+          visible={modalVisible}
+          newsId={selectedArticle.id}
+          title={selectedArticle.title}
+          recommendedLevel={newsData?.recommended_level || 'B1'}
+          availableLanguages={newsData?.available_languages || ['en', 'es', 'nl']}
+          onClose={handleCloseModal}
+          onStartConversation={handleStartConversation}
+        />
+      )}
     </SafeAreaView>
   );
 }
