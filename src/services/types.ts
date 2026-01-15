@@ -30,6 +30,13 @@ export type RealtimeEvent =
   | { type: 'input_audio_buffer.committed' }
   | { type: 'error'; error: any };
 
+export type ConnectionStep =
+  | 'creating_session'
+  | 'requesting_microphone'
+  | 'setting_up_connection'
+  | 'exchanging_sdp'
+  | 'connected';
+
 export interface RealtimeServiceConfig {
   language: string;
   level: string;
@@ -43,6 +50,7 @@ export interface RealtimeServiceConfig {
   onTranscript?: (transcript: string, role: 'user' | 'assistant') => void;
   onError?: (error: Error) => void;
   onConnectionStateChange?: (state: string) => void;
+  onConnectionProgress?: (step: ConnectionStep) => void;
   onConnected?: () => void;
   onDisconnected?: () => void;
   onSessionConfigReceived?: (config: SessionConfig) => void;

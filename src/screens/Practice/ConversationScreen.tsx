@@ -293,7 +293,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true); // Start in connecting state
+  const [connectionStep, setConnectionStep] = useState<string>('creating_session');
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [waitingForAIGreeting, setWaitingForAIGreeting] = useState(false); // Waiting for AI's first message
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
   const [maxDuration, setMaxDuration] = useState(300); // Default 5 minutes, backend will override
@@ -762,14 +764,20 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
           if (state === 'connected') {
             setIsConnecting(false);
+            setWaitingForAIGreeting(true); // Now waiting for AI's first message
             setSessionStartTime(Date.now()); // Start timer on successful connection
-            console.log('[CONVERSATION] Ready for conversation');
+            console.log('[CONVERSATION] Ready for conversation - waiting for AI greeting');
           } else if (state === 'failed' || state === 'disconnected') {
             setIsConnecting(false);
+            setWaitingForAIGreeting(false);
             if (state === 'failed') {
               setConnectionError('Connection failed. Please try again.');
             }
           }
+        },
+        onConnectionProgress: (step) => {
+          console.log('[CONVERSATION] Connection progress:', step);
+          setConnectionStep(step);
         },
         onSessionConfigReceived: (config) => {
           console.log('[CONVERSATION] 📋 Session config received from backend:',{
@@ -825,6 +833,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       content,
       timestamp: new Date().toISOString(),
     };
+
+    // Clear waiting state when AI sends first message
+    if (role === 'assistant' && waitingForAIGreeting) {
+      setWaitingForAIGreeting(false);
+    }
 
     setMessages((prev) => {
       const updated = [...prev, newMessage];
@@ -1433,7 +1446,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           <View style={styles.connectingContainer}>
             <ActivityIndicator size="large" color="#14B8A6" />
             <Text style={styles.connectingText}>
-              {planId ? 'Loading your learning plan...' : 'Connecting to AI tutor...'}
+              {connectionStep === 'creating_session' && 'Creating session...'}
+              {connectionStep === 'requesting_microphone' && 'Setting up microphone...'}
+              {connectionStep === 'setting_up_connection' && 'Establishing connection...'}
+              {connectionStep === 'exchanging_sdp' && 'Connecting to AI tutor...'}
+              {connectionStep === 'connected' && 'Connected!'}
             </Text>
           </View>
         ) : connectionError ? (
@@ -1447,10 +1464,21 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             <View style={styles.aiVisualizationContainer}>
               <AIVisualization state={conversationState.currentState} size={120} />
             </View>
-            <Text style={styles.emptyTitle}>Ready to start</Text>
-            <Text style={styles.emptyText}>
-              Tap the microphone button below to begin speaking
-            </Text>
+            {waitingForAIGreeting ? (
+              <>
+                <Text style={styles.emptyTitle}>AI Tutor is preparing...</Text>
+                <Text style={styles.emptyText}>
+                  Your tutor will greet you in just a moment
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.emptyTitle}>Ready to start</Text>
+                <Text style={styles.emptyText}>
+                  Tap the microphone button below to begin speaking
+                </Text>
+              </>
+            )}
           </View>
         ) : (
           <>

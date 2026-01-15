@@ -51,17 +51,22 @@ export class RealtimeService {
       await this.disconnect();
 
       // Step 1: Get session ID, key, and model name from backend
+      this.config.onConnectionProgress?.('creating_session');
       await this.createSession();
 
       // Step 2: Request microphone permission and get audio stream
+      this.config.onConnectionProgress?.('requesting_microphone');
       await this.getUserMedia();
 
       // Step 3: Set up WebRTC peer connection
+      this.config.onConnectionProgress?.('setting_up_connection');
       await this.setupPeerConnection();
 
       // Step 4: Create SDP offer and exchange with the OpenAI session
+      this.config.onConnectionProgress?.('exchanging_sdp');
       await this.exchangeSDP();
 
+      this.config.onConnectionProgress?.('connected');
       console.log('[RealtimeService] Connection process completed successfully');
     } catch (error: any) {
       console.error('[RealtimeService] Connection failed:', error);

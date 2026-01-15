@@ -116,8 +116,8 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    // Navigate to Loading/Initializing screen
-    navigation.navigate('ConversationLoading', {
+    // Navigate directly to Conversation screen
+    navigation.navigate('Conversation', {
       mode,
       language,
       topic,
