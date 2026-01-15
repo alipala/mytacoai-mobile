@@ -593,6 +593,7 @@ const styles = StyleSheet.create({
   statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
     backgroundColor: '#F9FAFB',
@@ -645,7 +646,7 @@ const styles = StyleSheet.create({
   optionButton: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 8,
     backgroundColor: '#F3F4F6',
     borderWidth: 2,
     borderColor: 'transparent',
