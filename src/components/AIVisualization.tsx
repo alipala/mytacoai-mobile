@@ -19,9 +19,9 @@ interface AIVisualizationProps {
  * State color mapping (outside component for performance)
  */
 const STATE_COLORS_MAP = {
-  AI_SPEAKING: '#3B82F6', // Blue
-  AI_LISTENING: '#FB923C', // Orange
-  USER_SPEAKING: '#14B8A6', // Teal
+  AI_SPEAKING: '#94A3B8', // Gray/Slate (keep same color as idle)
+  AI_LISTENING: '#94A3B8', // Gray/Slate (keep same color as idle)
+  USER_SPEAKING: '#94A3B8', // Gray/Slate (keep same color as idle)
   AI_IDLE: '#94A3B8', // Slate
   USER_IDLE: '#94A3B8', // Slate
 };

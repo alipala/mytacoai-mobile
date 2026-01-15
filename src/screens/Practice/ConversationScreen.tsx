@@ -1460,25 +1460,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : messages.length === 0 ? (
           <View style={styles.emptyContainer}>
-            {/* Large AI Visualization - Shows state visually (only when empty) */}
             <View style={styles.aiVisualizationContainer}>
               <AIVisualization state={conversationState.currentState} size={120} />
             </View>
-            {waitingForAIGreeting ? (
-              <>
-                <Text style={styles.emptyTitle}>AI Tutor is preparing...</Text>
-                <Text style={styles.emptyText}>
-                  Your tutor will greet you in just a moment
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.emptyTitle}>Ready to start</Text>
-                <Text style={styles.emptyText}>
-                  Tap the microphone button below to begin speaking
-                </Text>
-              </>
-            )}
           </View>
         ) : (
           <>

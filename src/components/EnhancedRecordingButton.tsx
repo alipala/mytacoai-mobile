@@ -59,21 +59,12 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
   }, [isRecording]);
 
   /**
-   * Pulse effect when AI is speaking
+   * Pulse effect when AI is speaking - DISABLED
+   * We don't want the button to pulse when AI speaks
    */
   useEffect(() => {
-    if (conversationState === 'AI_SPEAKING') {
-      pulseScale.value = withRepeat(
-        withSequence(
-          withTiming(1.05, { duration: 600 }),
-          withTiming(1, { duration: 600 })
-        ),
-        -1,
-        false
-      );
-    } else {
-      pulseScale.value = withTiming(1, { duration: 300 });
-    }
+    // Always keep pulse at 1 (no pulsing)
+    pulseScale.value = 1;
   }, [conversationState]);
 
   /**
@@ -84,16 +75,8 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
       return '#EF4444'; // Red when recording
     }
 
-    switch (conversationState) {
-      case 'AI_SPEAKING':
-        return '#3B82F6'; // Blue when AI speaks
-      case 'AI_LISTENING':
-        return '#FB923C'; // Orange when AI listens
-      case 'USER_SPEAKING':
-        return '#14B8A6'; // Teal when user speaks
-      default:
-        return '#14B8A6'; // Default teal
-    }
+    // Always use teal color - don't change color based on AI state
+    return '#14B8A6'; // Default teal
   };
 
   /**
@@ -104,14 +87,8 @@ const EnhancedRecordingButton: React.FC<EnhancedRecordingButtonProps> = ({
       return 'Tap to stop';
     }
 
-    switch (conversationState) {
-      case 'AI_SPEAKING':
-        return 'AI is speaking...';
-      case 'AI_LISTENING':
-        return 'AI is listening...';
-      default:
-        return 'Tap to speak';
-    }
+    // Always show "Tap to speak" - don't change based on AI state
+    return 'Tap to speak';
   };
 
   /**

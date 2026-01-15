@@ -57,6 +57,7 @@ export const useConversationState = (): ConversationStateResult => {
     switch (event.type) {
       // ===== AI SPEAKING STATES =====
       case 'response.audio.start':
+      case 'output_audio_buffer.started':
         console.log('[CONVERSATION_STATE] → AI_SPEAKING (audio start)');
         setIsAISpeaking(true);
         setCurrentState('AI_SPEAKING');
@@ -75,6 +76,7 @@ export const useConversationState = (): ConversationStateResult => {
         break;
 
       case 'response.audio.done':
+      case 'output_audio_buffer.stopped':
         console.log('[CONVERSATION_STATE] → AI finished speaking');
         setIsAISpeaking(false);
 
