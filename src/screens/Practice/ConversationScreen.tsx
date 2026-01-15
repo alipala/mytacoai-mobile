@@ -333,6 +333,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   // Progress bar animation
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const progressPulseAnim = useRef(new Animated.Value(1)).current; // For milestone pulse effect
+  const lastMinuteRef = useRef(-1); // Track last minute for milestone animation
 
   // Countdown animation refs
   const timerPulseAnim = useRef(new Animated.Value(1)).current;
@@ -480,6 +482,28 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         duration: 500,
         useNativeDriver: false,
       }).start();
+
+      // Trigger milestone pulse animation every minute
+      const currentMinute = Math.floor(duration / 60);
+      if (currentMinute > lastMinuteRef.current && currentMinute > 0) {
+        lastMinuteRef.current = currentMinute;
+
+        // Pulse effect on progress bar
+        Animated.sequence([
+          Animated.timing(progressPulseAnim, {
+            toValue: 1.15,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(progressPulseAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start();
+
+        console.log(`[MILESTONE] ⏱️ ${currentMinute} minute(s) completed!`);
+      }
 
       // Calculate seconds remaining
       const secondsRemaining = maxDuration - duration;
@@ -1363,12 +1387,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       {/* Subtle Static Background - Clean, minimal */}
       <ConversationBackground />
 
-      {/* Header */}
+      {/* Header - Modern 3-column layout */}
       <View style={styles.header}>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>
+        {/* Left: Title */}
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerTitle} numberOfLines={2}>
             {learningPlan && (learningPlan.status === 'awaiting_final_assessment' || learningPlan.status === 'failed_assessment')
-              ? `Final Assessment - ${screenLanguage?.charAt(0).toUpperCase()}${screenLanguage?.slice(1)} ${learningPlan.proficiency_level || ''}`
+              ? `Final Assessment`
               : sessionType === 'news' && newsTitle
                 ? (() => {
                     // Extract 3-word summary from news title (without language)
@@ -1376,35 +1401,46 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                     return words.slice(0, 3).join(' ');
                   })()
                 : screenLanguage
-                  ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice`
-                  : 'Conversation'}
+                  ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)}`
+                  : 'Practice'}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {learningPlan?.proficiency_level || 'Practice'}
           </Text>
         </View>
 
-        {/* AI Voice Avatar with animated rings in top-right corner */}
-        <View style={styles.headerAIBlob}>
+        {/* Center: AI Voice Avatar with animated rings */}
+        <View style={styles.headerCenter}>
           <AIVoiceAvatar
             voice={userVoice}
             state={conversationState.currentState}
-            size={40}
+            size={44}
           />
         </View>
+
+        {/* Right: Timer */}
+        {sessionStartTime && (
+          <View style={styles.headerRight}>
+            <View style={styles.compactTimerBadge}>
+              <Ionicons name="timer-outline" size={18} color="#14B8A6" />
+              <Text style={styles.compactTimerText}>
+                {formatDuration(Math.max(0, maxDuration - sessionDuration))}
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
 
-      {/* Timer Badge - Countdown design below header */}
+      {/* Progress Bar - Visual time indicator with milestone pulse */}
       {sessionStartTime && (
-        <View style={styles.timerBadgeContainer}>
-          <View style={styles.timerBadge}>
-            <Ionicons name="timer-outline" size={16} color="#14B8A6" />
-            <Text style={styles.timerText}>{formatDuration(Math.max(0, maxDuration - sessionDuration))}</Text>
-            <Text style={styles.timerLabel}>left</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Progress Bar - Visual time indicator */}
-      {sessionStartTime && (
-        <View style={styles.progressBarContainer}>
+        <Animated.View
+          style={[
+            styles.progressBarContainer,
+            {
+              transform: [{ scaleY: progressPulseAnim }],
+            },
+          ]}
+        >
           <Animated.View
             style={[
               styles.progressBarFill,
@@ -1420,7 +1456,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               },
             ]}
           />
-        </View>
+        </Animated.View>
       )}
 
       {/* Floating Countdown Overlay (appears in last 10 seconds) */}

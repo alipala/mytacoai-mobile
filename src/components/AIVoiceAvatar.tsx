@@ -73,10 +73,10 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
   useEffect(() => {
     switch (state) {
       case 'AI_SPEAKING':
-        // Active pulsing when AI speaks
+        // Active pulsing when AI speaks (smaller scale for header)
         ring1Scale.value = withRepeat(
           withSequence(
-            withTiming(1.3, { duration: 800, easing: Easing.out(Easing.ease) }),
+            withTiming(1.15, { duration: 800, easing: Easing.out(Easing.ease) }),
             withTiming(1, { duration: 800, easing: Easing.in(Easing.ease) })
           ),
           -1,
@@ -85,7 +85,7 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
 
         ring2Scale.value = withRepeat(
           withSequence(
-            withTiming(1.5, { duration: 1000, easing: Easing.out(Easing.ease) }),
+            withTiming(1.25, { duration: 1000, easing: Easing.out(Easing.ease) }),
             withTiming(1, { duration: 1000, easing: Easing.in(Easing.ease) })
           ),
           -1,
@@ -223,28 +223,28 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Outer ring */}
+      {/* Outer ring - smaller for header */}
       <Animated.View
         style={[
           styles.ring,
           {
-            width: size * 1.8,
-            height: size * 1.8,
-            borderRadius: size * 0.9,
+            width: size * 1.5,
+            height: size * 1.5,
+            borderRadius: size * 0.75,
             borderColor: voiceColor,
           },
           ring2Style,
         ]}
       />
 
-      {/* Inner ring */}
+      {/* Inner ring - smaller for header */}
       <Animated.View
         style={[
           styles.ring,
           {
-            width: size * 1.4,
-            height: size * 1.4,
-            borderRadius: size * 0.7,
+            width: size * 1.25,
+            height: size * 1.25,
+            borderRadius: size * 0.625,
             borderColor: voiceColor,
           },
           ring1Style,
