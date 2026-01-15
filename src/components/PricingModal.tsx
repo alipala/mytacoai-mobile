@@ -9,7 +9,9 @@ import {
   Linking,
   Alert,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { createStyles } from './styles/PricingModal.styles';
@@ -120,11 +122,17 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
   const [currentIndex, setCurrentIndex] = useState(0);
   const [appleIAPAvailable, setAppleIAPAvailable] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Initialize Apple IAP when modal opens on iOS
   useEffect(() => {
     if (visible && Platform.OS === 'ios') {
+      // Reset states before initializing
+      setIsInitializing(false);
+      setProductsLoaded(false);
       initializeAppleIAP();
     }
 
@@ -137,10 +145,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
   const initializeAppleIAP = async () => {
     try {
+      setIsInitializing(true);
+      setProductsLoaded(false);
+      console.log('[PRICING_MODAL] Starting Apple IAP initialization...');
+
       // Initialize IAP service (sets up purchase listener)
       const initialized = await AppleIAPService.initialize();
       if (!initialized) {
+        console.log('[PRICING_MODAL] Failed to initialize Apple IAP');
         setAppleIAPAvailable(false);
+        setIsInitializing(false);
         return;
       }
 
@@ -151,12 +165,24 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
       if (available) {
         // CRITICAL: Fetch products from App Store before purchase
+        // This is REQUIRED by expo-in-app-purchases before calling purchaseItemAsync
         const products = await AppleIAPService.getProducts();
         console.log('[PRICING_MODAL] Loaded products:', products.length);
+
+        if (products.length > 0) {
+          setProductsLoaded(true);
+          console.log('[PRICING_MODAL] Products ready for purchase');
+        } else {
+          console.warn('[PRICING_MODAL] No products loaded from App Store');
+          setProductsLoaded(false);
+        }
       }
     } catch (error) {
       console.error('[PRICING_MODAL] Failed to initialize Apple IAP:', error);
       setAppleIAPAvailable(false);
+      setProductsLoaded(false);
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -173,10 +199,18 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     }
     const period = isAnnual ? 'annual' : 'monthly';
 
-    // Use Apple IAP on iOS if available, otherwise fall back to Stripe
-    if (Platform.OS === 'ios' && appleIAPAvailable) {
+    // Use Apple IAP on iOS if available AND products are loaded
+    if (Platform.OS === 'ios' && appleIAPAvailable && productsLoaded) {
       console.log('[PRICING_MODAL] Using Apple IAP for purchase');
       await handleAppleIAPPurchase(planId, period);
+    } else if (Platform.OS === 'ios' && appleIAPAvailable && !productsLoaded) {
+      // Products not loaded yet - should not happen due to button being disabled
+      console.error('[PRICING_MODAL] Products not loaded, cannot purchase');
+      Alert.alert(
+        'Please Wait',
+        'Products are still loading from the App Store. Please try again in a moment.',
+        [{ text: 'OK' }]
+      );
     } else {
       console.log('[PRICING_MODAL] Using Stripe for purchase');
       onSelectPlan(planId, period); // This will navigate to Stripe checkout
@@ -232,6 +266,38 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     onClose();
   };
 
+  const handleRestorePurchases = async () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    setIsRestoring(true);
+
+    try {
+      console.log('[PRICING_MODAL] Initiating restore purchases...');
+      const result = await AppleIAPService.restorePurchases();
+
+      if (result.success) {
+        Alert.alert(
+          'Restore Complete',
+          'Your purchases have been checked. If you had an active subscription, it has been restored.',
+          [{ text: 'OK', onPress: handleClose }]
+        );
+      } else {
+        throw new Error(result.error || 'Failed to restore purchases');
+      }
+    } catch (error) {
+      console.error('[PRICING_MODAL] Restore failed:', error);
+      Alert.alert(
+        'Restore Failed',
+        error instanceof Error ? error.message : 'Could not restore purchases. Please try again or contact support.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / (CARD_WIDTH + CARD_SPACING));
@@ -250,7 +316,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -259,8 +326,15 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           </View>
         </View>
 
-        {/* Billing Toggle - Prominent */}
-        <View style={styles.toggleSection}>
+        {/* Main Scrollable Content */}
+        <ScrollView
+          style={styles.mainScrollView}
+          contentContainerStyle={styles.mainScrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+        >
+          {/* Billing Toggle - Prominent */}
+          <View style={styles.toggleSection}>
           <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[styles.toggleOption, !isAnnual && styles.toggleOptionActive]}
@@ -393,23 +467,45 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   style={[
                     styles.ctaButton,
                     plan.isPopular && styles.ctaButtonPopular,
+                    Platform.OS === 'ios' && (isInitializing || !productsLoaded) && styles.ctaButtonDisabled,
                   ]}
                   onPress={() => handleSelectPlan(plan.id)}
+                  disabled={Platform.OS === 'ios' && (isInitializing || !productsLoaded)}
                   activeOpacity={0.8}
                 >
-                  <Text
-                    style={[
-                      styles.ctaButtonText,
-                      plan.isPopular && styles.ctaButtonTextPopular,
-                    ]}
-                  >
-                    Start Free Trial
-                  </Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={20}
-                    color={plan.isPopular ? '#FFFFFF' : '#4ECFBF'}
-                  />
+                  {Platform.OS === 'ios' && isInitializing ? (
+                    <>
+                      <ActivityIndicator
+                        size="small"
+                        color={plan.isPopular ? '#FFFFFF' : '#4ECFBF'}
+                      />
+                      <Text
+                        style={[
+                          styles.ctaButtonText,
+                          plan.isPopular && styles.ctaButtonTextPopular,
+                          { marginLeft: 8 }
+                        ]}
+                      >
+                        Loading...
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text
+                        style={[
+                          styles.ctaButtonText,
+                          plan.isPopular && styles.ctaButtonTextPopular,
+                        ]}
+                      >
+                        Start Free Trial
+                      </Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={20}
+                        color={plan.isPopular ? '#FFFFFF' : '#4ECFBF'}
+                      />
+                    </>
+                  )}
                 </TouchableOpacity>
               </View>
             );
@@ -464,6 +560,25 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             </View>
           </View>
 
+          {/* Restore Purchases Button - Required by Apple */}
+          {Platform.OS === 'ios' && appleIAPAvailable && (
+            <TouchableOpacity
+              style={styles.restoreButton}
+              onPress={handleRestorePurchases}
+              disabled={isRestoring}
+              activeOpacity={0.7}
+            >
+              {isRestoring ? (
+                <View style={styles.restoreButtonContent}>
+                  <ActivityIndicator size="small" color="#4ECFBF" />
+                  <Text style={styles.restoreButtonText}>Restoring...</Text>
+                </View>
+              ) : (
+                <Text style={styles.restoreButtonText}>Restore Purchases</Text>
+              )}
+            </TouchableOpacity>
+          )}
+
           {/* Maybe Later Option */}
           <TouchableOpacity
             style={styles.maybeLaterButton}
@@ -473,7 +588,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             <Text style={styles.maybeLaterText}>Maybe Later</Text>
           </TouchableOpacity>
         </View>
-      </View>
+        </ScrollView>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 };

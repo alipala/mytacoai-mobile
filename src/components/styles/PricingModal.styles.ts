@@ -6,17 +6,27 @@ import { StyleSheet, Platform } from 'react-native';
  */
 export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
   return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: '#F9FAFB',
+    },
     container: {
       flex: 1,
       backgroundColor: '#F9FAFB',
-      maxHeight: isTablet ? '92%' : undefined,
+    },
+    mainScrollView: {
+      flex: 1,
+    },
+    mainScrollContent: {
+      flexGrow: 1,
+      paddingBottom: Platform.OS === 'ios' ? 20 : 10,
     },
     header: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 24,
-      paddingTop: isTablet ? 20 : (Platform.OS === 'ios' ? 40 : 12),
-      paddingBottom: isTablet ? 8 : 10,
+      paddingHorizontal: SCREEN_WIDTH < 400 ? 16 : 24,
+      paddingTop: isTablet ? 20 : (Platform.OS === 'ios' ? (SCREEN_WIDTH < 400 ? 12 : 16) : 12),
+      paddingBottom: isTablet ? 8 : (SCREEN_WIDTH < 400 ? 8 : 10),
       backgroundColor: '#FFFFFF',
       borderBottomWidth: 1,
       borderBottomColor: '#E5E7EB',
@@ -38,8 +48,8 @@ export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
     },
     toggleSection: {
       backgroundColor: '#FFFFFF',
-      paddingVertical: isTablet ? 8 : 10,
-      paddingHorizontal: 24,
+      paddingVertical: isTablet ? 8 : (SCREEN_WIDTH < 400 ? 8 : 10),
+      paddingHorizontal: SCREEN_WIDTH < 400 ? 16 : 24,
       borderBottomWidth: 1,
       borderBottomColor: '#E5E7EB',
     },
@@ -90,7 +100,7 @@ export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
       color: '#FFFFFF',
     },
     carouselContent: {
-      paddingVertical: isTablet ? 8 : 10,
+      paddingVertical: isTablet ? 8 : (SCREEN_WIDTH < 400 ? 12 : 10),
     },
     carouselContentTablet: {
       flexDirection: 'row',
@@ -241,8 +251,10 @@ export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
       backgroundColor: '#FFFFFF',
       borderWidth: 2,
       borderColor: '#4ECFBF',
-      paddingVertical: isTablet ? 10 : 12,
+      paddingVertical: isTablet ? 10 : (SCREEN_WIDTH < 400 ? 14 : 12),
+      paddingHorizontal: SCREEN_WIDTH < 400 ? 16 : 12,
       borderRadius: 14,
+      minHeight: 48, // Ensure touch target meets Apple HIG (min 44pt, using 48 for comfort)
       shadowColor: '#4ECFBF',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.2,
@@ -252,6 +264,11 @@ export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
     ctaButtonPopular: {
       backgroundColor: '#4ECFBF',
       borderColor: '#4ECFBF',
+    },
+    ctaButtonDisabled: {
+      opacity: 0.5,
+      backgroundColor: '#F3F4F6',
+      borderColor: '#D1D5DB',
     },
     ctaButtonText: {
       fontSize: isTablet ? 14 : 16,
@@ -281,9 +298,9 @@ export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
     },
     footer: {
       backgroundColor: '#FFFFFF',
-      paddingTop: isTablet ? 6 : 8,
-      paddingHorizontal: 20,
-      paddingBottom: isTablet ? 12 : (Platform.OS === 'ios' ? 24 : 8),
+      paddingTop: isTablet ? 6 : (SCREEN_WIDTH < 400 ? 10 : 8),
+      paddingHorizontal: SCREEN_WIDTH < 400 ? 16 : 20,
+      paddingBottom: isTablet ? 12 : (Platform.OS === 'ios' ? 16 : 8),
       borderTopWidth: 1,
       borderTopColor: '#E5E7EB',
     },
@@ -338,6 +355,30 @@ export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
       color: '#9CA3AF',
       marginHorizontal: 10,
       fontWeight: '600',
+    },
+    restoreButton: {
+      paddingVertical: isTablet ? 10 : 12,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: isTablet ? 6 : 8,
+      marginBottom: isTablet ? 2 : 4,
+      borderRadius: 12,
+      backgroundColor: '#F0FDFA',
+      borderWidth: 1,
+      borderColor: '#4ECFBF',
+      minHeight: 44, // Apple HIG minimum touch target
+    },
+    restoreButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    restoreButtonText: {
+      fontSize: isTablet ? 14 : 15,
+      color: '#4ECFBF',
+      fontWeight: '700',
+      textDecorationLine: 'underline',
     },
     maybeLaterButton: {
       paddingVertical: isTablet ? 4 : 6,

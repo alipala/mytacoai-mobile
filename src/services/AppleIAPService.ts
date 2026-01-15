@@ -53,9 +53,18 @@ class AppleIAPService {
     try {
       console.log('[APPLE_IAP] Initializing expo-in-app-purchases...');
 
-      // Connect to App Store
-      await InAppPurchases.connectAsync();
-      console.log('[APPLE_IAP] Connected to App Store');
+      // Connect to App Store (handle already connected case)
+      try {
+        await InAppPurchases.connectAsync();
+        console.log('[APPLE_IAP] Connected to App Store');
+      } catch (connectError: any) {
+        // If already connected, that's fine - treat as success
+        if (connectError?.code === 'ERR_IN_APP_PURCHASES_CONNECTION') {
+          console.log('[APPLE_IAP] Already connected to App Store - reusing connection');
+        } else {
+          throw connectError;
+        }
+      }
 
       // Set up purchase listener (only once)
       if (!this.purchaseListener) {
