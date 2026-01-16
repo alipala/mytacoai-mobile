@@ -175,20 +175,27 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
       case 'AI_IDLE':
       case 'USER_IDLE':
       default:
-        // Very subtle idle state
+        // Subtle breathing in idle state
         ring1Scale.value = withRepeat(
           withSequence(
-            withTiming(1.05, { duration: 3000 }),
-            withTiming(1, { duration: 3000 })
+            withTiming(1.1, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
           ),
           -1,
           false
         );
 
-        ring2Scale.value = withTiming(1);
+        ring2Scale.value = withRepeat(
+          withSequence(
+            withTiming(1.15, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+          ),
+          -1,
+          false
+        );
 
-        ring1Opacity.value = withTiming(0.25);
-        ring2Opacity.value = withTiming(0.1);
+        ring1Opacity.value = withTiming(0.3);
+        ring2Opacity.value = withTiming(0.15);
 
         avatarScale.value = withTiming(1);
         break;
@@ -223,28 +230,28 @@ const AIVoiceAvatar: React.FC<AIVoiceAvatarProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Outer ring - smaller for header */}
+      {/* Outer ring - reduced to 1.16x for minimal extension */}
       <Animated.View
         style={[
           styles.ring,
           {
-            width: size * 1.5,
-            height: size * 1.5,
-            borderRadius: size * 0.75,
+            width: size * 1.16,
+            height: size * 1.16,
+            borderRadius: size * 0.58,
             borderColor: voiceColor,
           },
           ring2Style,
         ]}
       />
 
-      {/* Inner ring - smaller for header */}
+      {/* Inner ring - reduced to 1.08x for tight fit */}
       <Animated.View
         style={[
           styles.ring,
           {
-            width: size * 1.25,
-            height: size * 1.25,
-            borderRadius: size * 0.625,
+            width: size * 1.08,
+            height: size * 1.08,
+            borderRadius: size * 0.54,
             borderColor: voiceColor,
           },
           ring1Style,

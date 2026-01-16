@@ -373,12 +373,8 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
             ) : helpData ? (
               /* Help Content */
               <View style={styles.contentContainer}>
-                {/* AI Response Summary - No title, just content */}
-                {helpData?.ai_response_summary && (
-                  <View style={styles.summaryCard}>
-                    <Text style={styles.summaryText}>{helpData.ai_response_summary}</Text>
-                  </View>
-                )}
+                {/* AI Response Summary - REMOVED to save space for immersive design */}
+                {/* User can see the AI message directly above in conversation */}
 
                 {/* Suggested Responses */}
                 {helpData?.suggested_responses && helpData.suggested_responses.length > 0 && (

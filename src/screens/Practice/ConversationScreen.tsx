@@ -13,7 +13,9 @@ import {
   Alert,
   TextInput,
   Switch,
+  StatusBar,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
@@ -31,7 +33,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // New state-driven animation components
 import { useConversationState } from '../../hooks/useConversationState';
 import ConversationBackground from '../../components/ConversationBackground';
-import AIVisualization from '../../components/AIVisualization';
 import AIVoiceAvatar from '../../components/AIVoiceAvatar';
 import EnhancedRecordingButton from '../../components/EnhancedRecordingButton';
 import { styles, SCREEN_HEIGHT } from './styles/ConversationScreen.styles';
@@ -114,43 +115,48 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message, voiceName = 
         },
       ]}
     >
-      {/* Role indicator badge */}
-      <View style={[
-        styles.roleBadge,
-        message.role === 'user' ? styles.roleBadgeUser : styles.roleBadgeAssistant,
-      ]}>
-        <Ionicons
-          name={message.role === 'user' ? 'person' : 'sparkles'}
-          size={12}
-          color={message.role === 'user' ? '#14B8A6' : '#8B5CF6'}
-        />
-        <Text style={[
-          styles.roleText,
-          message.role === 'user' ? styles.roleTextUser : styles.roleTextAssistant,
-        ]}>
-          {message.role === 'user' ? 'You' : voiceName.charAt(0).toUpperCase() + voiceName.slice(1)}
-        </Text>
-      </View>
-
-      <Animated.View
-        style={[
-          styles.messageBubble,
-          message.role === 'user' ? styles.messageBubbleUser : styles.messageBubbleAssistant,
-          message.role === 'assistant' && {
-            shadowOpacity: glowAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.1, 0.25],
-            }),
-          },
-        ]}
-      >
-        <Text style={[
-          styles.messageText,
-          message.role === 'user' ? styles.messageTextUser : styles.messageTextAssistant,
-        ]}>
-          {message.content}
-        </Text>
-      </Animated.View>
+      {message.role === 'user' ? (
+        // User message: Badge on top-right of bubble
+        <View style={styles.userMessageContainer}>
+          <View style={[styles.roleBadge, styles.roleBadgeUser]}>
+            <Ionicons name="person" size={12} color="#14B8A6" />
+            <Text style={[styles.roleText, styles.roleTextUser]}>You</Text>
+          </View>
+          <Animated.View
+            style={[styles.messageBubble, styles.messageBubbleUser]}
+          >
+            <Text style={[styles.messageText, styles.messageTextUser]}>
+              {message.content}
+            </Text>
+          </Animated.View>
+        </View>
+      ) : (
+        // Assistant message: Badge above bubble (left side)
+        <>
+          <View style={[styles.roleBadge, styles.roleBadgeAssistant]}>
+            <Ionicons name="sparkles" size={12} color="#8B5CF6" />
+            <Text style={[styles.roleText, styles.roleTextAssistant]}>
+              {voiceName.charAt(0).toUpperCase() + voiceName.slice(1)}
+            </Text>
+          </View>
+          <Animated.View
+            style={[
+              styles.messageBubble,
+              styles.messageBubbleAssistant,
+              {
+                shadowOpacity: glowAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.1, 0.25],
+                }),
+              },
+            ]}
+          >
+            <Text style={[styles.messageText, styles.messageTextAssistant]}>
+              {message.content}
+            </Text>
+          </Animated.View>
+        </>
+      )}
     </Animated.View>
   );
 };
@@ -469,7 +475,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   // Update session duration every second and check for completion (5 minutes)
   useEffect(() => {
-    if (!sessionStartTime) return;
+    // Don't start interval if sessionStartTime is null or 0 (0 = badge visible but not counting)
+    if (!sessionStartTime || sessionStartTime === 0) return;
 
     const interval = setInterval(async () => {
       const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
@@ -535,6 +542,26 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       handleAutomaticSessionEnd();
     }
   }, [sessionCompletedNaturally, autoSavePending]);
+
+  // Load voice preference early to prevent avatar flicker and show timer badge
+  useEffect(() => {
+    // Show timer badge immediately (with 0 = not counting yet)
+    setSessionStartTime(0);
+
+    const loadVoicePreference = async () => {
+      try {
+        const voicePreference = await AuthenticationService.getVoicePreferenceApiAuthGetVoiceGet();
+        if (voicePreference && typeof voicePreference === 'object' && 'voice' in voicePreference && voicePreference.voice) {
+          const selectedVoice = (voicePreference as any).voice;
+          console.log(`[CONVERSATION] Pre-loaded user's preferred voice: ${selectedVoice}`);
+          setUserVoice(selectedVoice);
+        }
+      } catch (error) {
+        console.warn('[CONVERSATION] Could not pre-load voice preference:', error);
+      }
+    };
+    loadVoicePreference();
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -689,6 +716,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Initialize the realtime conversation
   const initializeConversation = async (plan: LearningPlan | null = null) => {
     try {
+      // Timer badge already visible (set to 0 on mount)
+      // Countdown will start when connection state becomes 'connected'
+      console.log('[CONVERSATION] 🚀 Starting connection (timer visible, not counting yet)');
+
       // Ensure we are in a connecting state
       if (!isConnecting) setIsConnecting(true);
       setConnectionError(null);
@@ -789,7 +820,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           if (state === 'connected') {
             setIsConnecting(false);
             setWaitingForAIGreeting(true); // Now waiting for AI's first message
-            setSessionStartTime(Date.now()); // Start timer on successful connection
+            // Start timer only when connection is successfully established
+            setSessionStartTime(Date.now());
+            console.log('[CONVERSATION] ⏱️ Timer started - connection established');
             console.log('[CONVERSATION] Ready for conversation - waiting for AI greeting');
           } else if (state === 'failed' || state === 'disconnected') {
             setIsConnecting(false);
@@ -1451,96 +1484,131 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const screenLanguage = learningPlan?.language || language;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Subtle Static Background - Clean, minimal */}
-      <ConversationBackground />
+    <View style={{ flex: 1 }}>
+      {/* Transparent Status Bar for immersive experience */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent={true}
+      />
 
-      {/* Header - Modern 3-column layout */}
-      <View style={styles.header}>
-        {/* Left: Title */}
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle} numberOfLines={2}>
-            {learningPlan && (learningPlan.status === 'awaiting_final_assessment' || learningPlan.status === 'failed_assessment')
-              ? `Final Assessment`
-              : sessionType === 'news' && newsTitle
-                ? (() => {
-                    // Extract 3-word summary from news title (without language)
-                    const words = newsTitle.split(' ').filter((w: string) => w.length > 0);
-                    return words.slice(0, 3).join(' ');
-                  })()
-                : screenLanguage
-                  ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)}`
-                  : 'Practice'}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            {learningPlan?.proficiency_level || 'Practice'}
-          </Text>
-        </View>
+      {/* Full-Screen Gradient Background - Extends to status bar */}
+      <LinearGradient
+        colors={['#14B8A6', '#F0FDFA', '#FAFAFA', '#FFFFFF']}
+        locations={[0, 0.25, 0.5, 0.85]}
+        style={styles.absoluteGradient}
+      >
+        <SafeAreaView style={styles.container} edges={['bottom']}>
+          <View style={styles.immersiveHeader}>
+            {/* Title & Timer - Horizontal layout at TOP for maximum visibility */}
+            <View style={styles.titleTimerRow}>
+              {/* Left: Title & Level with badge background */}
+              <View style={styles.titleBadge}>
+                <Text
+                  style={[
+                    styles.immersiveTitle,
+                    // Dynamic font size: smaller for longer titles
+                    (() => {
+                      const titleText = learningPlan && (learningPlan.status === 'awaiting_final_assessment' || learningPlan.status === 'failed_assessment')
+                        ? 'Final Assessment'
+                        : sessionType === 'news' && newsTitle
+                          ? newsTitle // SHOW FULL NEWS TITLE
+                          : customTopicText
+                            ? customTopicText // SHOW FULL CUSTOM TOPIC
+                            : screenLanguage
+                              ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice`
+                              : 'Practice';
 
-        {/* Center: AI Voice Avatar with animated rings */}
-        <View style={styles.headerCenter}>
-          <AIVoiceAvatar
-            voice={userVoice}
-            state={conversationState.currentState}
-            size={44}
-          />
-        </View>
+                      const titleLength = titleText.length;
+                      if (titleLength > 25) return { fontSize: 12 }; // Very long
+                      if (titleLength > 20) return { fontSize: 13 }; // Long
+                      if (titleLength > 15) return { fontSize: 14 }; // Medium
+                      return { fontSize: 16 }; // Normal
+                    })()
+                  ]}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
+                >
+                  {learningPlan && (learningPlan.status === 'awaiting_final_assessment' || learningPlan.status === 'failed_assessment')
+                    ? 'Final Assessment'
+                    : sessionType === 'news' && newsTitle
+                      ? newsTitle
+                      : customTopicText
+                        ? customTopicText
+                        : screenLanguage
+                          ? `${screenLanguage.charAt(0).toUpperCase() + screenLanguage.slice(1)} Practice`
+                          : 'Practice'}
+                </Text>
+                <Text style={styles.immersiveSubtitle} numberOfLines={1}>
+                  {learningPlan?.proficiency_level || 'PRACTICE'}
+                </Text>
+              </View>
 
-        {/* Right: Timer */}
-        {sessionStartTime && (
-          <View style={styles.headerRight}>
-            <View style={styles.compactTimerBadge}>
-              <Ionicons name="timer-outline" size={18} color="#14B8A6" />
-              <Text style={styles.compactTimerText}>
-                {formatDuration(Math.max(0, maxDuration - sessionDuration))}
-              </Text>
+              {/* Right: Timer Badge */}
+              {sessionStartTime !== null && maxDuration > 0 && (
+                <View style={styles.immersiveTimerBadge}>
+                  <Ionicons name="timer-outline" size={14} color="#14B8A6" />
+                  <Text style={styles.immersiveTimerText}>
+                    {formatDuration(Math.max(0, maxDuration - sessionDuration))}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Large Centered AI Avatar - Below title for contextual placement */}
+            <View style={styles.avatarContainer}>
+              <AIVoiceAvatar
+                voice={userVoice}
+                state={conversationState.currentState}
+                size={110}
+              />
             </View>
           </View>
-        )}
-      </View>
 
-      {/* Progress Bar - Visual time indicator with milestone pulse */}
-      {sessionStartTime && (
-        <Animated.View
-          style={[
-            styles.progressBarContainer,
-            {
-              transform: [{ scaleY: progressPulseAnim }],
-            },
-          ]}
-        >
+          {/* Progress Bar - Visual time indicator with milestone pulse */}
+        {sessionStartTime !== null && (
           <Animated.View
             style={[
-              styles.progressBarFill,
+              styles.progressBarContainer,
               {
-                width: progressAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0%', '100%'],
-                }),
-                backgroundColor: progressAnim.interpolate({
-                  inputRange: [0, 0.6, 0.9, 1],
-                  outputRange: ['#14B8A6', '#F59E0B', '#F59E0B', '#EF4444'],
-                }),
+                transform: [{ scaleY: progressPulseAnim }],
               },
             ]}
+          >
+            <Animated.View
+              style={[
+                styles.progressBarFill,
+                {
+                  width: progressAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', '100%'],
+                  }),
+                  backgroundColor: progressAnim.interpolate({
+                    inputRange: [0, 0.6, 0.9, 1],
+                    outputRange: ['#14B8A6', '#F59E0B', '#F59E0B', '#EF4444'],
+                  }),
+                },
+              ]}
+            />
+          </Animated.View>
+        )}
+
+        {/* Floating Countdown Overlay (appears in last 10 seconds) */}
+        {sessionStartTime !== null && (
+          <AnimatedCountdownTimer
+            duration={sessionDuration}
+            maxDuration={maxDuration}
+            pulseAnim={timerPulseAnim}
+            colorAnim={timerColorAnim}
+            scaleAnim={timerScaleAnim}
+            formatDuration={formatDuration}
           />
-        </Animated.View>
-      )}
+        )}
 
-      {/* Floating Countdown Overlay (appears in last 10 seconds) */}
-      {sessionStartTime && (
-        <AnimatedCountdownTimer
-          duration={sessionDuration}
-          maxDuration={maxDuration}
-          pulseAnim={timerPulseAnim}
-          colorAnim={timerColorAnim}
-          scaleAnim={timerScaleAnim}
-          formatDuration={formatDuration}
-        />
-      )}
-
-      {/* Conversation Transcript */}
-      <ScrollView
+        {/* Conversation Transcript */}
+        <ScrollView
         ref={scrollViewRef}
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
@@ -1564,9 +1632,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </View>
         ) : messages.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <View style={styles.aiVisualizationContainer}>
-              <AIVisualization state={conversationState.currentState} size={120} />
-            </View>
+            {/* Empty state - no visualization needed, avatar at top provides visual feedback */}
           </View>
         ) : (
           <>
@@ -2139,7 +2205,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       )}
 
       {/* Conversation Help is now rendered inline in the ScrollView above */}
-    </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 };
 

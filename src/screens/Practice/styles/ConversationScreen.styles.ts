@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -9,6 +9,100 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
+  // Absolute Gradient Background - Extends behind status bar
+  absoluteGradient: {
+    flex: 1,
+  },
+  // Full-Screen Gradient Background (keeping for backwards compatibility)
+  fullScreenGradient: {
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 50 : 20, // Space for status bar
+  },
+  // Immersive Header Styles (keeping for backwards compatibility)
+  headerGradient: {
+    paddingTop: Platform.OS === 'ios' ? 50 : 20, // Space for status bar
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  immersiveHeader: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? 50 : 25,
+    paddingBottom: 16, // Increased: Space before progress bar
+    paddingHorizontal: 20,
+  },
+  titleTimerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start', // Changed: Allow title to expand vertically
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 8,
+    marginBottom: 24, // Increased: Clear gap between title and avatar (NO OVERLAP!)
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16, // Increased: Clear gap between avatar ripples and progress bar (NO OVERLAP!)
+  },
+  titleContainerLeft: {
+    alignItems: 'flex-start',
+    flex: 1,
+  },
+  titleBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    minHeight: 48,
+    justifyContent: 'center',
+    flex: 1, // Take available space
+    marginRight: 12, // Gap between title and timer
+    maxWidth: '68%', // Slightly reduced to ensure timer always has space
+  },
+  immersiveTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    letterSpacing: -0.3,
+    textAlign: 'left',
+  },
+  immersiveSubtitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  immersiveTimerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    height: 48, // Match title badge height exactly
+    minWidth: 90, // Ensure timer always fits (e.g., "5:00")
+    alignSelf: 'flex-start', // Align to top when title wraps to 2 lines
+  },
+  immersiveTimerText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#14B8A6',
+    letterSpacing: 0.3,
+  },
+  // Old header styles (keeping for backwards compatibility)
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -254,6 +348,10 @@ export const styles = StyleSheet.create({
   messageRowAssistant: {
     alignItems: 'flex-start',
   },
+  userMessageContainer: {
+    alignItems: 'flex-end',
+    maxWidth: '80%',
+  },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -262,10 +360,10 @@ export const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     marginBottom: 6,
-    alignSelf: 'flex-start',
   },
   roleBadgeUser: {
     backgroundColor: 'rgba(20, 184, 166, 0.1)',
+    alignSelf: 'flex-end', // Position "You" badge on the right
   },
   roleBadgeAssistant: {
     backgroundColor: 'rgba(139, 92, 246, 0.1)',

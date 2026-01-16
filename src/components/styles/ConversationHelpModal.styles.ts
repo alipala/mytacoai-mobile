@@ -30,22 +30,22 @@ export const styles = StyleSheet.create({
   },
   inlineContainer: {
     width: SCREEN_WIDTH * 0.85,
-    minHeight: 300,
-    maxHeight: SCREEN_HEIGHT * 0.6,
+    minHeight: 220, // Reduced from 300
+    maxHeight: SCREEN_HEIGHT * 0.5, // Reduced from 0.6
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    marginVertical: 12,
+    borderRadius: 20, // Reduced from 24
+    marginVertical: 10, // Reduced from 12
     alignSelf: 'center',
     overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 3 }, // Reduced from 4
+        shadowOpacity: 0.12, // Reduced from 0.15
+        shadowRadius: 10, // Reduced from 12
       },
       android: {
-        elevation: 6,
+        elevation: 5, // Reduced from 6
       },
     }),
   },
@@ -53,8 +53,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 12, // Reduced from 14
+    paddingVertical: 8, // Reduced from 10
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
     backgroundColor: '#FAFAFA',
@@ -82,14 +82,14 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
   title: {
-    fontSize: 15,
+    fontSize: 13, // Reduced from 15
     fontWeight: '700',
     color: '#1E293B',
   },
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28, // Reduced from 32
+    height: 28, // Reduced from 32
+    borderRadius: 14, // Reduced from 16
     backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
@@ -99,9 +99,9 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   scrollContent: {
-    padding: 18,
-    paddingTop: 12,
-    paddingBottom: 24,
+    padding: 12, // Reduced from 18
+    paddingTop: 10, // Reduced from 12
+    paddingBottom: 16, // Reduced from 24
     flexGrow: 1,
   },
   loadingContainer: {
@@ -140,19 +140,19 @@ export const styles = StyleSheet.create({
     backgroundColor: '#8B5CF6',
   },
   contentContainer: {
-    paddingBottom: 4,
+    paddingBottom: 2, // Reduced from 4
   },
   section: {
-    marginBottom: 6,
+    marginBottom: 4, // Reduced from 6
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginBottom: 5,
+    gap: 4, // Reduced from 5
+    marginBottom: 4, // Reduced from 5
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12, // Reduced from 13
     fontWeight: '600',
     color: '#1E293B',
     flex: 1,
@@ -171,21 +171,21 @@ export const styles = StyleSheet.create({
     lineHeight: 16,
   },
   responsesContainer: {
-    gap: 14,
-    marginTop: 4,
+    gap: 10, // Reduced from 14
+    marginTop: 3, // Reduced from 4
   },
   responseCard: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    paddingTop: 16,
-    paddingLeft: 22,
-    borderRadius: 16,
+    padding: 14, // Reduced from 20
+    paddingTop: 12, // Reduced from 16
+    paddingLeft: 18, // Reduced from 22
+    borderRadius: 14, // Reduced from 16
     borderWidth: 2,
     borderColor: '#10B981',
-    minHeight: 85,
+    minHeight: 60, // Reduced from 85
     justifyContent: 'center',
     position: 'relative',
-    marginBottom: 4,
+    marginBottom: 2, // Reduced from 4
     ...Platform.select({
       ios: {
         shadowColor: '#10B981',
