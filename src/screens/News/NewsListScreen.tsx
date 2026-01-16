@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NewsDetailModal from '../../components/NewsDetailModal';
+import TransitionWrapper from '../../components/TransitionWrapper';
 
 interface NewsArticle {
   id: string;
@@ -241,34 +242,24 @@ export default function NewsListScreen({ navigation }: any) {
     );
   };
 
-  if (loading) {
+  const renderContent = () => {
+    if (error) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+            <Text style={styles.errorTitle}>Oops!</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={fetchNews}>
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#06B6D4" />
-          <Text style={styles.loadingText}>Loading today's news...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorTitle}>Oops!</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchNews}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -365,7 +356,14 @@ export default function NewsListScreen({ navigation }: any) {
           onStartConversation={handleStartConversation}
         />
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    );
+  };
+
+  return (
+    <TransitionWrapper isLoading={loading} loadingMessage="Loading today's news...">
+      {renderContent()}
+    </TransitionWrapper>
   );
 }
 

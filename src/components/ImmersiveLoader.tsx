@@ -21,23 +21,45 @@ const { width, height } = Dimensions.get('window');
 
 interface ImmersiveLoaderProps {
   message?: string;
+  isVisible?: boolean;
+  onFadeOutComplete?: () => void;
 }
 
-export default function ImmersiveLoader({ message = 'Loading your progress...' }: ImmersiveLoaderProps) {
+export default function ImmersiveLoader({
+  message = 'Loading your progress...',
+  isVisible = true,
+  onFadeOutComplete
+}: ImmersiveLoaderProps) {
   // Animations
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fade in
-    Animated.timing(opacityAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+    if (isVisible) {
+      // Fade in
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Fade out
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished && onFadeOutComplete) {
+          onFadeOutComplete();
+        }
+      });
+    }
+  }, [isVisible]);
 
   return (
-    <Animated.View style={[styles.container, { opacity: opacityAnim }]}>
+    <Animated.View
+      style={[styles.container, { opacity: opacityAnim }]}
+      pointerEvents={isVisible ? 'auto' : 'none'}
+    >
       <LinearGradient
         colors={['#FFF5F0', '#FFF9E6', '#F0FFFE']}
         start={{ x: 0, y: 0 }}

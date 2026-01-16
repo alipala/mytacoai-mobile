@@ -27,7 +27,7 @@ import * as Haptics from 'expo-haptics';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
-import ImmersiveLoader from '../../components/ImmersiveLoader';
+import TransitionWrapper from '../../components/TransitionWrapper';
 import { styles } from './styles/ProfileScreen.styles';
 import { setBadgeCount } from '../../services/notificationService';
 
@@ -1179,13 +1179,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     </View>
   );
 
-  if (loading) {
-    return <ImmersiveLoader message="Loading your profile..." />;
-  }
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <TransitionWrapper isLoading={loading} loadingMessage="Loading your profile...">
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
@@ -1368,8 +1365,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <SettingsScreen onClose={() => setShowAppSettings(false)} navigation={navigation} />
           </SafeAreaView>
         </Modal>
-      </View>
-    </SafeAreaView>
+        </View>
+      </SafeAreaView>
+    </TransitionWrapper>
   );
 };
 

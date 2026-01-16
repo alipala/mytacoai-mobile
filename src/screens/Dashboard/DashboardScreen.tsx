@@ -29,7 +29,7 @@ import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsMo
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
 import { SessionTypeModal } from '../../components/SessionTypeModal';
-import ImmersiveLoader from '../../components/ImmersiveLoader';
+import TransitionWrapper from '../../components/TransitionWrapper';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 
@@ -317,15 +317,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return `${greeting}, ${firstName}`;
   };
 
-  // Loading State
-  if (loading) {
-    return <ImmersiveLoader message="Loading your learning journey..." />;
-  }
-
-  // Error State
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
+  // Main content render
+  const renderContent = () => {
+    // Error State
+    if (error) {
+      return (
+        <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
@@ -612,12 +609,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         />
 
       </SafeAreaView>
-    );
-  }
+      );
+    }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
+    // Main Dashboard Content
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
       {/* iOS-Native Header WITH USER BUTTON - THIS IS WHAT YOU WANT! */}
       <View style={styles.header}>
         <Image
@@ -1172,6 +1170,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         </Modal>
       )}
     </SafeAreaView>
+    );
+  };
+
+  // Final render with smooth transition
+  return (
+    <TransitionWrapper isLoading={loading} loadingMessage="Loading your learning journey...">
+      {renderContent()}
+    </TransitionWrapper>
   );
 };
 

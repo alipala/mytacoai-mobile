@@ -39,7 +39,7 @@ import EnhancedTodaysProgressCard from '../../components/EnhancedTodaysProgressC
 import RecentPerformanceCard from '../../components/RecentPerformanceCard';
 import ImmersiveHeader from '../../components/ImmersiveHeader';
 import StatsCarousel from '../../components/StatsCarousel';
-import ImmersiveLoader from '../../components/ImmersiveLoader';
+import TransitionWrapper from '../../components/TransitionWrapper';
 import HorizontalStatsCarousel from '../../components/HorizontalStatsCarousel';
 import PlaceholderStatsCard from '../../components/PlaceholderStatsCard';
 import { useDailyStats, useRecentPerformance } from '../../hooks/useStats';
@@ -1705,13 +1705,10 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   };
 
   // Main render
-  if (isLoading && navState === 'mode_selection') {
-    return <ImmersiveLoader message="Loading your adventures..." />;
-  }
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      <StatusBar barStyle="dark-content" />
+    <TransitionWrapper isLoading={isLoading && navState === 'mode_selection'} loadingMessage="Loading your adventures...">
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <StatusBar barStyle="dark-content" />
       {navState === 'mode_selection' && renderModeSelection()}
       {navState === 'completed_plans' && renderCompletedPlans()}
       {navState === 'freestyle_selection' && renderFreestyleSelection()}
@@ -1948,7 +1945,8 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           </View>
         </View>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </TransitionWrapper>
   );
 }
 
