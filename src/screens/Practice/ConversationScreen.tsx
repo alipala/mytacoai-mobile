@@ -17,7 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
-import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, DefaultService } from '../../api/generated';
+import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, DefaultService, StripeService } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
 import SessionSummaryModal, { SavingStage } from '../../components/SessionSummaryModal';
@@ -1002,7 +1002,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     setShowEndSessionModal(true);
   };
 
-  // Confirm manual early end - just disconnect without saving
+  // Confirm manual early end - disconnect without saving BUT track partial minutes
   const handleConfirmEndSession = async () => {
     try {
       setShowEndSessionModal(false);
@@ -1010,6 +1010,37 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       // Check if user is guest
       const authToken = await AsyncStorage.getItem('auth_token');
       const isGuest = !authToken;
+
+      // 🔥 CRITICAL: Track partial minutes even for early exit
+      if (!isGuest && sessionDuration > 0) {
+        const partialMinutes = Math.ceil(sessionDuration / 60); // Round up partial minutes
+        console.log('[PARTIAL_EXIT] Tracking partial session time:', partialMinutes, 'minutes');
+
+        try {
+          const trackingResponse = await fetch(`${API_BASE_URL}/stripe/track-speaking-time`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${await AsyncStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({
+              session_id: `partial_exit_${Date.now()}`,
+              speaking_minutes: partialMinutes,
+              session_completed: false // Mark as incomplete
+            })
+          });
+
+          if (trackingResponse.ok) {
+            const trackingResult = await trackingResponse.json();
+            console.log('[PARTIAL_EXIT] ✅ Partial time tracked successfully:', trackingResult);
+          } else {
+            const errorText = await trackingResponse.text();
+            console.error('[PARTIAL_EXIT] ❌ Failed to track partial time:', errorText);
+          }
+        } catch (trackingError) {
+          console.error('[PARTIAL_EXIT] ❌ Error tracking partial time:', trackingError);
+        }
+      }
 
       // Disconnect realtime service
       if (realtimeServiceRef.current) {
@@ -1219,6 +1250,43 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
 
         console.log('[AUTO_END] Session saved successfully:', result);
+
+        // 🔥 CRITICAL: Track speaking time for subscription/billing
+        try {
+          const sessionId = result.session_id || result._id || `session_${Date.now()}`;
+          const durationMinutes = Math.round(sessionDuration / 60);
+
+          console.log('[MINUTE_TRACKING] Tracking speaking time:', {
+            sessionId,
+            durationMinutes,
+            sessionCompleted: true
+          });
+
+          // Call the tracking API
+          const trackingResponse = await fetch(`${API_BASE_URL}/stripe/track-speaking-time`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${await AsyncStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({
+              session_id: sessionId,
+              speaking_minutes: durationMinutes,
+              session_completed: true
+            })
+          });
+
+          if (trackingResponse.ok) {
+            const trackingResult = await trackingResponse.json();
+            console.log('[MINUTE_TRACKING] ✅ Speaking time tracked successfully:', trackingResult);
+          } else {
+            const errorText = await trackingResponse.text();
+            console.error('[MINUTE_TRACKING] ❌ Failed to track speaking time:', errorText);
+          }
+        } catch (trackingError) {
+          console.error('[MINUTE_TRACKING] ❌ Error tracking speaking time:', trackingError);
+          // Don't fail the session save if tracking fails
+        }
 
         // Check if this is a final assessment
         if (result.is_final_assessment) {
