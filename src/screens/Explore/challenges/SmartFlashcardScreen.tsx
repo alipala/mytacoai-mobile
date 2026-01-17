@@ -32,11 +32,7 @@ import * as Haptics from 'expo-haptics';
 import { SmartFlashcardChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
-import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
 import { useCharacterState } from '../../../hooks/useCharacterState';
-import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
-import { calculateXP } from '../../../services/xpCalculator';
-import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -53,14 +49,8 @@ export default function SmartFlashcardScreen({
   onClose,
 }: SmartFlashcardScreenProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [tapPosition, setTapPosition] = useState({ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 });
-  const [showXPAnimation, setShowXPAnimation] = useState(false);
-  const [xpValue, setXPValue] = useState(0);
-  const [speedBonus, setSpeedBonus] = useState(0);
 
-  const { session } = useChallengeSession();
-  const { characterState, reactToAnswer, updateState } = useCharacterState();
+  const { characterState, updateState } = useCharacterState();
   const { play } = useAudio();
 
   // Animation values
@@ -77,8 +67,6 @@ export default function SmartFlashcardScreen({
     screenOpacity.value = withTiming(1, { duration: 300 });
 
     setIsFlipped(false);
-    setShowCelebration(false);
-    setShowXPAnimation(false);
     flipRotation.value = 0;
   }, [challenge.id]);
 
@@ -102,48 +90,23 @@ export default function SmartFlashcardScreen({
   };
 
   const handleDone = (event: any) => {
-    // Capture tap position for animations
-    const { pageX, pageY } = event.nativeEvent;
-    setTapPosition({ x: pageX, y: pageY });
+    // SmartFlashcard is practice mode - no celebrations, hearts, or XP
+    // Just simple advancement with gentle feedback
 
-    // SmartFlashcard is educational, always mark as correct
-    const timeSpent = 8; // Flashcards take more time to review
-    const combo = session?.currentCombo || 1;
-    const xpResult = calculateXP(true, timeSpent, combo);
-
-    setXPValue(xpResult.baseXP);
-    setSpeedBonus(xpResult.speedBonus);
-
-    // Show celebration
-    setShowCelebration(true);
-
-    // Show XP animation
-    setTimeout(() => {
-      setShowXPAnimation(true);
-    }, 150);
-
-    // Character celebrates learning
-    reactToAnswer(true);
-
-    // Play correct answer sound (flashcard always correct)
-    play('correct_answer');
-
-    // Haptic feedback
+    // Soft haptic feedback
     if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    // Auto-advance with fade out after animations
-    setTimeout(() => {
-      screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
-        if (finished) {
-          runOnJS(onComplete)(challenge.id, true, {
-            correctAnswer: challenge.word,
-            explanation: challenge.explanation,
-          });
-        }
-      });
-    }, 800);
+    // Simple fade out and advance
+    screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+      if (finished) {
+        runOnJS(onComplete)(challenge.id, true, {
+          correctAnswer: challenge.word,
+          explanation: challenge.explanation,
+        });
+      }
+    });
   };
 
   // Animated styles for flip
@@ -281,19 +244,6 @@ export default function SmartFlashcardScreen({
       </View>
 
 
-      {/* XP Flying Animation - Hide during celebration */}
-      {showXPAnimation && !showCelebration && (
-        <XPFlyingNumber
-          value={xpValue}
-          startX={tapPosition.x}
-          startY={tapPosition.y}
-          endX={SCREEN_WIDTH - 80}
-          endY={60}
-          speedBonus={speedBonus}
-          onComplete={() => setShowXPAnimation(false)}
-          delay={0}
-        />
-      )}
     </Animated.View>
   );
 }

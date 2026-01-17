@@ -134,8 +134,8 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
 
         let heartPool = null;
 
-        // Skip heart check in study mode (free review)
-        if (!params.isStudyMode) {
+        // Skip heart check in study mode or smart_flashcard (practice-only modes)
+        if (!params.isStudyMode && params.challengeType !== 'smart_flashcard') {
           // Fetch heart status for this challenge type
           heartPool = await heartAPI.getHeartStatus(challengeTypeAPI);
 
@@ -260,13 +260,13 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         ? { baseXP: 0, speedBonus: 0, comboMultiplier: 1, totalXP: 0 }
         : calculateXP(isCorrect, timeSpent, currentSession.currentCombo);
 
-      // Study Mode: Skip heart consumption
+      // Study Mode or Smart Flashcard: Skip heart consumption (practice-only modes)
       let heartResponse;
-      if (currentSession.isStudyMode) {
-        // Mock heart response for study mode (no hearts consumed)
+      if (currentSession.isStudyMode || currentSession.challengeType === 'smart_flashcard') {
+        // Mock heart response (no hearts consumed in practice modes)
         heartResponse = {
           heartsLost: false,
-          heartsRemaining: 0, // Not tracked in study mode
+          heartsRemaining: 0, // Not tracked in practice modes
           shieldUsed: false,
           shieldActivated: false,
           shieldActive: false,
