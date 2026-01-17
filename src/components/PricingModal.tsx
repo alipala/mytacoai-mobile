@@ -125,7 +125,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState<'connecting' | 'fetching' | 'timeout' | 'ready'>('connecting');
+  const [productLoadError, setProductLoadError] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+  const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize Apple IAP when modal opens on iOS
   useEffect(() => {
@@ -133,20 +136,37 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       // Reset states before initializing
       setIsInitializing(false);
       setProductsLoaded(false);
+      setLoadingProgress('connecting');
+      setProductLoadError(null);
+
+      // Set timeout for product loading (12 seconds total: 3 retries x 2s + 6s buffer)
+      const timeoutId = setTimeout(() => {
+        console.warn('[PRICING_MODAL] ⏱️ Product loading timeout reached');
+        setLoadingProgress('timeout');
+        setProductLoadError('Subscriptions are taking longer than expected to load. This may be due to products being in review status.');
+      }, 12000);
+
+      initTimeoutRef.current = timeoutId;
+
+      // Start initialization
       initializeAppleIAP();
     }
 
-    // Cleanup function - but DON'T disconnect, keep listener active
+    // Cleanup function
     return () => {
-      // Keep the listener active for background purchase processing
-      // Apple IAP service will remain connected for the app lifetime
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+        initTimeoutRef.current = null;
+      }
     };
-  }, [visible]);
+  }, [visible]); // ✅ FIXED: Only depend on 'visible', not 'productsLoaded'
 
   const initializeAppleIAP = async () => {
     try {
       setIsInitializing(true);
       setProductsLoaded(false);
+      setLoadingProgress('connecting');
+      setProductLoadError(null);
       console.log('[PRICING_MODAL] Starting Apple IAP initialization...');
 
       // Initialize IAP service (sets up purchase listener)
@@ -155,6 +175,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         console.log('[PRICING_MODAL] Failed to initialize Apple IAP');
         setAppleIAPAvailable(false);
         setIsInitializing(false);
+        setProductLoadError('Failed to connect to App Store. Please check your connection.');
         return;
       }
 
@@ -164,23 +185,38 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       console.log('[PRICING_MODAL] Apple IAP available:', available);
 
       if (available) {
+        setLoadingProgress('fetching');
+        console.log('[PRICING_MODAL] Fetching products with retry logic...');
+
         // CRITICAL: Fetch products from App Store before purchase
         // This is REQUIRED by expo-in-app-purchases before calling purchaseItemAsync
+        // Now includes automatic retry logic (3 attempts with 2s delays)
         const products = await AppleIAPService.getProducts();
         console.log('[PRICING_MODAL] Loaded products:', products.length);
 
         if (products.length > 0) {
           setProductsLoaded(true);
-          console.log('[PRICING_MODAL] Products ready for purchase');
+          setLoadingProgress('ready');
+          console.log('[PRICING_MODAL] ✅ Products ready for purchase');
+
+          // Clear timeout since products loaded successfully
+          if (initTimeoutRef.current) {
+            clearTimeout(initTimeoutRef.current);
+            initTimeoutRef.current = null;
+          }
         } else {
-          console.warn('[PRICING_MODAL] No products loaded from App Store');
+          console.warn('[PRICING_MODAL] ⚠️ No products loaded from App Store after retries');
           setProductsLoaded(false);
+          setLoadingProgress('timeout');
+          setProductLoadError('Unable to load subscription products. Products may be awaiting App Store review approval.');
         }
       }
     } catch (error) {
       console.error('[PRICING_MODAL] Failed to initialize Apple IAP:', error);
       setAppleIAPAvailable(false);
       setProductsLoaded(false);
+      setLoadingProgress('timeout');
+      setProductLoadError(error instanceof Error ? error.message : 'An unexpected error occurred');
     } finally {
       setIsInitializing(false);
     }
@@ -197,6 +233,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+
+    // If timeout state, trigger retry instead of purchase
+    if (Platform.OS === 'ios' && loadingProgress === 'timeout') {
+      console.log('[PRICING_MODAL] Retry triggered from button tap');
+      handleRetryLoadProducts();
+      return;
+    }
+
     const period = isAnnual ? 'annual' : 'monthly';
 
     // Use Apple IAP on iOS if available AND products are loaded
@@ -266,6 +310,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     onClose();
   };
 
+  const handleRetryLoadProducts = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    console.log('[PRICING_MODAL] Manual retry requested by user');
+    initializeAppleIAP();
+  };
+
   const handleRestorePurchases = async () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -333,6 +385,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           showsVerticalScrollIndicator={false}
           bounces={true}
         >
+          {/* Error Banner - Show when products fail to load */}
+          {Platform.OS === 'ios' && productLoadError && loadingProgress === 'timeout' && (
+            <View style={styles.errorBanner}>
+              <Ionicons name="information-circle" size={20} color="#F59E0B" />
+              <Text style={styles.errorBannerText}>{productLoadError}</Text>
+            </View>
+          )}
+
           {/* Billing Toggle - Prominent */}
           <View style={styles.toggleSection}>
           <View style={styles.toggleContainer}>
@@ -467,13 +527,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   style={[
                     styles.ctaButton,
                     plan.isPopular && styles.ctaButtonPopular,
-                    Platform.OS === 'ios' && (isInitializing || !productsLoaded) && styles.ctaButtonDisabled,
+                    Platform.OS === 'ios' && loadingProgress !== 'ready' && styles.ctaButtonDisabled,
                   ]}
                   onPress={() => handleSelectPlan(plan.id)}
-                  disabled={Platform.OS === 'ios' && (isInitializing || !productsLoaded)}
+                  disabled={Platform.OS === 'ios' && loadingProgress !== 'ready'}
                   activeOpacity={0.8}
                 >
-                  {Platform.OS === 'ios' && isInitializing ? (
+                  {Platform.OS === 'ios' && loadingProgress === 'connecting' ? (
                     <>
                       <ActivityIndicator
                         size="small"
@@ -486,7 +546,40 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                           { marginLeft: 8 }
                         ]}
                       >
-                        Loading...
+                        Connecting to App Store...
+                      </Text>
+                    </>
+                  ) : Platform.OS === 'ios' && loadingProgress === 'fetching' ? (
+                    <>
+                      <ActivityIndicator
+                        size="small"
+                        color={plan.isPopular ? '#FFFFFF' : '#4ECFBF'}
+                      />
+                      <Text
+                        style={[
+                          styles.ctaButtonText,
+                          plan.isPopular && styles.ctaButtonTextPopular,
+                          { marginLeft: 8 }
+                        ]}
+                      >
+                        Loading subscriptions...
+                      </Text>
+                    </>
+                  ) : Platform.OS === 'ios' && loadingProgress === 'timeout' ? (
+                    <>
+                      <Ionicons
+                        name="refresh"
+                        size={20}
+                        color={plan.isPopular ? '#FFFFFF' : '#4ECFBF'}
+                      />
+                      <Text
+                        style={[
+                          styles.ctaButtonText,
+                          plan.isPopular && styles.ctaButtonTextPopular,
+                          { marginLeft: 8 }
+                        ]}
+                      >
+                        Tap to Retry
                       </Text>
                     </>
                   ) : (

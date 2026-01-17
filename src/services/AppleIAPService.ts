@@ -34,6 +34,7 @@ class AppleIAPService {
   private products: IAPProduct[] = [];
   private isInitialized = false;
   private purchaseListener: { remove: () => void } | null = null;
+  private isFetchingProducts = false; // Guard against concurrent fetches
 
   /**
    * Initialize StoreKit connection
@@ -179,38 +180,113 @@ class AppleIAPService {
   }
 
   /**
-   * Get available products from App Store
+   * Get available products from App Store with retry logic
    */
-  async getProducts(): Promise<IAPProduct[]> {
+  async getProducts(retryCount: number = 3, retryDelay: number = 2000): Promise<IAPProduct[]> {
     if (Platform.OS !== 'ios') {
       return [];
     }
 
-    try {
-      console.log('[APPLE_IAP] Fetching products from App Store...');
-
-      const productIds = Object.values(APPLE_IAP_PRODUCTS);
-      const { results, responseCode } = await InAppPurchases.getProductsAsync(productIds);
-
-      if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
-        console.error('[APPLE_IAP] Failed to fetch products, response code:', responseCode);
-        return [];
-      }
-
-      this.products = results.map((product) => ({
-        productId: product.productId,
-        price: product.price,
-        localizedPrice: product.price, // Already formatted with currency symbol
-        title: product.title,
-        description: product.description,
-      }));
-
-      console.log(`[APPLE_IAP] Successfully fetched ${this.products.length} products`);
+    // Guard: Prevent concurrent product fetches
+    if (this.isFetchingProducts) {
+      console.warn('[APPLE_IAP] ⚠️ Product fetch already in progress, returning cached products');
       return this.products;
-    } catch (error) {
-      console.error('[APPLE_IAP] Failed to get products:', error);
-      return [];
     }
+
+    this.isFetchingProducts = true;
+    let lastError: any = null;
+
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
+      try {
+        console.log(`[APPLE_IAP] Fetching products from App Store (attempt ${attempt}/${retryCount})...`);
+
+        const productIds = Object.values(APPLE_IAP_PRODUCTS);
+        console.log(`[APPLE_IAP] Requesting ${productIds.length} product IDs:`, productIds);
+
+        const { results, responseCode } = await InAppPurchases.getProductsAsync(productIds);
+
+        console.log(`[APPLE_IAP] StoreKit response code: ${responseCode}`);
+        console.log(`[APPLE_IAP] Products returned: ${results?.length || 0}`);
+
+        if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
+          const errorMsg = this._getResponseCodeMessage(responseCode);
+          console.error(`[APPLE_IAP] Failed to fetch products: ${errorMsg} (code: ${responseCode})`);
+          lastError = new Error(errorMsg);
+
+          // If not OK, retry unless it's the last attempt
+          if (attempt < retryCount) {
+            console.log(`[APPLE_IAP] Retrying in ${retryDelay}ms...`);
+            await this._delay(retryDelay);
+            continue;
+          }
+          return [];
+        }
+
+        // Success - map products
+        this.products = results.map((product) => ({
+          productId: product.productId,
+          price: product.price,
+          localizedPrice: product.price,
+          title: product.title,
+          description: product.description,
+        }));
+
+        console.log(`[APPLE_IAP] ✅ Successfully fetched ${this.products.length} products`);
+        if (this.products.length > 0) {
+          console.log('[APPLE_IAP] Product IDs loaded:', this.products.map(p => p.productId));
+        } else {
+          console.warn('[APPLE_IAP] ⚠️ StoreKit returned OK but 0 products - products may be in review status');
+        }
+
+        this.isFetchingProducts = false; // Reset guard on success
+        return this.products;
+      } catch (error) {
+        lastError = error;
+        console.error(`[APPLE_IAP] Error fetching products (attempt ${attempt}/${retryCount}):`, error);
+
+        // Retry unless it's the last attempt
+        if (attempt < retryCount) {
+          console.log(`[APPLE_IAP] Retrying in ${retryDelay}ms...`);
+          await this._delay(retryDelay);
+        }
+      }
+    }
+
+    // All retries failed
+    console.error(`[APPLE_IAP] ❌ Failed to fetch products after ${retryCount} attempts`);
+    console.error('[APPLE_IAP] Last error:', lastError);
+    this.isFetchingProducts = false; // Reset guard on failure
+    return [];
+  }
+
+  /**
+   * Helper: Get human-readable message for StoreKit response codes
+   */
+  private _getResponseCodeMessage(code: number): string {
+    const messages: { [key: number]: string } = {
+      0: 'Success',
+      1: 'User cancelled',
+      2: 'Payment invalid',
+      3: 'Payment not allowed',
+      4: 'Product not available',
+      5: 'Cloud service permission denied',
+      6: 'Cloud service network connection failed',
+      7: 'Cloud service revoked',
+      8: 'Privacy acknowledgement required',
+      9: 'Unauthorized request',
+      10: 'Invalid offer identifier',
+      11: 'Invalid signature',
+      12: 'Missing offer parameters',
+      13: 'Invalid offer price',
+    };
+    return messages[code] || `Unknown response code: ${code}`;
+  }
+
+  /**
+   * Helper: Delay for retry logic
+   */
+  private _delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
