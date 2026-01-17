@@ -46,6 +46,9 @@ export interface ChallengeSession {
   isActive: boolean;
   isPaused: boolean;
   completedAt?: Date;
+
+  // Study Mode (free review of mistakes)
+  isStudyMode: boolean; // True for learning-focused review (no hearts consumed)
 }
 
 /**
@@ -143,6 +146,7 @@ export interface CreateSessionParams {
   challengeType: string;
   source: 'reference' | 'learning_plan';
   specificChallenges?: Challenge[]; // For review sessions - use these specific challenges instead of fetching new ones
+  isStudyMode?: boolean; // True for learning-focused review (no hearts, show answers)
 }
 
 /**

@@ -45,6 +45,9 @@ import NativeCheckScreen from './challenges/NativeCheckScreen';
 import BrainTicklerScreen from './challenges/BrainTicklerScreen';
 import StoryBuilderScreen from './challenges/StoryBuilderScreen';
 
+// Study Mode component
+import { StudyModeCard } from '../../components/StudyModeCard';
+
 interface ChallengeSessionScreenProps {
   navigation: any;
   route: any;
@@ -234,7 +237,19 @@ export default function ChallengeSessionScreen({
    * Handle session completion
    */
   const handleSessionComplete = async () => {
-    // Show loading animation
+    // Study Mode: Skip summary and go straight back to explore
+    if (session?.isStudyMode) {
+      console.log('📖 Study Mode complete - returning to explore');
+      try {
+        await endSession(); // Clean up session
+      } catch (error) {
+        console.error('❌ Error ending study session:', error);
+      }
+      navigation.goBack(); // Return to explore
+      return;
+    }
+
+    // Regular Mode: Show loading and summary
     setShowLoading(true);
 
     // Save session info before it gets cleared by endSession
@@ -305,8 +320,9 @@ export default function ChallengeSessionScreen({
         challengeType,
         source,
         specificChallenges: sessionStats.incorrectChallenges,
+        isStudyMode: true, // Enable study mode for learning-focused review
       });
-      console.log(`🔄 Starting review session with ${sessionStats.incorrectChallenges.length} incorrect challenges`);
+      console.log(`📖 Starting STUDY MODE with ${sessionStats.incorrectChallenges.length} incorrect challenges`);
     } catch (error) {
       console.error('❌ Error starting review session:', error);
     }
@@ -405,10 +421,28 @@ export default function ChallengeSessionScreen({
 
   // Render current challenge based on type
   const renderChallenge = () => {
-    if (!currentChallenge) {
+    if (!currentChallenge || !session) {
       return null;
     }
 
+    // Study Mode - Show educational review card
+    if (session.isStudyMode) {
+      return (
+        <StudyModeCard
+          key={currentChallenge.id}
+          challenge={currentChallenge}
+          currentIndex={session.currentIndex}
+          totalChallenges={session.challenges.length}
+          onNext={() => {
+            // Mark as "reviewed" (no XP, no heart consumption)
+            answerChallenge(currentChallenge.id, true); // Mark as correct to avoid heart loss
+            nextChallenge();
+          }}
+        />
+      );
+    }
+
+    // Regular Challenge Mode
     const challengeProps = {
       challenge: currentChallenge,
       onComplete: handleChallengeAnswer,

@@ -179,7 +179,8 @@ export const heartAPI = {
   async consumeHeart(
     challengeType: string,
     isCorrect: boolean,
-    sessionId?: string
+    sessionId?: string,
+    challengeId?: string
   ): Promise<ConsumeHeartResponse> {
     try {
       const url = `${OpenAPI.BASE}/api/hearts/consume`;
@@ -190,7 +191,8 @@ export const heartAPI = {
         body: JSON.stringify({
           challenge_type: challengeType,
           is_correct: isCorrect,
-          session_id: sessionId
+          session_id: sessionId,
+          challenge_id: challengeId
         })
       });
 
@@ -283,6 +285,67 @@ export const heartAPI = {
     } catch (error) {
       // Log error but don't throw - analytics failure shouldn't break UX
       console.warn('Failed to log session ended:', error);
+    }
+  },
+
+  /**
+   * Undo last heart consumption (3-second forgiveness mechanic)
+   * Called when user taps "Undo" button within 3 seconds of wrong answer
+   * Only available for incorrect answers (correct answers don't trigger undo)
+   */
+  async undoHeartConsumption(
+    challengeType: string,
+    challengeId: string
+  ): Promise<{
+    success: boolean;
+    heartsRestored: number;
+    shieldRestored: boolean;
+    streakRestored: number;
+    error: string | null;
+  }> {
+    try {
+      const url = `${OpenAPI.BASE}/api/hearts/undo`;
+
+      const response = await fetchWithTimeout(url, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({
+          challenge_type: challengeType,
+          challenge_id: challengeId
+        })
+      }, 3000); // 3-second timeout for undo
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn('[HeartAPI] Undo failed:', errorData);
+        return {
+          success: false,
+          heartsRestored: 0,
+          shieldRestored: false,
+          streakRestored: 0,
+          error: errorData.detail || 'Undo request failed'
+        };
+      }
+
+      const data = await response.json();
+      console.log('[HeartAPI] Undo successful:', data);
+      return {
+        success: data.success,
+        heartsRestored: data.heartsRestored || 0,
+        shieldRestored: data.shieldRestored || false,
+        streakRestored: data.streakRestored || 0,
+        error: data.error || null
+      };
+
+    } catch (error) {
+      console.warn('[HeartAPI] Undo network error:', error);
+      return {
+        success: false,
+        heartsRestored: 0,
+        shieldRestored: false,
+        streakRestored: 0,
+        error: 'Network error during undo'
+      };
     }
   }
 };

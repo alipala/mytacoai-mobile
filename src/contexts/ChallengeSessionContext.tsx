@@ -132,15 +132,20 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         // Convert challenge type to API format
         const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[params.challengeType] || params.challengeType;
 
-        // Fetch heart status for this challenge type
-        const heartPool = await heartAPI.getHeartStatus(challengeTypeAPI);
+        let heartPool = null;
 
-        // Check if user has hearts to start session
-        if (heartPool.currentHearts === 0) {
-          throw new Error(
-            `No hearts available for ${params.challengeType}. ` +
-            `Next heart in ${Math.ceil(heartPool.refillInfo?.nextHeartInMinutes || 0)} minutes.`
-          );
+        // Skip heart check in study mode (free review)
+        if (!params.isStudyMode) {
+          // Fetch heart status for this challenge type
+          heartPool = await heartAPI.getHeartStatus(challengeTypeAPI);
+
+          // Check if user has hearts to start session
+          if (heartPool.currentHearts === 0) {
+            throw new Error(
+              `No hearts available for ${params.challengeType}. ` +
+              `Next heart in ${Math.ceil(heartPool.refillInfo?.nextHeartInMinutes || 0)} minutes.`
+            );
+          }
         }
 
         let challenges: Challenge[];
@@ -148,7 +153,11 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         // Use specific challenges if provided (for review sessions), otherwise fetch new ones
         if (params.specificChallenges && params.specificChallenges.length > 0) {
           challenges = params.specificChallenges;
-          console.log(`📚 Starting review session with ${challenges.length} specific challenges`);
+          if (params.isStudyMode) {
+            console.log(`📖 Starting STUDY MODE with ${challenges.length} challenges (free review)`);
+          } else {
+            console.log(`📚 Starting review session with ${challenges.length} specific challenges`);
+          }
         } else {
           // Fetch challenges from backend
           const result = await ChallengeService.getChallengesByType(
@@ -193,11 +202,17 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
           // State
           isActive: true,
           isPaused: false,
+          // Study Mode
+          isStudyMode: params.isStudyMode || false,
         };
 
         setSession(newSession);
         console.log('✅ Session started:', newSession.id);
-        console.log(`❤️  Starting with ${heartPool.currentHearts}/${heartPool.maxHearts} hearts`);
+        if (!params.isStudyMode && heartPool) {
+          console.log(`❤️  Starting with ${heartPool.currentHearts}/${heartPool.maxHearts} hearts`);
+        } else {
+          console.log(`📖 Study Mode: No hearts consumed`);
+        }
       } catch (error) {
         // Check if it's a heart-related error
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -240,12 +255,30 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         ? (now.getTime() - new Date(currentSession.challengeStartTime).getTime()) / 1000
         : 0;
 
-      // Calculate XP earned
-      const xpResult = calculateXP(isCorrect, timeSpent, currentSession.currentCombo);
+      // Calculate XP earned (0 in study mode)
+      const xpResult = currentSession.isStudyMode
+        ? { baseXP: 0, speedBonus: 0, comboMultiplier: 1, totalXP: 0 }
+        : calculateXP(isCorrect, timeSpent, currentSession.currentCombo);
 
-      // Consume heart via API (now optimized for 200-300ms response time)
-      const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[currentSession.challengeType] || currentSession.challengeType;
-      const heartResponse = await heartAPI.consumeHeart(challengeTypeAPI, isCorrect, currentSession.id);
+      // Study Mode: Skip heart consumption
+      let heartResponse;
+      if (currentSession.isStudyMode) {
+        // Mock heart response for study mode (no hearts consumed)
+        heartResponse = {
+          heartsLost: false,
+          heartsRemaining: 0, // Not tracked in study mode
+          shieldUsed: false,
+          shieldActivated: false,
+          shieldActive: false,
+          currentStreak: 0,
+          outOfHearts: false,
+          refillInfo: null,
+        };
+      } else {
+        // Regular Mode: Consume heart via API
+        const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[currentSession.challengeType] || currentSession.challengeType;
+        heartResponse = await heartAPI.consumeHeart(challengeTypeAPI, isCorrect, currentSession.id, challengeId);
+      }
 
       // Update session with heart response and challenge stats
       setSession((prevSession) => {
@@ -528,7 +561,20 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
     // Calculate final stats
     const stats = calculateSessionStats(completedSession);
 
-    // Check for achievements
+    // Study Mode: Skip backend calls, achievements, and stats updates
+    if (currentSession.isStudyMode) {
+      console.log('📖 Study Mode session ended - no stats/achievements recorded');
+      // Clear session
+      setSession(null);
+      await clearSessionFromStorage();
+      return {
+        ...stats,
+        achievements: [], // No achievements in study mode
+        totalXP: 0, // No XP earned in study mode
+      };
+    }
+
+    // Regular Mode: Calculate achievements and save to backend
     const achievements = checkSessionAchievements(completedSession);
     const achievementIds = achievements.map(a => a.id);
 
