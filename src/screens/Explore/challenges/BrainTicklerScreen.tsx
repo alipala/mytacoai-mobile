@@ -59,7 +59,7 @@ export default function BrainTicklerScreen({
   onWrongAnswerSelected,
   onClose,
 }: BrainTicklerScreenProps) {
-  const [timeLeft, setTimeLeft] = useState(challenge.timeLimit);
+  const [timeLeft, setTimeLeft] = useState(challenge.timeLimit || 15);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [timerActive, setTimerActive] = useState(true);
@@ -117,7 +117,7 @@ export default function BrainTicklerScreen({
     screenOpacity.value = 0;
     screenOpacity.value = withTiming(1, { duration: 300 });
 
-    setTimeLeft(challenge.timeLimit);
+    setTimeLeft(challenge.timeLimit || 15);
     setSelectedOption(null);
     setShowFeedback(false);
     setTimerActive(true);
@@ -207,8 +207,9 @@ export default function BrainTicklerScreen({
 
   // Progress animation
   useEffect(() => {
+    const limit = challenge.timeLimit || 15;
     progressPercent.value = withTiming(
-      ((challenge.timeLimit - timeLeft) / challenge.timeLimit) * 100,
+      ((limit - timeLeft) / limit) * 100,
       { duration: 1000 }
     );
   }, [timeLeft, challenge.timeLimit]);
@@ -269,7 +270,8 @@ export default function BrainTicklerScreen({
 
       // Calculate XP for correct answers (bonus for speed!)
       if (isCorrect) {
-        const timeSpent = challenge.timeLimit - timeLeft;
+        const limit = challenge.timeLimit || 15;
+        const timeSpent = limit - timeLeft;
         const combo = session?.currentCombo || 1;
         const xpResult = calculateXP(true, timeSpent, combo);
 
