@@ -1047,31 +1047,48 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       // 🔥 CRITICAL: Track partial minutes even for early exit
       if (!isGuest && sessionDuration > 0) {
         const partialMinutes = Math.ceil(sessionDuration / 60); // Round up partial minutes
-        console.log('[PARTIAL_EXIT] Tracking partial session time:', partialMinutes, 'minutes');
+        console.log('[PARTIAL_EXIT] 🎯 Tracking partial session time:', partialMinutes, 'minutes');
 
         try {
-          const trackingResponse = await fetch(`${API_BASE_URL}/stripe/track-speaking-time`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${await AsyncStorage.getItem('access_token')}`
-            },
-            body: JSON.stringify({
-              session_id: `partial_exit_${Date.now()}`,
-              speaking_minutes: partialMinutes,
-              session_completed: false // Mark as incomplete
-            })
-          });
+          // 🔥 FIX: Use correct auth token (auth_token, not access_token)
+          const authToken = await AsyncStorage.getItem('auth_token');
 
-          if (trackingResponse.ok) {
-            const trackingResult = await trackingResponse.json();
-            console.log('[PARTIAL_EXIT] ✅ Partial time tracked successfully:', trackingResult);
+          if (!authToken) {
+            console.error('[PARTIAL_EXIT] ❌ CRITICAL: No auth token found! Cannot track partial minutes.');
           } else {
-            const errorText = await trackingResponse.text();
-            console.error('[PARTIAL_EXIT] ❌ Failed to track partial time:', errorText);
+            console.log('[PARTIAL_EXIT] ✅ Auth token retrieved successfully');
+
+            // 🔥 FIX: Added /api prefix to endpoint
+            const trackingResponse = await fetch(`${API_BASE_URL}/api/stripe/track-speaking-time`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+              },
+              body: JSON.stringify({
+                session_id: `partial_exit_${Date.now()}`,
+                speaking_minutes: partialMinutes,
+                session_completed: false // Mark as incomplete
+              })
+            });
+
+            console.log('[PARTIAL_EXIT] 📡 Tracking API response status:', trackingResponse.status);
+
+            if (trackingResponse.ok) {
+              const trackingResult = await trackingResponse.json();
+              console.log('[PARTIAL_EXIT] ✅ Partial time tracked successfully:', trackingResult);
+            } else {
+              const errorText = await trackingResponse.text();
+              console.error('[PARTIAL_EXIT] ❌ Failed to track partial time - Status:', trackingResponse.status);
+              console.error('[PARTIAL_EXIT] ❌ Error response:', errorText);
+            }
           }
         } catch (trackingError) {
-          console.error('[PARTIAL_EXIT] ❌ Error tracking partial time:', trackingError);
+          console.error('[PARTIAL_EXIT] ❌ EXCEPTION during tracking:', trackingError);
+          console.error('[PARTIAL_EXIT] ❌ Error details:', {
+            name: trackingError instanceof Error ? trackingError.name : 'Unknown',
+            message: trackingError instanceof Error ? trackingError.message : String(trackingError)
+          });
         }
       }
 
@@ -1285,22 +1302,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.log('[AUTO_END] Session saved successfully:', result);
 
         // 🔥 CRITICAL: Track speaking time for subscription/billing
+        let minuteTrackingSuccess = false;
         try {
           const sessionId = result.session_id || result._id || `session_${Date.now()}`;
           const durationMinutes = Math.round(sessionDuration / 60);
 
-          console.log('[MINUTE_TRACKING] Tracking speaking time:', {
+          console.log('[MINUTE_TRACKING] 🎯 Tracking speaking time:', {
             sessionId,
             durationMinutes,
             sessionCompleted: true
           });
 
-          // Call the tracking API
-          const trackingResponse = await fetch(`${API_BASE_URL}/stripe/track-speaking-time`, {
+          // 🔥 FIX: Use correct auth token (auth_token, not access_token)
+          const authToken = await AsyncStorage.getItem('auth_token');
+
+          if (!authToken) {
+            console.error('[MINUTE_TRACKING] ❌ CRITICAL: No auth token found! User may not be authenticated.');
+            throw new Error('No authentication token available');
+          }
+
+          console.log('[MINUTE_TRACKING] ✅ Auth token retrieved successfully');
+
+          // Call the tracking API (🔥 FIX: Added /api prefix to endpoint)
+          const trackingResponse = await fetch(`${API_BASE_URL}/api/stripe/track-speaking-time`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${await AsyncStorage.getItem('access_token')}`
+              'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify({
               session_id: sessionId,
@@ -1309,16 +1337,32 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             })
           });
 
+          console.log('[MINUTE_TRACKING] 📡 Tracking API response status:', trackingResponse.status);
+
           if (trackingResponse.ok) {
             const trackingResult = await trackingResponse.json();
             console.log('[MINUTE_TRACKING] ✅ Speaking time tracked successfully:', trackingResult);
+            minuteTrackingSuccess = true;
           } else {
             const errorText = await trackingResponse.text();
-            console.error('[MINUTE_TRACKING] ❌ Failed to track speaking time:', errorText);
+            console.error('[MINUTE_TRACKING] ❌ Failed to track speaking time - Status:', trackingResponse.status);
+            console.error('[MINUTE_TRACKING] ❌ Error response:', errorText);
           }
         } catch (trackingError) {
-          console.error('[MINUTE_TRACKING] ❌ Error tracking speaking time:', trackingError);
+          console.error('[MINUTE_TRACKING] ❌ EXCEPTION during tracking:', trackingError);
+          console.error('[MINUTE_TRACKING] ❌ Error details:', {
+            name: trackingError instanceof Error ? trackingError.name : 'Unknown',
+            message: trackingError instanceof Error ? trackingError.message : String(trackingError),
+            stack: trackingError instanceof Error ? trackingError.stack : 'No stack trace'
+          });
           // Don't fail the session save if tracking fails
+        }
+
+        // Log final tracking status for debugging
+        if (!minuteTrackingSuccess) {
+          console.error('[MINUTE_TRACKING] ⚠️ WARNING: Session saved but minutes were NOT tracked!');
+          console.error('[MINUTE_TRACKING] ⚠️ Session duration:', sessionDuration, 'seconds');
+          console.error('[MINUTE_TRACKING] ⚠️ This issue should be reported to support!');
         }
 
         // Check if this is a final assessment
