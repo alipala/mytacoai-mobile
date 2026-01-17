@@ -90,6 +90,10 @@ export default function NativeCheckScreen({
   const challengeRecordedRef = useRef<boolean>(false); // Track if onComplete was called for this challenge
   const undoOpacity = useRef(new RNAnimated.Value(0)).current;
 
+  // Arrow animation values
+  const leftArrowX = useRef(new RNAnimated.Value(0)).current;
+  const rightArrowX = useRef(new RNAnimated.Value(0)).current;
+
   // Animation values
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -100,7 +104,41 @@ export default function NativeCheckScreen({
   const nextCardScale = useSharedValue(0.92);
   const nextCardOpacity = useSharedValue(0.5);
 
-  // Check arrow visibility on mount
+  // Animate arrows continuously
+  useEffect(() => {
+    const animateArrows = () => {
+      RNAnimated.loop(
+        RNAnimated.sequence([
+          RNAnimated.parallel([
+            RNAnimated.timing(leftArrowX, {
+              toValue: -6,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            RNAnimated.timing(rightArrowX, {
+              toValue: 6,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ]),
+          RNAnimated.parallel([
+            RNAnimated.timing(leftArrowX, {
+              toValue: 0,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            RNAnimated.timing(rightArrowX, {
+              toValue: 0,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ]),
+        ])
+      ).start();
+    };
+
+    animateArrows();
+  }, []);
 
   // Reset state when challenge changes
   useEffect(() => {
@@ -499,8 +537,30 @@ export default function NativeCheckScreen({
 
                   {/* Bottom section with swipe hint and icons */}
                   <View style={styles.bottomSection}>
-                    {/* Swipe instruction */}
-                    <Text style={styles.swipeHint}>← Swipe to answer →</Text>
+                    {/* Swipe instruction with animated arrows */}
+                    <View style={styles.swipeHintContainer}>
+                      <RNAnimated.Text
+                        style={[
+                          styles.swipeHint,
+                          {
+                            transform: [{ translateX: leftArrowX }],
+                          },
+                        ]}
+                      >
+                        ←
+                      </RNAnimated.Text>
+                      <Text style={styles.swipeHint}> Swipe to answer </Text>
+                      <RNAnimated.Text
+                        style={[
+                          styles.swipeHint,
+                          {
+                            transform: [{ translateX: rightArrowX }],
+                          },
+                        ]}
+                      >
+                        →
+                      </RNAnimated.Text>
+                    </View>
 
                     {/* Always-visible swipe indicators */}
                     <View style={styles.arrowsContainer}>
@@ -720,12 +780,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 8,
   },
+  swipeHintContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
   swipeHint: {
     fontSize: 12,
     fontWeight: '400',
     color: '#94A3B8',
     textAlign: 'center',
-    marginBottom: 16,
     letterSpacing: 0.5,
   },
   arrowsContainer: {
