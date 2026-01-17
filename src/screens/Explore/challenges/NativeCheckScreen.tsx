@@ -478,6 +478,13 @@ export default function NativeCheckScreen({
 
                 {/* Card content */}
                 <View style={styles.cardContent}>
+                  {/* Question at top - clear instruction */}
+                  <View style={styles.questionContainerTop}>
+                    <View style={styles.questionBadge}>
+                      <Text style={styles.questionText}>Would a native say this?</Text>
+                    </View>
+                  </View>
+
                   {/* Sentence as VISUAL HERO */}
                   <View style={styles.sentenceWrapper}>
                     <LinearGradient
@@ -490,11 +497,10 @@ export default function NativeCheckScreen({
                     </LinearGradient>
                   </View>
 
-                  {/* Question - supportive microcopy (NOT bold) */}
-                  <View style={styles.questionContainer}>
-                    <View style={styles.questionBadge}>
-                      <Text style={styles.questionText}>Would a native say this?</Text>
-                    </View>
+                  {/* Bottom section with swipe hint and icons */}
+                  <View style={styles.bottomSection}>
+                    {/* Swipe instruction */}
+                    <Text style={styles.swipeHint}>← Swipe to answer →</Text>
 
                     {/* Always-visible swipe indicators */}
                     <View style={styles.arrowsContainer}>
@@ -672,32 +678,15 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: 'space-between',
   },
-  sentenceWrapper: {
-    marginTop: 20,
-  },
-  sentenceGradient: {
-    padding: 28,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#E1E8ED',
-  },
-  sentence: {
-    fontSize: 28, // Larger font - sentence as hero
-    fontWeight: '500', // Not bold - professional feel
-    color: '#1E293B',
-    textAlign: 'center',
-    lineHeight: 40,
-  },
-  questionContainer: {
+  questionContainerTop: {
     alignItems: 'center',
-    paddingBottom: 8,
+    paddingTop: 8,
   },
   questionBadge: {
     backgroundColor: '#F1F5F9',
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 16,
-    marginBottom: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
@@ -707,6 +696,37 @@ const styles = StyleSheet.create({
     color: '#64748B', // Lighter color
     textAlign: 'center',
     letterSpacing: 0.2,
+  },
+  sentenceWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sentenceGradient: {
+    padding: 28,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E1E8ED',
+    width: '100%',
+  },
+  sentence: {
+    fontSize: 28, // Larger font - sentence as hero
+    fontWeight: '500', // Not bold - professional feel
+    color: '#1E293B',
+    textAlign: 'center',
+    lineHeight: 40,
+  },
+  bottomSection: {
+    alignItems: 'center',
+    paddingBottom: 8,
+  },
+  swipeHint: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginBottom: 16,
+    letterSpacing: 0.5,
   },
   arrowsContainer: {
     flexDirection: 'row',
