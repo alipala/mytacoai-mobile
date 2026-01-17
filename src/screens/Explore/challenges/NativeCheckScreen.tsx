@@ -499,13 +499,15 @@ export default function NativeCheckScreen({
                     {/* Always-visible swipe indicators */}
                     <View style={styles.arrowsContainer}>
                       <View style={styles.arrowBoxLeft}>
-                        <Text style={styles.arrowIconRed}>✗</Text>
-                        <Text style={styles.arrowLabelRed}>Not Correct</Text>
+                        <View style={styles.iconCircleRed}>
+                          <Text style={styles.arrowIconWhite}>✗</Text>
+                        </View>
                       </View>
 
                       <View style={styles.arrowBoxRight}>
-                        <Text style={styles.arrowIconGreen}>✓</Text>
-                        <Text style={styles.arrowLabelGreen}>Correct</Text>
+                        <View style={styles.iconCircleGreen}>
+                          <Text style={styles.arrowIconWhite}>✓</Text>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -718,29 +720,48 @@ const styles = StyleSheet.create({
   arrowBoxRight: {
     alignItems: 'center',
   },
-  arrowIconRed: {
-    fontSize: 40,
+  iconCircleRed: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#DC2626', // Red circle
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#DC2626',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  iconCircleGreen: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#10B981', // Green circle
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  arrowIconWhite: {
+    fontSize: 36,
     fontWeight: '700',
-    color: '#DC2626', // Red color without background
-    marginBottom: 8,
-  },
-  arrowIconGreen: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#059669', // Green color without background
-    marginBottom: 8,
-  },
-  arrowLabelGreen: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#059669',
-    letterSpacing: 0.3,
-  },
-  arrowLabelRed: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#DC2626',
-    letterSpacing: 0.3,
+    color: '#FFFFFF', // White icon on colored circle
   },
   undoContainer: {
     position: 'absolute',
