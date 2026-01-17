@@ -466,19 +466,19 @@ export default function NativeCheckScreen({
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
               >
-                {/* LEFT overlay - Sounds Odd */}
+                {/* LEFT overlay - Not Correct */}
                 <Animated.View style={[styles.overlayLeft, leftOverlayStyle]}>
                   <Animated.View style={[styles.overlayContent, leftLabelOpacity]}>
                     <Text style={styles.overlayIcon}>✗</Text>
-                    <Text style={styles.overlayText}>Sounds Odd</Text>
+                    <Text style={styles.overlayText}>Not Correct</Text>
                   </Animated.View>
                 </Animated.View>
 
-                {/* RIGHT overlay - Natural */}
+                {/* RIGHT overlay - Correct */}
                 <Animated.View style={[styles.overlayRight, rightOverlayStyle]}>
                   <Animated.View style={[styles.overlayContent, rightLabelOpacity]}>
                     <Text style={styles.overlayIcon}>✓</Text>
-                    <Text style={styles.overlayText}>Natural!</Text>
+                    <Text style={styles.overlayText}>Correct!</Text>
                   </Animated.View>
                 </Animated.View>
 
@@ -502,7 +502,7 @@ export default function NativeCheckScreen({
                       <Text style={styles.questionText}>Would a native say this?</Text>
                     </View>
 
-                    {/* Always-visible arrow indicators */}
+                    {/* Always-visible swipe indicators */}
                     <View style={styles.arrowsContainer}>
                       <View style={styles.arrowBoxLeft}>
                         <LinearGradient
@@ -511,9 +511,9 @@ export default function NativeCheckScreen({
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
                         >
-                          <Text style={styles.arrowIcon}>←</Text>
+                          <Text style={styles.arrowIcon}>✗</Text>
                         </LinearGradient>
-                        <Text style={styles.arrowLabelRed}>Sounds Odd</Text>
+                        <Text style={styles.arrowLabelRed}>Not Correct</Text>
                       </View>
 
                       <View style={styles.arrowBoxRight}>
@@ -523,9 +523,9 @@ export default function NativeCheckScreen({
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
                         >
-                          <Text style={styles.arrowIcon}>→</Text>
+                          <Text style={styles.arrowIcon}>✓</Text>
                         </LinearGradient>
-                        <Text style={styles.arrowLabelGreen}>Natural</Text>
+                        <Text style={styles.arrowLabelGreen}>Correct</Text>
                       </View>
                     </View>
                   </View>
@@ -599,7 +599,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 60, // Move card up for better eye level
+    paddingBottom: 100, // Balance the layout
   },
   nextCard: {
     position: 'absolute',
