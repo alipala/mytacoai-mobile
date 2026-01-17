@@ -363,23 +363,23 @@ export default function NativeCheckScreen({
     };
   });
 
-  // Progressive overlay feedback (builds with swipe distance)
+  // Progressive overlay feedback (builds with swipe distance) - DARKER for better visibility
   const leftOverlayStyle = useAnimatedStyle(() => {
     const swipeDistance = Math.abs(translateX.value);
     const swipePercent = swipeDistance / SWIPE_THRESHOLD;
 
-    // Progressive opacity
+    // Progressive opacity - darker red
     let opacity = 0;
     if (translateX.value < 0) {
       if (swipePercent < 0.2) {
-        // <20%: subtle tint only
-        opacity = interpolate(swipePercent, [0, 0.2], [0, 0.15], Extrapolate.CLAMP);
+        // <20%: subtle tint
+        opacity = interpolate(swipePercent, [0, 0.2], [0, 0.3], Extrapolate.CLAMP);
       } else if (swipePercent < 0.5) {
-        // 20-50%: label fades in
-        opacity = interpolate(swipePercent, [0.2, 0.5], [0.15, 0.4], Extrapolate.CLAMP);
+        // 20-50%: darker feedback
+        opacity = interpolate(swipePercent, [0.2, 0.5], [0.3, 0.6], Extrapolate.CLAMP);
       } else {
-        // 50%+: full feedback
-        opacity = interpolate(swipePercent, [0.5, 1], [0.4, 0.8], Extrapolate.CLAMP);
+        // 50%+: much darker feedback
+        opacity = interpolate(swipePercent, [0.5, 1], [0.6, 0.9], Extrapolate.CLAMP);
       }
     }
 
@@ -390,14 +390,15 @@ export default function NativeCheckScreen({
     const swipeDistance = Math.abs(translateX.value);
     const swipePercent = swipeDistance / SWIPE_THRESHOLD;
 
+    // Progressive opacity - darker green
     let opacity = 0;
     if (translateX.value > 0) {
       if (swipePercent < 0.2) {
-        opacity = interpolate(swipePercent, [0, 0.2], [0, 0.15], Extrapolate.CLAMP);
+        opacity = interpolate(swipePercent, [0, 0.2], [0, 0.3], Extrapolate.CLAMP);
       } else if (swipePercent < 0.5) {
-        opacity = interpolate(swipePercent, [0.2, 0.5], [0.15, 0.4], Extrapolate.CLAMP);
+        opacity = interpolate(swipePercent, [0.2, 0.5], [0.3, 0.6], Extrapolate.CLAMP);
       } else {
-        opacity = interpolate(swipePercent, [0.5, 1], [0.4, 0.8], Extrapolate.CLAMP);
+        opacity = interpolate(swipePercent, [0.5, 1], [0.6, 0.9], Extrapolate.CLAMP);
       }
     }
 
@@ -433,13 +434,6 @@ export default function NativeCheckScreen({
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      {/* Gradient Background */}
-      <LinearGradient
-        colors={['#6366F1', '#8B5CF6', '#A855F7']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
       <Animated.View style={[StyleSheet.absoluteFill, screenAnimatedStyle]}>
         {/* Card Stack */}
         <View style={styles.cardStackContainer}>
@@ -505,26 +499,12 @@ export default function NativeCheckScreen({
                     {/* Always-visible swipe indicators */}
                     <View style={styles.arrowsContainer}>
                       <View style={styles.arrowBoxLeft}>
-                        <LinearGradient
-                          colors={['#EF4444', '#DC2626']}
-                          style={styles.arrowGradient}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                        >
-                          <Text style={styles.arrowIcon}>✗</Text>
-                        </LinearGradient>
+                        <Text style={styles.arrowIconRed}>✗</Text>
                         <Text style={styles.arrowLabelRed}>Not Correct</Text>
                       </View>
 
                       <View style={styles.arrowBoxRight}>
-                        <LinearGradient
-                          colors={['#10B981', '#059669']}
-                          style={styles.arrowGradient}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                        >
-                          <Text style={styles.arrowIcon}>✓</Text>
-                        </LinearGradient>
+                        <Text style={styles.arrowIconGreen}>✓</Text>
                         <Text style={styles.arrowLabelGreen}>Correct</Text>
                       </View>
                     </View>
@@ -592,7 +572,7 @@ export default function NativeCheckScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF', // Pure white background like other quiz types
   },
   cardStackContainer: {
     flex: 1,
@@ -738,29 +718,17 @@ const styles = StyleSheet.create({
   arrowBoxRight: {
     alignItems: 'center',
   },
-  arrowGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-  arrowIcon: {
-    fontSize: 32,
+  arrowIconRed: {
+    fontSize: 40,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#DC2626', // Red color without background
+    marginBottom: 8,
+  },
+  arrowIconGreen: {
+    fontSize: 40,
+    fontWeight: '700',
+    color: '#059669', // Green color without background
+    marginBottom: 8,
   },
   arrowLabelGreen: {
     fontSize: 14,
