@@ -500,13 +500,13 @@ export default function NativeCheckScreen({
                     <View style={styles.arrowsContainer}>
                       <View style={styles.arrowBoxLeft}>
                         <View style={styles.iconCircleRed}>
-                          <Text style={styles.arrowIconWhite}>✗</Text>
+                          <Text style={styles.arrowIconRed}>✗</Text>
                         </View>
                       </View>
 
                       <View style={styles.arrowBoxRight}>
                         <View style={styles.iconCircleGreen}>
-                          <Text style={styles.arrowIconWhite}>✓</Text>
+                          <Text style={styles.arrowIconGreen}>✓</Text>
                         </View>
                       </View>
                     </View>
@@ -724,14 +724,16 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#DC2626', // Red circle
+    backgroundColor: 'transparent', // Transparent background
+    borderWidth: 3,
+    borderColor: '#DC2626', // Red border
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#DC2626',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
@@ -743,14 +745,16 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#10B981', // Green circle
+    backgroundColor: 'transparent', // Transparent background
+    borderWidth: 3,
+    borderColor: '#10B981', // Green border
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#10B981',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
@@ -758,10 +762,15 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  arrowIconWhite: {
+  arrowIconRed: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#FFFFFF', // White icon on colored circle
+    color: '#DC2626', // Red icon
+  },
+  arrowIconGreen: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#10B981', // Green icon
   },
   undoContainer: {
     position: 'absolute',
