@@ -5,9 +5,10 @@
  * - Industry-standard swipe semantics (RIGHT=Natural, LEFT=Odd)
  * - Progressive overlay feedback (builds with swipe distance)
  * - Sentence as visual hero (larger font, reduced contrast)
- * - Progressive arrow disclosure (auto-hides after 3 swipes)
+ * - Always-visible arrow indicators (clear swipe direction)
  * - 3-second undo for wrong answers (forgiveness mechanic)
  * - Asymmetric motion psychology (correct=light, wrong=heavy)
+ * - Vibrant gradient background for better visual engagement
  * - Smooth flow: red overlay → undo → next card (no modal breaks)
  * - Review mistakes in Study Mode at session end
  */
@@ -38,7 +39,6 @@ import {
 } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeCheckChallenge } from '../../../services/mockChallengeData';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
@@ -53,8 +53,6 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Swipe thresholds
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
-const ARROW_VISIBILITY_KEY = '@native_check_arrow_count';
-const ARROW_HIDE_THRESHOLD = 3; // Hide arrows after 3 swipes
 
 interface NativeCheckScreenProps {
   challenge: NativeCheckChallenge;
@@ -75,7 +73,6 @@ export default function NativeCheckScreen({
   const [showXPAnimation, setShowXPAnimation] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
-  const [showArrows, setShowArrows] = useState(true);
   const [showUndo, setShowUndo] = useState(false);
   const [lastSwipe, setLastSwipe] = useState<{
     isCorrect: boolean;
@@ -90,6 +87,7 @@ export default function NativeCheckScreen({
   const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const undoUsedRef = useRef<boolean>(false); // Track if undo was used
+  const challengeRecordedRef = useRef<boolean>(false); // Track if onComplete was called for this challenge
   const undoOpacity = useRef(new RNAnimated.Value(0)).current;
 
   // Animation values
@@ -103,34 +101,6 @@ export default function NativeCheckScreen({
   const nextCardOpacity = useSharedValue(0.5);
 
   // Check arrow visibility on mount
-  useEffect(() => {
-    checkArrowVisibility();
-  }, []);
-
-  const checkArrowVisibility = async () => {
-    try {
-      const count = await AsyncStorage.getItem(ARROW_VISIBILITY_KEY);
-      const swipeCount = count ? parseInt(count, 10) : 0;
-      setShowArrows(swipeCount < ARROW_HIDE_THRESHOLD);
-    } catch (error) {
-      console.error('Failed to load arrow visibility:', error);
-    }
-  };
-
-  const incrementArrowCount = async () => {
-    try {
-      const count = await AsyncStorage.getItem(ARROW_VISIBILITY_KEY);
-      const swipeCount = count ? parseInt(count, 10) : 0;
-      const newCount = swipeCount + 1;
-      await AsyncStorage.setItem(ARROW_VISIBILITY_KEY, newCount.toString());
-
-      if (newCount >= ARROW_HIDE_THRESHOLD) {
-        setShowArrows(false);
-      }
-    } catch (error) {
-      console.error('Failed to save arrow count:', error);
-    }
-  };
 
   // Reset state when challenge changes
   useEffect(() => {
@@ -144,6 +114,10 @@ export default function NativeCheckScreen({
     translateX.value = 0;
     translateY.value = 0;
     scale.value = 1;
+
+    // Reset tracking refs for new challenge
+    undoUsedRef.current = false;
+    challengeRecordedRef.current = false;
 
     // Clear all timeouts
     if (undoTimeoutRef.current) {
@@ -217,7 +191,6 @@ export default function NativeCheckScreen({
     if (isAnswered) return;
 
     setIsAnswered(true);
-    incrementArrowCount();
 
     // Reset undo tracking for new answer
     undoUsedRef.current = false;
@@ -250,13 +223,16 @@ export default function NativeCheckScreen({
     // React character
     reactToAnswer(isCorrect);
 
-    // IMPORTANT: Call onComplete immediately to register answer with backend
+    // IMPORTANT: Call onComplete immediately to register answer with backend (only once per challenge)
     // This allows the backend to track the action for undo
-    // But mark that we don't want to advance yet (undo window)
-    onComplete(challenge.id, isCorrect, {
-      correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
-      explanation: challenge.explanation,
-    });
+    // After undo, user can swipe again but we don't record it twice
+    if (!challengeRecordedRef.current) {
+      onComplete(challenge.id, isCorrect, {
+        correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
+        explanation: challenge.explanation,
+      });
+      challengeRecordedRef.current = true;
+    }
 
     // Show undo button ONLY for wrong answers (3 second window)
     if (!isCorrect) {
@@ -457,6 +433,13 @@ export default function NativeCheckScreen({
 
   return (
     <GestureHandlerRootView style={styles.container}>
+      {/* Gradient Background */}
+      <LinearGradient
+        colors={['#6366F1', '#8B5CF6', '#A855F7']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
       <Animated.View style={[StyleSheet.absoluteFill, screenAnimatedStyle]}>
         {/* Card Stack */}
         <View style={styles.cardStackContainer}>
@@ -519,34 +502,32 @@ export default function NativeCheckScreen({
                       <Text style={styles.questionText}>Would a native say this?</Text>
                     </View>
 
-                    {/* Progressive arrow disclosure */}
-                    {showArrows && (
-                      <View style={styles.arrowsContainer}>
-                        <View style={styles.arrowBoxLeft}>
-                          <LinearGradient
-                            colors={['#EF4444', '#DC2626']}
-                            style={styles.arrowGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                          >
-                            <Text style={styles.arrowIcon}>←</Text>
-                          </LinearGradient>
-                          <Text style={styles.arrowLabelRed}>Sounds Odd</Text>
-                        </View>
-
-                        <View style={styles.arrowBoxRight}>
-                          <LinearGradient
-                            colors={['#10B981', '#059669']}
-                            style={styles.arrowGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                          >
-                            <Text style={styles.arrowIcon}>→</Text>
-                          </LinearGradient>
-                          <Text style={styles.arrowLabelGreen}>Natural</Text>
-                        </View>
+                    {/* Always-visible arrow indicators */}
+                    <View style={styles.arrowsContainer}>
+                      <View style={styles.arrowBoxLeft}>
+                        <LinearGradient
+                          colors={['#EF4444', '#DC2626']}
+                          style={styles.arrowGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Text style={styles.arrowIcon}>←</Text>
+                        </LinearGradient>
+                        <Text style={styles.arrowLabelRed}>Sounds Odd</Text>
                       </View>
-                    )}
+
+                      <View style={styles.arrowBoxRight}>
+                        <LinearGradient
+                          colors={['#10B981', '#059669']}
+                          style={styles.arrowGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Text style={styles.arrowIcon}>→</Text>
+                        </LinearGradient>
+                        <Text style={styles.arrowLabelGreen}>Natural</Text>
+                      </View>
+                    </View>
                   </View>
                 </View>
               </LinearGradient>
