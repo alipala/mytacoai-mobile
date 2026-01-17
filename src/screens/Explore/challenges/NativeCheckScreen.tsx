@@ -61,6 +61,7 @@ interface NativeCheckScreenProps {
   onComplete: (challengeId: string, isCorrect: boolean, details?: any) => void;
   onWrongAnswerSelected?: () => void;
   onClose: () => void;
+  onAdvance?: () => void; // For manual advancement after undo window
 }
 
 export default function NativeCheckScreen({
@@ -68,6 +69,7 @@ export default function NativeCheckScreen({
   onComplete,
   onWrongAnswerSelected,
   onClose,
+  onAdvance,
 }: NativeCheckScreenProps) {
   const [isAnswered, setIsAnswered] = useState(false);
   const [showXPAnimation, setShowXPAnimation] = useState(false);
@@ -78,6 +80,7 @@ export default function NativeCheckScreen({
   const [lastSwipe, setLastSwipe] = useState<{
     isCorrect: boolean;
     direction: 'left' | 'right';
+    challengeId: string; // Store challenge ID for undo
   } | null>(null);
 
   const { session } = useChallengeSession();
@@ -210,7 +213,7 @@ export default function NativeCheckScreen({
     scale.value = withSpring(1);
   };
 
-  const handleSwipeComplete = (isNaturalSwipe: boolean) => {
+  const handleSwipeComplete = async (isNaturalSwipe: boolean) => {
     if (isAnswered) return;
 
     setIsAnswered(true);
@@ -225,6 +228,7 @@ export default function NativeCheckScreen({
     setLastSwipe({
       isCorrect,
       direction: isNaturalSwipe ? 'right' : 'left',
+      challengeId: challenge.id,
     });
 
     // Haptic feedback
@@ -245,6 +249,14 @@ export default function NativeCheckScreen({
 
     // React character
     reactToAnswer(isCorrect);
+
+    // IMPORTANT: Call onComplete immediately to register answer with backend
+    // This allows the backend to track the action for undo
+    // But mark that we don't want to advance yet (undo window)
+    onComplete(challenge.id, isCorrect, {
+      correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
+      explanation: challenge.explanation,
+    });
 
     // Show undo button ONLY for wrong answers (3 second window)
     if (!isCorrect) {
@@ -285,11 +297,8 @@ export default function NativeCheckScreen({
       // Auto-advance (correct answers advance immediately, no undo needed)
       autoAdvanceTimeoutRef.current = setTimeout(() => {
         screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
-          if (finished) {
-            runOnJS(onComplete)(challenge.id, true, {
-              correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
-              explanation: challenge.explanation,
-            });
+          if (finished && onAdvance) {
+            runOnJS(onAdvance)();
           }
         });
       }, 1200);
@@ -300,11 +309,8 @@ export default function NativeCheckScreen({
         // Only advance if undo wasn't used
         if (!undoUsedRef.current) {
           screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
-            if (finished) {
-              runOnJS(onComplete)(challenge.id, false, {
-                correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
-                explanation: challenge.explanation,
-              });
+            if (finished && onAdvance) {
+              runOnJS(onAdvance)();
             }
           });
         }

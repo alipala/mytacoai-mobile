@@ -222,6 +222,14 @@ export default function ChallengeSessionScreen({
         return;
       }
 
+      // NATIVE_CHECK EXCEPTION: Don't auto-advance (challenge screen handles timing for undo)
+      // The challenge screen will call nextChallenge directly after undo window expires
+      const currentChallenge = latestSession?.challenges[latestSession?.currentIndex];
+      if (currentChallenge?.type === 'native_check') {
+        console.log('⏸️  Native check - challenge screen will handle advancement after undo window');
+        return;
+      }
+
       if (isLastChallenge) {
         // This was the last challenge - show summary
         console.log('🎊 Last challenge completed, showing summary');
@@ -448,6 +456,7 @@ export default function ChallengeSessionScreen({
       onComplete: handleChallengeAnswer,
       onWrongAnswerSelected: handleWrongAnswerSelected,
       onClose: handleQuit,
+      onAdvance: nextChallenge, // For Native Check undo mechanic
     };
 
     switch (currentChallenge.type) {
