@@ -1,19 +1,18 @@
 /**
- * Native Check Screen (REDESIGNED)
+ * Native Check Screen - IMMERSIVE TINDER-STYLE SWIPE INTERFACE
  *
- * Game-feel challenge experience with:
- * - Immediate feedback at tap point
- * - Character reactions
- * - XP flying animations
- * - Particle bursts
- * - Emotion-first design
+ * Beautiful, colorful card-swiping experience:
+ * - Vibrant, modern design
+ * - Card positioned right after progress bar
+ * - Colorful arrows and text
+ * - Swipe LEFT = "Natural" ✓
+ * - Swipe RIGHT = "Sounds Odd" ✗
  */
 
 import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Platform,
   Dimensions,
@@ -22,24 +21,31 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withSequence,
   withTiming,
   runOnJS,
-  Easing,
+  interpolate,
+  Extrapolate,
 } from 'react-native-reanimated';
+import {
+  GestureHandlerRootView,
+  GestureDetector,
+  Gesture,
+} from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { NativeCheckChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
-import { LearningCompanion } from '../../../components/LearningCompanion';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
-import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
-import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
+import { LearningCompanion } from '../../../components/LearningCompanion';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Swipe thresholds
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 
 interface NativeCheckScreenProps {
   challenge: NativeCheckChallenge;
@@ -54,134 +60,202 @@ export default function NativeCheckScreen({
   onWrongAnswerSelected,
   onClose,
 }: NativeCheckScreenProps) {
-  const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [tapPosition, setTapPosition] = useState({ x: 0, y: 0 });
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [showXPAnimation, setShowXPAnimation] = useState(false);
-  const [showParticleBurst, setShowParticleBurst] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
 
   const { session } = useChallengeSession();
-  const { characterState, reactToAnswer, reactToSelection } = useCharacterState();
+  const { characterState, reactToAnswer } = useCharacterState();
   const { play } = useAudio();
 
   // Animation values
-  const sentenceScale = useSharedValue(1);
-  const backgroundOpacity = useSharedValue(0);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
   const screenOpacity = useSharedValue(1);
 
-  // No breathing animation for question box - removed for cleaner look
+  // Next card animation (stack effect)
+  const nextCardScale = useSharedValue(0.92);
+  const nextCardOpacity = useSharedValue(0.5);
 
-  // Reset state when challenge changes with fade animation
+  // Reset state when challenge changes
   useEffect(() => {
-    // Fade in animation for new challenge
     screenOpacity.value = 0;
     screenOpacity.value = withTiming(1, { duration: 300 });
 
-    setSelectedAnswer(null);
-    setShowFeedback(false);
+    setIsAnswered(false);
+    setShowCelebration(false);
     setShowXPAnimation(false);
-    setShowParticleBurst(false);
-    backgroundOpacity.value = 0;
+    translateX.value = 0;
+    translateY.value = 0;
+    scale.value = 1;
+
+    // Animate next card
+    nextCardScale.value = withSpring(0.94);
+    nextCardOpacity.value = withSpring(0.6);
   }, [challenge.id]);
 
-  const handleAnswer = (answer: boolean, event: any) => {
-    if (showFeedback) return;
+  const handleSwipeComplete = (isNaturalSwipe: boolean) => {
+    if (isAnswered) return;
 
-    // Capture tap position for animations
-    const { pageX, pageY } = event.nativeEvent;
-    setTapPosition({ x: pageX, y: pageY });
+    setIsAnswered(true);
 
-    const isCorrect = answer === challenge.isNatural;
+    const isCorrect = isNaturalSwipe === challenge.isNatural;
 
-    setSelectedAnswer(answer);
-
-    // TRIGGER WRONG ANSWER ANIMATIONS IMMEDIATELY
-    if (!isCorrect && onWrongAnswerSelected) {
-      onWrongAnswerSelected();
+    // Haptic feedback
+    if (Platform.OS !== 'web') {
+      if (isCorrect) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
     }
 
-    // Wait briefly before showing feedback
-    setTimeout(() => {
-      setShowFeedback(true);
-      reactToAnswer(isCorrect);
+    // Play sound
+    if (isCorrect) {
+      play('correct_answer');
+    } else {
+      play('wrong_answer');
+    }
 
-      // Haptic and audio feedback - Skip for wrong answers (already done in WrongAnswerFeedback)
-      if (Platform.OS !== 'web') {
-        if (isCorrect) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
-        // Removed wrong answer haptic - handled by WrongAnswerFeedback component
-      }
+    // React character
+    reactToAnswer(isCorrect);
 
-      // Play sound effect - Skip for wrong answers (already done in WrongAnswerFeedback)
-      if (isCorrect) {
-        play('correct_answer');
-      }
-      // Removed wrong answer sound - handled by WrongAnswerFeedback component
+    if (isCorrect) {
+      // Calculate XP
+      const timeSpent = 5;
+      const combo = session?.currentCombo || 1;
+      const xpResult = calculateXP(true, timeSpent, combo);
 
-      // Calculate XP for correct answers
-      if (isCorrect) {
-        const timeSpent = 5; // Placeholder - would track actual time
-        const combo = session?.currentCombo || 1;
-        const xpResult = calculateXP(true, timeSpent, combo);
+      setXPValue(xpResult.baseXP);
+      setSpeedBonus(xpResult.speedBonus);
 
-        setXPValue(xpResult.baseXP);
-        setSpeedBonus(xpResult.speedBonus);
+      // Show XP animation
+      setShowXPAnimation(true);
 
-        // Show particle burst immediately
-        setShowParticleBurst(true);
+      // Auto-advance
+      setTimeout(() => {
+        screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
+          if (finished) {
+            runOnJS(onComplete)(challenge.id, true, {
+              correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
+              explanation: challenge.explanation,
+            });
+          }
+        });
+      }, 800);
+    } else {
+      // Wrong answer
+      setTimeout(() => {
+        setShowCelebration(true);
+      }, 300);
 
-        // Show XP animation after particle burst starts
-        setTimeout(() => {
-          setShowXPAnimation(true);
-        }, 150);
-
-        // Background success glow
-        backgroundOpacity.value = withSequence(
-          withTiming(0.3, { duration: 200 }),
-          withTiming(0, { duration: 400 })
-        );
-      }
-
-      // Auto-advance ONLY for correct answers
-      if (isCorrect) {
-        setTimeout(() => {
-          // Capture the answer status BEFORE the fade animation
-          const finalIsCorrect = isCorrect;
-          const correctAnswerText = challenge.isNatural ? 'Natural' : 'Not Natural';
-          const explanationText = challenge.explanation;
-          const challengeIdToComplete = challenge.id;
-
-          screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
-            if (finished) {
-              runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
-            }
-          });
-        }, 1800); // Increased from 1200 to 1800ms to show celebration fully
-      }
-    }, 200); // Anticipation delay
+      setTimeout(() => {
+        screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
+          if (finished) {
+            runOnJS(onComplete)(challenge.id, false, {
+              correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
+              explanation: challenge.explanation,
+            });
+          }
+        });
+      }, 2500);
+    }
   };
 
-  const handleDone = (challengeId: string, isCorrect: boolean, correctAnswerText: string, explanationText: string) => {
-    onComplete(challengeId, isCorrect, {
-      correctAnswer: correctAnswerText,
-      explanation: explanationText,
+  // Pan gesture for swiping
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      if (isAnswered) return;
+      scale.value = withSpring(1.05);
+    })
+    .onUpdate((event) => {
+      if (isAnswered) return;
+      translateX.value = event.translationX;
+      translateY.value = event.translationY * 0.2;
+    })
+    .onEnd((event) => {
+      if (isAnswered) return;
+
+      const velocityX = event.velocityX;
+      const absTranslateX = Math.abs(translateX.value);
+
+      if (absTranslateX > SWIPE_THRESHOLD || Math.abs(velocityX) > 500) {
+        // Swipe completed
+        const swipedLeft = translateX.value < 0;
+        const targetX = swipedLeft ? -SCREEN_WIDTH * 1.5 : SCREEN_WIDTH * 1.5;
+
+        // Animate card off screen
+        translateX.value = withSpring(targetX, {
+          velocity: velocityX,
+          damping: 20,
+          stiffness: 90,
+        });
+        translateY.value = withSpring(-SCREEN_HEIGHT * 0.1, {
+          damping: 20,
+          stiffness: 90,
+        });
+        scale.value = withSpring(0.8);
+
+        // Handle answer (LEFT = Natural, RIGHT = Odd)
+        runOnJS(handleSwipeComplete)(swipedLeft);
+      } else {
+        // Snap back to center
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+        scale.value = withSpring(1);
+      }
     });
-  };
 
-  const isCorrectAnswer = () => {
-    return selectedAnswer === challenge.isNatural;
-  };
+  // Card animated style
+  const cardAnimatedStyle = useAnimatedStyle(() => {
+    const rotation = interpolate(
+      translateX.value,
+      [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
+      [-15, 0, 15],
+      Extrapolate.CLAMP
+    );
 
-  // Animated styles
-  const sentenceAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: sentenceScale.value }],
-  }));
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { rotate: `${rotation}deg` },
+        { scale: scale.value },
+      ],
+    };
+  });
 
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: backgroundOpacity.value,
+  // Left overlay (Natural)
+  const leftOverlayStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      translateX.value,
+      [-SCREEN_WIDTH / 2, -50, 0],
+      [1, 0.5, 0],
+      Extrapolate.CLAMP
+    );
+
+    return { opacity };
+  });
+
+  // Right overlay (Odd)
+  const rightOverlayStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      translateX.value,
+      [0, 50, SCREEN_WIDTH / 2],
+      [0, 0.5, 1],
+      Extrapolate.CLAMP
+    );
+
+    return { opacity };
+  });
+
+  // Next card style
+  const nextCardAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: nextCardScale.value }],
+    opacity: nextCardOpacity.value,
   }));
 
   const screenAnimatedStyle = useAnimatedStyle(() => ({
@@ -189,416 +263,385 @@ export default function NativeCheckScreen({
   }));
 
   return (
-    <Animated.View style={[styles.container, screenAnimatedStyle]}>
-      {/* Success background glow */}
-      <Animated.View
-        style={[styles.successBackground, backgroundAnimatedStyle]}
-        pointerEvents="none"
-      />
+    <GestureHandlerRootView style={styles.container}>
+      <Animated.View style={[StyleSheet.absoluteFill, screenAnimatedStyle]}>
+        {/* Card Stack - Right after progress bar */}
+        <View style={styles.cardStackContainer}>
+          {/* Next card (behind) - Colorful stack effect */}
+          <Animated.View style={[styles.nextCard, nextCardAnimatedStyle]}>
+            <LinearGradient
+              colors={['#E0E7FF', '#C7D2FE']}
+              style={styles.nextCardGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.nextCardInner}>
+                <Text style={styles.nextCardText}>Next ⚡</Text>
+              </View>
+            </LinearGradient>
+          </Animated.View>
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        {!showFeedback ? (
-          <>
-            {/* Learning Companion */}
-            <View style={styles.companionContainer}>
+          {/* Current card (front) - Swipeable with gradient */}
+          <GestureDetector gesture={panGesture}>
+            <Animated.View style={[styles.card, cardAnimatedStyle]}>
+              <LinearGradient
+                colors={['#FFFFFF', '#F8FAFC', '#F1F5F9']}
+                style={styles.cardGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              >
+                {/* LEFT overlay - Natural with vibrant green */}
+                <Animated.View style={[styles.overlayLeft, leftOverlayStyle]}>
+                  <View style={styles.overlayContent}>
+                    <Text style={styles.overlayIcon}>✓</Text>
+                    <Text style={styles.overlayText}>Natural!</Text>
+                  </View>
+                </Animated.View>
+
+                {/* RIGHT overlay - Odd with vibrant red */}
+                <Animated.View style={[styles.overlayRight, rightOverlayStyle]}>
+                  <View style={styles.overlayContent}>
+                    <Text style={styles.overlayIcon}>✗</Text>
+                    <Text style={styles.overlayText}>Sounds Odd</Text>
+                  </View>
+                </Animated.View>
+
+                {/* Card content */}
+                <View style={styles.cardContent}>
+                  {/* Sentence with colorful background */}
+                  <View style={styles.sentenceWrapper}>
+                    <LinearGradient
+                      colors={['#F0F9FF', '#E0F2FE']}
+                      style={styles.sentenceGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Text style={styles.sentence}>{challenge.sentence}</Text>
+                    </LinearGradient>
+                  </View>
+
+                  {/* Question with colorful styling */}
+                  <View style={styles.questionContainer}>
+                    <View style={styles.questionBadge}>
+                      <Text style={styles.questionText}>Would a native say this?</Text>
+                    </View>
+
+                    {/* Colorful arrows INSIDE card */}
+                    <View style={styles.arrowsContainer}>
+                      <View style={styles.arrowBoxLeft}>
+                        <LinearGradient
+                          colors={['#10B981', '#059669']}
+                          style={styles.arrowGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Text style={styles.arrowIcon}>←</Text>
+                        </LinearGradient>
+                        <Text style={styles.arrowLabelGreen}>Natural</Text>
+                      </View>
+
+                      <View style={styles.arrowBoxRight}>
+                        <LinearGradient
+                          colors={['#EF4444', '#DC2626']}
+                          style={styles.arrowGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Text style={styles.arrowIcon}>→</Text>
+                        </LinearGradient>
+                        <Text style={styles.arrowLabelRed}>Sounds Odd</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </Animated.View>
+          </GestureDetector>
+        </View>
+
+        {/* Feedback overlay (wrong answers) */}
+        {showCelebration && (
+          <View style={styles.feedbackOverlay}>
+            <View style={styles.feedbackCard}>
               <LearningCompanion
                 state={characterState}
                 combo={session?.currentCombo || 1}
-                size={80}
+                size={96}
               />
-            </View>
-
-            {/* Title removed - only companion animation shown */}
-
-            {/* Sentence container (no animation) */}
-            <View style={styles.sentenceContainer}>
-              <Text style={styles.sentence}>"{challenge.sentence}"</Text>
-            </View>
-
-            {/* Question */}
-            <Text style={styles.question}>
-              Would a native speaker say this?
-            </Text>
-
-            {/* Answer Buttons */}
-            <View style={styles.answerContainer}>
-              <AnswerButton
-                label="Yes, sounds natural"
-                emoji="✓"
-                isYes={true}
-                isSelected={selectedAnswer === true}
-                onPress={(event) => handleAnswer(true, event)}
-              />
-
-              <AnswerButton
-                label="No, sounds odd"
-                emoji="✗"
-                isYes={false}
-                isSelected={selectedAnswer === false}
-                onPress={(event) => handleAnswer(false, event)}
-              />
-            </View>
-          </>
-        ) : (
-          <>
-            {/* Feedback State */}
-            <View style={styles.feedbackContainer}>
-              {/* Character in celebration/disappointment */}
-              <View style={styles.feedbackCharacter}>
-                <LearningCompanion
-                  state={characterState}
-                  combo={session?.currentCombo || 1}
-                  size={96}
-                />
-              </View>
-
-              {isCorrectAnswer() ? (
-                <>
-                  <Text style={[styles.feedbackTitle, { color: '#EAB308' }]}>
-                    Spot on!
-                  </Text>
-                  <Text style={styles.feedbackSubtitle}>
-                    Great instinct!
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>
-                    Let's see...
-                  </Text>
-                </>
-              )}
-
-              {/* Original Sentence */}
-              <View style={styles.sentenceFeedbackBox}>
-                <Text style={styles.sentenceFeedbackLabel}>
-                  {challenge.isNatural ? '✓ Natural' : '✗ Unnatural'}
-                </Text>
-                <Text style={styles.sentenceFeedbackText}>
-                  "{challenge.sentence}"
-                </Text>
-              </View>
-
-              {/* Corrected Version (if not natural) */}
-              {!challenge.isNatural && challenge.correctedVersion && (
-                <View style={styles.correctedBox}>
-                  <Text style={styles.correctedLabel}>✓ Better:</Text>
-                  <Text style={styles.correctedText}>
-                    "{challenge.correctedVersion}"
-                  </Text>
-                </View>
-              )}
-
-              {/* Explanation */}
+              <Text style={[styles.feedbackTitle, { color: '#DC2626' }]}>
+                Not quite!
+              </Text>
               <View style={styles.explanationBox}>
                 <Text style={styles.explanationLabel}>💡 Why:</Text>
                 <Text style={styles.explanationText}>
                   {challenge.explanation}
                 </Text>
               </View>
-
-              {/* Continue Button - Only show for incorrect answers */}
-              {!isCorrectAnswer() && (
-                <TouchableOpacity
-                  style={styles.doneButton}
-                  onPress={() => {
-                    const finalIsCorrect = isCorrectAnswer();
-                    const correctAnswerText = challenge.isNatural ? 'Natural' : 'Not Natural';
-                    const explanationText = challenge.explanation;
-                    const challengeIdToComplete = challenge.id;
-
-                    screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
-                      if (finished) {
-                        runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
-                      }
-                    });
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.doneButtonText}>Continue →</Text>
-                </TouchableOpacity>
-              )}
             </View>
-          </>
+          </View>
         )}
-      </View>
 
-      {/* Particle Burst on Success */}
-      {showParticleBurst && (
-        <SkiaParticleBurst
-          x={tapPosition.x}
-          y={tapPosition.y}
-          preset="success"
-          onComplete={() => setShowParticleBurst(false)}
-        />
-      )}
-
-      {/* XP Flying Animation - Hide during feedback */}
-      {showXPAnimation && !showFeedback && (
-        <XPFlyingNumber
-          value={xpValue}
-          startX={tapPosition.x}
-          startY={tapPosition.y}
-          endX={SCREEN_WIDTH - 80}
-          endY={60}
-          speedBonus={speedBonus}
-          onComplete={() => setShowXPAnimation(false)}
-          delay={0}
-        />
-      )}
-    </Animated.View>
-  );
-}
-
-// Answer Button Component
-interface AnswerButtonProps {
-  label: string;
-  emoji: string;
-  isYes: boolean;
-  isSelected: boolean;
-  onPress: (event: any) => void;
-}
-
-function AnswerButton({ label, emoji, isYes, isSelected, onPress }: AnswerButtonProps) {
-  const scale = useSharedValue(1);
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1.0, { damping: 15, stiffness: 300 });
-  };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <TouchableOpacity
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
-      <Animated.View
-        style={[
-          styles.answerButton,
-          isYes ? styles.yesButton : styles.noButton,
-          isSelected && styles.answerSelected,
-          animatedStyle,
-        ]}
-      >
-        <Text style={styles.answerEmoji}>{emoji}</Text>
-        <Text style={styles.answerText}>{label}</Text>
+        {/* XP Flying Animation */}
+        {showXPAnimation && !showCelebration && (
+          <XPFlyingNumber
+            value={xpValue}
+            startX={SCREEN_WIDTH / 2}
+            startY={SCREEN_HEIGHT * 0.4}
+            endX={SCREEN_WIDTH - 80}
+            endY={60}
+            speedBonus={speedBonus}
+            onComplete={() => setShowXPAnimation(false)}
+            delay={0}
+          />
+        )}
       </Animated.View>
-    </TouchableOpacity>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA', // Clean whitish background
+    backgroundColor: '#F8FAFC',
   },
-  successBackground: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FEF3C7',
-    zIndex: 0,
-  },
-  content: {
+  cardStackContainer: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 20,
+  },
+  nextCard: {
+    position: 'absolute',
+    width: SCREEN_WIDTH - 40,
+    height: 520,
+    borderRadius: 28,
+  },
+  nextCardGradient: {
+    flex: 1,
+    borderRadius: 28,
+    borderWidth: 3,
+    borderColor: '#A5B4FC',
+  },
+  nextCardInner: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1,
   },
-  companionContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  titleSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.textDark,
-    textAlign: 'center',
-  },
-  sentenceContainer: {
-    backgroundColor: '#FFFBEB',
-    padding: 24,
-    borderRadius: 20,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: '#FEF3C7',
-    shadowColor: '#92400E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  sentence: {
+  nextCardText: {
     fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    textAlign: 'center',
-    lineHeight: 30,
+    fontWeight: '800',
+    color: '#6366F1',
+    letterSpacing: 0.5,
   },
-  question: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: COLORS.textGray,
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  answerContainer: {
-    gap: 14,
-  },
-  answerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    borderRadius: 20,
-    borderWidth: 3,
-  },
-  yesButton: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#86EFAC',
-  },
-  noButton: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FCA5A5',
-  },
-  answerSelected: {
-    borderWidth: 3,
-    borderColor: '#EAB308',
+  card: {
+    width: SCREEN_WIDTH - 40,
+    height: 520,
+    borderRadius: 28,
     ...Platform.select({
       ios: {
-        shadowColor: '#EAB308',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowColor: '#4F46E5',
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.15,
+        shadowRadius: 32,
+      },
+      android: {
+        elevation: 16,
+      },
+    }),
+  },
+  cardGradient: {
+    flex: 1,
+    borderRadius: 28,
+    borderWidth: 3,
+    borderColor: '#E2E8F0',
+  },
+  overlayLeft: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 6,
+    borderColor: '#10B981',
+  },
+  overlayRight: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 6,
+    borderColor: '#EF4444',
+  },
+  overlayContent: {
+    alignItems: 'center',
+  },
+  overlayIcon: {
+    fontSize: 96,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 12,
+    marginBottom: 12,
+  },
+  overlayText: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+    letterSpacing: 0.5,
+  },
+  cardContent: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'space-between',
+  },
+  sentenceWrapper: {
+    marginTop: 20,
+  },
+  sentenceGradient: {
+    padding: 24,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#BAE6FD',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0EA5E9',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
       },
       android: {
         elevation: 6,
       },
     }),
   },
-  answerEmoji: {
-    fontSize: 28,
-    marginRight: 12,
+  sentence: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#0F172A',
+    textAlign: 'center',
+    lineHeight: 34,
   },
-  answerText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textDark,
+  questionContainer: {
+    alignItems: 'center',
+    paddingBottom: 8,
   },
-  feedbackContainer: {
-    flex: 1,
+  questionBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 18,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#C7D2FE',
+  },
+  questionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#4F46E5',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  arrowsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 10,
+  },
+  arrowBoxLeft: {
+    alignItems: 'center',
+  },
+  arrowBoxRight: {
+    alignItems: 'center',
+  },
+  arrowGradient: {
+    width: 70,
+    height: 70,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 40,
+    marginBottom: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
-  feedbackCharacter: {
-    marginBottom: 20,
+  arrowIcon: {
+    fontSize: 38,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  arrowLabelGreen: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#059669',
+    letterSpacing: 0.5,
+  },
+  arrowLabelRed: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#DC2626',
+    letterSpacing: 0.5,
+  },
+  feedbackOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  feedbackCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.4,
+        shadowRadius: 24,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
   },
   feedbackTitle: {
     fontSize: 32,
-    fontWeight: '800',
-    marginBottom: 8,
+    fontWeight: '900',
+    marginTop: 16,
+    marginBottom: 24,
     textAlign: 'center',
-  },
-  feedbackSubtitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.textGray,
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  sentenceFeedbackBox: {
-    backgroundColor: COLORS.lightGray,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 16,
-    width: '100%',
-  },
-  sentenceFeedbackLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.textGray,
-    marginBottom: 8,
-  },
-  sentenceFeedbackText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    textAlign: 'center',
-    lineHeight: 28,
-  },
-  correctedBox: {
-    backgroundColor: '#D1FAE5',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 20,
-    width: '100%',
-  },
-  correctedLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#059669',
-    marginBottom: 8,
-  },
-  correctedText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    textAlign: 'center',
-    lineHeight: 28,
   },
   explanationBox: {
     backgroundColor: COLORS.lightGray,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 32,
+    padding: 24,
+    borderRadius: 18,
     width: '100%',
   },
   explanationLabel: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: COLORS.textDark,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   explanationText: {
     fontSize: 16,
     color: COLORS.textGray,
-    lineHeight: 24,
-  },
-  doneButton: {
-    backgroundColor: COLORS.darkNavy,
-    paddingHorizontal: SCREEN_WIDTH < 400 ? 32 : 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  doneButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    lineHeight: 26,
   },
 });

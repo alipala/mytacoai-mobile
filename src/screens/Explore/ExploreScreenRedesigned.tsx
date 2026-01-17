@@ -50,7 +50,6 @@ import { CHALLENGE_TYPE_API_NAMES } from '../../types/hearts';
 
 // Challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
-import SwipeFixScreen from './challenges/SwipeFixScreen';
 import MicroQuizScreen from './challenges/MicroQuizScreen';
 import SmartFlashcardScreen from './challenges/SmartFlashcardScreen';
 import NativeCheckScreen from './challenges/NativeCheckScreen';
@@ -95,12 +94,8 @@ const getCategoryGradient = (type: string): [string, string] => {
     case 'error_spotting':
       return ['#FFD63A', '#FFC700'];
 
-    // 🧠 REFLECTION - Learning mode (Turquoise gradient)
+    // 🧠 REFLECTION - Learning mode (Orange gradient)
     case 'smart_flashcard':
-      return ['#4ECFBF', '#3DB8A8'];
-
-    // 🔄 IMPROVEMENT - Correction mode (Orange gradient)
-    case 'swipe_fix':
       return ['#FFA955', '#FF9635'];
 
     // 📖 CREATIVE - Story building (Purple/Indigo gradient)
@@ -121,13 +116,11 @@ const getChallengeIcon = (type: string): keyof typeof Ionicons.glyphMap => {
     case 'micro_quiz':
       return 'bulb'; // Light bulb (solid)
     case 'native_check':
-      return 'chatbubble-ellipses'; // Speech bubble for natural language
+      return 'albums'; // Stacked cards icon for swipe-based challenge
     case 'error_spotting':
       return 'search'; // Magnifying glass (solid)
     case 'smart_flashcard':
       return 'layers'; // Layers/cards (solid)
-    case 'swipe_fix':
-      return 'swap-horizontal'; // Swap arrows (solid)
     case 'story_builder':
       return 'book'; // Book icon for story building
     default:
@@ -1378,7 +1371,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
 
     // Secondary challenges (learning modes)
     const secondaryChallenges = CHALLENGE_TYPES.filter(c =>
-      c.type === 'error_spotting' || c.type === 'smart_flashcard' || c.type === 'swipe_fix'
+      c.type === 'error_spotting' || c.type === 'smart_flashcard'
     );
 
     // Story Builder - Second hero challenge at bottom
@@ -1668,9 +1661,6 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
     switch (selectedChallenge.type) {
       case 'error_spotting':
         ChallengeComponent = <ErrorSpottingScreen {...commonProps} />;
-        break;
-      case 'swipe_fix':
-        ChallengeComponent = <SwipeFixScreen {...commonProps} />;
         break;
       case 'micro_quiz':
         ChallengeComponent = <MicroQuizScreen {...commonProps} />;

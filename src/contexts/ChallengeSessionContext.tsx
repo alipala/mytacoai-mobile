@@ -243,15 +243,11 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
       // Calculate XP earned
       const xpResult = calculateXP(isCorrect, timeSpent, currentSession.currentCombo);
 
-      // NEW: Consume heart via API
+      // Consume heart via API (now optimized for 200-300ms response time)
       const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[currentSession.challengeType] || currentSession.challengeType;
-      const heartResponse = await heartAPI.consumeHeart(
-        challengeTypeAPI,
-        isCorrect,
-        currentSession.id
-      );
+      const heartResponse = await heartAPI.consumeHeart(challengeTypeAPI, isCorrect, currentSession.id);
 
-      // Use functional setState to avoid race conditions
+      // Update session with heart response and challenge stats
       setSession((prevSession) => {
         if (!prevSession) return null;
 
@@ -275,7 +271,7 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
           incorrectChallengeIds: updatedIncorrectIds,
           answerTimes: [...prevSession.answerTimes, timeSpent],
           challengeStartTime: null, // Stop timer for current challenge
-          // Heart System updates
+          // Update hearts from API response
           heartPool: prevSession.heartPool ? {
             ...prevSession.heartPool,
             currentHearts: heartResponse.heartsRemaining,
@@ -300,10 +296,8 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
       // Check if out of hearts
       if (heartResponse.outOfHearts) {
         console.warn('❤️  Out of hearts! Ending session early...');
-        // Get current session and ensure lastHeartResponse is included
         const currentSessionData = sessionRef.current;
         if (currentSessionData) {
-          // Create updated session with the heart response data
           const sessionWithHeartResponse = {
             ...currentSessionData,
             lastHeartResponse: heartResponse,
@@ -316,7 +310,7 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
               refillInfo: heartResponse.refillInfo
             } : null,
           };
-          await endSessionEarly(sessionWithHeartResponse);
+          endSessionEarly(sessionWithHeartResponse);
         }
       }
     },

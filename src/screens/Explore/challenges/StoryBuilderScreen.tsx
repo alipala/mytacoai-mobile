@@ -35,7 +35,6 @@ import * as Haptics from 'expo-haptics';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
-import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
@@ -81,7 +80,6 @@ export default function StoryBuilderScreen({
   const [showFeedback, setShowFeedback] = useState(false);
   const [tapPosition, setTapPosition] = useState({ x: SCREEN_WIDTH / 2, y: 300 });
   const [showXPAnimation, setShowXPAnimation] = useState(false);
-  const [showParticleBurst, setShowParticleBurst] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
   const [startTime] = useState(Date.now());
@@ -110,7 +108,6 @@ export default function StoryBuilderScreen({
     setAvailableWords([...challenge.wordBank]);
     setShowFeedback(false);
     setShowXPAnimation(false);
-    setShowParticleBurst(false);
     setSelectedGapId(null);
     backgroundOpacity.value = 0;
   }, [challenge.id]);
@@ -211,7 +208,6 @@ export default function StoryBuilderScreen({
 
     setXPValue(xpResult.baseXP);
     setSpeedBonus(xpResult.speedBonus);
-    setShowParticleBurst(true);
 
     setTimeout(() => {
       setShowXPAnimation(true);
@@ -499,14 +495,6 @@ export default function StoryBuilderScreen({
           )}
         </View>
 
-        {showParticleBurst && (
-          <SkiaParticleBurst
-            x={tapPosition.x}
-            y={tapPosition.y}
-            preset="success"
-            onComplete={() => setShowParticleBurst(false)}
-          />
-        )}
 
         {showXPAnimation && !showFeedback && (
           <XPFlyingNumber

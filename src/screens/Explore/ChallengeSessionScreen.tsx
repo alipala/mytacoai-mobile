@@ -39,7 +39,6 @@ import { heartAPI } from '../../services/heartAPI';
 
 // Import individual challenge screens
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
-import SwipeFixScreen from './challenges/SwipeFixScreen';
 import MicroQuizScreen from './challenges/MicroQuizScreen';
 import SmartFlashcardScreen from './challenges/SmartFlashcardScreen';
 import NativeCheckScreen from './challenges/NativeCheckScreen';
@@ -420,8 +419,6 @@ export default function ChallengeSessionScreen({
     switch (currentChallenge.type) {
       case 'error_spotting':
         return <ErrorSpottingScreen key={currentChallenge.id} {...challengeProps} />;
-      case 'swipe_fix':
-        return <SwipeFixScreen key={currentChallenge.id} {...challengeProps} />;
       case 'micro_quiz':
         return <MicroQuizScreen key={currentChallenge.id} {...challengeProps} />;
       case 'smart_flashcard':

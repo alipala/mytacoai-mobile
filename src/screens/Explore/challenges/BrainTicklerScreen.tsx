@@ -19,6 +19,7 @@ import {
   Dimensions,
   AppState,
   AppStateStatus,
+  ScrollView,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -36,7 +37,6 @@ import { BrainTicklerChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
-import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
@@ -65,9 +65,9 @@ export default function BrainTicklerScreen({
   const [timerActive, setTimerActive] = useState(true);
   const [tapPosition, setTapPosition] = useState({ x: 0, y: 0 });
   const [showXPAnimation, setShowXPAnimation] = useState(false);
-  const [showParticleBurst, setShowParticleBurst] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
   const { session } = useChallengeSession();
   const { characterState, reactToAnswer, reactToSelection, updateState } = useCharacterState();
@@ -102,6 +102,7 @@ export default function BrainTicklerScreen({
   const progressPercent = useSharedValue(0);
   const backgroundOpacity = useSharedValue(0);
   const screenOpacity = useSharedValue(1);
+  const continueButtonScale = useSharedValue(1);
 
   const circumference = 2 * Math.PI * 45; // radius = 45
 
@@ -121,7 +122,7 @@ export default function BrainTicklerScreen({
     setShowFeedback(false);
     setTimerActive(true);
     setShowXPAnimation(false);
-    setShowParticleBurst(false);
+    setIsAdvancing(false);
     progressPercent.value = 0;
     timerScale.value = 1;
     backgroundOpacity.value = 0;
@@ -240,29 +241,31 @@ export default function BrainTicklerScreen({
     // Stop ALL timers immediately
     stopAllTimers();
 
-    // TRIGGER WRONG ANSWER ANIMATIONS IMMEDIATELY
-    if (!isCorrect && onWrongAnswerSelected) {
-      onWrongAnswerSelected();
-    }
+    // Removed separate wrong answer animation - using inline feedback instead
+    // if (!isCorrect && onWrongAnswerSelected) {
+    //   onWrongAnswerSelected();
+    // }
 
     // Wait briefly before showing feedback
     setTimeout(() => {
       setShowFeedback(true);
       reactToAnswer(isCorrect);
 
-      // Haptic and audio feedback - Skip for wrong answers (already done in WrongAnswerFeedback)
+      // Haptic and audio feedback
       if (Platform.OS !== 'web') {
         if (isCorrect) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
-        // Removed wrong answer haptic - handled by WrongAnswerFeedback component
       }
 
-      // Play sound effect - Skip for wrong answers (already done in WrongAnswerFeedback)
+      // Play sound effect
       if (isCorrect) {
         play('correct_answer');
+      } else {
+        play('wrong_answer');
       }
-      // Removed wrong answer sound - handled by WrongAnswerFeedback component
 
       // Calculate XP for correct answers (bonus for speed!)
       if (isCorrect) {
@@ -273,13 +276,8 @@ export default function BrainTicklerScreen({
         setXPValue(xpResult.baseXP);
         setSpeedBonus(xpResult.speedBonus);
 
-        // Show particle burst immediately
-        setShowParticleBurst(true);
-
-        // Show XP animation after particle burst starts
-        setTimeout(() => {
-          setShowXPAnimation(true);
-        }, 150);
+        // Show XP animation
+        setShowXPAnimation(true);
 
         // Background success glow
         backgroundOpacity.value = withSequence(
@@ -297,12 +295,12 @@ export default function BrainTicklerScreen({
           const explanationText = challenge.explanation;
           const challengeIdToComplete = challenge.id;
 
-          screenOpacity.value = withTiming(0, { duration: 300 }, (finished) => {
+          screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
             if (finished) {
               runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
             }
           });
-        }, 1800); // Increased from 1200 to 1800ms to show celebration fully
+        }, 800); // ✅ OPTIMIZED: Reduced from 1800ms to 800ms for snappy transitions
       }
     }, 200); // Anticipation delay
   };
@@ -350,6 +348,10 @@ export default function BrainTicklerScreen({
     strokeDashoffset: circumference - (progressPercent.value / 100) * circumference,
   }));
 
+  const continueButtonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: continueButtonScale.value }],
+  }));
+
   return (
     <Animated.View style={[styles.container, screenAnimatedStyle]}>
       {/* Success background glow */}
@@ -359,154 +361,159 @@ export default function BrainTicklerScreen({
       />
 
       {/* Main Content */}
-      <View style={styles.content}>
-        {!showFeedback ? (
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        {/* Timer - Always visible */}
+        {!showFeedback && (
+          <Animated.View style={[styles.timerContainer, timerAnimatedStyle]}>
+            <Svg width="120" height="120">
+              {/* Background circle */}
+              <Circle
+                cx="60"
+                cy="60"
+                r="45"
+                stroke="#E5E7EB"
+                strokeWidth="8"
+                fill="none"
+              />
+              {/* Progress circle */}
+              <AnimatedCircle
+                cx="60"
+                cy="60"
+                r="45"
+                stroke={getTimerColor()}
+                strokeWidth="8"
+                fill="none"
+                strokeDasharray={circumference}
+                animatedProps={progressCircleProps}
+                strokeLinecap="round"
+                transform="rotate(-90 60 60)"
+              />
+            </Svg>
+            <View style={styles.timerTextContainer}>
+              <Text style={[styles.timerText, { color: getTimerColor() }]}>
+                {timeLeft}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Character - shown during feedback */}
+        {showFeedback && (
+          <View style={styles.companionContainer}>
+            <LearningCompanion
+              state={characterState}
+              combo={session?.currentCombo || 1}
+              size={64}
+            />
+          </View>
+        )}
+
+        {/* Question container - hide during feedback */}
+        {!showFeedback && (
+          <View style={styles.questionContainer}>
+            <Text style={styles.question}>{challenge.question}</Text>
+          </View>
+        )}
+
+        {/* Feedback Title - shown after answer */}
+        {showFeedback && (
           <>
-            {/* Timer - No companion animation needed, timer provides visual feedback */}
-            <Animated.View style={[styles.timerContainer, timerAnimatedStyle]}>
-              <Svg width="120" height="120">
-                {/* Background circle */}
-                <Circle
-                  cx="60"
-                  cy="60"
-                  r="45"
-                  stroke="#E5E7EB"
-                  strokeWidth="8"
-                  fill="none"
-                />
-                {/* Progress circle */}
-                <AnimatedCircle
-                  cx="60"
-                  cy="60"
-                  r="45"
-                  stroke={getTimerColor()}
-                  strokeWidth="8"
-                  fill="none"
-                  strokeDasharray={circumference}
-                  animatedProps={progressCircleProps}
-                  strokeLinecap="round"
-                  transform="rotate(-90 60 60)"
-                />
-              </Svg>
-              <View style={styles.timerTextContainer}>
-                <Text style={[styles.timerText, { color: getTimerColor() }]}>
-                  {timeLeft}
+            {timeLeft === 0 && !selectedOption ? (
+              <>
+                <Text style={[styles.feedbackTitle, { color: '#DC2626' }]}>
+                  Time's up!
                 </Text>
-              </View>
-            </Animated.View>
-
-            {/* Question container (no animation) */}
-            <View style={styles.questionContainer}>
-              <Text style={styles.question}>{challenge.question}</Text>
-            </View>
-
-            {/* Options with dynamic layout */}
-            <View style={styles.optionsContainer}>
-              {challenge.options.map((option, index) => {
-                const isSelected = selectedOption === option.id;
-
-                return (
-                  <OptionButton
-                    key={option.id}
-                    option={option}
-                    index={index}
-                    isSelected={isSelected}
-                    onPress={(event) => handleOptionPress(option.id, event)}
-                  />
-                );
-              })}
-            </View>
-          </>
-        ) : (
-          <>
-            {/* Feedback State */}
-            <View style={styles.feedbackContainer}>
-              {/* Character in celebration/disappointment */}
-              <View style={styles.feedbackCharacter}>
-                <LearningCompanion
-                  state={characterState}
-                  combo={session?.currentCombo || 1}
-                  size={96}
-                />
-              </View>
-
-              {timeLeft === 0 && !selectedOption ? (
-                <>
-                  <Text style={[styles.feedbackTitle, { color: '#DC2626' }]}>
-                    Time's up!
-                  </Text>
-                  <Text style={styles.feedbackSubtitle}>
-                    No worries, let's see the answer
-                  </Text>
-                </>
-              ) : isCorrectAnswer() ? (
-                <>
-                  <Text style={[styles.feedbackTitle, { color: '#7C3AED' }]}>
-                    Amazing!
-                  </Text>
-                  <Text style={styles.feedbackSubtitle}>
-                    Lightning fast thinking!
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text style={[styles.feedbackTitle, { color: '#D97706' }]}>
-                    Good try!
-                  </Text>
-                </>
-              )}
-
-              {/* Correct Answer Display (if wrong or timeout) */}
-              {(!isCorrectAnswer() || !selectedOption) && correctOption && (
-                <View style={styles.correctAnswerBox}>
-                  <Text style={styles.correctAnswerLabel}>✓ Correct answer:</Text>
-                  <Text style={styles.correctAnswerText}>
-                    {correctOption.text}
-                  </Text>
-                </View>
-              )}
-
-              {/* Explanation */}
-              <View style={styles.explanationBox}>
-                <Text style={styles.explanationLabel}>💡 Explanation:</Text>
-                <Text style={styles.explanationText}>{challenge.explanation}</Text>
-              </View>
-
-              {/* Continue Button - Only show for incorrect answers or timeout */}
-              {(!isCorrectAnswer() || !selectedOption) && (
-                <TouchableOpacity
-                  style={styles.doneButton}
-                  onPress={() => {
-                    const finalIsCorrect = isCorrectAnswer();
-                    const correctAnswerText = correctOption?.text || '';
-                    const explanationText = challenge.explanation;
-                    const challengeIdToComplete = challenge.id;
-
-                    screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
-                      if (finished) {
-                        runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
-                      }
-                    });
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.doneButtonText}>Continue →</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+                <Text style={styles.feedbackSubtitle}>
+                  No worries, let's see the answer
+                </Text>
+              </>
+            ) : isCorrectAnswer() ? (
+              <>
+                <Text style={[styles.feedbackTitle, { color: '#7C3AED' }]}>
+                  Amazing!
+                </Text>
+                <Text style={styles.feedbackSubtitle}>
+                  Lightning fast thinking!
+                </Text>
+              </>
+            ) : (
+              <Text style={[styles.feedbackTitle, { color: '#D97706', marginBottom: 16 }]}>
+                Good try!
+              </Text>
+            )}
           </>
         )}
-      </View>
 
-      {/* Particle Burst on Success */}
-      {showParticleBurst && (
-        <SkiaParticleBurst
-          x={tapPosition.x}
-          y={tapPosition.y}
-          preset="success"
-          onComplete={() => setShowParticleBurst(false)}
-        />
-      )}
+        {/* Options - always visible with highlighting */}
+        <View style={styles.optionsContainer}>
+          {challenge.options.map((option, index) => {
+            const isSelected = selectedOption === option.id;
+            const isCorrect = option.isCorrect;
+            const showAsWrong = showFeedback && isSelected && !isCorrect;
+            const showAsCorrect = showFeedback && isCorrect;
+
+            return (
+              <OptionButtonWithFeedback
+                key={option.id}
+                option={option}
+                index={index}
+                isSelected={isSelected}
+                showAsWrong={showAsWrong}
+                showAsCorrect={showAsCorrect}
+                disabled={showFeedback}
+                onPress={(event) => handleOptionPress(option.id, event)}
+              />
+            );
+          })}
+        </View>
+
+        {/* Explanation - shown inline for wrong answers */}
+        {showFeedback && (!isCorrectAnswer() || !selectedOption) && (
+          <View style={styles.explanationBox}>
+            <Text style={styles.explanationLabel}>EXPLANATION</Text>
+            <Text style={styles.explanationText}>{challenge.explanation}</Text>
+          </View>
+        )}
+
+        {/* Continue Button - Fixed position at bottom */}
+        {showFeedback && (!isCorrectAnswer() || !selectedOption) && (
+          <View style={styles.continueButtonContainer}>
+            <TouchableOpacity
+              onPressIn={() => {
+                continueButtonScale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
+              }}
+              onPressOut={() => {
+                continueButtonScale.value = withSpring(1.0, { damping: 15, stiffness: 400 });
+              }}
+              onPress={() => {
+                if (isAdvancing) return; // Prevent multiple taps
+                setIsAdvancing(true);
+
+                const finalIsCorrect = isCorrectAnswer();
+                const correctAnswerText = correctOption?.text || '';
+                const explanationText = challenge.explanation;
+                const challengeIdToComplete = challenge.id;
+
+                screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
+                  if (finished) {
+                    runOnJS(handleDone)(challengeIdToComplete, finalIsCorrect, correctAnswerText, explanationText);
+                  }
+                });
+              }}
+              activeOpacity={1}
+            >
+              <Animated.View style={[styles.continueButton, continueButtonAnimatedStyle]}>
+                <Text style={styles.continueButtonText}>Continue</Text>
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
 
       {/* XP Flying Animation - Hide during feedback */}
       {showXPAnimation && !showFeedback && (
@@ -525,19 +532,32 @@ export default function BrainTicklerScreen({
   );
 }
 
-// Option Button Component
-interface OptionButtonProps {
+// Option Button Component with Feedback
+interface OptionButtonWithFeedbackProps {
   option: { id: string; text: string; isCorrect: boolean };
   index: number;
   isSelected: boolean;
+  showAsWrong: boolean;
+  showAsCorrect: boolean;
+  disabled: boolean;
   onPress: (event: any) => void;
 }
 
-function OptionButton({ option, index, isSelected, onPress }: OptionButtonProps) {
+function OptionButtonWithFeedback({
+  option,
+  index,
+  isSelected,
+  showAsWrong,
+  showAsCorrect,
+  disabled,
+  onPress
+}: OptionButtonWithFeedbackProps) {
   const scale = useSharedValue(1);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+    if (!disabled) {
+      scale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+    }
   };
 
   const handlePressOut = () => {
@@ -554,15 +574,24 @@ function OptionButton({ option, index, isSelected, onPress }: OptionButtonProps)
       onPressOut={handlePressOut}
       onPress={onPress}
       activeOpacity={0.9}
+      disabled={disabled}
     >
       <Animated.View
         style={[
           styles.optionButton,
-          isSelected && styles.optionSelected,
+          isSelected && !showAsWrong && !showAsCorrect && styles.optionSelected,
+          showAsWrong && styles.optionWrong,
+          showAsCorrect && styles.optionCorrect,
           animatedStyle,
         ]}
       >
-        <Text style={styles.optionText}>{option.text}</Text>
+        <Text style={[
+          styles.optionText,
+          showAsWrong && styles.optionTextWrong,
+          showAsCorrect && styles.optionTextCorrect,
+        ]}>
+          {option.text}
+        </Text>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -580,15 +609,16 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
-    justifyContent: 'center',
     zIndex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 32,
   },
   companionContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   titleSection: {
     alignItems: 'center',
@@ -616,9 +646,9 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     backgroundColor: '#FFE8F5',
-    padding: 24,
+    padding: 20,
     borderRadius: 20,
-    marginBottom: 20,
+    marginBottom: 16,
     borderWidth: 2,
     borderColor: '#FBCFE8',
     shadowColor: '#831843',
@@ -635,36 +665,76 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   optionsContainer: {
-    gap: 12,
-    marginTop: 8,
+    gap: 10,
+    marginTop: 4,
   },
   optionButton: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: COLORS.border,
+    padding: 18,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 2,
+        elevation: 1,
       },
     }),
   },
   optionSelected: {
     borderColor: '#EC4899',
     backgroundColor: '#FCE7F3',
+    borderWidth: 1.5,
+  },
+  optionWrong: {
+    borderColor: '#F87171',
+    borderWidth: 2,
+    backgroundColor: '#FEF2F2',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#DC2626',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  optionCorrect: {
+    borderColor: '#34D399',
+    borderWidth: 2,
+    backgroundColor: '#ECFDF5',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#059669',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   optionText: {
     fontSize: 17,
     fontWeight: '600',
-    color: COLORS.textDark,
+    color: '#1F2937',
     textAlign: 'center',
+    lineHeight: 24,
+  },
+  optionTextWrong: {
+    color: '#DC2626',
+  },
+  optionTextCorrect: {
+    color: '#059669',
   },
   feedbackContainer: {
     flex: 1,
@@ -676,16 +746,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   feedbackTitle: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '800',
-    marginBottom: 8,
+    marginBottom: 4,
+    marginTop: 4,
     textAlign: 'center',
   },
   feedbackSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
-    color: COLORS.textGray,
-    marginBottom: 32,
+    color: '#6B7280',
+    marginBottom: 12,
     textAlign: 'center',
   },
   correctAnswerBox: {
@@ -708,22 +779,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   explanationBox: {
-    backgroundColor: COLORS.lightGray,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 32,
-    width: '100%',
+    backgroundColor: '#F9FAFB',
+    padding: 14,
+    borderRadius: 12,
+    marginTop: 12,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#3B82F6',
   },
   explanationLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    color: COLORS.textDark,
-    marginBottom: 8,
+    color: '#374151',
+    marginBottom: 6,
+    letterSpacing: 0.5,
   },
   explanationText: {
-    fontSize: 16,
-    color: COLORS.textGray,
-    lineHeight: 24,
+    fontSize: 15,
+    color: '#6B7280',
+    lineHeight: 22,
   },
   doneButton: {
     backgroundColor: COLORS.darkNavy,
@@ -746,5 +820,36 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  continueButtonContainer: {
+    marginTop: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  continueButton: {
+    backgroundColor: '#2563EB',
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+    alignSelf: 'center',
+    minWidth: SCREEN_WIDTH < 400 ? 180 : 200,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2563EB',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  continueButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0.3,
   },
 });

@@ -88,12 +88,6 @@ export const CHALLENGE_TYPES = [
     description: 'Find grammar and vocabulary errors',
   },
   {
-    type: 'swipe_fix',
-    title: 'Swipe to Compare',
-    emoji: '↔️',
-    description: 'Learn from your mistakes',
-  },
-  {
     type: 'micro_quiz',
     title: 'Quick Quiz',
     emoji: '💡',
@@ -108,7 +102,7 @@ export const CHALLENGE_TYPES = [
   {
     type: 'native_check',
     title: 'Sounds Natural?',
-    emoji: '🎯',
+    emoji: '🃏',
     description: 'Would a native say this?',
   },
   {
@@ -363,11 +357,11 @@ export const ChallengeService = {
       // Return default counts for mock data
       return {
         error_spotting: 10,
-        swipe_fix: 10,
         micro_quiz: 10,
         smart_flashcard: 10,
         native_check: 10,
         brain_tickler: 10,
+        story_builder: 10,
       };
     }
 
@@ -383,11 +377,11 @@ export const ChallengeService = {
         console.warn('⚠️ Invalid counts format, using defaults');
         return {
           error_spotting: 10,
-          swipe_fix: 10,
           micro_quiz: 10,
           smart_flashcard: 10,
           native_check: 10,
           brain_tickler: 10,
+          story_builder: 10,
         };
       }
 
@@ -398,11 +392,11 @@ export const ChallengeService = {
       // Return default counts on error
       return {
         error_spotting: 10,
-        swipe_fix: 10,
         micro_quiz: 10,
         smart_flashcard: 10,
         native_check: 10,
         brain_tickler: 10,
+        story_builder: 10,
       };
     }
   },

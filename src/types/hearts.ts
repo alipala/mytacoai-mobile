@@ -27,7 +27,6 @@ export interface RefillInfo {
 
 export interface AllHeartsStatus {
   error_spotting: HeartPool;
-  swipe_fix: HeartPool;
   micro_quiz: HeartPool;
   smart_flashcard: HeartPool;
   native_check: HeartPool;
@@ -76,7 +75,6 @@ export const HEART_CONFIG = {
 // Challenge type display names
 export const CHALLENGE_TYPE_NAMES: Record<string, string> = {
   error_spotting: 'Error Spotting',
-  swipe_fix: 'Swipe Fix',
   micro_quiz: 'Micro Quiz',
   smart_flashcard: 'Smart Flashcard',
   native_check: 'Native Check',
@@ -87,7 +85,6 @@ export const CHALLENGE_TYPE_NAMES: Record<string, string> = {
 // Challenge type to snake_case mapping (for API calls)
 export const CHALLENGE_TYPE_API_NAMES: Record<string, string> = {
   'Error Spotting': 'error_spotting',
-  'Swipe Fix': 'swipe_fix',
   'Micro Quiz': 'micro_quiz',
   'Smart Flashcard': 'smart_flashcard',
   'Native Check': 'native_check',

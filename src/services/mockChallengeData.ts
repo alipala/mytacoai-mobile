@@ -10,7 +10,6 @@ export type Language = 'english' | 'spanish' | 'dutch' | 'german' | 'french' | '
 
 export type ChallengeType =
   | 'error_spotting'
-  | 'swipe_fix'
   | 'micro_quiz'
   | 'smart_flashcard'
   | 'native_check'
@@ -38,16 +37,6 @@ export interface ErrorSpottingChallenge extends ChallengeBase {
   }>;
   explanation: string;
   correctedSentence: string;
-}
-
-export interface SwipeFixChallenge extends ChallengeBase {
-  type: 'swipe_fix';
-  concept: string;
-  examples: Array<{
-    text: string;
-    isCorrect: boolean;
-    explanation: string;
-  }>;
 }
 
 export interface MicroQuizChallenge extends ChallengeBase {
@@ -106,7 +95,6 @@ export interface StoryBuilderChallenge extends ChallengeBase {
 
 export type Challenge =
   | ErrorSpottingChallenge
-  | SwipeFixChallenge
   | MicroQuizChallenge
   | SmartFlashcardChallenge
   | NativeCheckChallenge
@@ -244,153 +232,6 @@ const errorSpottingByLevel: Record<CEFRLevel, ErrorSpottingChallenge[]> = {
       ],
       explanation: '"Reticent" means unwilling to speak. Use "reluctant to" for unwillingness to do something',
       correctedSentence: 'She was reluctant to share her opinion on the matter.',
-    },
-  ],
-};
-
-const swipeFixByLevel: Record<CEFRLevel, SwipeFixChallenge[]> = {
-  A1: [
-    {
-      id: 'sf_a1_1',
-      type: 'swipe_fix',
-      title: 'Compare & Learn',
-      emoji: '🔄',
-      description: 'Swipe to compare',
-      cefrLevel: 'A1',
-      estimatedSeconds: 12,
-      concept: 'Using "a" vs "an"',
-      examples: [
-        {
-          text: 'I have a apple',
-          isCorrect: false,
-          explanation: 'Use "an" before vowel sounds',
-        },
-        {
-          text: 'I have an apple',
-          isCorrect: true,
-          explanation: 'Perfect! "An" comes before words starting with vowel sounds',
-        },
-      ],
-    },
-  ],
-  A2: [
-    {
-      id: 'sf_a2_1',
-      type: 'swipe_fix',
-      title: 'Compare & Learn',
-      emoji: '🔄',
-      description: 'Compare correct vs incorrect',
-      cefrLevel: 'A2',
-      estimatedSeconds: 12,
-      concept: 'Much vs Many',
-      examples: [
-        {
-          text: 'How much books do you have?',
-          isCorrect: false,
-          explanation: 'Use "many" with countable items',
-        },
-        {
-          text: 'How many books do you have?',
-          isCorrect: true,
-          explanation: 'Correct! "Many" is for things you can count',
-        },
-      ],
-    },
-  ],
-  B1: [
-    {
-      id: 'sf_b1_1',
-      type: 'swipe_fix',
-      title: 'Compare & Learn',
-      emoji: '🔄',
-      description: 'Swipe to learn the difference',
-      cefrLevel: 'B1',
-      estimatedSeconds: 15,
-      concept: 'Make vs Do',
-      examples: [
-        {
-          text: 'I need to make my homework',
-          isCorrect: false,
-          explanation: 'Use "do" with homework, not "make"',
-        },
-        {
-          text: 'I need to do my homework',
-          isCorrect: true,
-          explanation: 'Perfect! We "do" homework, exercises, and tasks',
-        },
-      ],
-    },
-  ],
-  B2: [
-    {
-      id: 'sf_b2_1',
-      type: 'swipe_fix',
-      title: 'Compare & Learn',
-      emoji: '🔄',
-      description: 'Compare the nuance',
-      cefrLevel: 'B2',
-      estimatedSeconds: 15,
-      concept: 'Affect vs Effect',
-      examples: [
-        {
-          text: 'The weather will affect the game',
-          isCorrect: true,
-          explanation: '"Affect" is usually a verb meaning to influence',
-        },
-        {
-          text: 'The weather will have an effect on the game',
-          isCorrect: true,
-          explanation: '"Effect" is usually a noun meaning the result of a change',
-        },
-      ],
-    },
-  ],
-  C1: [
-    {
-      id: 'sf_c1_1',
-      type: 'swipe_fix',
-      title: 'Compare & Learn',
-      emoji: '🔄',
-      description: 'Subtle distinction',
-      cefrLevel: 'C1',
-      estimatedSeconds: 18,
-      concept: 'Imply vs Infer',
-      examples: [
-        {
-          text: 'The speaker implied that changes were coming',
-          isCorrect: true,
-          explanation: '"Imply" means to suggest indirectly (speaker\'s action)',
-        },
-        {
-          text: 'The audience inferred that changes were coming',
-          isCorrect: true,
-          explanation: '"Infer" means to conclude from evidence (listener\'s action)',
-        },
-      ],
-    },
-  ],
-  C2: [
-    {
-      id: 'sf_c2_1',
-      type: 'swipe_fix',
-      title: 'Compare & Learn',
-      emoji: '🔄',
-      description: 'Advanced nuance',
-      cefrLevel: 'C2',
-      estimatedSeconds: 20,
-      concept: 'Disinterested vs Uninterested',
-      examples: [
-        {
-          text: 'He was uninterested in the proposal',
-          isCorrect: true,
-          explanation: '"Uninterested" means not interested or bored',
-        },
-        {
-          text: 'A judge must be disinterested',
-          isCorrect: true,
-          explanation: '"Disinterested" means impartial, without bias',
-        },
-      ],
     },
   ],
 };
@@ -817,14 +658,12 @@ export function getDailyChallenges(cefrLevel: CEFRLevel = 'B1'): Challenge[] {
   // Always include one of each type (6 total)
   // Randomly select from available challenges for the level
   const errorSpotting = getRandomItem(errorSpottingByLevel[cefrLevel]);
-  const swipeFix = getRandomItem(swipeFixByLevel[cefrLevel]);
   const microQuiz = getRandomItem(microQuizByLevel[cefrLevel]);
   const flashcard = getRandomItem(flashcardByLevel[cefrLevel]);
   const nativeCheck = getRandomItem(nativeCheckByLevel[cefrLevel]);
   const brainTickler = getRandomItem(brainTicklerByLevel[cefrLevel]);
 
   if (errorSpotting) challenges.push(errorSpotting);
-  if (swipeFix) challenges.push(swipeFix);
   if (microQuiz) challenges.push(microQuiz);
   if (flashcard) challenges.push(flashcard);
   if (nativeCheck) challenges.push(nativeCheck);

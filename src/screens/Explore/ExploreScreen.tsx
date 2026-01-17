@@ -31,7 +31,6 @@ import { AllHeartsStatus } from '../../types/hearts';
 
 // Import challenge screens (will be created next)
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
-import SwipeFixScreen from './challenges/SwipeFixScreen';
 import MicroQuizScreen from './challenges/MicroQuizScreen';
 import SmartFlashcardScreen from './challenges/SmartFlashcardScreen';
 import NativeCheckScreen from './challenges/NativeCheckScreen';
@@ -378,8 +377,6 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
     switch (selectedChallenge.type) {
       case 'error_spotting':
         return <ErrorSpottingScreen {...commonProps} />;
-      case 'swipe_fix':
-        return <SwipeFixScreen {...commonProps} />;
       case 'micro_quiz':
         return <MicroQuizScreen {...commonProps} />;
       case 'smart_flashcard':

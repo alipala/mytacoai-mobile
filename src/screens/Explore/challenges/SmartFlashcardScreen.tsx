@@ -33,7 +33,6 @@ import { SmartFlashcardChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
-import { SkiaParticleBurst } from '../../../components/SkiaParticleBurst';
 import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
@@ -57,7 +56,6 @@ export default function SmartFlashcardScreen({
   const [showCelebration, setShowCelebration] = useState(false);
   const [tapPosition, setTapPosition] = useState({ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 });
   const [showXPAnimation, setShowXPAnimation] = useState(false);
-  const [showParticleBurst, setShowParticleBurst] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
 
@@ -81,7 +79,6 @@ export default function SmartFlashcardScreen({
     setIsFlipped(false);
     setShowCelebration(false);
     setShowXPAnimation(false);
-    setShowParticleBurst(false);
     flipRotation.value = 0;
   }, [challenge.id]);
 
@@ -119,9 +116,6 @@ export default function SmartFlashcardScreen({
 
     // Show celebration
     setShowCelebration(true);
-
-    // Show particle burst immediately
-    setShowParticleBurst(true);
 
     // Show XP animation
     setTimeout(() => {
@@ -286,15 +280,6 @@ export default function SmartFlashcardScreen({
         )}
       </View>
 
-      {/* Particle Burst on Completion */}
-      {showParticleBurst && (
-        <SkiaParticleBurst
-          x={tapPosition.x}
-          y={tapPosition.y}
-          preset="success"
-          onComplete={() => setShowParticleBurst(false)}
-        />
-      )}
 
       {/* XP Flying Animation - Hide during celebration */}
       {showXPAnimation && !showCelebration && (
