@@ -31,8 +31,6 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { SmartFlashcardChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
-import { LearningCompanion } from '../../../components/LearningCompanion';
-import { useCharacterState } from '../../../hooks/useCharacterState';
 import { useAudio } from '../../../hooks/useAudio';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -50,7 +48,6 @@ export default function SmartFlashcardScreen({
 }: SmartFlashcardScreenProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const { characterState, updateState } = useCharacterState();
   const { play } = useAudio();
 
   // Animation values
@@ -154,17 +151,6 @@ export default function SmartFlashcardScreen({
 
   return (
     <Animated.View style={[styles.container, screenAnimatedStyle]}>
-      {/* Celebration Companion - Only shows after "Got It!" is pressed */}
-      {showCelebration && (
-        <View style={styles.celebrationCompanion}>
-          <LearningCompanion
-            state={characterState}
-            combo={1}
-            size={96}
-          />
-        </View>
-      )}
-
       {/* Main Content */}
       <View style={styles.content}>
         {/* Flip Hint */}
@@ -252,14 +238,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA', // Clean whitish background
-  },
-  celebrationCompanion: {
-    position: 'absolute',
-    top: 80, // Position above the card
-    alignSelf: 'center',
-    zIndex: 1000,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
     flex: 1,
