@@ -6,13 +6,27 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "withoutCredentials": true
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "withoutCredentials": true
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "withoutCredentials": false
+      }
+    }
+  },
+  "hooks": {
+    "postInstall": {
+      "android": "./eas-build-post-install.sh"
     }
   },
   "submit": {
