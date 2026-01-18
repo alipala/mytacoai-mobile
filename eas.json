@@ -20,13 +20,9 @@
     "production": {
       "autoIncrement": true,
       "android": {
-        "withoutCredentials": false
+        "withoutCredentials": false,
+        "buildType": "apk"
       }
-    }
-  },
-  "hooks": {
-    "postInstall": {
-      "android": "./eas-build-post-install.sh"
     }
   },
   "submit": {
