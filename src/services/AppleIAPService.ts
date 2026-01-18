@@ -4,9 +4,14 @@
  */
 
 import { Platform } from 'react-native';
-import * as InAppPurchases from 'expo-in-app-purchases';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OpenAPI } from '../api/generated/core/OpenAPI';
+
+// Dynamic import for iOS only - prevents crash on Android where native module is excluded
+let InAppPurchases: any = null;
+if (Platform.OS === 'ios') {
+  InAppPurchases = require('expo-in-app-purchases');
+}
 
 // Apple IAP Product IDs
 export const APPLE_IAP_PRODUCTS = {

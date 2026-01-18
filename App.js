@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, ActivityIndicator, Text, StyleSheet, Alert } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet, Alert, InteractionManager } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
 // Onboarding Screens
@@ -61,7 +61,7 @@ import ChallengeSessionScreen from './src/screens/Explore/ChallengeSessionScreen
 // News Screens (Daily News Tab Feature)
 import { NewsListScreen, NewsDetailScreen } from './src/screens/News';
 
-import './src/api/config'; // Initialize API config
+// API config will be loaded dynamically after initial render for better startup performance
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -186,6 +186,20 @@ export default function App() {
   const notificationListener = useRef();
   const responseListener = useRef();
   const navigationRef = useRef();
+
+  // Load API config after initial render (performance optimization)
+  useEffect(() => {
+    const loadAPIConfig = () => {
+      InteractionManager.runAfterInteractions(() => {
+        // Dynamically import API config after UI is ready
+        import('./src/api/config').catch((error) => {
+          console.log('⚠️ API config load error (non-critical):', error);
+        });
+      });
+    };
+
+    loadAPIConfig();
+  }, []);
 
   // Check authentication and onboarding status on app startup
   useEffect(() => {
