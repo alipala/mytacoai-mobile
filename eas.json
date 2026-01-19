@@ -21,7 +21,7 @@
       "autoIncrement": true,
       "android": {
         "withoutCredentials": false,
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   },
