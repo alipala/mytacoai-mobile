@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { createStyles } from './styles/PricingModal.styles';
 import AppleIAPService, { APPLE_IAP_PRODUCTS } from '../services/AppleIAPService';
+import GooglePlayBillingService, { GOOGLE_PLAY_PRODUCTS } from '../services/GooglePlayBillingService';
 
 interface PricingPlan {
   id: string;
@@ -122,6 +123,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
   const [currentIndex, setCurrentIndex] = useState(0);
   const [appleIAPAvailable, setAppleIAPAvailable] = useState(false);
+  const [googlePlayAvailable, setGooglePlayAvailable] = useState(false);
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -130,9 +132,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Apple IAP when modal opens on iOS
+  // Initialize IAP when modal opens (iOS: Apple IAP, Android: Google Play Billing)
   useEffect(() => {
-    if (visible && Platform.OS === 'ios') {
+    if (visible) {
       // Reset states before initializing
       setIsInitializing(false);
       setProductsLoaded(false);
@@ -148,8 +150,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
       initTimeoutRef.current = timeoutId;
 
-      // Start initialization
-      initializeAppleIAP();
+      // Start initialization based on platform
+      if (Platform.OS === 'ios') {
+        initializeAppleIAP();
+      } else if (Platform.OS === 'android') {
+        initializeGooglePlayBilling();
+      }
     }
 
     // Cleanup function
@@ -159,7 +165,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         initTimeoutRef.current = null;
       }
     };
-  }, [visible]); // ✅ FIXED: Only depend on 'visible', not 'productsLoaded'
+  }, [visible]);
 
   const initializeAppleIAP = async () => {
     try {
@@ -222,6 +228,67 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     }
   };
 
+  const initializeGooglePlayBilling = async () => {
+    try {
+      setIsInitializing(true);
+      setProductsLoaded(false);
+      setLoadingProgress('connecting');
+      setProductLoadError(null);
+      console.log('[PRICING_MODAL] Starting Google Play Billing initialization...');
+
+      // Initialize Google Play Billing service (sets up purchase listener)
+      const initialized = await GooglePlayBillingService.initialize();
+      if (!initialized) {
+        console.log('[PRICING_MODAL] Failed to initialize Google Play Billing');
+        setGooglePlayAvailable(false);
+        setIsInitializing(false);
+        setProductLoadError('Failed to connect to Google Play. Please check your connection.');
+        return;
+      }
+
+      // Check availability
+      const available = await GooglePlayBillingService.isAvailable();
+      setGooglePlayAvailable(available);
+      console.log('[PRICING_MODAL] Google Play Billing available:', available);
+
+      if (available) {
+        setLoadingProgress('fetching');
+        console.log('[PRICING_MODAL] Fetching products with retry logic...');
+
+        // CRITICAL: Fetch products from Google Play before purchase
+        // This is REQUIRED by expo-in-app-purchases before calling purchaseItemAsync
+        // Now includes automatic retry logic (3 attempts with 2s delays)
+        const products = await GooglePlayBillingService.getProducts();
+        console.log('[PRICING_MODAL] Loaded products:', products.length);
+
+        if (products.length > 0) {
+          setProductsLoaded(true);
+          setLoadingProgress('ready');
+          console.log('[PRICING_MODAL] ✅ Products ready for purchase');
+
+          // Clear timeout since products loaded successfully
+          if (initTimeoutRef.current) {
+            clearTimeout(initTimeoutRef.current);
+            initTimeoutRef.current = null;
+          }
+        } else {
+          console.warn('[PRICING_MODAL] ⚠️ No products loaded from Google Play after retries');
+          setProductsLoaded(false);
+          setLoadingProgress('timeout');
+          setProductLoadError('Unable to load subscription products. Products may need to be published in Google Play Console.');
+        }
+      }
+    } catch (error) {
+      console.error('[PRICING_MODAL] Failed to initialize Google Play Billing:', error);
+      setGooglePlayAvailable(false);
+      setProductsLoaded(false);
+      setLoadingProgress('timeout');
+      setProductLoadError(error instanceof Error ? error.message : 'An unexpected error occurred');
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
   const handleTogglePeriod = () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -230,12 +297,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   };
 
   const handleSelectPlan = async (planId: string) => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
     // If timeout state, trigger retry instead of purchase
-    if (Platform.OS === 'ios' && loadingProgress === 'timeout') {
+    if ((Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'timeout') {
       console.log('[PRICING_MODAL] Retry triggered from button tap');
       handleRetryLoadProducts();
       return;
@@ -255,7 +322,20 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         'Products are still loading from the App Store. Please try again in a moment.',
         [{ text: 'OK' }]
       );
+    } else if (Platform.OS === 'android' && googlePlayAvailable && productsLoaded) {
+      // Use Google Play Billing on Android if available AND products are loaded
+      console.log('[PRICING_MODAL] Using Google Play Billing for purchase');
+      await handleGooglePlayPurchase(planId, period);
+    } else if (Platform.OS === 'android' && googlePlayAvailable && !productsLoaded) {
+      // Products not loaded yet - should not happen due to button being disabled
+      console.error('[PRICING_MODAL] Products not loaded, cannot purchase');
+      Alert.alert(
+        'Please Wait',
+        'Products are still loading from Google Play. Please try again in a moment.',
+        [{ text: 'OK' }]
+      );
     } else {
+      // Fallback to Stripe for web
       console.log('[PRICING_MODAL] Using Stripe for purchase');
       onSelectPlan(planId, period); // This will navigate to Stripe checkout
     }
@@ -303,6 +383,48 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     }
   };
 
+  const handleGooglePlayPurchase = async (planId: string, period: 'monthly' | 'annual') => {
+    try {
+      // Map plan ID to Google Play product ID
+      const productKey = `${planId}_${period}` as keyof typeof GOOGLE_PLAY_PRODUCTS;
+      const productId = GOOGLE_PLAY_PRODUCTS[productKey];
+
+      if (!productId) {
+        throw new Error('Invalid product ID');
+      }
+
+      console.log('[PRICING_MODAL] Initiating Google Play purchase:', productId);
+
+      // Initiate purchase - this opens the Google Play purchase dialog
+      const result = await GooglePlayBillingService.purchaseProduct(productId);
+
+      if (result.success) {
+        console.log('[PRICING_MODAL] Purchase dialog opened');
+        // Don't close modal or show alert yet - wait for actual purchase result
+        // The GooglePlayBillingService purchase listener will handle the actual result
+      } else {
+        throw new Error(result.error || 'Purchase failed');
+      }
+    } catch (error) {
+      console.error('[PRICING_MODAL] Google Play purchase failed:', error);
+
+      Alert.alert(
+        'Purchase Error',
+        error instanceof Error ? error.message : 'Failed to open purchase dialog. Please try again.',
+        [
+          {
+            text: 'Try Again',
+            onPress: () => handleGooglePlayPurchase(planId, period),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+    }
+  };
+
   const handleClose = () => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -311,15 +433,20 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   };
 
   const handleRetryLoadProducts = () => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     console.log('[PRICING_MODAL] Manual retry requested by user');
-    initializeAppleIAP();
+
+    if (Platform.OS === 'ios') {
+      initializeAppleIAP();
+    } else if (Platform.OS === 'android') {
+      initializeGooglePlayBilling();
+    }
   };
 
   const handleRestorePurchases = async () => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
@@ -327,16 +454,24 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
     try {
       console.log('[PRICING_MODAL] Initiating restore purchases...');
-      const result = await AppleIAPService.restorePurchases();
 
-      if (result.success) {
+      let result;
+      if (Platform.OS === 'ios') {
+        result = await AppleIAPService.restorePurchases();
+      } else if (Platform.OS === 'android') {
+        result = await GooglePlayBillingService.restorePurchases();
+      } else {
+        throw new Error('Restore purchases not available on this platform');
+      }
+
+      if (result && result.success) {
         Alert.alert(
           'Restore Complete',
           'Your purchases have been checked. If you had an active subscription, it has been restored.',
           [{ text: 'OK', onPress: handleClose }]
         );
       } else {
-        throw new Error(result.error || 'Failed to restore purchases');
+        throw new Error(result?.error || 'Failed to restore purchases');
       }
     } catch (error) {
       console.error('[PRICING_MODAL] Restore failed:', error);
@@ -386,7 +521,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           bounces={true}
         >
           {/* Error Banner - Show when products fail to load */}
-          {Platform.OS === 'ios' && productLoadError && loadingProgress === 'timeout' && (
+          {(Platform.OS === 'ios' || Platform.OS === 'android') && productLoadError && loadingProgress === 'timeout' && (
             <View style={styles.errorBanner}>
               <Ionicons name="information-circle" size={20} color="#F59E0B" />
               <Text style={styles.errorBannerText}>{productLoadError}</Text>
@@ -527,13 +662,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   style={[
                     styles.ctaButton,
                     plan.isPopular && styles.ctaButtonPopular,
-                    Platform.OS === 'ios' && loadingProgress !== 'ready' && styles.ctaButtonDisabled,
+                    (Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress !== 'ready' && styles.ctaButtonDisabled,
                   ]}
                   onPress={() => handleSelectPlan(plan.id)}
-                  disabled={Platform.OS === 'ios' && loadingProgress !== 'ready'}
+                  disabled={(Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress !== 'ready'}
                   activeOpacity={0.8}
                 >
-                  {Platform.OS === 'ios' && loadingProgress === 'connecting' ? (
+                  {(Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'connecting' ? (
                     <>
                       <ActivityIndicator
                         size="small"
@@ -546,10 +681,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                           { marginLeft: 8 }
                         ]}
                       >
-                        Connecting to App Store...
+                        {Platform.OS === 'ios' ? 'Connecting to App Store...' : 'Connecting to Google Play...'}
                       </Text>
                     </>
-                  ) : Platform.OS === 'ios' && loadingProgress === 'fetching' ? (
+                  ) : (Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'fetching' ? (
                     <>
                       <ActivityIndicator
                         size="small"
@@ -565,7 +700,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                         Loading subscriptions...
                       </Text>
                     </>
-                  ) : Platform.OS === 'ios' && loadingProgress === 'timeout' ? (
+                  ) : (Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'timeout' ? (
                     <>
                       <Ionicons
                         name="refresh"
@@ -653,8 +788,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             </View>
           </View>
 
-          {/* Restore Purchases Button - Required by Apple */}
-          {Platform.OS === 'ios' && appleIAPAvailable && (
+          {/* Restore Purchases Button - Required by Apple and available on Android */}
+          {((Platform.OS === 'ios' && appleIAPAvailable) || (Platform.OS === 'android' && googlePlayAvailable)) && (
             <TouchableOpacity
               style={styles.restoreButton}
               onPress={handleRestorePurchases}
