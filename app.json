@@ -62,7 +62,8 @@
         "MODIFY_AUDIO_SETTINGS",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
-        "com.google.android.c2dm.permission.RECEIVE"
+        "com.google.android.c2dm.permission.RECEIVE",
+        "com.android.vending.BILLING"
       ],
       "useNextNotificationsApi": true,
       "googleServicesFile": "./google-services.json",

@@ -1,6 +1,6 @@
 /**
  * Google Play Billing Service
- * Handles Google Play Billing integration for Android subscriptions using expo-in-app-purchases
+ * Handles Google Play Billing integration for Android subscriptions using react-native-iap
  */
 
 import { Platform } from 'react-native';
@@ -8,9 +8,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OpenAPI } from '../api/generated/core/OpenAPI';
 
 // Dynamic import for Android only - prevents crash on iOS
-let InAppPurchases: any = null;
+let RNIap: any = null;
 if (Platform.OS === 'android') {
-  InAppPurchases = require('expo-in-app-purchases');
+  RNIap = require('react-native-iap');
 }
 
 // Google Play Product IDs (IMPORTANT: These must match exactly in Google Play Console)
@@ -38,7 +38,8 @@ export interface PurchaseResult {
 class GooglePlayBillingService {
   private products: IAPProduct[] = [];
   private isInitialized = false;
-  private purchaseListener: { remove: () => void } | null = null;
+  private purchaseUpdateSubscription: any = null;
+  private purchaseErrorSubscription: any = null;
   private isFetchingProducts = false; // Guard against concurrent fetches
 
   /**
@@ -51,34 +52,35 @@ class GooglePlayBillingService {
     }
 
     // Already initialized, don't set up listener again
-    if (this.isInitialized && this.purchaseListener) {
+    if (this.isInitialized && this.purchaseUpdateSubscription) {
       console.log('[GOOGLE_PLAY] Already initialized, reusing existing connection');
       return true;
     }
 
     try {
-      console.log('[GOOGLE_PLAY] Initializing expo-in-app-purchases...');
+      console.log('[GOOGLE_PLAY] Initializing react-native-iap...');
 
-      // Connect to Google Play Billing (handle already connected case)
-      try {
-        await InAppPurchases.connectAsync();
-        console.log('[GOOGLE_PLAY] Connected to Google Play Billing');
-      } catch (connectError: any) {
-        // If already connected, that's fine - treat as success
-        if (connectError?.code === 'ERR_IN_APP_PURCHASES_CONNECTION') {
-          console.log('[GOOGLE_PLAY] Already connected to Google Play Billing - reusing connection');
-        } else {
-          throw connectError;
-        }
-      }
+      // Initialize IAP connection
+      await RNIap.initConnection();
+      console.log('[GOOGLE_PLAY] Connected to Google Play Billing');
 
-      // Set up purchase listener (only once)
-      if (!this.purchaseListener) {
-        this.purchaseListener = InAppPurchases.setPurchaseListener(
+      // Set up purchase listeners (only once)
+      if (!this.purchaseUpdateSubscription) {
+        this.purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
           this.handlePurchaseUpdate.bind(this)
         );
-        console.log('[GOOGLE_PLAY] Purchase listener set up');
+        console.log('[GOOGLE_PLAY] Purchase update listener set up');
       }
+
+      if (!this.purchaseErrorSubscription) {
+        this.purchaseErrorSubscription = RNIap.purchaseErrorListener(
+          this.handlePurchaseError.bind(this)
+        );
+        console.log('[GOOGLE_PLAY] Purchase error listener set up');
+      }
+
+      // Flush pending purchases on initialization
+      await this.flushFailedPurchasesCachedAsPendingAndroid();
 
       this.isInitialized = true;
       console.log('[GOOGLE_PLAY] Initialization complete');
@@ -90,98 +92,95 @@ class GooglePlayBillingService {
   }
 
   /**
+   * Flush any pending purchases (Android)
+   */
+  private async flushFailedPurchasesCachedAsPendingAndroid() {
+    try {
+      await RNIap.flushFailedPurchasesCachedAsPendingAndroid();
+      console.log('[GOOGLE_PLAY] Flushed pending purchases');
+    } catch (error) {
+      console.log('[GOOGLE_PLAY] No pending purchases to flush or error:', error);
+    }
+  }
+
+  /**
    * Handle purchase updates from Google Play
    */
   private async handlePurchaseUpdate(purchase: any) {
-    const { acknowledged, purchaseState, productId } = purchase;
-
     console.log('[GOOGLE_PLAY] Purchase update received:', {
-      productId,
-      purchaseState,
-      acknowledged,
+      productId: purchase.productId,
+      transactionId: purchase.transactionId,
+      purchaseStateAndroid: purchase.purchaseStateAndroid,
     });
 
-    // Handle successful purchase
-    if (purchaseState === InAppPurchases.InAppPurchaseState.PURCHASED && !acknowledged) {
-      console.log('[GOOGLE_PLAY] Processing successful purchase...');
+    // Check if already acknowledged
+    if (purchase.isAcknowledgedAndroid) {
+      console.log('[GOOGLE_PLAY] Purchase already acknowledged, skipping');
+      return;
+    }
 
-      try {
-        // Get purchase token (Android only)
-        const purchaseToken = purchase.purchaseToken;
-        if (purchaseToken) {
-          const verifyResult = await this.verifyPurchase(purchaseToken, productId);
+    try {
+      // Get purchase token (Android only)
+      const purchaseToken = purchase.purchaseToken;
+      if (purchaseToken) {
+        const verifyResult = await this.verifyPurchase(purchaseToken, purchase.productId);
 
-          if (verifyResult.success) {
-            // Acknowledge the purchase
-            await InAppPurchases.finishTransactionAsync(purchase, true);
-            console.log('[GOOGLE_PLAY] Purchase acknowledged and verified');
+        if (verifyResult.success) {
+          // Acknowledge the purchase
+          await RNIap.acknowledgePurchaseAndroid(purchaseToken);
+          console.log('[GOOGLE_PLAY] Purchase acknowledged and verified');
 
-            // Show success alert
-            const { Alert } = require('react-native');
-            Alert.alert(
-              '✅ Purchase Successful',
-              'Your subscription has been activated! Enjoy unlimited access to all premium features.',
-              [{ text: 'Great!', style: 'default' }]
-            );
-          } else {
-            throw new Error('Purchase verification failed');
-          }
-        } else {
-          console.error('[GOOGLE_PLAY] No purchase token found');
-          await InAppPurchases.finishTransactionAsync(purchase, false);
-
+          // Show success alert
           const { Alert } = require('react-native');
           Alert.alert(
-            'Purchase Error',
-            'Could not verify your purchase. Please contact support if you were charged.',
-            [{ text: 'OK' }]
+            '✅ Purchase Successful',
+            'Your subscription has been activated! Enjoy unlimited access to all premium features.',
+            [{ text: 'Great!', style: 'default' }]
           );
+        } else {
+          throw new Error('Purchase verification failed');
         }
-      } catch (error) {
-        console.error('[GOOGLE_PLAY] Failed to process purchase:', error);
-        // Finish transaction even on error to prevent stuck purchases
-        await InAppPurchases.finishTransactionAsync(purchase, false);
+      } else {
+        console.error('[GOOGLE_PLAY] No purchase token found');
 
         const { Alert } = require('react-native');
         Alert.alert(
-          'Verification Error',
-          'Your purchase could not be verified. Please contact support if you were charged.',
+          'Purchase Error',
+          'Could not verify your purchase. Please contact support if you were charged.',
           [{ text: 'OK' }]
         );
       }
-    }
-
-    // Handle restored purchase
-    if (purchaseState === InAppPurchases.InAppPurchaseState.RESTORED && !acknowledged) {
-      console.log('[GOOGLE_PLAY] Processing restored purchase...');
-      await InAppPurchases.finishTransactionAsync(purchase, true);
+    } catch (error) {
+      console.error('[GOOGLE_PLAY] Failed to process purchase:', error);
 
       const { Alert } = require('react-native');
       Alert.alert(
-        'Purchase Restored',
-        'Your subscription has been restored successfully.',
+        'Verification Error',
+        'Your purchase could not be verified. Please contact support if you were charged.',
         [{ text: 'OK' }]
       );
     }
+  }
 
-    // Handle failed/cancelled purchase
-    if (purchaseState === InAppPurchases.InAppPurchaseState.FAILED) {
-      console.log('[GOOGLE_PLAY] Purchase failed or cancelled by user');
-      await InAppPurchases.finishTransactionAsync(purchase, false);
-      // Don't show alert for cancellation - user knows they cancelled
+  /**
+   * Handle purchase errors from Google Play
+   */
+  private handlePurchaseError(error: any) {
+    console.log('[GOOGLE_PLAY] Purchase error received:', error);
+
+    // Don't show alert for user cancellation (code: 'E_USER_CANCELLED')
+    if (error.code === 'E_USER_CANCELLED') {
+      console.log('[GOOGLE_PLAY] User cancelled purchase');
+      return;
     }
 
-    // Handle pending purchase (requires user action)
-    if (purchaseState === InAppPurchases.InAppPurchaseState.DEFERRED) {
-      console.log('[GOOGLE_PLAY] Purchase pending');
-
-      const { Alert } = require('react-native');
-      Alert.alert(
-        'Purchase Pending',
-        'Your purchase is being processed. You will receive a notification when it completes.',
-        [{ text: 'OK' }]
-      );
-    }
+    // Show alert for other errors
+    const { Alert } = require('react-native');
+    Alert.alert(
+      'Purchase Error',
+      error.message || 'An error occurred during purchase. Please try again.',
+      [{ text: 'OK' }]
+    );
   }
 
   /**
@@ -208,30 +207,29 @@ class GooglePlayBillingService {
         const productIds = Object.values(GOOGLE_PLAY_PRODUCTS);
         console.log(`[GOOGLE_PLAY] Requesting ${productIds.length} product IDs:`, productIds);
 
-        const { results, responseCode } = await InAppPurchases.getProductsAsync(productIds);
+        // Fetch subscriptions from Google Play (v14 API uses fetchProducts)
+        const products = await RNIap.fetchProducts({ skus: productIds });
 
-        console.log(`[GOOGLE_PLAY] Response code: ${responseCode}`);
-        console.log(`[GOOGLE_PLAY] Products returned: ${results?.length || 0}`);
+        console.log(`[GOOGLE_PLAY] Products returned: ${products?.length || 0}`);
 
-        if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
-          const errorMsg = this._getResponseCodeMessage(responseCode);
-          console.error(`[GOOGLE_PLAY] Failed to fetch products: ${errorMsg} (code: ${responseCode})`);
-          lastError = new Error(errorMsg);
+        if (!products || products.length === 0) {
+          console.warn('[GOOGLE_PLAY] ⚠️ Google Play returned 0 products - products may need to be published in Console');
 
-          // If not OK, retry unless it's the last attempt
+          // Retry unless it's the last attempt
           if (attempt < retryCount) {
             console.log(`[GOOGLE_PLAY] Retrying in ${retryDelay}ms...`);
             await this._delay(retryDelay);
             continue;
           }
+          this.isFetchingProducts = false;
           return [];
         }
 
         // Success - map products
-        this.products = results.map((product: any) => ({
+        this.products = products.map((product: any) => ({
           productId: product.productId,
-          price: product.price,
-          localizedPrice: product.price,
+          price: product.price || product.localizedPrice,
+          localizedPrice: product.localizedPrice,
           title: product.title,
           description: product.description,
         }));
@@ -239,8 +237,6 @@ class GooglePlayBillingService {
         console.log(`[GOOGLE_PLAY] ✅ Successfully fetched ${this.products.length} products`);
         if (this.products.length > 0) {
           console.log('[GOOGLE_PLAY] Product IDs loaded:', this.products.map(p => p.productId));
-        } else {
-          console.warn('[GOOGLE_PLAY] ⚠️ Google Play returned OK but 0 products - products may need to be published in Console');
         }
 
         this.isFetchingProducts = false; // Reset guard on success
@@ -262,24 +258,6 @@ class GooglePlayBillingService {
     console.error('[GOOGLE_PLAY] Last error:', lastError);
     this.isFetchingProducts = false; // Reset guard on failure
     return [];
-  }
-
-  /**
-   * Helper: Get human-readable message for response codes
-   */
-  private _getResponseCodeMessage(code: number): string {
-    const messages: { [key: number]: string } = {
-      0: 'Success',
-      1: 'User cancelled',
-      2: 'Service unavailable',
-      3: 'Billing unavailable',
-      4: 'Item unavailable',
-      5: 'Developer error',
-      6: 'Error',
-      7: 'Item already owned',
-      8: 'Item not owned',
-    };
-    return messages[code] || `Unknown response code: ${code}`;
   }
 
   /**
@@ -314,8 +292,10 @@ class GooglePlayBillingService {
     try {
       console.log(`[GOOGLE_PLAY] Initiating purchase for: ${productId}`);
 
-      // Trigger the purchase
-      await InAppPurchases.purchaseItemAsync(productId);
+      // Trigger the subscription purchase
+      await RNIap.requestSubscription({
+        sku: productId,
+      });
 
       // Note: The actual purchase result will be handled in handlePurchaseUpdate
       // This just initiates the purchase flow
@@ -403,19 +383,30 @@ class GooglePlayBillingService {
     try {
       console.log('[GOOGLE_PLAY] Restoring purchases...');
 
-      const { results, responseCode } = await InAppPurchases.getPurchaseHistoryAsync();
+      // Get available purchase history
+      const purchases = await RNIap.getAvailablePurchases();
 
-      if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
-        throw new Error('Failed to restore purchases');
-      }
-
-      console.log(`[GOOGLE_PLAY] Found ${results?.length || 0} previous purchases`);
+      console.log(`[GOOGLE_PLAY] Found ${purchases?.length || 0} previous purchases`);
 
       // Process each restored purchase
-      if (results && results.length > 0) {
-        for (const purchase of results) {
+      if (purchases && purchases.length > 0) {
+        for (const purchase of purchases) {
           await this.handlePurchaseUpdate(purchase);
         }
+
+        const { Alert } = require('react-native');
+        Alert.alert(
+          'Purchases Restored',
+          'Your subscriptions have been restored successfully.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        const { Alert } = require('react-native');
+        Alert.alert(
+          'No Purchases Found',
+          'No previous purchases were found for this account.',
+          [{ text: 'OK' }]
+        );
       }
 
       return {
@@ -450,13 +441,18 @@ class GooglePlayBillingService {
    * Disconnect and cleanup
    */
   async disconnect(): Promise<void> {
-    if (this.purchaseListener) {
-      this.purchaseListener.remove();
-      this.purchaseListener = null;
+    if (this.purchaseUpdateSubscription) {
+      this.purchaseUpdateSubscription.remove();
+      this.purchaseUpdateSubscription = null;
     }
 
-    if (this.isInitialized) {
-      await InAppPurchases.disconnectAsync();
+    if (this.purchaseErrorSubscription) {
+      this.purchaseErrorSubscription.remove();
+      this.purchaseErrorSubscription = null;
+    }
+
+    if (this.isInitialized && RNIap) {
+      await RNIap.endConnection();
       this.isInitialized = false;
       console.log('[GOOGLE_PLAY] Disconnected');
     }

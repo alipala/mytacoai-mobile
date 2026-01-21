@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "41687548204-kjdl1nr8a933k5n3hdildlbdg9g42nj5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bigdavinci.MyTacoAI",
+            "certificate_hash": "f27940b707c3ba9b2cc858087e4fe0a771d86057"
+          }
+        },
+        {
           "client_id": "41687548204-0go9lqlnve4llpv3vdl48jujddlt2kp5.apps.googleusercontent.com",
           "client_type": 3
         }
