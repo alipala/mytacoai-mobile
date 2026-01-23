@@ -10,6 +10,7 @@ import {
   Alert,
   useWindowDimensions,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -131,6 +132,50 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [productLoadError, setProductLoadError] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Animation for promo banner
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  // Pulse animation for promo banner
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.03,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, []);
+
+  // Shimmer animation for promo icon
+  useEffect(() => {
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmer.start();
+    return () => shimmer.stop();
+  }, []);
 
   // Initialize IAP when modal opens (iOS: Apple IAP, Android: Google Play Billing)
   useEffect(() => {
@@ -561,24 +606,36 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
           {/* Promo Code Info Banner - Mobile Only */}
           {Platform.OS !== 'web' && (
-            <TouchableOpacity
-              style={styles.promoBanner}
-              onPress={handlePromoCodeInfo}
-              activeOpacity={0.8}
-            >
-              <View style={styles.promoBannerContent}>
-                <View style={styles.promoBannerLeft}>
-                  <View style={styles.promoBannerIconContainer}>
-                    <Ionicons name="pricetag" size={18} color="#FFFFFF" />
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <TouchableOpacity
+                style={styles.promoBanner}
+                onPress={handlePromoCodeInfo}
+                activeOpacity={0.8}
+              >
+                <View style={styles.promoBannerContent}>
+                  <View style={styles.promoBannerLeft}>
+                    <Animated.View
+                      style={[
+                        styles.promoBannerIconContainer,
+                        {
+                          opacity: shimmerAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.85, 1],
+                          }),
+                        }
+                      ]}
+                    >
+                      <Ionicons name="pricetag" size={18} color="#FFFFFF" />
+                    </Animated.View>
+                    <View style={styles.promoBannerTextContainer}>
+                      <Text style={styles.promoBannerTitle}>Have a Promo Code?</Text>
+                      <Text style={styles.promoBannerSubtitle}>Apply it on our website</Text>
+                    </View>
                   </View>
-                  <View style={styles.promoBannerTextContainer}>
-                    <Text style={styles.promoBannerTitle}>Have a Promo Code?</Text>
-                    <Text style={styles.promoBannerSubtitle}>Apply it on our website</Text>
-                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#4ECFBF" />
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#4ECFBF" />
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Animated.View>
           )}
 
           {/* Billing Toggle - Prominent */}
