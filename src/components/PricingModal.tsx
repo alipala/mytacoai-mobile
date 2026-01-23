@@ -564,13 +564,20 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             <TouchableOpacity
               style={styles.promoBanner}
               onPress={handlePromoCodeInfo}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <Ionicons name="pricetag" size={20} color="#10B981" />
-              <Text style={styles.promoBannerText}>
-                Have a promo code? Visit mytacoai.com
-              </Text>
-              <Ionicons name="open-outline" size={20} color="#10B981" />
+              <View style={styles.promoBannerContent}>
+                <View style={styles.promoBannerLeft}>
+                  <View style={styles.promoBannerIconContainer}>
+                    <Ionicons name="pricetag" size={18} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.promoBannerTextContainer}>
+                    <Text style={styles.promoBannerTitle}>Have a Promo Code?</Text>
+                    <Text style={styles.promoBannerSubtitle}>Apply it on our website</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#4ECFBF" />
+              </View>
             </TouchableOpacity>
           )}
 
