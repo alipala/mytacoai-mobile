@@ -485,6 +485,37 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     }
   };
 
+  const handlePromoCodeInfo = async () => {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    const promoPageUrl = 'https://mytacoai.com/promo-code';
+
+    try {
+      // Open promo code instructions page directly in browser
+      const supported = await Linking.canOpenURL(promoPageUrl);
+      if (supported) {
+        await Linking.openURL(promoPageUrl);
+        console.log('[PRICING_MODAL] Opened promo code instructions page');
+      } else {
+        console.error('[PRICING_MODAL] Cannot open URL:', promoPageUrl);
+        Alert.alert(
+          'Error',
+          'Unable to open browser. Please visit mytacoai.com/promo-code manually.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('[PRICING_MODAL] Error opening URL:', error);
+      Alert.alert(
+        'Error',
+        'Unable to open browser. Please visit mytacoai.com/promo-code manually.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / (CARD_WIDTH + CARD_SPACING));
@@ -526,6 +557,21 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               <Ionicons name="information-circle" size={20} color="#F59E0B" />
               <Text style={styles.errorBannerText}>{productLoadError}</Text>
             </View>
+          )}
+
+          {/* Promo Code Info Banner - Mobile Only */}
+          {Platform.OS !== 'web' && (
+            <TouchableOpacity
+              style={styles.promoBanner}
+              onPress={handlePromoCodeInfo}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="pricetag" size={20} color="#10B981" />
+              <Text style={styles.promoBannerText}>
+                Have a promo code? Visit mytacoai.com
+              </Text>
+              <Ionicons name="open-outline" size={20} color="#10B981" />
+            </TouchableOpacity>
           )}
 
           {/* Billing Toggle - Prominent */}
