@@ -298,10 +298,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Conversation states
   const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(true); // Start in connecting state
+  const [isConnecting, setIsConnecting] = useState(false); // Don't show spinner until user clicks start
   const [connectionStep, setConnectionStep] = useState<string>('creating_session');
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [waitingForAIGreeting, setWaitingForAIGreeting] = useState(false); // Waiting for AI's first message
+  const [showLoadingSpinner, setShowLoadingSpinner] = useState(false); // Control spinner via events only
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
   const [maxDuration, setMaxDuration] = useState(300); // Default 5 minutes, backend will override
@@ -471,7 +471,6 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
     // For practice mode, modal is already shown via initial state
   }, [planId]);
-
 
   // Update session duration every second and check for completion (5 minutes)
   useEffect(() => {
@@ -705,10 +704,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       console.log('[CONVERSATION] 🚀 Starting learning plan conversation');
       setShowInfoModal(false);
+      setShowLoadingSpinner(true); // Show spinner when user clicks start
       await initializeConversation(learningPlan);
     } else {
       console.log('[CONVERSATION] 🚀 Starting practice conversation');
       setShowInfoModal(false);
+      setShowLoadingSpinner(true); // Show spinner when user clicks start
       await initializeConversation();
     }
   };
@@ -819,17 +820,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
           if (state === 'connected') {
             setIsConnecting(false);
-            setWaitingForAIGreeting(true); // Now waiting for AI's first message
             // Start timer only when connection is successfully established
             setSessionStartTime(Date.now());
             console.log('[CONVERSATION] ⏱️ Timer started - connection established');
             console.log('[CONVERSATION] Ready for conversation - waiting for AI greeting');
-          } else if (state === 'failed' || state === 'disconnected') {
+          } else if (state === 'failed') {
             setIsConnecting(false);
-            setWaitingForAIGreeting(false);
-            if (state === 'failed') {
-              setConnectionError('Connection failed. Please try again.');
-            }
+            setShowLoadingSpinner(false); // Hide spinner on failure
+            setConnectionError('Connection failed. Please try again.');
           }
         },
         onConnectionProgress: (step) => {
@@ -847,6 +845,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         },
         onEvent: (event) => {
           console.log('[CONVERSATION] Event:', event.type);
+
+          // Hide loading spinner when AI AUDIO starts (with delay for buffering/unmuting)
+          if (event.type === 'output_audio_buffer.started') {
+            console.log('[CONVERSATION] 🎉 AI voice buffering started, will hide spinner in 400ms');
+            // Wait for audio to be unmuted and actually audible
+            setTimeout(() => {
+              console.log('[CONVERSATION] ✅ Hiding loading spinner NOW - voice should be audible');
+              setShowLoadingSpinner(false);
+            }, 400);
+          }
+
           // Pass events to conversation state machine
           conversationStateRef.current.handleRealtimeEvent(event);
         },
@@ -890,11 +899,6 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       content,
       timestamp: new Date().toISOString(),
     };
-
-    // Clear waiting state when AI sends first message
-    if (role === 'assistant' && waitingForAIGreeting) {
-      setWaitingForAIGreeting(false);
-    }
 
     setMessages((prev) => {
       const updated = [...prev, newMessage];
@@ -1658,25 +1662,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
       >
-        {isConnecting ? (
-          <View style={styles.connectingContainer}>
-            <ActivityIndicator size="large" color="#14B8A6" />
-            <Text style={styles.connectingText}>
-              {connectionStep === 'creating_session' && 'Creating session...'}
-              {connectionStep === 'requesting_microphone' && 'Setting up microphone...'}
-              {connectionStep === 'setting_up_connection' && 'Establishing connection...'}
-              {connectionStep === 'exchanging_sdp' && 'Connecting to AI tutor...'}
-              {connectionStep === 'connected' && 'Connected!'}
-            </Text>
-          </View>
-        ) : connectionError ? (
+        {connectionError ? (
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle" size={48} color="#EF4444" />
             <Text style={styles.errorText}>{connectionError}</Text>
           </View>
-        ) : messages.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            {/* Empty state - no visualization needed, avatar at top provides visual feedback */}
+        ) : showLoadingSpinner ? (
+          <View style={styles.connectingContainer}>
+            <ActivityIndicator size="large" color="#14B8A6" />
+            <Text style={styles.connectingText}>
+              Connecting to AI tutor...
+            </Text>
           </View>
         ) : (
           <>
@@ -1980,7 +1976,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                   {Object.entries(assessmentResult.scores).map(([skill, score]) => (
                     <View key={skill} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                       <Text style={{ fontSize: 14, color: '#6B7280', textTransform: 'capitalize' }}>{skill}</Text>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: '#1F2937' }}>{score}/100</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: '#1F2937' }}>{String(score)}/100</Text>
                     </View>
                   ))}
                 </View>
