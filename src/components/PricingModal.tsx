@@ -632,7 +632,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       <Text style={styles.promoBannerSubtitle}>Apply it on our website</Text>
                     </View>
                   </View>
-                  <Ionicons name="arrow-forward-circle" size={24} color="#4ECFBF" />
+                  <Ionicons name="open-outline" size={22} color="#4ECFBF" />
                 </View>
               </TouchableOpacity>
             </Animated.View>
