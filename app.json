@@ -2,7 +2,7 @@
   "expo": {
     "name": "MyTaco",
     "slug": "MyTacoAIMobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
       "supportsTablet": false,
       "requiresFullScreen": true,
       "bundleIdentifier": "com.bigdavinci.mytaco",
-      "buildNumber": "14",
+      "buildNumber": "19",
       "usesAppleSignIn": true,
       "infoPlist": {
         "UIDeviceFamily": [
