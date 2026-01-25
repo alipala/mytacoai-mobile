@@ -207,8 +207,8 @@ class GooglePlayBillingService {
         const productIds = Object.values(GOOGLE_PLAY_PRODUCTS);
         console.log(`[GOOGLE_PLAY] Requesting ${productIds.length} product IDs:`, productIds);
 
-        // Fetch subscriptions from Google Play (v14 API uses fetchProducts)
-        const products = await RNIap.fetchProducts({ skus: productIds });
+        // Fetch subscriptions from Google Play (v14 API requires type: 'subs' for subscriptions)
+        const products = await RNIap.fetchProducts({ skus: productIds, type: 'subs' });
 
         console.log(`[GOOGLE_PLAY] Products returned: ${products?.length || 0}`);
 
@@ -225,11 +225,11 @@ class GooglePlayBillingService {
           return [];
         }
 
-        // Success - map products
+        // Success - map products (v14 uses 'id' field instead of 'productId')
         this.products = products.map((product: any) => ({
-          productId: product.productId,
-          price: product.price || product.localizedPrice,
-          localizedPrice: product.localizedPrice,
+          productId: product.id,
+          price: product.price?.toString() || product.displayPrice,
+          localizedPrice: product.displayPrice,
           title: product.title,
           description: product.description,
         }));

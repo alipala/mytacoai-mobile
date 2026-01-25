@@ -189,10 +189,15 @@ class AppleIAPService {
         const productIds = Object.values(APPLE_IAP_PRODUCTS);
         console.log(`[APPLE_IAP] Requesting ${productIds.length} product IDs:`, productIds);
 
-        // Fetch subscriptions from App Store (v14 API uses fetchProducts)
-        const products = await RNIap.fetchProducts({ skus: productIds });
+        // Fetch subscriptions from App Store (v14 API requires type: 'subs' for subscriptions)
+        const products = await RNIap.fetchProducts({ skus: productIds, type: 'subs' });
 
         console.log(`[APPLE_IAP] Products returned: ${products?.length || 0}`);
+
+        // Debug: Log first product structure to see available fields
+        if (products && products.length > 0) {
+          console.log('[APPLE_IAP] 🔍 Sample product structure:', JSON.stringify(products[0], null, 2));
+        }
 
         if (!products || products.length === 0) {
           console.warn('[APPLE_IAP] ⚠️ StoreKit returned 0 products - products may be in review status');
@@ -207,11 +212,11 @@ class AppleIAPService {
           return [];
         }
 
-        // Success - map products
+        // Success - map products (v14 uses 'id' field instead of 'productId')
         this.products = products.map((product: any) => ({
-          productId: product.productId,
-          price: product.price || product.localizedPrice,
-          localizedPrice: product.localizedPrice,
+          productId: product.id,
+          price: product.price?.toString() || product.displayPrice,
+          localizedPrice: product.displayPrice,
           title: product.title,
           description: product.description,
         }));
