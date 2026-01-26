@@ -20,10 +20,13 @@ export const STORAGE_KEYS = {
  */
 export const hasCompletedOnboarding = async (): Promise<boolean> => {
   try {
+    console.log('🔵 [Storage] Checking onboarding status...');
     const value = await AsyncStorage.getItem(STORAGE_KEYS.HAS_COMPLETED_ONBOARDING);
-    return value === 'true';
+    const isCompleted = value === 'true';
+    console.log(`📱 [Storage] Onboarding status - Raw value: "${value}", Is completed: ${isCompleted}`);
+    return isCompleted;
   } catch (error) {
-    console.error('Error checking onboarding status:', error);
+    console.error('❌ [Storage] Error checking onboarding status:', error);
     return false;
   }
 };
@@ -33,10 +36,14 @@ export const hasCompletedOnboarding = async (): Promise<boolean> => {
  */
 export const setOnboardingCompleted = async (): Promise<void> => {
   try {
+    console.log('🔵 [Storage] Setting onboarding completed...');
     await AsyncStorage.setItem(STORAGE_KEYS.HAS_COMPLETED_ONBOARDING, 'true');
-    console.log('✅ Onboarding marked as completed');
+
+    // Verify it was saved
+    const verification = await AsyncStorage.getItem(STORAGE_KEYS.HAS_COMPLETED_ONBOARDING);
+    console.log('✅ [Storage] Onboarding marked as completed, verified:', verification);
   } catch (error) {
-    console.error('Error setting onboarding status:', error);
+    console.error('❌ [Storage] Error setting onboarding status:', error);
     throw error;
   }
 };
@@ -76,5 +83,21 @@ export const getLastOnboardingScreen = async (): Promise<number> => {
   } catch (error) {
     console.error('Error getting last onboarding screen:', error);
     return 0;
+  }
+};
+
+/**
+ * Debug utility - Log all onboarding-related storage values
+ */
+export const debugOnboardingStorage = async (): Promise<void> => {
+  try {
+    console.log('🔍 [Debug] === Onboarding Storage Debug ===');
+    const hasCompleted = await AsyncStorage.getItem(STORAGE_KEYS.HAS_COMPLETED_ONBOARDING);
+    const lastScreen = await AsyncStorage.getItem(STORAGE_KEYS.LAST_ONBOARDING_SCREEN);
+    console.log(`  HAS_COMPLETED_ONBOARDING: "${hasCompleted}"`);
+    console.log(`  LAST_ONBOARDING_SCREEN: "${lastScreen}"`);
+    console.log('🔍 [Debug] === End Debug ===');
+  } catch (error) {
+    console.error('❌ [Debug] Error reading storage:', error);
   }
 };

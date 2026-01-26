@@ -5,7 +5,7 @@
  * Shows key features of MyTaco AI with illustrations and descriptions.
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   useWindowDimensions,
+  Animated,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -33,7 +34,8 @@ interface OnboardingSliderProps {
 }
 
 // Onboarding slide data - Value-driven messaging with highlight + subtext
-const slides: OnboardingSlide[] = [
+// Defined outside component to prevent re-creation on every render
+const ONBOARDING_SLIDES: OnboardingSlide[] = [
   {
     key: '1',
     title: "Real Conversations Shouldn't Cost a Fortune",
@@ -250,20 +252,53 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const isIPad = SCREEN_WIDTH >= 768;
 
-  console.log('🔍 [OnboardingSlider] Dynamic - Width:', SCREEN_WIDTH, 'isIPad:', isIPad);
+  console.log('🔍 [OnboardingSlider] Component mounted - Width:', SCREEN_WIDTH, 'isIPad:', isIPad);
 
   // Create dynamic styles based on current dimensions
   const styles = createDynamicStyles(isIPad);
 
   const sliderRef = useRef<AppIntroSlider>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [sliderReady, setSliderReady] = useState(false);
+  const sliderOpacity = useRef(new Animated.Value(0)).current;
+
+  // Memoized getItemLayout for FlatList optimization
+  // This tells FlatList exactly where each item is without measuring
+  const getItemLayout = useMemo(
+    () => (_data: any, index: number) => ({
+      length: SCREEN_WIDTH,
+      offset: SCREEN_WIDTH * index,
+      index,
+    }),
+    [SCREEN_WIDTH]
+  );
+
+  // Log initial mount and show slider after brief delay
+  useEffect(() => {
+    console.log('✨ [OnboardingSlider] Mounted - currentIndex:', currentIndex);
+
+    // Small delay to ensure FlatList is positioned correctly, then fade in
+    const timer = setTimeout(() => {
+      console.log('✅ [OnboardingSlider] Making slider visible');
+      setSliderReady(true);
+      Animated.timing(sliderOpacity, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   /**
    * Handle Skip - Jump to last slide
    */
   const handleSkip = () => {
     console.log('⏭️ Skip pressed - jumping to last slide');
-    const lastIndex = slides.length - 1;
+    const lastIndex = ONBOARDING_SLIDES.length - 1;
     setCurrentIndex(lastIndex); // Update state immediately
     sliderRef.current?.goToSlide(lastIndex);
   };
@@ -286,7 +321,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
    */
   const handleNext = () => {
     console.log('➡️ Next pressed - current index:', currentIndex);
-    if (currentIndex < slides.length - 1) {
+    if (currentIndex < ONBOARDING_SLIDES.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex); // Update state immediately
       sliderRef.current?.goToSlide(nextIndex);
@@ -298,15 +333,37 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
    * Handle Done/Get Started
    */
   const handleDone = async () => {
-    try {
-      // Save onboarding completion status
-      await setOnboardingCompleted();
+    if (isTransitioning) {
+      console.log('⚠️ Already transitioning, ignoring tap');
+      return; // Prevent double-tap
+    }
 
-      // Navigate to Welcome screen
-      navigation.replace('Welcome');
+    console.log('🎯 GET STARTED button pressed');
+    setIsTransitioning(true);
+
+    try {
+      // Save onboarding completion FIRST (before any animation or navigation)
+      console.log('💾 [OnboardingSlider] Saving onboarding completion...');
+      await setOnboardingCompleted();
+      console.log('✅ [OnboardingSlider] Onboarding completion saved and verified');
+
+      // Small delay to ensure AsyncStorage write is fully committed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('⏱️ [OnboardingSlider] Storage commit delay complete');
+
+      // Then start fade out animation
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        // After fade completes, navigate
+        console.log('🚀 [OnboardingSlider] Navigating to Welcome screen...');
+        navigation.replace('Welcome');
+      });
     } catch (error) {
-      console.error('Error completing onboarding:', error);
-      // Still navigate even if storage fails
+      console.error('❌ [OnboardingSlider] Error completing onboarding:', error);
+      // Still navigate even if storage fails (user can onboard again if needed)
       navigation.replace('Welcome');
     }
   };
@@ -375,7 +432,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
   const renderPagination = () => {
     return (
       <View style={styles.paginationContainer}>
-        {slides.map((_, index) => (
+        {ONBOARDING_SLIDES.map((_, index) => (
           <View
             key={index}
             style={[
@@ -393,7 +450,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
    */
   const renderBottomButtons = () => {
     const isFirstSlide = currentIndex === 0;
-    const isLastSlide = currentIndex === slides.length - 1;
+    const isLastSlide = currentIndex === ONBOARDING_SLIDES.length - 1;
 
     return (
       <View style={styles.bottomContainer}>
@@ -435,36 +492,48 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Skip Button (hidden on last slide) */}
-      {currentIndex < slides.length - 1 && (
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={handleSkip}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.skipButtonText}>SKIP</Text>
-        </TouchableOpacity>
-      )}
+    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <SafeAreaView style={styles.container}>
+        <Animated.View style={{ flex: 1, opacity: sliderOpacity }}>
+          {/* Skip Button (hidden on last slide) */}
+          {currentIndex < ONBOARDING_SLIDES.length - 1 && (
+            <TouchableOpacity
+              style={styles.skipButton}
+              onPress={handleSkip}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.skipButtonText}>SKIP</Text>
+            </TouchableOpacity>
+          )}
 
-      {/* Slider */}
-      <AppIntroSlider
-        ref={sliderRef}
-        data={slides}
-        renderItem={renderSlide}
-        onSlideChange={(index) => setCurrentIndex(index)}
-        showNextButton={false}
-        showDoneButton={false}
-        activeDotStyle={{ display: 'none' }}
-        dotStyle={{ display: 'none' }}
-      />
+          {/* Slider */}
+          <AppIntroSlider
+            key="onboarding-slider-key"
+            ref={sliderRef}
+            data={ONBOARDING_SLIDES}
+            renderItem={renderSlide}
+            initialScrollIndex={0}
+            initialNumToRender={1}
+            getItemLayout={getItemLayout}
+            windowSize={3}
+            onSlideChange={(index) => {
+              console.log(`📍 [Slider] Slide changed to index: ${index}`);
+              setCurrentIndex(index);
+            }}
+            showNextButton={false}
+            showDoneButton={false}
+            activeDotStyle={{ display: 'none' }}
+            dotStyle={{ display: 'none' }}
+          />
 
-      {/* Custom Pagination */}
-      {renderPagination()}
+          {/* Custom Pagination */}
+          {renderPagination()}
 
-      {/* Bottom Buttons */}
-      {renderBottomButtons()}
-    </SafeAreaView>
+          {/* Bottom Buttons */}
+          {renderBottomButtons()}
+        </Animated.View>
+      </SafeAreaView>
+    </Animated.View>
   );
 };
 

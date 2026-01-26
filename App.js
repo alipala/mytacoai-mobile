@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, ActivityIndicator, Text, StyleSheet, Alert, InteractionManager } from 'react-native';
+import { View, StyleSheet, Alert, InteractionManager } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Prevent auto-hide of splash screen
+SplashScreen.preventAutoHideAsync();
 
 // Onboarding Screens
 import { OnboardingSlider, WelcomeScreen } from './src/screens/Onboarding';
@@ -43,7 +47,7 @@ import { CheckoutScreen, CheckoutSuccessScreen } from './src/screens/Subscriptio
 
 // Services & Utils
 import { authService } from './src/api/services/auth';
-import { hasCompletedOnboarding } from './src/utils/storage';
+import { hasCompletedOnboarding, debugOnboardingStorage } from './src/utils/storage';
 import {
   initializeNotifications,
   setupNotificationReceivedHandler,
@@ -167,16 +171,6 @@ function MainTabs() {
   );
 }
 
-// Loading/Splash Screen
-function LoadingScreen() {
-  return (
-    <View style={styles.loadingContainer}>
-      <Text style={styles.loadingTitle}>MyTaco AI</Text>
-      <ActivityIndicator size="large" color="#14B8A6" style={styles.loader} />
-      <Text style={styles.loadingText}>Loading...</Text>
-    </View>
-  );
-}
 
 // Root Navigation (Onboarding + Auth + Main)
 export default function App() {
@@ -205,11 +199,14 @@ export default function App() {
   useEffect(() => {
     const checkAppStatus = async () => {
       try {
-        console.log('🔍 Checking app status...');
+        console.log('🔍 [App] Checking app status...');
+
+        // Debug: Show all onboarding storage values
+        await debugOnboardingStorage();
 
         // Check if onboarding has been completed
         const onboardingDone = await hasCompletedOnboarding();
-        console.log('📱 Onboarding completed:', onboardingDone);
+        console.log('📱 [App] Onboarding completed:', onboardingDone);
         setOnboardingCompleted(onboardingDone);
 
         // Check authentication status
@@ -225,6 +222,9 @@ export default function App() {
         setOnboardingCompleted(false);
       } finally {
         setIsLoading(false);
+        // Hide splash screen once checks are complete
+        await SplashScreen.hideAsync();
+        console.log('✅ Splash screen hidden');
       }
     };
 
@@ -349,9 +349,9 @@ export default function App() {
     }
   }, [isAuthenticated, isLoading]);
 
-  // Show loading screen while checking status
+  // Don't render anything while loading (splash screen is shown)
   if (isLoading) {
-    return <LoadingScreen />;
+    return null;
   }
 
   /**
@@ -361,12 +361,19 @@ export default function App() {
    * 3. If onboarding not completed -> Onboarding (skip splash)
    */
   const getInitialRouteName = () => {
+    console.log('🧭 [App] Determining initial route...');
+    console.log('  - isAuthenticated:', isAuthenticated);
+    console.log('  - onboardingCompleted:', onboardingCompleted);
+
     if (isAuthenticated) {
+      console.log('  ✅ Navigating to: Main');
       return 'Main';
     }
     if (onboardingCompleted) {
+      console.log('  ✅ Navigating to: Welcome');
       return 'Welcome';
     }
+    console.log('  ✅ Navigating to: Onboarding');
     return 'Onboarding';
   };
 
@@ -392,7 +399,7 @@ export default function App() {
       <NavigationContainer
         ref={navigationRef}
         linking={linking}
-        fallback={<LoadingScreen />}
+        fallback={<View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />}
       >
         <Stack.Navigator
           initialRouteName={getInitialRouteName()}
@@ -445,23 +452,5 @@ export default function App() {
 
 // Styles for Loading Screen
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  loadingTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#14B8A6',
-    marginBottom: 20,
-  },
-  loader: {
-    marginVertical: 20,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
+  // No custom styles needed - using Expo's native splash screen
 });
