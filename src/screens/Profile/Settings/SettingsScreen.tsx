@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import AccountPreferencesScreen from './AccountPreferencesScreen';
 import VoiceSelectionScreen from './VoiceSelectionScreen';
 import NotificationSettingsScreen from './NotificationSettingsScreen';
@@ -240,6 +241,19 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
           <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </TouchableOpacity>
 
+        {/* Version Information */}
+        <View style={styles.versionItem}>
+          <View style={[styles.menuIcon, { backgroundColor: '#8B5CF620' }]}>
+            <Ionicons name="information-circle-outline" size={24} color="#8B5CF6" />
+          </View>
+          <View style={styles.menuInfo}>
+            <Text style={styles.menuLabel}>Version</Text>
+            <Text style={styles.menuDescription}>
+              {Constants.expoConfig?.version || '1.0.0'} ({Constants.expoConfig?.ios?.buildNumber || '1'})
+            </Text>
+          </View>
+        </View>
+
         {/* Note about conversation help */}
         <View style={styles.helpNote}>
           <Ionicons name="bulb" size={20} color="#FBB040" />
@@ -367,6 +381,15 @@ const styles = StyleSheet.create({
   menuDescription: {
     fontSize: 14,
     color: '#6B7280',
+  },
+  versionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    opacity: 0.8,
   },
   helpNote: {
     flexDirection: 'row',
