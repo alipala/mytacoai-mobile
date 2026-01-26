@@ -54,6 +54,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.bigdavinci.MyTacoAI",
+      "versionCode": 23,
       "permissions": [
         "RECORD_AUDIO",
         "CAMERA",
