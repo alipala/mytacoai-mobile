@@ -79,38 +79,50 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.successContainer}>
-          <View style={styles.successIcon}>
-            <Ionicons name="checkmark-circle" size={80} color="#FFFFFF" />
+          {/* White Card Container */}
+          <View style={styles.successCard}>
+            {/* Success Icon */}
+            <View style={styles.successIconContainer}>
+              <View style={styles.successIconCircle}>
+                <Ionicons name="checkmark" size={48} color="#4ECFBF" />
+              </View>
+            </View>
+
+            {/* Title */}
+            <Text style={styles.successTitle}>Check Your Email</Text>
+
+            {/* Message */}
+            <Text style={styles.successMessage}>
+              We've sent a password reset link to:
+            </Text>
+
+            {/* Email */}
+            <Text style={styles.emailText}>{email}</Text>
+
+            {/* Instructions */}
+            <Text style={styles.instructionsText}>
+              Click the link in the email to reset your password. The link will expire in 1 hour.
+            </Text>
+
+            {/* Back to Login Button */}
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleBackToLogin}
+            >
+              <Text style={styles.primaryButtonText}>Back to Login</Text>
+            </TouchableOpacity>
+
+            {/* Resend Link */}
+            <TouchableOpacity
+              style={styles.resendButton}
+              onPress={() => {
+                setEmailSent(false);
+                setEmail('');
+              }}
+            >
+              <Text style={styles.resendButtonText}>Didn't receive email? Try again</Text>
+            </TouchableOpacity>
           </View>
-          
-          <Text style={styles.successTitle}>Check Your Email</Text>
-          
-          <Text style={styles.successMessage}>
-            We've sent a password reset link to:
-          </Text>
-          
-          <Text style={styles.emailText}>{email}</Text>
-          
-          <Text style={styles.instructionsText}>
-            Click the link in the email to reset your password. The link will expire in 1 hour.
-          </Text>
-          
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleBackToLogin}
-          >
-            <Text style={styles.primaryButtonText}>Back to Login</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.resendButton}
-            onPress={() => {
-              setEmailSent(false);
-              setEmail('');
-            }}
-          >
-            <Text style={styles.resendButtonText}>Didn't receive email? Try again</Text>
-          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
