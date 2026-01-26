@@ -68,16 +68,15 @@ const createDynamicStyles = (isIPad: boolean, screenHeight: number) => StyleShee
   },
   slide: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: '#FFFFFF', // White background for bottom area
+    backgroundColor: 'transparent', // Transparent - no background needed
   },
-  // Upper colorful container (50% of screen) - extends to top including status bar
+  // Upper colorful container (extends under white card to fill rounded corner spaces)
   upperContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: screenHeight * 0.5,
+    height: screenHeight * 0.5 + 40, // Extends under white card to fill corner spaces
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 50, // Account for status bar
@@ -88,15 +87,19 @@ const createDynamicStyles = (isIPad: boolean, screenHeight: number) => StyleShee
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Lower white rounded card (50% of screen)
+  // Lower white rounded card - curves on top of colored section
   contentCard: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
     paddingHorizontal: 28,
     paddingTop: 48,
     paddingBottom: 140,
-    minHeight: screenHeight * 0.5,
+    height: screenHeight * 0.5, // Exactly 50% - curves overlap colored section
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
