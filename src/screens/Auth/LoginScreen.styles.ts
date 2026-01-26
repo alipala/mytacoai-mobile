@@ -5,10 +5,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D9488', // Match gradient start color for any overflow
-  },
-  gradient: {
-    flex: 1,
+    backgroundColor: '#4ECFBF', // Solid turquoise background
   },
   safeArea: {
     flex: 1,
@@ -33,16 +30,16 @@ export const styles = StyleSheet.create({
     height: Math.min(101, (SCREEN_WIDTH * 0.85) * 0.315),
   },
 
-  // Card Design with Glassmorphism
+  // Card Design - Clean White with Strong Shadow
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF', // Solid white
     borderRadius: 24,
     padding: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 10,
   },
 
   // Tab Navigation
@@ -61,7 +58,7 @@ export const styles = StyleSheet.create({
     marginBottom: -2,
   },
   activeTab: {
-    borderBottomColor: '#14B8A6',
+    borderBottomColor: '#4ECFBF',
   },
   tabText: {
     fontFamily: 'Inter_500Medium',
@@ -71,7 +68,7 @@ export const styles = StyleSheet.create({
   },
   activeTabText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontWeight: '600',
   },
 
@@ -81,20 +78,12 @@ export const styles = StyleSheet.create({
   },
   formTitle: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: '600',
     color: '#1F2937',
     textAlign: 'center',
-    marginBottom: 8,
-  },
-  formSubtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 28,
-    lineHeight: 22,
+    marginBottom: 24,
+    lineHeight: 28,
   },
 
   // Modern Input Styling
@@ -153,20 +142,20 @@ export const styles = StyleSheet.create({
   forgotPasswordText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontWeight: '600',
   },
 
   // Primary Button
   button: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#4ECFBF',
     height: 56,
     borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#14B8A6',
+    shadowColor: '#4ECFBF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -202,9 +191,11 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Apple Sign-In Button (Apple HIG compliant)
+  // Apple Sign-In Button
   appleButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
     borderRadius: 12,
     height: 56,
     flexDirection: 'row',
@@ -213,14 +204,14 @@ export const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   appleButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#FFFFFF',
+    color: '#1F2937',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -247,5 +238,97 @@ export const styles = StyleSheet.create({
     color: '#1F2937',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // Email Button (Outlined)
+  emailButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#4ECFBF',
+    borderRadius: 12,
+    height: 56,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
+  },
+  emailButtonText: {
+    fontFamily: 'Inter_600SemiBold',
+    color: '#4ECFBF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Sign Up Link Container
+  signupLinkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  signupLinkText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 15,
+    color: '#6B7280',
+  },
+  signupLink: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 15,
+    color: '#4ECFBF',
+    fontWeight: '600',
+  },
+
+  // Back Button
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 20,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 15,
+    color: '#4ECFBF',
+    fontWeight: '600',
+  },
+
+  // Compact Social Buttons (Horizontal)
+  compactSocialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  compactAppleButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  compactGoogleButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });

@@ -53,6 +53,10 @@ export const LoginScreen = ({ navigation }: any) => {
   // Tab state
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
+  // Email form visibility state
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showSignupEmailForm, setShowSignupEmailForm] = useState(false);
+
   // Login form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -114,6 +118,9 @@ export const LoginScreen = ({ navigation }: any) => {
       setActiveTab(tab);
       // Reset errors when switching tabs
       clearAllErrors();
+      // Reset email form visibility
+      setShowEmailForm(false);
+      setShowSignupEmailForm(false);
     }
   };
 
@@ -365,16 +372,28 @@ export const LoginScreen = ({ navigation }: any) => {
       console.log('✅ Checking Play Services...');
       await GoogleSignin.hasPlayServices();
 
-      console.log('🔐 Initiating sign-in...');
-      await GoogleSignin.signIn();
+      // Sign out first to ensure fresh sign-in (prevent cached credentials auto-login)
+      console.log('🔓 Signing out any cached session...');
+      try {
+        await GoogleSignin.signOut();
+      } catch (signOutError) {
+        console.log('ℹ️ No cached session to sign out');
+      }
 
-      console.log('🎫 Getting tokens...');
-      const tokens = await GoogleSignin.getTokens();
-      console.log('✅ Got tokens:', tokens.idToken ? 'idToken present' : 'NO idToken');
+      console.log('🔐 Initiating sign-in...');
+      const userInfo = await GoogleSignin.signIn();
+
+      // Check if user actually completed sign-in
+      if (!userInfo || !userInfo.idToken) {
+        console.log('⚠️ Sign-in cancelled or incomplete');
+        return;
+      }
+
+      console.log('✅ Got user info:', userInfo.user?.email);
 
       console.log('📡 Calling backend API...');
       const response = await AuthenticationService.googleLoginApiAuthGoogleLoginPost({
-        token: tokens.idToken,
+        token: userInfo.idToken,
       });
       console.log('✅ Backend response received:', response.access_token ? 'token present' : 'NO token');
 
@@ -402,6 +421,13 @@ export const LoginScreen = ({ navigation }: any) => {
       }, 3000);
 
     } catch (error: any) {
+      // User cancelled sign-in - this is normal behavior, not an error
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('ℹ️ User cancelled Google Sign-In');
+        return;
+      }
+
+      // Real error occurred - log details
       console.error('❌ Google Sign-In Error:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
@@ -409,16 +435,12 @@ export const LoginScreen = ({ navigation }: any) => {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('ℹ️ User cancelled sign-in');
-        // User cancelled - no error message needed
-      } else {
-        setAuthModalType('error');
-        setAuthModalTitle('Google Sign-In Failed');
-        setAuthModalMessage(error.message || 'Please try again or use email sign-in.');
-        setAuthModalUserName('');
-        setShowAuthModal(true);
-      }
+      // Show error modal
+      setAuthModalType('error');
+      setAuthModalTitle('Google Sign-In Failed');
+      setAuthModalMessage(error.message || 'Please try again or use email sign-in.');
+      setAuthModalUserName('');
+      setShowAuthModal(true);
     } finally {
       console.log('🏁 Google Sign-In flow finished');
       setLoading(false);
@@ -486,19 +508,20 @@ export const LoginScreen = ({ navigation }: any) => {
       }, 3000);
 
     } catch (error: any) {
+      // User cancelled sign-in - this is normal behavior, not an error
+      if (error.code === 'ERR_CANCELED' || error.code === 'ERR_REQUEST_CANCELED') {
+        console.log('ℹ️ User cancelled Apple Sign-In');
+        return;
+      }
+
+      // Real error occurred - log details
       console.error('❌ Apple Sign-In Error:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
-      // User cancelled sign-in - no error message needed
-      if (error.code === 'ERR_CANCELED') {
-        console.log('ℹ️ User cancelled Apple Sign-In');
-        return;
-      }
-
-      // Show error modal for other errors
+      // Show error modal
       setAuthModalType('error');
       setAuthModalTitle('Apple Sign-In Failed');
       setAuthModalMessage(error.message || 'Please try again or use email sign-in.');
@@ -546,14 +569,9 @@ export const LoginScreen = ({ navigation }: any) => {
     return null;
   }
 
+  // Interpolate gradient pulse for subtle color intensity shifts
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0D9488', '#14B8A6', '#2DD4BF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
         <SafeAreaView style={styles.safeArea}>
           <Animated.View
             style={{
@@ -634,287 +652,434 @@ export const LoginScreen = ({ navigation }: any) => {
                 {/* Login Form */}
                 {activeTab === 'signin' && (
                   <View style={styles.formContainer}>
-                    <Text style={styles.formTitle}>Welcome Back</Text>
-                    <Text style={styles.formSubtitle}>
-                      Log in to continue your language learning journey
-                    </Text>
+                    {!showEmailForm ? (
+                      /* Social Login Options */
+                      <>
+                        <Text style={styles.formTitle}>
+                          Choose how to sign in
+                        </Text>
 
-                    {/* Email Input */}
-                    <View style={styles.inputContainer}>
-                      <View style={[styles.inputWrapper, emailError && styles.inputError]}>
-                        <Ionicons name="mail-outline" size={20} color={emailError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Email"
-                          placeholderTextColor="#9CA3AF"
-                          value={email}
-                          onChangeText={(text) => {
-                            setEmail(text);
-                            if (emailError) setEmailError('');
-                          }}
-                          onBlur={handleEmailBlur}
-                          autoCapitalize="none"
-                          keyboardType="email-address"
-                          editable={!loading}
-                          autoComplete="email"
-                        />
-                      </View>
-                      {emailError ? (
-                        <View style={styles.errorContainer}>
-                          <Ionicons name="alert-circle" size={14} color="#EF4444" />
-                          <Text style={styles.errorText}>{emailError}</Text>
-                        </View>
-                      ) : null}
-                    </View>
+                        {/* Apple Sign-In Button (iOS only) */}
+                        {Platform.OS === 'ios' && (
+                          <TouchableOpacity
+                            style={styles.appleButton}
+                            onPress={handleAppleSignIn}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="logo-apple" size={24} color="#000000" />
+                            <Text style={styles.appleButtonText}>Sign in with Apple</Text>
+                          </TouchableOpacity>
+                        )}
 
-                    {/* Password Input */}
-                    <View style={styles.inputContainer}>
-                      <View style={[styles.inputWrapper, passwordError && styles.inputError]}>
-                        <Ionicons name="lock-closed-outline" size={20} color={passwordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Password"
-                          placeholderTextColor="#9CA3AF"
-                          value={password}
-                          onChangeText={(text) => {
-                            setPassword(text);
-                            if (passwordError) setPasswordError('');
-                          }}
-                          secureTextEntry={!showPassword}
-                          editable={!loading}
-                          autoComplete="password"
-                        />
+                        {/* Google Sign-In Button */}
                         <TouchableOpacity
+                          style={styles.googleButton}
+                          onPress={handleGoogleSignIn}
+                          disabled={loading}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="logo-google" size={24} color="#DB4437" />
+                          <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                        </TouchableOpacity>
+
+                        {/* Sign in with Email Button */}
+                        <TouchableOpacity
+                          style={styles.emailButton}
                           onPress={() => {
-                            setShowPassword(!showPassword);
+                            setShowEmailForm(true);
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                           }}
-                          style={styles.eyeIcon}
+                          disabled={loading}
+                          activeOpacity={0.8}
                         >
-                          <Ionicons
-                            name={showPassword ? "eye-outline" : "eye-off-outline"}
-                            size={20}
-                            color="#9CA3AF"
-                          />
+                          <Ionicons name="mail-outline" size={24} color="#4ECFBF" />
+                          <Text style={styles.emailButtonText}>Sign in with Email</Text>
                         </TouchableOpacity>
-                      </View>
-                      {passwordError ? (
-                        <View style={styles.errorContainer}>
-                          <Ionicons name="alert-circle" size={14} color="#EF4444" />
-                          <Text style={styles.errorText}>{passwordError}</Text>
+
+                        {/* Sign Up Link */}
+                        <View style={styles.signupLinkContainer}>
+                          <Text style={styles.signupLinkText}>Don't have an account? </Text>
+                          <TouchableOpacity
+                            onPress={() => handleTabSwitch('signup')}
+                            disabled={loading}
+                          >
+                            <Text style={styles.signupLink}>Sign up</Text>
+                          </TouchableOpacity>
                         </View>
-                      ) : null}
-                    </View>
+                      </>
+                    ) : (
+                      /* Email/Password Form */
+                      <>
+                        <Text style={styles.formTitle}>
+                          Enter your credentials to continue
+                        </Text>
 
-                    <TouchableOpacity
-                      onPress={handleForgotPassword}
-                      style={styles.forgotPasswordContainer}
-                      disabled={loading}
-                    >
-                      <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-                    </TouchableOpacity>
+                        {/* Email Input */}
+                        <View style={styles.inputContainer}>
+                          <View style={[styles.inputWrapper, emailError && styles.inputError]}>
+                            <Ionicons name="mail-outline" size={20} color={emailError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Email"
+                              placeholderTextColor="#9CA3AF"
+                              value={email}
+                              onChangeText={(text) => {
+                                setEmail(text);
+                                if (emailError) setEmailError('');
+                              }}
+                              onBlur={handleEmailBlur}
+                              autoCapitalize="none"
+                              keyboardType="email-address"
+                              editable={!loading}
+                              autoComplete="email"
+                            />
+                          </View>
+                          {emailError ? (
+                            <View style={styles.errorContainer}>
+                              <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                              <Text style={styles.errorText}>{emailError}</Text>
+                            </View>
+                          ) : null}
+                        </View>
 
-                    <TouchableOpacity
-                      style={[styles.button, loading && styles.buttonDisabled]}
-                      onPress={handleLogin}
-                      disabled={loading}
-                      activeOpacity={0.8}
-                    >
-                      {loading ? (
-                        <ActivityIndicator color="white" />
-                      ) : (
-                        <>
-                          <Text style={styles.buttonText}>Login</Text>
-                          <Ionicons name="arrow-forward" size={20} color="white" />
-                        </>
-                      )}
-                    </TouchableOpacity>
+                        {/* Password Input */}
+                        <View style={styles.inputContainer}>
+                          <View style={[styles.inputWrapper, passwordError && styles.inputError]}>
+                            <Ionicons name="lock-closed-outline" size={20} color={passwordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Password"
+                              placeholderTextColor="#9CA3AF"
+                              value={password}
+                              onChangeText={(text) => {
+                                setPassword(text);
+                                if (passwordError) setPasswordError('');
+                              }}
+                              secureTextEntry={!showPassword}
+                              editable={!loading}
+                              autoComplete="password"
+                            />
+                            <TouchableOpacity
+                              onPress={() => {
+                                setShowPassword(!showPassword);
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                              }}
+                              style={styles.eyeIcon}
+                            >
+                              <Ionicons
+                                name={showPassword ? "eye-outline" : "eye-off-outline"}
+                                size={20}
+                                color="#9CA3AF"
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          {passwordError ? (
+                            <View style={styles.errorContainer}>
+                              <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                              <Text style={styles.errorText}>{passwordError}</Text>
+                            </View>
+                          ) : null}
+                        </View>
 
-                    {/* Divider */}
-                    <View style={styles.dividerContainer}>
-                      <View style={styles.divider} />
-                      <Text style={styles.dividerText}>Or continue with</Text>
-                      <View style={styles.divider} />
-                    </View>
+                        <TouchableOpacity
+                          onPress={handleForgotPassword}
+                          style={styles.forgotPasswordContainer}
+                          disabled={loading}
+                        >
+                          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                        </TouchableOpacity>
 
-                    {/* Apple Sign-In Button (iOS only) */}
-                    {Platform.OS === 'ios' && (
-                      <TouchableOpacity
-                        style={styles.appleButton}
-                        onPress={handleAppleSignIn}
-                        disabled={loading}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="logo-apple" size={20} color="white" />
-                        <Text style={styles.appleButtonText}>Sign in with Apple</Text>
-                      </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.button, loading && styles.buttonDisabled]}
+                          onPress={handleLogin}
+                          disabled={loading}
+                          activeOpacity={0.8}
+                        >
+                          {loading ? (
+                            <ActivityIndicator color="white" />
+                          ) : (
+                            <>
+                              <Text style={styles.buttonText}>Sign In</Text>
+                              <Ionicons name="arrow-forward" size={20} color="white" />
+                            </>
+                          )}
+                        </TouchableOpacity>
+
+                        {/* Quick Escape - Or continue with */}
+                        <View style={styles.dividerContainer}>
+                          <View style={styles.divider} />
+                          <Text style={styles.dividerText}>Or continue with</Text>
+                          <View style={styles.divider} />
+                        </View>
+
+                        {/* Compact Social Buttons */}
+                        <View style={styles.compactSocialContainer}>
+                          {Platform.OS === 'ios' && (
+                            <TouchableOpacity
+                              style={styles.compactAppleButton}
+                              onPress={handleAppleSignIn}
+                              disabled={loading}
+                              activeOpacity={0.8}
+                            >
+                              <Ionicons name="logo-apple" size={24} color="#000000" />
+                            </TouchableOpacity>
+                          )}
+                          <TouchableOpacity
+                            style={styles.compactGoogleButton}
+                            onPress={handleGoogleSignIn}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="logo-google" size={24} color="#DB4437" />
+                          </TouchableOpacity>
+                        </View>
+                      </>
                     )}
-
-                    {/* Google Sign-In Button */}
-                    <TouchableOpacity
-                      style={styles.googleButton}
-                      onPress={handleGoogleSignIn}
-                      disabled={loading}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="logo-google" size={20} color="#DB4437" />
-                      <Text style={styles.googleButtonText}>Continue with Google</Text>
-                    </TouchableOpacity>
                   </View>
                 )}
 
                 {/* Create Account Form */}
                 {activeTab === 'signup' && (
                   <View style={styles.formContainer}>
-                    <Text style={styles.formTitle}>Create Your Account</Text>
-                    <Text style={styles.formSubtitle}>
-                      Join us and start learning languages today
-                    </Text>
+                    {!showSignupEmailForm ? (
+                      /* Social Sign Up Options */
+                      <>
+                        <Text style={styles.formTitle}>
+                          Choose how to get started
+                        </Text>
 
-                    {/* Full Name Input */}
-                    <View style={styles.inputContainer}>
-                      <View style={[styles.inputWrapper, fullNameError && styles.inputError]}>
-                        <Ionicons name="person-outline" size={20} color={fullNameError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Full Name"
-                          placeholderTextColor="#9CA3AF"
-                          value={fullName}
-                          onChangeText={(text) => {
-                            setFullName(text);
-                            if (fullNameError) setFullNameError('');
-                          }}
-                          autoCapitalize="words"
-                          editable={!loading}
-                        />
-                      </View>
-                      {fullNameError ? (
-                        <View style={styles.errorContainer}>
-                          <Ionicons name="alert-circle" size={14} color="#EF4444" />
-                          <Text style={styles.errorText}>{fullNameError}</Text>
-                        </View>
-                      ) : null}
-                    </View>
+                        {/* Apple Sign-In Button (iOS only) */}
+                        {Platform.OS === 'ios' && (
+                          <TouchableOpacity
+                            style={styles.appleButton}
+                            onPress={handleAppleSignIn}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="logo-apple" size={24} color="#000000" />
+                            <Text style={styles.appleButtonText}>Sign in with Apple</Text>
+                          </TouchableOpacity>
+                        )}
 
-                    {/* Email Input */}
-                    <View style={styles.inputContainer}>
-                      <View style={[styles.inputWrapper, signupEmailError && styles.inputError]}>
-                        <Ionicons name="mail-outline" size={20} color={signupEmailError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Email"
-                          placeholderTextColor="#9CA3AF"
-                          value={signupEmail}
-                          onChangeText={(text) => {
-                            setSignupEmail(text);
-                            if (signupEmailError) setSignupEmailError('');
-                          }}
-                          onBlur={handleSignupEmailBlur}
-                          autoCapitalize="none"
-                          keyboardType="email-address"
-                          editable={!loading}
-                          autoComplete="email"
-                        />
-                      </View>
-                      {signupEmailError ? (
-                        <View style={styles.errorContainer}>
-                          <Ionicons name="alert-circle" size={14} color="#EF4444" />
-                          <Text style={styles.errorText}>{signupEmailError}</Text>
-                        </View>
-                      ) : null}
-                    </View>
-
-                    {/* Password Input */}
-                    <View style={styles.inputContainer}>
-                      <View style={[styles.inputWrapper, signupPasswordError && styles.inputError]}>
-                        <Ionicons name="lock-closed-outline" size={20} color={signupPasswordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Password (min. 8 characters)"
-                          placeholderTextColor="#9CA3AF"
-                          value={signupPassword}
-                          onChangeText={(text) => {
-                            setSignupPassword(text);
-                            if (signupPasswordError) setSignupPasswordError('');
-                          }}
-                          secureTextEntry={!showPassword}
-                          editable={!loading}
-                        />
+                        {/* Google Sign-In Button */}
                         <TouchableOpacity
+                          style={styles.googleButton}
+                          onPress={handleGoogleSignIn}
+                          disabled={loading}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="logo-google" size={24} color="#DB4437" />
+                          <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                        </TouchableOpacity>
+
+                        {/* Sign up with Email Button */}
+                        <TouchableOpacity
+                          style={styles.emailButton}
                           onPress={() => {
-                            setShowPassword(!showPassword);
+                            setShowSignupEmailForm(true);
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                           }}
-                          style={styles.eyeIcon}
+                          disabled={loading}
+                          activeOpacity={0.8}
                         >
-                          <Ionicons
-                            name={showPassword ? "eye-outline" : "eye-off-outline"}
-                            size={20}
-                            color="#9CA3AF"
-                          />
+                          <Ionicons name="mail-outline" size={24} color="#4ECFBF" />
+                          <Text style={styles.emailButtonText}>Sign up with Email</Text>
                         </TouchableOpacity>
-                      </View>
-                      {signupPasswordError ? (
-                        <View style={styles.errorContainer}>
-                          <Ionicons name="alert-circle" size={14} color="#EF4444" />
-                          <Text style={styles.errorText}>{signupPasswordError}</Text>
-                        </View>
-                      ) : null}
-                    </View>
 
-                    {/* Confirm Password Input */}
-                    <View style={styles.inputContainer}>
-                      <View style={[styles.inputWrapper, confirmPasswordError && styles.inputError]}>
-                        <Ionicons name="lock-closed-outline" size={20} color={confirmPasswordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Confirm Password"
-                          placeholderTextColor="#9CA3AF"
-                          value={confirmPassword}
-                          onChangeText={(text) => {
-                            setConfirmPassword(text);
-                            if (confirmPasswordError) setConfirmPasswordError('');
-                          }}
-                          secureTextEntry={!showConfirmPassword}
-                          editable={!loading}
-                        />
+                        {/* Sign In Link */}
+                        <View style={styles.signupLinkContainer}>
+                          <Text style={styles.signupLinkText}>Already have an account? </Text>
+                          <TouchableOpacity
+                            onPress={() => handleTabSwitch('signin')}
+                            disabled={loading}
+                          >
+                            <Text style={styles.signupLink}>Sign in</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </>
+                    ) : (
+                      /* Email/Password Sign Up Form */
+                      <>
+                        <Text style={styles.formTitle}>
+                          Fill in your details to create an account
+                        </Text>
+
+                        {/* Full Name Input */}
+                        <View style={styles.inputContainer}>
+                          <View style={[styles.inputWrapper, fullNameError && styles.inputError]}>
+                            <Ionicons name="person-outline" size={20} color={fullNameError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Full Name"
+                              placeholderTextColor="#9CA3AF"
+                              value={fullName}
+                              onChangeText={(text) => {
+                                setFullName(text);
+                                if (fullNameError) setFullNameError('');
+                              }}
+                              autoCapitalize="words"
+                              editable={!loading}
+                            />
+                          </View>
+                          {fullNameError ? (
+                            <View style={styles.errorContainer}>
+                              <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                              <Text style={styles.errorText}>{fullNameError}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+
+                        {/* Email Input */}
+                        <View style={styles.inputContainer}>
+                          <View style={[styles.inputWrapper, signupEmailError && styles.inputError]}>
+                            <Ionicons name="mail-outline" size={20} color={signupEmailError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Email"
+                              placeholderTextColor="#9CA3AF"
+                              value={signupEmail}
+                              onChangeText={(text) => {
+                                setSignupEmail(text);
+                                if (signupEmailError) setSignupEmailError('');
+                              }}
+                              onBlur={handleSignupEmailBlur}
+                              autoCapitalize="none"
+                              keyboardType="email-address"
+                              editable={!loading}
+                              autoComplete="email"
+                            />
+                          </View>
+                          {signupEmailError ? (
+                            <View style={styles.errorContainer}>
+                              <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                              <Text style={styles.errorText}>{signupEmailError}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+
+                        {/* Password Input */}
+                        <View style={styles.inputContainer}>
+                          <View style={[styles.inputWrapper, signupPasswordError && styles.inputError]}>
+                            <Ionicons name="lock-closed-outline" size={20} color={signupPasswordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Password (min. 8 characters)"
+                              placeholderTextColor="#9CA3AF"
+                              value={signupPassword}
+                              onChangeText={(text) => {
+                                setSignupPassword(text);
+                                if (signupPasswordError) setSignupPasswordError('');
+                              }}
+                              secureTextEntry={!showPassword}
+                              editable={!loading}
+                            />
+                            <TouchableOpacity
+                              onPress={() => {
+                                setShowPassword(!showPassword);
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                              }}
+                              style={styles.eyeIcon}
+                            >
+                              <Ionicons
+                                name={showPassword ? "eye-outline" : "eye-off-outline"}
+                                size={20}
+                                color="#9CA3AF"
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          {signupPasswordError ? (
+                            <View style={styles.errorContainer}>
+                              <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                              <Text style={styles.errorText}>{signupPasswordError}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+
+                        {/* Confirm Password Input */}
+                        <View style={styles.inputContainer}>
+                          <View style={[styles.inputWrapper, confirmPasswordError && styles.inputError]}>
+                            <Ionicons name="lock-closed-outline" size={20} color={confirmPasswordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Confirm Password"
+                              placeholderTextColor="#9CA3AF"
+                              value={confirmPassword}
+                              onChangeText={(text) => {
+                                setConfirmPassword(text);
+                                if (confirmPasswordError) setConfirmPasswordError('');
+                              }}
+                              secureTextEntry={!showConfirmPassword}
+                              editable={!loading}
+                            />
+                            <TouchableOpacity
+                              onPress={() => {
+                                setShowConfirmPassword(!showConfirmPassword);
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                              }}
+                              style={styles.eyeIcon}
+                            >
+                              <Ionicons
+                                name={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
+                                size={20}
+                                color="#9CA3AF"
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          {confirmPasswordError ? (
+                            <View style={styles.errorContainer}>
+                              <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                              <Text style={styles.errorText}>{confirmPasswordError}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+
                         <TouchableOpacity
-                          onPress={() => {
-                            setShowConfirmPassword(!showConfirmPassword);
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          }}
-                          style={styles.eyeIcon}
+                          style={[styles.button, loading && styles.buttonDisabled]}
+                          onPress={handleSignup}
+                          disabled={loading}
+                          activeOpacity={0.8}
                         >
-                          <Ionicons
-                            name={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
-                            size={20}
-                            color="#9CA3AF"
-                          />
+                          {loading ? (
+                            <ActivityIndicator color="white" />
+                          ) : (
+                            <>
+                              <Text style={styles.buttonText}>Create Account</Text>
+                              <Ionicons name="arrow-forward" size={20} color="white" />
+                            </>
+                          )}
                         </TouchableOpacity>
-                      </View>
-                      {confirmPasswordError ? (
-                        <View style={styles.errorContainer}>
-                          <Ionicons name="alert-circle" size={14} color="#EF4444" />
-                          <Text style={styles.errorText}>{confirmPasswordError}</Text>
-                        </View>
-                      ) : null}
-                    </View>
 
-                    <TouchableOpacity
-                      style={[styles.button, loading && styles.buttonDisabled]}
-                      onPress={handleSignup}
-                      disabled={loading}
-                      activeOpacity={0.8}
-                    >
-                      {loading ? (
-                        <ActivityIndicator color="white" />
-                      ) : (
-                        <>
-                          <Text style={styles.buttonText}>Create Account</Text>
-                          <Ionicons name="arrow-forward" size={20} color="white" />
-                        </>
-                      )}
-                    </TouchableOpacity>
+                        {/* Quick Escape - Or continue with */}
+                        <View style={styles.dividerContainer}>
+                          <View style={styles.divider} />
+                          <Text style={styles.dividerText}>Or continue with</Text>
+                          <View style={styles.divider} />
+                        </View>
+
+                        {/* Compact Social Buttons */}
+                        <View style={styles.compactSocialContainer}>
+                          {Platform.OS === 'ios' && (
+                            <TouchableOpacity
+                              style={styles.compactAppleButton}
+                              onPress={handleAppleSignIn}
+                              disabled={loading}
+                              activeOpacity={0.8}
+                            >
+                              <Ionicons name="logo-apple" size={24} color="#000000" />
+                            </TouchableOpacity>
+                          )}
+                          <TouchableOpacity
+                            style={styles.compactGoogleButton}
+                            onPress={handleGoogleSignIn}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="logo-google" size={24} color="#DB4437" />
+                          </TouchableOpacity>
+                        </View>
+                      </>
+                    )}
                   </View>
                 )}
               </Animated.View>
@@ -922,7 +1087,6 @@ export const LoginScreen = ({ navigation }: any) => {
           </KeyboardAvoidingView>
           </Animated.View>
         </SafeAreaView>
-      </LinearGradient>
 
       {/* Toast Notifications */}
       <GlobalToast />

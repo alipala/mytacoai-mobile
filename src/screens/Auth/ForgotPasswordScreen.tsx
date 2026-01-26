@@ -80,7 +80,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
       <SafeAreaView style={styles.container}>
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
-            <Ionicons name="checkmark-circle" size={80} color="#48BB78" />
+            <Ionicons name="checkmark-circle" size={80} color="#FFFFFF" />
           </View>
           
           <Text style={styles.successTitle}>Check Your Email</Text>
@@ -127,14 +127,14 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
           style={styles.backButton}
           onPress={handleBackToLogin}
         >
-          <Ionicons name="arrow-back" size={24} color="#4A5568" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           <Text style={styles.backButtonText}>Back to Login</Text>
         </TouchableOpacity>
 
         <View style={styles.content}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            <Ionicons name="lock-closed-outline" size={64} color="#4FD1C5" />
+            <Ionicons name="lock-closed-outline" size={64} color="#FFFFFF" />
           </View>
 
           {/* Title */}
@@ -143,45 +143,48 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             No worries, we'll send you reset instructions.
           </Text>
 
-          {/* Email Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              placeholderTextColor="#A0AEC0"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-              editable={!loading}
-            />
-          </View>
+          {/* White Card Container */}
+          <View style={styles.card}>
+            {/* Email Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                placeholderTextColor="#A0AEC0"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoFocus
+                editable={!loading}
+              />
+            </View>
 
-          {/* Send Reset Link Button */}
-          <TouchableOpacity
-            style={[styles.primaryButton, loading && styles.buttonDisabled]}
-            onPress={handleSendResetLink}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Send Reset Link</Text>
-            )}
-          </TouchableOpacity>
+            {/* Send Reset Link Button */}
+            <TouchableOpacity
+              style={[styles.primaryButton, loading && styles.buttonDisabled]}
+              onPress={handleSendResetLink}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Send Reset Link</Text>
+              )}
+            </TouchableOpacity>
 
-          {/* Help Text */}
-          <View style={styles.helpContainer}>
-            <Ionicons name="information-circle-outline" size={20} color="#718096" />
-            <Text style={styles.helpText}>
-              Remember your password?{' '}
-              <Text style={styles.loginLink} onPress={handleBackToLogin}>
-                Sign in
+            {/* Help Text */}
+            <View style={styles.helpContainer}>
+              <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+              <Text style={styles.helpText}>
+                Remember your password?{' '}
+                <Text style={styles.loginLink} onPress={handleBackToLogin}>
+                  Sign in
+                </Text>
               </Text>
-            </Text>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
