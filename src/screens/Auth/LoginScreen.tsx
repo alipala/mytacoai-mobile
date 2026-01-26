@@ -381,15 +381,32 @@ export const LoginScreen = ({ navigation }: any) => {
       }
 
       console.log('🔐 Initiating sign-in...');
-      const userInfo = await GoogleSignin.signIn();
+      const signInResult = await GoogleSignin.signIn();
 
-      // Check if user actually completed sign-in
-      if (!userInfo || !userInfo.idToken) {
-        console.log('⚠️ Sign-in cancelled or incomplete');
+      // Log full response for debugging
+      console.log('📦 Google Sign-In response type:', signInResult.type);
+
+      // Handle v16+ API structure
+      if (signInResult.type === 'cancelled') {
+        console.log('ℹ️ User cancelled Google Sign-In');
         return;
       }
 
+      if (signInResult.type !== 'success') {
+        console.log('⚠️ Unknown sign-in result type:', signInResult.type);
+        return;
+      }
+
+      // Extract user data from result
+      const userInfo = signInResult.data;
       console.log('✅ Got user info:', userInfo.user?.email);
+      console.log('🔑 Has idToken?', !!userInfo.idToken);
+
+      // Check if we have the required token
+      if (!userInfo || !userInfo.idToken) {
+        console.log('⚠️ Sign-in succeeded but missing idToken');
+        throw new Error('Failed to get authentication token from Google');
+      }
 
       console.log('📡 Calling backend API...');
       const response = await AuthenticationService.googleLoginApiAuthGoogleLoginPost({
