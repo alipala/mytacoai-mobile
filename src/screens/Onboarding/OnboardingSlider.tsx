@@ -94,9 +94,10 @@ const createDynamicStyles = (isIPad: boolean, screenHeight: number) => StyleShee
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 28,
-    paddingTop: 32,
-    paddingBottom: 160,
+    paddingTop: 48,
+    paddingBottom: 140,
     minHeight: screenHeight * 0.5,
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
@@ -113,7 +114,8 @@ const createDynamicStyles = (isIPad: boolean, screenHeight: number) => StyleShee
   },
   textContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    flex: 1,
+    justifyContent: 'center',
   },
   title: {
     fontFamily: 'Montserrat_700Bold',
