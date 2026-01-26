@@ -150,8 +150,9 @@ class AppleIAPService {
   private handlePurchaseError(error: any) {
     console.log('[APPLE_IAP] Purchase error received:', error);
 
-    // Don't show alert for user cancellation (code: 'E_USER_CANCELLED')
-    if (error.code === 'E_USER_CANCELLED') {
+    // Don't show alert for user cancellation
+    // v14 uses 'user-cancelled', older versions used 'E_USER_CANCELLED'
+    if (error.code === 'user-cancelled' || error.code === 'E_USER_CANCELLED') {
       console.log('[APPLE_IAP] User cancelled purchase');
       return;
     }
@@ -279,9 +280,14 @@ class AppleIAPService {
     try {
       console.log(`[APPLE_IAP] Initiating purchase for: ${productId}`);
 
-      // Trigger the subscription purchase
-      await RNIap.requestSubscription({
-        sku: productId,
+      // Trigger the subscription purchase (v14 unified API)
+      await RNIap.requestPurchase({
+        type: 'subs',
+        request: {
+          apple: {
+            sku: productId,
+          },
+        },
       });
 
       // Note: The actual purchase result will be handled in handlePurchaseUpdate

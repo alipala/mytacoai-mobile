@@ -168,8 +168,9 @@ class GooglePlayBillingService {
   private handlePurchaseError(error: any) {
     console.log('[GOOGLE_PLAY] Purchase error received:', error);
 
-    // Don't show alert for user cancellation (code: 'E_USER_CANCELLED')
-    if (error.code === 'E_USER_CANCELLED') {
+    // Don't show alert for user cancellation
+    // v14 uses 'user-cancelled', older versions used 'E_USER_CANCELLED'
+    if (error.code === 'user-cancelled' || error.code === 'E_USER_CANCELLED') {
       console.log('[GOOGLE_PLAY] User cancelled purchase');
       return;
     }
@@ -292,9 +293,14 @@ class GooglePlayBillingService {
     try {
       console.log(`[GOOGLE_PLAY] Initiating purchase for: ${productId}`);
 
-      // Trigger the subscription purchase
-      await RNIap.requestSubscription({
-        sku: productId,
+      // Trigger the subscription purchase (v14 unified API)
+      await RNIap.requestPurchase({
+        type: 'subs',
+        request: {
+          google: {
+            skus: [productId],
+          },
+        },
       });
 
       // Note: The actual purchase result will be handled in handlePurchaseUpdate
