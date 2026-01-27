@@ -489,7 +489,10 @@ class SpeakingDNAService {
       const user = JSON.parse(userStr);
       const subscriptionStatus = user.subscription_status;
 
-      return subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+      // Allow access for active, trialing, and canceling (still active until period end)
+      return subscriptionStatus === 'active' ||
+             subscriptionStatus === 'trialing' ||
+             subscriptionStatus === 'canceling';
     } catch (error) {
       console.error('[SpeakingDNAService] Failed to check premium access:', error);
       return false;
