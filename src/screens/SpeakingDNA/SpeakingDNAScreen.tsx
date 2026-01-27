@@ -224,9 +224,12 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
             </Text>
             <TouchableOpacity
               style={styles.startButton}
-              onPress={() => navigation.navigate('Practice')}
+              onPress={() => {
+                // Go back to dashboard where user can start a session
+                navigation.goBack();
+              }}
             >
-              <Text style={styles.startButtonText}>Start Speaking</Text>
+              <Text style={styles.startButtonText}>Go to Dashboard</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
