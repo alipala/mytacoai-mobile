@@ -41,7 +41,7 @@ interface SubGoal {
   main_goal?: string;
 }
 
-type Step = 'goals' | 'subgoals' | 'duration' | 'creating';
+type Step = 'goals' | 'subgoals' | 'duration' | 'creating' | 'success';
 
 export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = ({
   visible,
@@ -60,6 +60,7 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
   const [duration, setDuration] = useState<number>(3);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdPlanId, setCreatedPlanId] = useState<string | null>(null);
 
   console.log('📋 CreateLearningPlanModal render - visible:', visible, 'step:', step);
 
@@ -178,18 +179,9 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      Alert.alert(
-        'Success!',
-        'Your personalized learning plan has been created.',
-        [
-          {
-            text: 'Great!',
-            onPress: () => {
-              onCreate({ planId: plan.id });
-            },
-          },
-        ]
-      );
+      // Show success modal
+      setCreatedPlanId(plan.id);
+      setStep('success');
     } catch (err: any) {
       console.error('❌ Error creating plan:', err);
 
@@ -522,6 +514,50 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
                 Our AI is analyzing your assessment results and crafting a customized
                 learning journey just for you...
               </Text>
+            </View>
+          )}
+
+          {/* Step 5: Success */}
+          {step === 'success' && (
+            <View style={styles.successContainer}>
+              <View style={styles.successIconContainer}>
+                <View style={styles.successCircle}>
+                  <Ionicons name="checkmark" size={64} color="#FFFFFF" />
+                </View>
+              </View>
+              <Text style={styles.successTitle}>Plan Created Successfully!</Text>
+              <Text style={styles.successSubtitle}>
+                Your personalized {duration}-month learning journey is ready to begin
+              </Text>
+              <View style={styles.successStatsContainer}>
+                <View style={styles.successStat}>
+                  <Ionicons name="calendar-outline" size={24} color="#4FD1C5" />
+                  <Text style={styles.successStatValue}>{duration}</Text>
+                  <Text style={styles.successStatLabel}>Months</Text>
+                </View>
+                <View style={styles.successStat}>
+                  <Ionicons name="book-outline" size={24} color="#4FD1C5" />
+                  <Text style={styles.successStatValue}>{duration * 8}</Text>
+                  <Text style={styles.successStatLabel}>Sessions</Text>
+                </View>
+                <View style={styles.successStat}>
+                  <Ionicons name="trophy-outline" size={24} color="#4FD1C5" />
+                  <Text style={styles.successStatValue}>{recommendedLevel}</Text>
+                  <Text style={styles.successStatLabel}>Level</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  if (createdPlanId) {
+                    onCreate({ planId: createdPlanId });
+                  }
+                }}
+                style={styles.successButton}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.successButtonText}>Start Learning</Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>

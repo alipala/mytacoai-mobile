@@ -127,7 +127,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           <View style={styles.confidenceBadge}>
             <Ionicons name="shield-checkmark" size={16} color="#4FD1C5" />
             <Text style={styles.confidenceText}>
-              {Math.round(result.confidence * 100)}% Confidence
+              {Math.round(result.confidence)}% Confidence
             </Text>
           </View>
         </View>
