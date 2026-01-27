@@ -483,16 +483,26 @@ class SpeakingDNAService {
     try {
       const userStr = await AsyncStorage.getItem('user');
       if (!userStr) {
+        console.log('[SpeakingDNAService] No user in storage');
         return false;
       }
 
       const user = JSON.parse(userStr);
       const subscriptionStatus = user.subscription_status;
 
+      console.log('[SpeakingDNAService] Premium access check:', {
+        status: subscriptionStatus,
+        plan: user.subscription_plan,
+        email: user.email,
+      });
+
       // Allow access for active, trialing, and canceling (still active until period end)
-      return subscriptionStatus === 'active' ||
-             subscriptionStatus === 'trialing' ||
-             subscriptionStatus === 'canceling';
+      const hasAccess = subscriptionStatus === 'active' ||
+                        subscriptionStatus === 'trialing' ||
+                        subscriptionStatus === 'canceling';
+
+      console.log('[SpeakingDNAService] Has premium access:', hasAccess);
+      return hasAccess;
     } catch (error) {
       console.error('[SpeakingDNAService] Failed to check premium access:', error);
       return false;

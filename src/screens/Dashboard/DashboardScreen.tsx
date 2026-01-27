@@ -547,6 +547,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                             <Ionicons name="trophy-outline" size={13} color="rgba(255,255,255,0.95)" />
                             <Text style={styles.premiumPillText}>Track progress</Text>
                           </View>
+                          <View style={styles.premiumPill}>
+                            <Ionicons name="fitness-outline" size={13} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.premiumPillText}>DNA Analysis</Text>
+                          </View>
                         </View>
                       </LinearGradient>
                     </TouchableOpacity>
@@ -577,6 +581,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       <Text style={styles.premiumSecondaryText}>Or start a quick conversation</Text>
                       <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
                     </TouchableOpacity>
+
+                    {/* Speaking DNA Profile Widget for Premium Users */}
+                    <View style={{ marginTop: 16 }}>
+                      <DNAProfileWidget
+                        language={userLanguage}
+                        onPress={() => navigation.navigate('SpeakingDNA', { language: userLanguage })}
+                        onRefresh={handleRefresh}
+                      />
+                    </View>
                   </View>
                 )}
 
