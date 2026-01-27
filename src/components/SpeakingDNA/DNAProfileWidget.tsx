@@ -191,19 +191,15 @@ export const DNAProfileWidget: React.FC<DNAProfileWidgetProps> = ({
    */
   if (!profile) {
     return (
-      <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+      <View style={styles.card}>
         <View style={styles.emptyContent}>
           <Ionicons name="flask" size={48} color="#14B8A6" />
-          <Text style={styles.emptyTitle}>Build Your DNA</Text>
+          <Text style={styles.emptyTitle}>Build Your Speaking DNA</Text>
           <Text style={styles.emptyText}>
-            Complete a speaking session to create your unique profile
+            Your unique speaking profile will appear here after completing your first session
           </Text>
-          <View style={styles.startButton}>
-            <Text style={styles.startButtonText}>Get Started</Text>
-            <Ionicons name="arrow-forward" size={16} color="#fff" />
-          </View>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   }
 

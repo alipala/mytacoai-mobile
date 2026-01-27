@@ -719,6 +719,36 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         </View>
       </View>
 
+      {/* Speaking DNA Section */}
+      <TouchableOpacity
+        style={styles.section}
+        onPress={() => navigation.navigate('SpeakingDNA', { language: user?.preferred_language || 'english' })}
+        activeOpacity={0.7}
+      >
+        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12}}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Ionicons name="fitness" size={20} color="#14B8A6" style={{marginRight: 8}} />
+            <Text style={styles.sectionTitle}>Speaking DNA</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        </View>
+        <View style={{
+          backgroundColor: '#F0FDFA',
+          padding: 16,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: '#99F6E4',
+        }}>
+          <Text style={{
+            fontSize: 14,
+            color: '#0F766E',
+            lineHeight: 20,
+          }}>
+            View your unique speaking fingerprint and track your conversation patterns across 6 DNA strands
+          </Text>
+        </View>
+      </TouchableOpacity>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Activity</Text>
         {conversationHistory.length > 0 ? (

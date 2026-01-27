@@ -746,6 +746,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           )}
         </View>
 
+        {/* Speaking DNA Profile Widget */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }}>
+          <DNAProfileWidget
+            language={userLanguage}
+            onPress={() => navigation.navigate('SpeakingDNA', { language: userLanguage })}
+            onRefresh={handleRefresh}
+          />
+        </View>
+
         {/* Divider - Compact */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
@@ -806,15 +815,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
-
-        {/* Speaking DNA Profile Widget */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 24 }}>
-          <DNAProfileWidget
-            language={userLanguage}
-            onPress={() => navigation.navigate('SpeakingDNA', { language: userLanguage })}
-            onRefresh={handleRefresh}
-          />
-        </View>
       </ScrollView>
 
       {/* Learning Plan Details Modal */}
