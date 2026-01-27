@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,15 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { RadarChart } from 'react-native-chart-kit';
-import type { SpeakingAssessmentResponse, SkillScore } from '../../api/generated';
+import type { SpeakingAssessmentResponse } from '../../api/generated';
 import { CreateLearningPlanModal } from '../../components/CreateLearningPlanModal';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface SpeakingAssessmentResultsScreenProps {
   navigation: any;
@@ -30,6 +31,9 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   const result: SpeakingAssessmentResponse = assessmentResult;
 
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const handleSaveAndProceed = () => {
     if (Platform.OS === 'ios') {
@@ -39,7 +43,6 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   };
 
   const handleCreatePlan = async (planData: { planId: string }) => {
-    // The modal has created the plan
     setShowCreatePlanModal(false);
 
     if (Platform.OS === 'ios') {
@@ -47,8 +50,6 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     }
 
     console.log('✅ Learning plan created:', planData.planId);
-
-    // Navigate to Main dashboard
     navigation.navigate('Main', { screen: 'Dashboard' });
   };
 
@@ -71,34 +72,173 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     return 'Needs Improvement';
   };
 
-  // Prepare radar chart data
-  const radarData = {
-    labels: ['Pronunciation', 'Grammar', 'Vocabulary', 'Fluency', 'Coherence'],
-    datasets: [
-      {
-        data: [
-          result.pronunciation.score,
-          result.grammar.score,
-          result.vocabulary.score,
-          result.fluency.score,
-          result.coherence.score,
-        ],
-      },
-    ],
+  const getGradientColors = (score: number): string[] => {
+    if (score >= 80) return ['#10B981', '#059669'];
+    if (score >= 60) return ['#F59E0B', '#D97706'];
+    return ['#EF4444', '#DC2626'];
   };
 
-  const chartConfig = {
-    backgroundGradientFrom: '#FFFFFF',
-    backgroundGradientTo: '#FFFFFF',
-    color: (opacity = 1) => `rgba(79, 209, 197, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.5,
-    useShadowColorFromDataset: false,
-    propsForLabels: {
-      fontSize: 12,
-      fontWeight: '600',
-    },
+  const skills = [
+    { label: 'Pronunciation', score: result.pronunciation.score, icon: 'mic-outline', feedback: result.pronunciation.feedback },
+    { label: 'Grammar', score: result.grammar.score, icon: 'create-outline', feedback: result.grammar.feedback },
+    { label: 'Vocabulary', score: result.vocabulary.score, icon: 'book-outline', feedback: result.vocabulary.feedback },
+    { label: 'Fluency', score: result.fluency.score, icon: 'speedometer-outline', feedback: result.fluency.feedback },
+    { label: 'Coherence', score: result.coherence.score, icon: 'git-network-outline', feedback: result.coherence.feedback },
+  ];
+
+  const handleTabPress = (index: number) => {
+    setActiveTab(index);
+    scrollViewRef.current?.scrollTo({ x: index * SCREEN_WIDTH, animated: true });
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
   };
+
+  // Overview Tab
+  const renderOverview = () => (
+    <View style={styles.tabContent}>
+      {/* Hero Section with Score */}
+      <LinearGradient
+        colors={getGradientColors(result.overall_score)}
+        style={styles.heroGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.scoreCircleWhite}>
+          <Text style={styles.overallScoreText}>{result.overall_score}</Text>
+          <Text style={styles.scoreOutOf}>/100</Text>
+        </View>
+        <Text style={styles.scoreLabel}>{getScoreLabel(result.overall_score)}</Text>
+        <Text style={styles.recommendedLevel}>
+          Recommended Level: <Text style={styles.levelText}>{result.recommended_level}</Text>
+        </Text>
+      </LinearGradient>
+
+      {/* Skills Grid */}
+      <View style={styles.skillsGrid}>
+        {skills.map((skill, index) => (
+          <View key={index} style={styles.skillCard}>
+            <View style={[styles.skillIconContainer, { backgroundColor: getScoreColor(skill.score) + '20' }]}>
+              <Ionicons name={skill.icon as any} size={24} color={getScoreColor(skill.score)} />
+            </View>
+            <Text style={styles.skillLabel}>{skill.label}</Text>
+            <Text style={[styles.skillScore, { color: getScoreColor(skill.score) }]}>
+              {skill.score}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Transcript Card */}
+      <View style={styles.transcriptCard}>
+        <View style={styles.transcriptHeader}>
+          <Ionicons name="chatbubble-outline" size={20} color="#4FD1C5" />
+          <Text style={styles.transcriptTitle}>What You Said</Text>
+        </View>
+        <Text style={styles.transcriptText}>{result.recognized_text}</Text>
+      </View>
+    </View>
+  );
+
+  // Skills Detail Tab
+  const renderSkillsDetail = () => (
+    <View style={styles.tabContent}>
+      <Text style={styles.tabTitle}>Skills Breakdown</Text>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {skills.map((skill, index) => (
+          <View key={index} style={styles.skillDetailCard}>
+            <View style={styles.skillDetailHeader}>
+              <View style={[styles.skillIconContainer, { backgroundColor: getScoreColor(skill.score) + '20' }]}>
+                <Ionicons name={skill.icon as any} size={24} color={getScoreColor(skill.score)} />
+              </View>
+              <View style={styles.skillDetailInfo}>
+                <Text style={styles.skillDetailLabel}>{skill.label}</Text>
+                <View style={styles.skillDetailScoreContainer}>
+                  <View style={styles.skillDetailScoreBar}>
+                    <View
+                      style={[
+                        styles.skillDetailScoreFill,
+                        {
+                          width: `${skill.score}%`,
+                          backgroundColor: getScoreColor(skill.score),
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.skillDetailScoreText, { color: getScoreColor(skill.score) }]}>
+                    {skill.score}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <Text style={styles.skillFeedback}>{skill.feedback}</Text>
+            {skill.examples && skill.examples.length > 0 && (
+              <View style={styles.examplesContainer}>
+                {skill.examples.map((example, i) => (
+                  <View key={i} style={styles.exampleItem}>
+                    <Ionicons name="arrow-forward" size={16} color="#6B7280" />
+                    <Text style={styles.exampleText}>{example}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+
+  // Action Plan Tab
+  const renderActionPlan = () => (
+    <View style={styles.tabContent}>
+      <Text style={styles.tabTitle}>Your Action Plan</Text>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Strengths */}
+        <View style={styles.actionSection}>
+          <View style={styles.actionSectionHeader}>
+            <Ionicons name="star" size={24} color="#F59E0B" />
+            <Text style={styles.actionSectionTitle}>Your Strengths</Text>
+          </View>
+          {result.strengths.map((strength, index) => (
+            <View key={index} style={styles.actionItem}>
+              <View style={styles.strengthBullet} />
+              <Text style={styles.actionText}>{strength}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Areas for Improvement */}
+        <View style={styles.actionSection}>
+          <View style={styles.actionSectionHeader}>
+            <Ionicons name="trending-up" size={24} color="#3B82F6" />
+            <Text style={styles.actionSectionTitle}>Areas to Improve</Text>
+          </View>
+          {result.areas_for_improvement.map((area, index) => (
+            <View key={index} style={styles.actionItem}>
+              <View style={styles.improvementBullet} />
+              <Text style={styles.actionText}>{area}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Next Steps */}
+        <View style={styles.actionSection}>
+          <View style={styles.actionSectionHeader}>
+            <Ionicons name="footsteps" size={24} color="#10B981" />
+            <Text style={styles.actionSectionTitle}>Next Steps</Text>
+          </View>
+          {result.next_steps.map((step, index) => (
+            <View key={index} style={styles.actionItem}>
+              <View style={styles.stepNumberBadge}>
+                <Text style={styles.stepNumberText}>{index + 1}</Text>
+              </View>
+              <Text style={styles.actionText}>{step}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -115,116 +255,67 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Overall Score Section */}
-        <View style={styles.overallScoreContainer}>
-          <View style={styles.scoreCircle}>
-            <Text style={styles.overallScoreText}>{result.overall_score}</Text>
-            <Text style={styles.scoreOutOf}>/100</Text>
-          </View>
-          <Text style={styles.scoreLabel}>{getScoreLabel(result.overall_score)}</Text>
-          <Text style={styles.recommendedLevel}>
-            Recommended Level: <Text style={styles.levelText}>{result.recommended_level}</Text>
+      {/* Tab Navigator */}
+      <View style={styles.tabNavigator}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 0 && styles.tabButtonActive]}
+          onPress={() => handleTabPress(0)}
+        >
+          <Ionicons
+            name="analytics-outline"
+            size={20}
+            color={activeTab === 0 ? '#4FD1C5' : '#9CA3AF'}
+          />
+          <Text style={[styles.tabButtonText, activeTab === 0 && styles.tabButtonTextActive]}>
+            Overview
           </Text>
-          <View style={styles.confidenceBadge}>
-            <Ionicons name="shield-checkmark" size={16} color="#4FD1C5" />
-            <Text style={styles.confidenceText}>
-              {Math.round(result.confidence)}% Confidence
-            </Text>
-          </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Radar Chart - Skills Assessment */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Skills Assessment</Text>
-          <View style={styles.radarContainer}>
-            <RadarChart
-              data={radarData}
-              width={SCREEN_WIDTH - 40}
-              height={280}
-              chartConfig={chartConfig}
-              style={styles.radarChart}
-            />
-          </View>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 1 && styles.tabButtonActive]}
+          onPress={() => handleTabPress(1)}
+        >
+          <Ionicons
+            name="bar-chart-outline"
+            size={20}
+            color={activeTab === 1 ? '#4FD1C5' : '#9CA3AF'}
+          />
+          <Text style={[styles.tabButtonText, activeTab === 1 && styles.tabButtonTextActive]}>
+            Skills
+          </Text>
+        </TouchableOpacity>
 
-          {/* Skills Legend */}
-          <View style={styles.legendContainer}>
-            {[
-              { label: 'Pronunciation', score: result.pronunciation.score, icon: 'mic-outline' },
-              { label: 'Grammar', score: result.grammar.score, icon: 'create-outline' },
-              { label: 'Vocabulary', score: result.vocabulary.score, icon: 'book-outline' },
-              { label: 'Fluency', score: result.fluency.score, icon: 'speedometer-outline' },
-              { label: 'Coherence', score: result.coherence.score, icon: 'git-network-outline' },
-            ].map((skill, index) => (
-              <View key={index} style={styles.legendItem}>
-                <Ionicons name={skill.icon as any} size={16} color="#4FD1C5" />
-                <Text style={styles.legendLabel}>{skill.label}</Text>
-                <View style={[styles.legendScore, { backgroundColor: getScoreColor(skill.score) + '20' }]}>
-                  <Text style={[styles.legendScoreText, { color: getScoreColor(skill.score) }]}>
-                    {skill.score}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 2 && styles.tabButtonActive]}
+          onPress={() => handleTabPress(2)}
+        >
+          <Ionicons
+            name="clipboard-outline"
+            size={20}
+            color={activeTab === 2 ? '#4FD1C5' : '#9CA3AF'}
+          />
+          <Text style={[styles.tabButtonText, activeTab === 2 && styles.tabButtonTextActive]}>
+            Plan
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* Recognized Text - Compact */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What You Said</Text>
-          <View style={styles.transcriptContainer}>
-            <Text style={styles.transcriptText}>{result.recognized_text}</Text>
-          </View>
-        </View>
-
-        {/* Strengths */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Strengths</Text>
-          <View style={styles.listContainer}>
-            {result.strengths.map((strength, index) => (
-              <View key={index} style={styles.listItem}>
-                <View style={styles.strengthIcon}>
-                  <Ionicons name="star" size={16} color="#F59E0B" />
-                </View>
-                <Text style={styles.listText}>{strength}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Areas for Improvement */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Areas for Improvement</Text>
-          <View style={styles.listContainer}>
-            {result.areas_for_improvement.map((area, index) => (
-              <View key={index} style={styles.listItem}>
-                <View style={styles.improvementIcon}>
-                  <Ionicons name="trending-up" size={16} color="#3B82F6" />
-                </View>
-                <Text style={styles.listText}>{area}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Next Steps */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recommended Next Steps</Text>
-          <View style={styles.listContainer}>
-            {result.next_steps.map((step, index) => (
-              <View key={index} style={styles.listItem}>
-                <View style={styles.stepNumber}>
-                  <Text style={styles.stepNumberText}>{index + 1}</Text>
-                </View>
-                <Text style={styles.listText}>{step}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+      {/* Tab Content */}
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={(event) => {
+          const newIndex = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+          setActiveTab(newIndex);
+        }}
+        style={styles.tabScroll}
+      >
+        <View style={styles.tabPage}>{renderOverview()}</View>
+        <View style={styles.tabPage}>{renderSkillsDetail()}</View>
+        <View style={styles.tabPage}>{renderActionPlan()}</View>
       </ScrollView>
 
       {/* Footer Button */}
@@ -234,8 +325,15 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           onPress={handleSaveAndProceed}
           activeOpacity={0.8}
         >
-          <Text style={styles.proceedButtonText}>Save & Proceed</Text>
-          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          <LinearGradient
+            colors={['#4FD1C5', '#38B2AC']}
+            style={styles.proceedButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.proceedButtonText}>Create Learning Plan</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          </LinearGradient>
         </TouchableOpacity>
       </View>
 
@@ -278,161 +376,258 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 40,
-  },
-  overallScoreContainer: {
-    alignItems: 'center',
+  tabNavigator: {
+    flexDirection: 'row',
     backgroundColor: '#F9FAFB',
-    borderRadius: 20,
-    padding: 32,
-    marginBottom: 32,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
-  scoreCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#E6FFFA',
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-    borderWidth: 4,
-    borderColor: '#4FD1C5',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: '#E6FFFA',
+  },
+  tabButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  tabButtonTextActive: {
+    color: '#4FD1C5',
+  },
+  tabScroll: {
+    flex: 1,
+  },
+  tabPage: {
+    width: SCREEN_WIDTH,
+  },
+  tabContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+  },
+  tabTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 20,
+  },
+  heroGradient: {
+    borderRadius: 24,
+    padding: 40,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  scoreCircleWhite: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   overallScoreText: {
-    fontSize: 48,
+    fontSize: 56,
     fontWeight: 'bold',
     color: '#1F2937',
   },
   scoreOutOf: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#6B7280',
   },
   scoreLabel: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   recommendedLevel: {
     fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 12,
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
   levelText: {
-    fontWeight: '600',
-    color: '#4FD1C5',
+    fontWeight: '700',
+    fontSize: 18,
   },
-  confidenceBadge: {
+  skillsGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E6FFFA',
-    borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    gap: 6,
-  },
-  confidenceText: {
-    fontSize: 14,
-    color: '#4FD1C5',
-    fontWeight: '600',
-  },
-  section: {
+    flexWrap: 'wrap',
+    gap: 12,
     marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  transcriptContainer: {
+  skillCard: {
+    width: (SCREEN_WIDTH - 64) / 2,
     backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  skillIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  skillLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  skillScore: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  transcriptCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  transcriptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  transcriptTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
   },
   transcriptText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#374151',
     lineHeight: 24,
   },
-  radarContainer: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 20,
-    marginBottom: 16,
-  },
-  radarChart: {
-    borderRadius: 16,
-  },
-  legendContainer: {
+  skillDetailCard: {
     backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  legendItem: {
+  skillDetailHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+    marginBottom: 12,
+  },
+  skillDetailInfo: {
+    flex: 1,
+  },
+  skillDetailLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  skillDetailScoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  legendLabel: {
+  skillDetailScoreBar: {
     flex: 1,
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  skillDetailScoreFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  skillDetailScoreText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  skillFeedback: {
     fontSize: 14,
-    fontWeight: '500',
+    color: '#6B7280',
+    lineHeight: 22,
+  },
+  examplesContainer: {
+    marginTop: 12,
+    gap: 8,
+  },
+  exampleItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingLeft: 8,
+  },
+  exampleText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#6B7280',
+    fontStyle: 'italic',
+  },
+  actionSection: {
+    marginBottom: 24,
+  },
+  actionSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: '#E5E7EB',
+  },
+  actionSectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#1F2937',
   },
-  legendScore: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    minWidth: 50,
-    alignItems: 'center',
-  },
-  legendScoreText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  listContainer: {
-    gap: 12,
-  },
-  listItem: {
+  actionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
+    marginBottom: 12,
   },
-  listText: {
-    flex: 1,
-    fontSize: 15,
-    color: '#374151',
-    lineHeight: 22,
+  strengthBullet: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#F59E0B',
+    marginTop: 6,
   },
-  strengthIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FEF3C7',
-    alignItems: 'center',
-    justifyContent: 'center',
+  improvementBullet: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#3B82F6',
+    marginTop: 6,
   },
-  improvementIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#DBEAFE',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  stepNumberBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#E6FFFA',
     alignItems: 'center',
     justifyContent: 'center',
@@ -442,6 +637,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4FD1C5',
   },
+  actionText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#374151',
+    lineHeight: 22,
+  },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -449,10 +650,12 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
   },
   proceedButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  proceedButtonGradient: {
     flexDirection: 'row',
-    backgroundColor: '#4FD1C5',
-    borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
