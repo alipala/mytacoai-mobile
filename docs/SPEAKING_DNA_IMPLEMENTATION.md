@@ -1,5 +1,42 @@
 # Speaking DNA - Implementation Guide
 
+## CRITICAL: OpenAI Realtime API Constraints
+
+Before implementing, understand these technical constraints:
+
+### How Your System Works
+1. **Instructions set at session creation** - `build_universal_instructions()` in `realtime_routes.py` creates the tutor prompt
+2. **Ephemeral token contains ALL instructions** - No mid-session injection on connect (mobile race condition prevention)
+3. **`session.update` is available but rarely used** - Only for SUMMARIZATION feature currently
+4. **5-minute sessions** - Too short for DNA to meaningfully change during session
+
+### OpenAI Realtime API Facts
+- **Context window**: 128k tokens (plenty for DNA)
+- **Model**: `gpt-realtime-mini` (your current model)
+- **`session.update`**: CAN update instructions mid-session, but your app avoids this for mobile stability
+- **Token costs**: System prompt tokens add up - keep DNA context concise (~200-300 tokens)
+
+### Implication for Speaking DNA
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   SESSION   │     │   DURING    │     │   SESSION   │     │    NEXT     │
+│   START     │ --> │   SESSION   │ --> │    END      │ --> │   SESSION   │
+├─────────────┤     ├─────────────┤     ├─────────────┤     ├─────────────┤
+│ DNA loaded  │     │ Metrics     │     │ Analyze     │     │ Updated DNA │
+│ & injected  │     │ collected   │     │ metrics     │     │ used        │
+│ into prompt │     │ silently    │     │ Update DNA  │     │             │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+**Key insight**: DNA informs THIS session's tutor behavior. Metrics from THIS session update DNA for NEXT session.
+
+Sources:
+- [OpenAI Realtime API](https://platform.openai.com/docs/guides/realtime)
+- [session.update reference](https://platform.openai.com/docs/api-reference/realtime-client-events/session-update)
+- [Context limitations discussion](https://community.openai.com/t/context-limitations-in-real-time-api/1116690)
+
+---
+
 ## Executive Summary
 
 Speaking DNA is MyTaco AI's killer feature that creates a unique "speaking fingerprint" for each user. Unlike generic progress tracking, Speaking DNA captures who you are as a speaker - your rhythm, confidence patterns, vocabulary style, and emotional journey. This enables the AI Language Coach to truly know each learner and provide personalized guidance across all session types.
@@ -1999,6 +2036,121 @@ export function useSessionMetrics({ sessionId, sessionType }: MetricsCollectorOp
 }
 ```
 
+### Connecting Metrics to RealtimeService Events
+
+Your `RealtimeService.ts` emits events via the `onTranscript` and `onEvent` callbacks. Here's exactly how to wire up the metrics collection:
+
+```typescript
+// In ConversationScreen.tsx
+
+import { useSessionMetrics } from '../hooks/useSessionMetrics';
+import { speakingDNAService } from '../services/SpeakingDNAService';
+
+const ConversationScreen = () => {
+  const sessionMetrics = useSessionMetrics({
+    sessionId: currentSessionId,
+    sessionType: sessionType, // from route params or context
+  });
+
+  // Track when AI finishes speaking
+  const handleRealtimeEvent = useCallback((event: RealtimeEvent) => {
+    switch (event.type) {
+      // AI finished speaking - user's turn starts now
+      case 'response.audio.done':
+      case 'response.done':
+        sessionMetrics.markAIPromptEnd();
+        break;
+
+      // You could track corrections here if your AI sends them as events
+      // case 'correction.provided':
+      //   sessionMetrics.recordCorrection(event.correction);
+      //   break;
+    }
+  }, [sessionMetrics]);
+
+  // Track user speech transcripts
+  const handleTranscript = useCallback((
+    transcript: string,
+    role: 'user' | 'assistant'
+  ) => {
+    if (role === 'user' && transcript.trim()) {
+      // Record the user turn with timestamp
+      sessionMetrics.recordUserTurn(
+        transcript,
+        Date.now() - 500, // Approximate start (adjust based on your VAD)
+        Date.now()
+      );
+    }
+  }, [sessionMetrics]);
+
+  // Initialize RealtimeService with metrics callbacks
+  useEffect(() => {
+    if (realtimeService) {
+      realtimeService.setConfig({
+        // ... existing config
+        onEvent: handleRealtimeEvent,
+        onTranscript: handleTranscript,
+      });
+    }
+  }, [realtimeService, handleRealtimeEvent, handleTranscript]);
+
+  // On session end - analyze for DNA
+  const handleSessionEnd = useCallback(async () => {
+    try {
+      const sessionData = sessionMetrics.getSessionData();
+
+      // Only analyze if there were actual user turns
+      if (sessionData.user_turns.length > 0) {
+        const result = await speakingDNAService.analyzeSession(
+          targetLanguage,
+          sessionData
+        );
+
+        // Show breakthrough celebration if any
+        if (result?.breakthroughs?.length > 0) {
+          showBreakthroughModal(result.breakthroughs[0]);
+        }
+      }
+    } catch (error) {
+      console.error('DNA analysis failed:', error);
+      // Non-blocking - don't show error to user
+    }
+
+    // Continue with normal session cleanup
+    // ...
+  }, [sessionMetrics, targetLanguage]);
+
+  // ... rest of component
+};
+```
+
+### Key Events from RealtimeService to Track
+
+| Event | When to Call | What it Captures |
+|-------|--------------|------------------|
+| `response.done` or `response.audio.done` | AI finishes speaking | `markAIPromptEnd()` - starts response latency timer |
+| `onTranscript(text, 'user')` | User speech transcribed | `recordUserTurn()` - captures transcript + timing |
+| `input_audio_buffer.speech_started` | User starts speaking | Could mark speech start time |
+| `input_audio_buffer.speech_stopped` | User stops speaking | Could mark speech end time |
+
+### What Gets Calculated from These Metrics
+
+```
+User Turn Data:
+┌────────────────────────────────────────────────────────────────┐
+│ Turn 1: "Ik ga naar de eh... winkel"                          │
+│   - ai_prompt_end_time_ms: 5000  (AI finished at 5s)          │
+│   - start_time_ms: 7500          (User started at 7.5s)       │
+│   - end_time_ms: 10200           (User finished at 10.2s)     │
+│                                                                │
+│ Calculated:                                                    │
+│   - Response latency: 7500 - 5000 = 2500ms (2.5 seconds)      │
+│   - Speaking duration: 10200 - 7500 = 2700ms                  │
+│   - Filler detected: "eh" → filler_count += 1                 │
+│   - Words: 5 → total_words += 5                               │
+└────────────────────────────────────────────────────────────────┘
+```
+
 ### 3. SpeakingDNAScreen.tsx
 
 ```tsx
@@ -3335,51 +3487,92 @@ Challenge them. Keep it dynamic. Treat them as a capable speaker.
 
 ### Integration Code for realtime_routes.py
 
+**IMPORTANT**: Your backend uses `build_universal_instructions()` (Lines 194-974) to create tutor prompts. Here's exactly where to integrate DNA:
+
 ```python
+# In realtime_routes.py
+
 from speaking_dna_service import speaking_dna_service
 
-@router.post("/session/token")
-async def get_session_token(
-    request: SessionTokenRequest,
-    current_user: dict = Depends(get_current_user)
-):
-    """Create a new realtime session with DNA-aware tutor instructions."""
+async def build_universal_instructions(
+    user: dict,  # Already passed - contains user_id
+    language: str,
+    level: str,
+    topic: str,
+    # ... existing params
+) -> str:
+    """Build tutor instructions with DNA personalization."""
 
-    user_id = str(current_user["_id"])
-    language = request.target_language
-    session_type = request.session_type  # "learning", "freestyle", "news"
+    user_id = str(user.get("_id"))
 
-    # Get DNA-aware coaching instructions
-    dna_instructions = await speaking_dna_service.build_coach_instructions(
-        user_id=user_id,
-        language=language,
-        session_type=session_type
-    )
+    # ============================================
+    # NEW: Load DNA profile (add near line 200)
+    # ============================================
+    dna_context = await get_concise_dna_context(user_id, language)
 
-    # Build complete tutor prompt
-    base_instructions = build_base_tutor_instructions(
-        language=language,
-        level=request.level,
-        session_type=session_type,
-        # ... other params
-    )
+    # ... existing instruction building logic ...
+    # (topic handling, learning plan, news, etc.)
 
-    # Combine: Base instructions + DNA personalization
-    full_instructions = f"""
-{base_instructions}
+    # ============================================
+    # NEW: Inject DNA section (add before return)
+    # ============================================
+    if dna_context:
+        instructions += f"""
 
-{dna_instructions}
+## Learner Speaking Profile
+{dna_context}
 """
 
-    # Create OpenAI Realtime session with personalized prompt
-    session = await create_openai_realtime_session(
-        instructions=full_instructions,
-        voice=request.tutor_voice or "echo",
-        # ... other params
+    return instructions
+
+
+async def get_concise_dna_context(user_id: str, language: str) -> str:
+    """
+    Build CONCISE DNA context (~200-300 tokens max).
+    Keep it short to minimize token costs!
+    """
+    profile = await speaking_dna_service.get_dna_profile(user_id, language)
+
+    if not profile:
+        return ""  # New user - no DNA yet
+
+    strands = profile.get("dna_strands", {})
+    overall = profile.get("overall_profile", {})
+
+    # Get uncelebrated breakthroughs
+    breakthroughs = await speaking_dna_service.get_breakthroughs(
+        user_id, language, limit=1, uncelebrated_only=True
     )
 
-    return {"token": session.token, "session_id": session.id}
+    # Build compact context
+    context = f"""Type: "{overall.get('speaker_archetype', 'Learner')}"
+Pace: {strands.get('rhythm', {}).get('type', 'steady')} ({strands.get('rhythm', {}).get('words_per_minute_avg', 80):.0f} WPM)
+Confidence: {strands.get('confidence', {}).get('level', 'building')} ({strands.get('confidence', {}).get('trend', 'stable')})
+Style: {strands.get('vocabulary', {}).get('style', 'balanced')} vocabulary
+Approach: Be a {overall.get('coach_approach', 'balanced_guide').replace('_', ' ')}"""
+
+    # Add breakthrough if exists
+    if breakthroughs:
+        bt = breakthroughs[0]
+        context += f"""
+
+Recent win to mention: {bt['emoji']} {bt['description']}"""
+
+    # Add key guideline based on coach approach
+    approach = overall.get('coach_approach', 'balanced_guide')
+    guidelines = {
+        'patient_encourager': 'Wait for responses. Celebrate small wins. Never rush.',
+        'challenge_provider': 'Offer harder options. Keep pace dynamic.',
+        'gentle_encourager': 'Extra encouragement. Simple questions first.',
+        'balanced_guide': 'Balance challenge with support.'
+    }
+    context += f"""
+Guideline: {guidelines.get(approach, guidelines['balanced_guide'])}"""
+
+    return context
 ```
+
+**Token Impact**: This adds ~200-300 tokens to the system prompt. Given your context window of 128k, this is negligible.
 
 ### Mobile: Passing Session Type
 
