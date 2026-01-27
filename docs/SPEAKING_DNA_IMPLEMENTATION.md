@@ -1589,6 +1589,46 @@ async def celebrate_breakthrough(
     return {"success": True}
 
 
+class AssessmentDataInput(BaseModel):
+    """Input model for creating DNA from Speaking Assessment."""
+    transcript: str
+    acoustic_metrics: Dict[str, Any] = Field(default_factory=dict)
+
+
+@router.post("/create-from-assessment/{language}")
+async def create_dna_from_assessment(
+    language: str,
+    assessment_data: AssessmentDataInput,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Create initial DNA profile from Speaking Assessment.
+
+    Call this after a user completes their first 60-second assessment.
+    This creates a baseline DNA profile from acoustic analysis.
+    """
+    try:
+        profile = await speaking_dna_service.create_initial_dna_from_assessment(
+            user_id=str(current_user["_id"]),
+            language=language,
+            assessment_data=assessment_data.dict()
+        )
+
+        return {
+            "success": True,
+            "profile": {
+                "speaker_archetype": profile["overall_profile"]["speaker_archetype"],
+                "confidence_level": profile["dna_strands"]["confidence"]["level"],
+                "rhythm_type": profile["dna_strands"]["rhythm"]["type"]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create DNA from assessment: {str(e)}"
+        )
+
+
 @router.get("/coach-instructions/{language}", response_model=CoachInstructionsResponse)
 async def get_coach_instructions(
     language: str,
@@ -2995,19 +3035,24 @@ def test_calculate_strand_updates_new_user(service, sample_session_data):
     assert "confidence" in strands
     assert strands["confidence"]["level"] in ["hesitant", "building", "comfortable", "fluent"]
 
-def test_breakthrough_detection(service):
+@pytest.mark.asyncio
+async def test_breakthrough_detection(service):
     # Test confidence jump detection
     old_profile = {
         "dna_strands": {
-            "confidence": {"score": 0.5, "level": "building"}
+            "confidence": {"score": 0.5, "level": "building"},
+            "vocabulary": {"unique_words_per_session": 30},
+            "learning": {"challenge_acceptance": 0.4}
         }
     }
     new_strands = {
-        "confidence": {"score": 0.70, "level": "comfortable"}
+        "confidence": {"score": 0.70, "level": "comfortable"},
+        "vocabulary": {"unique_words_per_session": 35},
+        "learning": {"challenge_acceptance": 0.6}
     }
 
     # Should detect both score jump and level up
-    breakthroughs = service._detect_breakthroughs(
+    breakthroughs = await service._detect_breakthroughs(
         "user123", "dutch", old_profile, new_strands, {"session_id": "s1"}
     )
 
@@ -3056,6 +3101,14 @@ For users who have existing session history, run a one-time migration:
 
 ```python
 # migrate_existing_users_to_dna.py
+
+import logging
+from bson import ObjectId
+from database import get_database
+from speaking_dna_service import SpeakingDNAService
+
+logger = logging.getLogger(__name__)
+
 
 async def migrate_existing_users():
     """
@@ -4141,6 +4194,20 @@ Add a compact DNA indicator showing confidence trend for this language:
 // Around line 320 in LearningPlanCard.tsx
 
 {/* DNA Indicator - NEW */}
+{/* IMPORTANT: Add these props to your LearningPlanCard component:
+    interface LearningPlanCardProps {
+      // ... existing props
+      dnaProfile?: DNAProfile | null;
+      onDNAPress?: () => void;
+    }
+
+    Usage example:
+    <LearningPlanCard
+      ...existingProps
+      dnaProfile={dnaProfile}
+      onDNAPress={() => navigation.navigate('SpeakingDNA')}
+    />
+*/}
 {dnaProfile && (
   <TouchableOpacity
     style={styles.dnaIndicator}
@@ -4260,6 +4327,12 @@ Add a dedicated DNA section showing detailed strand info:
 // Around line 280 in LearningPlanDetailsModal.tsx
 
 {/* Speaking DNA Section - NEW */}
+{/* IMPORTANT: Add this import at the top of LearningPlanDetailsModal.tsx:
+    import { useNavigation } from '@react-navigation/native';
+
+    And add this inside the component:
+    const navigation = useNavigation();
+*/}
 {dnaProfile && (
   <View style={styles.dnaSection}>
     <Text style={styles.dnaSectionTitle}>Speaking DNA</Text>
@@ -4268,7 +4341,7 @@ Add a dedicated DNA section showing detailed strand info:
       style={styles.dnaCard}
       onPress={() => {
         onClose();
-        navigation.navigate('SpeakingDNA');
+        navigation.navigate('SpeakingDNA' as never);
       }}
     >
       <View style={styles.dnaHeader}>
@@ -4319,6 +4392,100 @@ Add a dedicated DNA section showing detailed strand info:
     </TouchableOpacity>
   </View>
 )}
+```
+
+**Styles to add for LearningPlanDetailsModal:**
+
+```typescript
+// Add to your modal styles
+dnaSection: {
+  marginTop: 16,
+  marginBottom: 16,
+},
+dnaSectionTitle: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#374151',
+  marginBottom: 12,
+},
+dnaCard: {
+  backgroundColor: '#F0FDFA',
+  borderRadius: 12,
+  padding: 16,
+  borderWidth: 1,
+  borderColor: '#99F6E4',
+},
+dnaHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 12,
+},
+dnaEmoji: {
+  fontSize: 24,
+  marginRight: 12,
+},
+dnaHeaderText: {
+  flex: 1,
+},
+dnaArchetypeName: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: '#0F766E',
+},
+dnaSessionCount: {
+  fontSize: 12,
+  color: '#6B7280',
+  marginTop: 2,
+},
+dnaStrandsPreview: {
+  gap: 8,
+},
+dnaStrandRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+dnaStrandLabel: {
+  width: 100,
+  fontSize: 13,
+  color: '#374151',
+},
+dnaStrandBarBg: {
+  flex: 1,
+  height: 6,
+  backgroundColor: '#E5E7EB',
+  borderRadius: 3,
+  marginHorizontal: 8,
+},
+dnaStrandBarFill: {
+  height: '100%',
+  backgroundColor: '#4ECDC4',
+  borderRadius: 3,
+},
+dnaStrandTrend: {
+  fontSize: 14,
+  color: '#10B981',
+  width: 20,
+},
+dnaStrandValue: {
+  fontSize: 13,
+  color: '#0F766E',
+  fontWeight: '500',
+},
+dnaFooter: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: 12,
+  paddingTop: 12,
+  borderTopWidth: 1,
+  borderTopColor: '#99F6E4',
+},
+dnaViewMore: {
+  fontSize: 13,
+  fontWeight: '600',
+  color: '#4ECDC4',
+  marginRight: 4,
+},
 ```
 
 **Updated Modal Mockup:**
@@ -4434,6 +4601,100 @@ Add a prominent DNA card between stats and Recent Activity:
     </View>
   )}
 </TouchableOpacity>
+```
+
+**Styles to add for ProfileScreen DNA card:**
+
+```typescript
+// Add to ProfileScreen styles
+dnaProfileCard: {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 16,
+  padding: 16,
+  marginTop: 16,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 8,
+  elevation: 2,
+},
+dnaProfileHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+dnaProfileIconBg: {
+  width: 48,
+  height: 48,
+  borderRadius: 24,
+  backgroundColor: '#CCFBF1',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 12,
+},
+dnaProfileIcon: {
+  fontSize: 24,
+},
+dnaProfileTitleContainer: {
+  flex: 1,
+},
+dnaProfileTitle: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: '#111827',
+},
+dnaProfileSubtitle: {
+  fontSize: 14,
+  color: '#0F766E',
+  marginTop: 2,
+},
+dnaProfileStats: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  marginTop: 16,
+  paddingTop: 16,
+  borderTopWidth: 1,
+  borderTopColor: '#E5E7EB',
+},
+dnaProfileStatItem: {
+  alignItems: 'center',
+},
+dnaProfileStatValue: {
+  fontSize: 20,
+  fontWeight: '700',
+  color: '#111827',
+},
+dnaProfileStatLabel: {
+  fontSize: 12,
+  color: '#6B7280',
+  marginTop: 4,
+},
+dnaProfileStatDivider: {
+  width: 1,
+  backgroundColor: '#E5E7EB',
+},
+dnaProfileEmpty: {
+  marginTop: 12,
+  paddingTop: 12,
+  borderTopWidth: 1,
+  borderTopColor: '#E5E7EB',
+},
+dnaProfileEmptyText: {
+  fontSize: 13,
+  color: '#6B7280',
+  textAlign: 'center',
+},
+dnaBreakthroughBanner: {
+  backgroundColor: '#ECFDF5',
+  borderRadius: 8,
+  padding: 10,
+  marginTop: 12,
+},
+dnaBreakthroughText: {
+  fontSize: 13,
+  color: '#065F46',
+  fontWeight: '500',
+  textAlign: 'center',
+},
 ```
 
 **Updated Profile Overview Mockup:**
