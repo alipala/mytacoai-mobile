@@ -65,6 +65,9 @@ import ChallengeSessionScreen from './src/screens/Explore/ChallengeSessionScreen
 // News Screens (Daily News Tab Feature)
 import { NewsListScreen, NewsDetailScreen } from './src/screens/News';
 
+// Speaking DNA Screens
+import SpeakingDNAScreen from './src/screens/SpeakingDNA/SpeakingDNAScreen.tsx';
+
 // API config will be loaded dynamically after initial render for better startup performance
 
 const Stack = createStackNavigator();
@@ -441,6 +444,9 @@ export default function App() {
 
           {/* Challenge Session Screen */}
           <Stack.Screen name="ChallengeSession" component={ChallengeSessionScreen} />
+
+          {/* Speaking DNA Screen */}
+          <Stack.Screen name="SpeakingDNA" component={SpeakingDNAScreen} />
 
           {/* Main App (with tabs) */}
           <Stack.Screen name="Main" component={MainTabs} />

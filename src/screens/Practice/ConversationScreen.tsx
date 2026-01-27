@@ -37,6 +37,12 @@ import AIVoiceAvatar from '../../components/AIVoiceAvatar';
 import EnhancedRecordingButton from '../../components/EnhancedRecordingButton';
 import { styles, SCREEN_HEIGHT } from './styles/ConversationScreen.styles';
 
+// Speaking DNA integration
+import { useSessionMetrics } from '../../hooks/useSessionMetrics';
+import { speakingDNAService } from '../../services/SpeakingDNAService';
+import { BreakthroughModal } from '../../components/SpeakingDNA/BreakthroughModal';
+import { SpeakingBreakthrough } from '../../types/speakingDNA';
+
 interface ConversationScreenProps {
   navigation: any;
   route: any;
@@ -330,6 +336,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [sessionComparison, setSessionComparison] = useState<SessionComparison | undefined>(undefined);
   const [overallProgress, setOverallProgress] = useState<OverallProgress | undefined>(undefined);
 
+  // Speaking DNA states
+  const [showBreakthroughModal, setShowBreakthroughModal] = useState(false);
+  const [currentBreakthrough, setCurrentBreakthrough] = useState<SpeakingBreakthrough | null>(null);
+  const [breakthroughQueue, setBreakthroughQueue] = useState<SpeakingBreakthrough[]>([]);
+
   // Realtime service ref
   const realtimeServiceRef = useRef<RealtimeService | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -383,11 +394,29 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Initialize conversation state machine
   const conversationState = useConversationState();
 
+  // Initialize Speaking DNA metrics tracking
+  const dnaSessionId = useMemo(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, []);
+  const dnaSessionType = useMemo(() => {
+    if (sessionType === 'news') return 'news' as const;
+    if (topic && topic !== 'custom') return 'learning' as const;
+    return 'freestyle' as const;
+  }, [sessionType, topic]);
+
+  const sessionMetrics = useSessionMetrics({
+    sessionId: dnaSessionId,
+    sessionType: dnaSessionType,
+    debug: __DEV__, // Enable debug logging in development
+  });
+
   // Use refs to ensure event handlers always have latest values
   const conversationHelpOptionsRef = useRef(conversationHelpOptions);
   const learningPlanRef = useRef(learningPlan);
   const conversationHelpRef = useRef(conversationHelp);
   const conversationStateRef = useRef(conversationState);
+  const sessionMetricsRef = useRef(sessionMetrics);
+
+  // Track user turn timing for DNA metrics
+  const userTurnStartTimeRef = useRef<number | null>(null);
 
   // Keep refs in sync with latest values
   useEffect(() => {
@@ -405,6 +434,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   useEffect(() => {
     conversationStateRef.current = conversationState;
   }, [conversationState]);
+
+  useEffect(() => {
+    sessionMetricsRef.current = sessionMetrics;
+  }, [sessionMetrics]);
 
   // Log when conversation help options change
   useEffect(() => {
@@ -541,6 +574,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       handleAutomaticSessionEnd();
     }
   }, [sessionCompletedNaturally, autoSavePending]);
+
+  // 🧬 Speaking DNA: Show breakthrough modals from queue
+  useEffect(() => {
+    if (breakthroughQueue.length > 0 && !showBreakthroughModal && !currentBreakthrough) {
+      console.log('[DNA] Showing next breakthrough from queue');
+      const [nextBreakthrough, ...remainingQueue] = breakthroughQueue;
+      setCurrentBreakthrough(nextBreakthrough);
+      setBreakthroughQueue(remainingQueue);
+      setShowBreakthroughModal(true);
+    }
+  }, [breakthroughQueue, showBreakthroughModal, currentBreakthrough]);
 
   // Load voice preference early to prevent avatar flicker and show timer badge
   useEffect(() => {
@@ -785,6 +829,20 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);
+
+          // 🧬 Speaking DNA: Track user turns
+          if (role === 'user' && transcript && transcript.trim().length > 0) {
+            const endTime = Date.now();
+            const startTime = userTurnStartTimeRef.current || (endTime - 2000); // Fallback: estimate 2s duration
+
+            console.log('[DNA] Recording user turn:', {
+              transcript: transcript.substring(0, 50) + '...',
+              duration: (endTime - startTime) / 1000,
+            });
+
+            sessionMetricsRef.current.recordUserTurn(transcript, startTime, endTime);
+            userTurnStartTimeRef.current = null; // Reset for next turn
+          }
         },
         onError: (error: Error) => {
           console.error('[CONVERSATION] Service error:', error);
@@ -854,6 +912,18 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               console.log('[CONVERSATION] ✅ Hiding loading spinner NOW - voice should be audible');
               setShowLoadingSpinner(false);
             }, 400);
+          }
+
+          // 🧬 Speaking DNA: Track AI response completion
+          if (event.type === 'response.audio.done' || event.type === 'output_audio_buffer.stopped') {
+            console.log('[DNA] AI finished speaking - marking prompt end');
+            sessionMetricsRef.current.markAIPromptEnd();
+          }
+
+          // 🧬 Speaking DNA: Track user speech start timing
+          if (event.type === 'input_audio_buffer.speech_started') {
+            console.log('[DNA] User started speaking - recording start time');
+            userTurnStartTimeRef.current = Date.now();
           }
 
           // Pass events to conversation state machine
@@ -988,6 +1058,21 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     if (wordCount >= 10) score += 10;
 
     return score;
+  };
+
+  // 🧬 Speaking DNA: Handle breakthrough modal close
+  const handleBreakthroughClose = () => {
+    console.log('[DNA] Closing breakthrough modal');
+    setShowBreakthroughModal(false);
+    setCurrentBreakthrough(null);
+  };
+
+  // 🧬 Speaking DNA: Handle breakthrough share (optional)
+  const handleBreakthroughShare = (breakthrough: SpeakingBreakthrough) => {
+    console.log('[DNA] Share breakthrough:', breakthrough.title);
+    // TODO: Implement share functionality in future
+    // For now, just log it
+    Alert.alert('Share Feature', 'Sharing breakthroughs coming soon!', [{ text: 'OK' }]);
   };
 
   // Toggle recording state (mute/unmute microphone)
@@ -1367,6 +1452,45 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           console.error('[MINUTE_TRACKING] ⚠️ WARNING: Session saved but minutes were NOT tracked!');
           console.error('[MINUTE_TRACKING] ⚠️ Session duration:', sessionDuration, 'seconds');
           console.error('[MINUTE_TRACKING] ⚠️ This issue should be reported to support!');
+        }
+
+        // 🧬 Speaking DNA: Analyze session for premium users
+        try {
+          console.log('[DNA] 🧬 Starting DNA analysis...');
+
+          // Get session data from metrics collector
+          const sessionData = sessionMetricsRef.current.getSessionData();
+          const metricsCount = sessionMetricsRef.current.getMetricsCount();
+
+          console.log('[DNA] Session metrics collected:', {
+            turns: metricsCount.turns,
+            duration: sessionData.duration_seconds,
+            sessionType: sessionData.session_type,
+          });
+
+          // Only analyze if we have meaningful data
+          if (metricsCount.turns > 0) {
+            const targetLanguage = learningPlan?.language || language || 'english';
+
+            console.log('[DNA] Calling DNA analysis service for language:', targetLanguage);
+            const dnaResult = await speakingDNAService.analyzeSession(
+              targetLanguage.toLowerCase(),
+              sessionData
+            );
+
+            console.log('[DNA] ✅ DNA analysis complete. Breakthroughs:', dnaResult.breakthroughs.length);
+
+            // Queue breakthroughs for display
+            if (dnaResult.breakthroughs.length > 0) {
+              console.log('[DNA] 🎉 Setting breakthrough queue:', dnaResult.breakthroughs.length, 'breakthroughs');
+              setBreakthroughQueue(dnaResult.breakthroughs);
+            }
+          } else {
+            console.log('[DNA] ⏭️ Skipping DNA analysis - no user turns recorded');
+          }
+        } catch (dnaError) {
+          console.error('[DNA] ❌ DNA analysis failed (non-fatal):', dnaError);
+          // Don't fail session save if DNA analysis fails
         }
 
         // Check if this is a final assessment
@@ -1932,6 +2056,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         comparison={sessionComparison}
         overallProgress={overallProgress}
         hasAnalyses={backgroundAnalyses.length > 0}
+      />
+
+      {/* 🧬 Speaking DNA: Breakthrough Celebration Modal */}
+      <BreakthroughModal
+        breakthrough={currentBreakthrough}
+        visible={showBreakthroughModal}
+        onClose={handleBreakthroughClose}
+        onShare={handleBreakthroughShare}
       />
 
       {/* Final Assessment Results Modal */}

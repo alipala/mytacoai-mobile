@@ -32,6 +32,7 @@ import { SessionTypeModal } from '../../components/SessionTypeModal';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
+import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const API_BASE_URL = 'https://taco-voice-ai-e9b98ce8e7c5.herokuapp.com';
@@ -805,6 +806,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
+
+        {/* Speaking DNA Profile Widget */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 24 }}>
+          <DNAProfileWidget
+            language={userLanguage}
+            onPress={() => navigation.navigate('SpeakingDNA', { language: userLanguage })}
+            onRefresh={handleRefresh}
+          />
+        </View>
       </ScrollView>
 
       {/* Learning Plan Details Modal */}
