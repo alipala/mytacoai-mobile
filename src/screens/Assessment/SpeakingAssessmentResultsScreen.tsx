@@ -7,11 +7,15 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { RadarChart } from 'react-native-chart-kit';
 import type { SpeakingAssessmentResponse, SkillScore } from '../../api/generated';
 import { CreateLearningPlanModal } from '../../components/CreateLearningPlanModal';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface SpeakingAssessmentResultsScreenProps {
   navigation: any;
@@ -67,32 +71,34 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     return 'Needs Improvement';
   };
 
-  const renderSkillCard = (title: string, skill: SkillScore, icon: string) => (
-    <View style={styles.skillCard}>
-      <View style={styles.skillHeader}>
-        <View style={styles.skillTitleContainer}>
-          <Ionicons name={icon as any} size={20} color="#4FD1C5" />
-          <Text style={styles.skillTitle}>{title}</Text>
-        </View>
-        <View style={[styles.scoreChip, { backgroundColor: getScoreColor(skill.score) + '20' }]}>
-          <Text style={[styles.scoreChipText, { color: getScoreColor(skill.score) }]}>
-            {skill.score}/100
-          </Text>
-        </View>
-      </View>
-      <Text style={styles.skillFeedback}>{skill.feedback}</Text>
-      {skill.examples && skill.examples.length > 0 && (
-        <View style={styles.examplesContainer}>
-          {skill.examples.map((example, index) => (
-            <View key={index} style={styles.exampleItem}>
-              <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-              <Text style={styles.exampleText}>{example}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
-  );
+  // Prepare radar chart data
+  const radarData = {
+    labels: ['Pronunciation', 'Grammar', 'Vocabulary', 'Fluency', 'Coherence'],
+    datasets: [
+      {
+        data: [
+          result.pronunciation.score,
+          result.grammar.score,
+          result.vocabulary.score,
+          result.fluency.score,
+          result.coherence.score,
+        ],
+      },
+    ],
+  };
+
+  const chartConfig = {
+    backgroundGradientFrom: '#FFFFFF',
+    backgroundGradientTo: '#FFFFFF',
+    color: (opacity = 1) => `rgba(79, 209, 197, ${opacity})`,
+    strokeWidth: 2,
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false,
+    propsForLabels: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -132,22 +138,47 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           </View>
         </View>
 
-        {/* Recognized Text */}
+        {/* Radar Chart - Skills Assessment */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Skills Assessment</Text>
+          <View style={styles.radarContainer}>
+            <RadarChart
+              data={radarData}
+              width={SCREEN_WIDTH - 40}
+              height={280}
+              chartConfig={chartConfig}
+              style={styles.radarChart}
+            />
+          </View>
+
+          {/* Skills Legend */}
+          <View style={styles.legendContainer}>
+            {[
+              { label: 'Pronunciation', score: result.pronunciation.score, icon: 'mic-outline' },
+              { label: 'Grammar', score: result.grammar.score, icon: 'create-outline' },
+              { label: 'Vocabulary', score: result.vocabulary.score, icon: 'book-outline' },
+              { label: 'Fluency', score: result.fluency.score, icon: 'speedometer-outline' },
+              { label: 'Coherence', score: result.coherence.score, icon: 'git-network-outline' },
+            ].map((skill, index) => (
+              <View key={index} style={styles.legendItem}>
+                <Ionicons name={skill.icon as any} size={16} color="#4FD1C5" />
+                <Text style={styles.legendLabel}>{skill.label}</Text>
+                <View style={[styles.legendScore, { backgroundColor: getScoreColor(skill.score) + '20' }]}>
+                  <Text style={[styles.legendScoreText, { color: getScoreColor(skill.score) }]}>
+                    {skill.score}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Recognized Text - Compact */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What You Said</Text>
           <View style={styles.transcriptContainer}>
             <Text style={styles.transcriptText}>{result.recognized_text}</Text>
           </View>
-        </View>
-
-        {/* Skills Breakdown */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Skills Assessment</Text>
-          {renderSkillCard('Pronunciation', result.pronunciation, 'mic-outline')}
-          {renderSkillCard('Grammar', result.grammar, 'create-outline')}
-          {renderSkillCard('Vocabulary', result.vocabulary, 'book-outline')}
-          {renderSkillCard('Fluency', result.fluency, 'speedometer-outline')}
-          {renderSkillCard('Coherence', result.coherence, 'git-network-outline')}
         </View>
 
         {/* Strengths */}
@@ -330,57 +361,43 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 24,
   },
-  skillCard: {
+  radarContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 20,
+    marginBottom: 16,
+  },
+  radarChart: {
+    borderRadius: 16,
+  },
+  legendContainer: {
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    gap: 12,
   },
-  skillHeader: {
+  legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    gap: 12,
   },
-  skillTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  skillTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  legendLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
     color: '#1F2937',
   },
-  scoreChip: {
+  legendScore: {
     paddingVertical: 4,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: 8,
+    minWidth: 50,
+    alignItems: 'center',
   },
-  scoreChipText: {
+  legendScoreText: {
     fontSize: 14,
     fontWeight: '600',
-  },
-  skillFeedback: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  examplesContainer: {
-    gap: 6,
-    marginTop: 8,
-  },
-  exampleItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  exampleText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#374151',
-    lineHeight: 18,
   },
   listContainer: {
     gap: 12,
