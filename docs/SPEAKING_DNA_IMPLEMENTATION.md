@@ -3000,6 +3000,406 @@ scheduler.start()
 
 ---
 
+## New User Onboarding Flow (Cold Start Strategy)
+
+For users with no speaking history, we need a strategy to initialize their DNA profile.
+
+### Recommended Approach: Speaking Assessment as DNA Baseline
+
+```
+┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
+│  New User       │     │  Speaking Assessment │     │  First Session  │
+│  Signs Up       │ --> │  (60 seconds)        │ --> │  with DNA       │
+│                 │     │  REQUIRED            │     │  Profile        │
+└─────────────────┘     └──────────────────────┘     └─────────────────┘
+                               │
+                               ▼
+                        Creates initial DNA:
+                        - Rhythm (from speech pace analysis)
+                        - Confidence (from hesitation patterns)
+                        - Emotional (baseline anxiety level)
+                        - Vocabulary (from word choices)
+```
+
+### Implementation for New Users
+
+```python
+# In speaking_dna_service.py
+
+async def create_initial_dna_from_assessment(
+    self,
+    user_id: str,
+    language: str,
+    assessment_data: Dict
+) -> Dict:
+    """
+    Create initial DNA profile from Speaking Assessment.
+    Called after user completes their first 60-second assessment.
+    """
+    db = await self._get_db()
+
+    # Extract metrics from assessment audio analysis
+    acoustic_metrics = assessment_data.get("acoustic_metrics", {})
+    transcript = assessment_data.get("transcript", "")
+
+    # Calculate initial strand values
+    initial_strands = {
+        "rhythm": {
+            "type": self._determine_rhythm_type(acoustic_metrics),
+            "words_per_minute_avg": acoustic_metrics.get("wpm", 80),
+            "pause_duration_avg_ms": acoustic_metrics.get("avg_pause_ms", 1500),
+            "consistency_score": 0.5,  # Neutral starting point
+            "description": "Initial assessment - your rhythm pattern is emerging"
+        },
+        "confidence": {
+            "level": self._determine_initial_confidence(acoustic_metrics),
+            "score": self._calculate_initial_confidence_score(acoustic_metrics),
+            "response_latency_avg_ms": 2000,  # Default
+            "filler_rate_per_minute": acoustic_metrics.get("filler_rate", 2.0),
+            "trend": "stable",
+            "description": "Starting your confidence journey"
+        },
+        "vocabulary": {
+            "style": "balanced",  # Unknown until more sessions
+            "unique_words_per_session": len(set(transcript.split())),
+            "new_word_attempt_rate": 0.5,
+            "complexity_level": "unknown",
+            "description": "Your vocabulary style will emerge over sessions"
+        },
+        "accuracy": {
+            "pattern": "balanced",  # Unknown until corrections received
+            "grammar_accuracy": 0.7,  # Neutral starting point
+            "common_errors": [],
+            "improving_areas": [],
+            "description": "Accuracy patterns will develop as you practice"
+        },
+        "learning": {
+            "type": "unknown",  # Needs session data
+            "retry_rate": 0.5,
+            "challenge_acceptance": 0.5,
+            "description": "Your learning style will be discovered through practice"
+        },
+        "emotional": {
+            "pattern": self._determine_emotional_pattern(acoustic_metrics),
+            "session_start_confidence": 0.5,
+            "session_end_confidence": 0.5,
+            "anxiety_triggers": [],
+            "description": "Emotional patterns will become clearer over time"
+        }
+    }
+
+    # Create profile
+    profile = {
+        "user_id": ObjectId(user_id),
+        "language": language,
+        "dna_strands": initial_strands,
+        "overall_profile": {
+            "speaker_archetype": "The New Explorer",
+            "summary": "Just starting the speaking journey. DNA profile will evolve with each session.",
+            "coach_approach": "gentle_encourager",
+            "strengths": ["taking_the_first_step"],
+            "growth_areas": ["to_be_discovered"]
+        },
+        "baseline_assessment": {
+            "date": datetime.utcnow(),
+            "acoustic_metrics": acoustic_metrics
+        },
+        "sessions_analyzed": 1,
+        "total_speaking_minutes": 1,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    await db.speaking_dna_profiles.insert_one(profile)
+    return profile
+
+def _determine_rhythm_type(self, acoustic_metrics: Dict) -> str:
+    """Determine rhythm type from acoustic analysis."""
+    wpm = acoustic_metrics.get("wpm", 80)
+    if wpm < 70:
+        return "thoughtful_pacer"
+    elif wpm > 120:
+        return "rapid_responder"
+    return "steady_speaker"
+
+def _determine_initial_confidence(self, acoustic_metrics: Dict) -> str:
+    """Determine initial confidence level."""
+    filler_rate = acoustic_metrics.get("filler_rate", 2.0)
+    pause_ratio = acoustic_metrics.get("pause_ratio", 0.2)
+
+    if filler_rate > 5 or pause_ratio > 0.4:
+        return "hesitant"
+    elif filler_rate < 2 and pause_ratio < 0.2:
+        return "comfortable"
+    return "building"
+
+def _calculate_initial_confidence_score(self, acoustic_metrics: Dict) -> float:
+    """Calculate initial confidence score (0-1)."""
+    filler_rate = acoustic_metrics.get("filler_rate", 2.0)
+    pause_ratio = acoustic_metrics.get("pause_ratio", 0.2)
+
+    filler_factor = max(0, 1 - (filler_rate / 10))
+    pause_factor = max(0, 1 - (pause_ratio / 0.5))
+
+    return round((filler_factor + pause_factor) / 2, 2)
+
+def _determine_emotional_pattern(self, acoustic_metrics: Dict) -> str:
+    """Determine emotional pattern from voice analysis."""
+    # Pitch variation can indicate nervousness
+    pitch_std = acoustic_metrics.get("pitch_std", 30)
+    jitter = acoustic_metrics.get("jitter", 0.02)
+
+    if pitch_std > 40 or jitter > 0.03:
+        return "slow_warmer"  # Shows nervousness, needs warm-up
+    return "consistent"
+```
+
+### Default Profile for Users Who Skip Assessment
+
+```python
+def get_default_dna_for_new_user(self, language: str) -> Dict:
+    """
+    Returns a neutral DNA profile for users who haven't completed assessment.
+    Used when user starts a session without any prior data.
+    """
+    return {
+        "is_provisional": True,  # Flag to indicate this needs real data
+        "dna_strands": {
+            "rhythm": {
+                "type": "unknown",
+                "words_per_minute_avg": 80,
+                "consistency_score": 0.5,
+                "description": "Complete a Speaking Assessment to discover your rhythm"
+            },
+            "confidence": {
+                "level": "building",
+                "score": 0.5,
+                "trend": "stable",
+                "description": "Your confidence profile is being built"
+            },
+            "vocabulary": {
+                "style": "balanced",
+                "description": "Vocabulary style will emerge with practice"
+            },
+            "accuracy": {
+                "pattern": "balanced",
+                "grammar_accuracy": 0.7,
+                "description": "Accuracy patterns developing"
+            },
+            "learning": {
+                "type": "unknown",
+                "challenge_acceptance": 0.5,
+                "description": "Learning style to be discovered"
+            },
+            "emotional": {
+                "pattern": "unknown",
+                "description": "Emotional patterns will become clear over time"
+            }
+        },
+        "overall_profile": {
+            "speaker_archetype": "The New Explorer",
+            "summary": "Your unique speaking DNA is waiting to be discovered!",
+            "coach_approach": "gentle_encourager",
+            "strengths": [],
+            "growth_areas": []
+        }
+    }
+```
+
+---
+
+## AI Tutor (Echo) Integration Examples
+
+The Speaking DNA profile directly influences how the AI tutor behaves during conversations.
+
+### How DNA Injects into Tutor's System Prompt
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     Session Start Flow                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  User taps "Start Session" in app                                       │
+│         │                                                               │
+│         ▼                                                               │
+│  ┌─────────────────────────────────────────┐                           │
+│  │ Mobile: POST /api/realtime/session      │                           │
+│  │         { session_type: "learning" }    │                           │
+│  └─────────────────────────────────────────┘                           │
+│         │                                                               │
+│         ▼                                                               │
+│  ┌─────────────────────────────────────────┐                           │
+│  │ Backend: realtime_routes.py             │                           │
+│  │                                         │                           │
+│  │  1. Load user's DNA profile             │                           │
+│  │  2. Call build_coach_instructions()     │                           │
+│  │  3. Merge with base tutor prompt        │                           │
+│  │  4. Create OpenAI Realtime session      │                           │
+│  └─────────────────────────────────────────┘                           │
+│         │                                                               │
+│         ▼                                                               │
+│  ┌─────────────────────────────────────────┐                           │
+│  │ Echo now has DNA-aware instructions:    │                           │
+│  │                                         │                           │
+│  │ "## Learner DNA Profile                 │                           │
+│  │  This is 'The Thoughtful Builder'...    │                           │
+│  │  - Speaks at 85 WPM (thoughtful pacer)  │                           │
+│  │  - Confidence: building (improving!)    │                           │
+│  │  - Needs 2-3 sec to formulate responses │                           │
+│  │  - Responds well to encouragement       │                           │
+│  │                                         │                           │
+│  │  Recent breakthrough: Confidence +15%!  │                           │
+│  │  Mention this early to boost motivation"│                           │
+│  └─────────────────────────────────────────┘                           │
+│         │                                                               │
+│         ▼                                                               │
+│  Echo speaks with personalization:                                      │
+│  "Hallo! Fijn dat je er bent! Trouwens, vorige keer ging het           │
+│   echt goed - je zelfvertrouwen groeit! Neem rustig de tijd..."        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### DNA-Based Tutor Behavior Matrix
+
+| DNA Trait | Value | Echo's Behavior |
+|-----------|-------|-----------------|
+| **Rhythm** | `thoughtful_pacer` | Waits 3-4 seconds before prompting; never rushes |
+| **Rhythm** | `rapid_responder` | Keeps pace quick; shorter pauses between exchanges |
+| **Confidence** | `hesitant` | Extra encouragement; simpler questions first; celebrates small wins |
+| **Confidence** | `building` | Balanced encouragement; gradually increases complexity |
+| **Confidence** | `fluent` | More challenges; complex topics; treats as peer |
+| **Vocabulary** | `safety_first` | Introduces max 1-2 new words per session |
+| **Vocabulary** | `adventurous` | Throws in advanced vocabulary; encourages experimentation |
+| **Accuracy** | `perfectionist` | Gentle corrections; emphasizes "mistakes are learning" |
+| **Accuracy** | `risk_taker` | Quick corrections; moves on fast; focuses on fluency |
+| **Learning** | `explorer` | Offers harder challenges; varies topics |
+| **Learning** | `persistent` | Repeats patterns until mastered; structured approach |
+| **Emotional** | `slow_warmer` | Easy warm-up questions; builds complexity gradually |
+| **Emotional** | `quick_starter` | Jumps into main topic immediately |
+
+### Concrete Prompt Examples
+
+**For a "Thoughtful Builder" (hesitant confidence, slow warmer):**
+
+```
+## Learner Speaking DNA Profile
+
+This learner is "The Thoughtful Builder" - a deliberate learner who values
+accuracy and builds confidence through mastery.
+
+### Coaching Guidelines:
+- **Pacing**: Wait at least 3 seconds after asking a question. This learner
+  thinks before speaking - silence is okay!
+- **Encouragement**: Use phrases like "Goed gedaan!", "Dat was perfect!",
+  "Je maakt goede vooruitgang!"
+- **Corrections**: When correcting, always acknowledge what they got RIGHT first
+- **Complexity**: Start with simple questions, gradually increase difficulty
+- **Warm-up**: Begin with easy, familiar topics before the main lesson
+
+### Recent Breakthrough (mention this!):
+🚀 Their confidence score jumped 15% last session!
+Say something like: "Ik merkte dat je vorige sessie echt vooruit ging!"
+
+### Anxiety Triggers to Avoid:
+- Time pressure ("hurry up", "quickly")
+- New topics without preparation
+- Multiple corrections in a row
+
+### This Session's Approach:
+Be patient. Celebrate progress. Let them set the pace.
+```
+
+**For a "Fearless Explorer" (fluent confidence, adventurous vocabulary):**
+
+```
+## Learner Speaking DNA Profile
+
+This learner is "The Fearless Explorer" - an adventurous speaker who learns
+through experimentation and isn't afraid of mistakes.
+
+### Coaching Guidelines:
+- **Pacing**: Keep exchanges quick and dynamic
+- **Challenges**: Offer harder vocabulary and complex sentence structures
+- **Corrections**: Be direct and concise - they appreciate efficiency
+- **Topics**: Introduce unexpected topics; they enjoy variety
+- **Vocabulary**: Use advanced words; encourage them to try new expressions
+
+### Recent Achievement:
+📚 Used 15 new words successfully last session!
+Challenge them: "Kun je vandaag nog meer nieuwe woorden proberen?"
+
+### This Session's Approach:
+Challenge them. Keep it dynamic. Treat them as a capable speaker.
+```
+
+### Integration Code for realtime_routes.py
+
+```python
+from speaking_dna_service import speaking_dna_service
+
+@router.post("/session/token")
+async def get_session_token(
+    request: SessionTokenRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new realtime session with DNA-aware tutor instructions."""
+
+    user_id = str(current_user["_id"])
+    language = request.target_language
+    session_type = request.session_type  # "learning", "freestyle", "news"
+
+    # Get DNA-aware coaching instructions
+    dna_instructions = await speaking_dna_service.build_coach_instructions(
+        user_id=user_id,
+        language=language,
+        session_type=session_type
+    )
+
+    # Build complete tutor prompt
+    base_instructions = build_base_tutor_instructions(
+        language=language,
+        level=request.level,
+        session_type=session_type,
+        # ... other params
+    )
+
+    # Combine: Base instructions + DNA personalization
+    full_instructions = f"""
+{base_instructions}
+
+{dna_instructions}
+"""
+
+    # Create OpenAI Realtime session with personalized prompt
+    session = await create_openai_realtime_session(
+        instructions=full_instructions,
+        voice=request.tutor_voice or "echo",
+        # ... other params
+    )
+
+    return {"token": session.token, "session_id": session.id}
+```
+
+### Mobile: Passing Session Type
+
+```typescript
+// In ConversationScreen.tsx or session starter
+
+const startSession = async () => {
+  const response = await api.post('/api/realtime/session/token', {
+    target_language: targetLanguage,
+    level: userLevel,
+    session_type: sessionType, // 'learning' | 'freestyle' | 'news'
+  });
+
+  // Connect to realtime session
+  await realtimeService.connect(response.token);
+};
+```
+
+---
+
 ## Summary
 
 This implementation guide provides everything needed to build the Speaking DNA feature:
