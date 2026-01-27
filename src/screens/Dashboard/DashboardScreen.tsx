@@ -581,15 +581,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       <Text style={styles.premiumSecondaryText}>Or start a quick conversation</Text>
                       <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
                     </TouchableOpacity>
-
-                    {/* Speaking DNA Profile Widget for Premium Users */}
-                    <View style={{ marginTop: 16 }}>
-                      <DNAProfileWidget
-                        language={userLanguage}
-                        onPress={() => navigation.navigate('SpeakingDNA', { language: userLanguage })}
-                        onRefresh={handleRefresh}
-                      />
-                    </View>
                   </View>
                 )}
 
@@ -765,6 +756,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             language={userLanguage}
             onPress={() => navigation.navigate('SpeakingDNA', { language: userLanguage })}
             onRefresh={handleRefresh}
+            isPremium={subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan)}
           />
         </View>
 

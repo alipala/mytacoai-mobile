@@ -45,6 +45,8 @@ interface DNAProfileWidgetProps {
   onPress?: () => void;
   /** Refresh trigger */
   onRefresh?: () => void;
+  /** Override premium status (use subscription API data, not stale cache) */
+  isPremium?: boolean;
 }
 
 // ============================================================================
@@ -55,6 +57,7 @@ export const DNAProfileWidget: React.FC<DNAProfileWidgetProps> = ({
   language = 'english',
   onPress,
   onRefresh,
+  isPremium,
 }) => {
   const [profile, setProfile] = useState<SpeakingDNAProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,14 +69,14 @@ export const DNAProfileWidget: React.FC<DNAProfileWidgetProps> = ({
    */
   useEffect(() => {
     loadProfile();
-  }, [language]);
+  }, [language, isPremium]);
 
   const loadProfile = async () => {
     try {
       setError(null);
 
-      // Check premium access
-      const premium = await speakingDNAService.hasPremiumAccess();
+      // Use provided isPremium prop (from fresh API data) or fallback to checking storage
+      const premium = isPremium !== undefined ? isPremium : await speakingDNAService.hasPremiumAccess();
       setHasPremium(premium);
 
       if (!premium) {
@@ -142,30 +145,11 @@ export const DNAProfileWidget: React.FC<DNAProfileWidgetProps> = ({
   }
 
   /**
-   * Premium upsell
+   * Premium upsell - Do not show for now
+   * DNA feature is premium-only, users will see upgrade prompts elsewhere
    */
   if (!hasPremium) {
-    return (
-      <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-        <LinearGradient
-          colors={['#14B8A6', '#0D9488']}
-          style={styles.upsellGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.upsellContent}>
-            <Ionicons name="lock-closed" size={32} color="#fff" />
-            <Text style={styles.upsellTitle}>Unlock Speaking DNA</Text>
-            <Text style={styles.upsellSubtitle}>
-              Discover your unique speaking fingerprint
-            </Text>
-            <View style={styles.premiumBadge}>
-              <Text style={styles.premiumBadgeText}>PREMIUM</Text>
-            </View>
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
+    return null;
   }
 
   /**
