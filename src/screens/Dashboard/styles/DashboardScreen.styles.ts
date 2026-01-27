@@ -40,6 +40,57 @@ export const styles = StyleSheet.create({
     fontSize: 17, // Increased from 16 to 17
     fontWeight: '700',
   },
+  // Compact Premium Badge in Header
+  premiumBadgeCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255, 248, 225, 0.95)',
+    borderRadius: 12,
+  },
+  crownEmojiCompact: {
+    fontSize: 14,
+  },
+  premiumTextCompact: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#92400E',
+    letterSpacing: 0.3,
+    lineHeight: 12,
+  },
+  premiumMinutesCompact: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#B45309',
+    lineHeight: 10,
+  },
+  // Compact Streak Badge in Header
+  streakBadgeCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(254, 243, 199, 0.95)',
+    borderRadius: 12,
+  },
+  fireEmojiCompact: {
+    fontSize: 16,
+  },
+  streakNumberCompact: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#92400E',
+    lineHeight: 14,
+  },
+  streakLabelCompact: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#B45309',
+    lineHeight: 10,
+  },
   scrollView: {
     flex: 1,
     backgroundColor: '#F7F9FA',

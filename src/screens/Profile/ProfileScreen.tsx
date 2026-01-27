@@ -722,7 +722,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       {/* Speaking DNA Section */}
       <TouchableOpacity
         style={styles.section}
-        onPress={() => navigation.navigate('SpeakingDNA', { language: user?.preferred_language || 'english' })}
+        onPress={() => {
+          // Use most recent learning plan's language, fallback to preferred language, then english
+          const recentLanguage = learningPlans.length > 0 ? learningPlans[0].language : (user?.preferred_language || 'english');
+          navigation.navigate('SpeakingDNA', { language: recentLanguage });
+        }}
         activeOpacity={0.7}
       >
         <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12}}>

@@ -253,6 +253,23 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
 
   const strandKeys: DNAStrandKey[] = ['rhythm', 'confidence', 'vocabulary', 'accuracy', 'learning', 'emotional'];
 
+  /**
+   * Format insight text - convert snake_case to Title Case
+   */
+  const formatInsightText = (text: string): string => {
+    // If it's snake_case or camelCase, convert to readable format
+    if (text.includes('_') || /[a-z][A-Z]/.test(text)) {
+      return text
+        .replace(/_/g, ' ')
+        .replace(/([A-Z])/g, ' $1')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+        .trim();
+    }
+    return text;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
@@ -264,7 +281,10 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Your Speaking DNA</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Your Speaking DNA</Text>
+            <Text style={styles.headerLanguage}>{language.charAt(0).toUpperCase() + language.slice(1)}</Text>
+          </View>
           <View style={styles.headerRight} />
         </View>
 
@@ -347,7 +367,7 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
             {profile.overall_profile.strengths.map((strength, idx) => (
               <View key={idx} style={styles.insightItem}>
                 <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                <Text style={styles.insightText}>{strength}</Text>
+                <Text style={styles.insightText}>{formatInsightText(strength)}</Text>
               </View>
             ))}
 
@@ -355,7 +375,7 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
             {profile.overall_profile.growth_areas.map((area, idx) => (
               <View key={idx} style={styles.insightItem}>
                 <Ionicons name="arrow-up-circle" size={20} color="#F59E0B" />
-                <Text style={styles.insightText}>{area}</Text>
+                <Text style={styles.insightText}>{formatInsightText(area)}</Text>
               </View>
             ))}
           </View>
@@ -447,10 +467,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  headerLanguage: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
   },
   headerRight: {
     width: 40,

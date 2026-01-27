@@ -25,6 +25,7 @@ import * as Haptics from 'expo-haptics';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
 import { LearningPlanCard } from '../../components/LearningPlanCard';
+import { CompactLearningPlanCard } from '../../components/CompactLearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
@@ -621,7 +622,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
-      {/* iOS-Native Header WITH USER BUTTON - THIS IS WHAT YOU WANT! */}
+      {/* Header with Logo + Premium Badge + Streak Badge */}
       <View style={styles.header}>
         <Image
           source={require('../../assets/logo.png')}
@@ -630,15 +631,34 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         />
 
         <View style={styles.headerActions}>
-          {/* Upgrade Button - only show for free users */}
-          {subscriptionStatus?.plan === 'free' && (
+          {/* Premium Badge */}
+          {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
             <TouchableOpacity
-              style={styles.upgradeButton}
+              style={styles.premiumBadgeCompact}
               onPress={handleUpgradePress}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <Ionicons name="sparkles" size={22} color="#4FD1C5" />
-              <Text style={styles.upgradeButtonText}>Upgrade</Text>
+              <Text style={styles.crownEmojiCompact}>👑</Text>
+              <View>
+                <Text style={styles.premiumTextCompact}>Premium</Text>
+                <Text style={styles.premiumMinutesCompact}>
+                  {subscriptionStatus?.limits?.minutes_remaining || 0} min
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Streak Badge */}
+          {progressStats && (
+            <TouchableOpacity
+              style={styles.streakBadgeCompact}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.fireEmojiCompact}>🔥</Text>
+              <View>
+                <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
+                <Text style={styles.streakLabelCompact}>day{progressStats.current_streak !== 1 ? 's' : ''}</Text>
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -652,8 +672,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Subscription Banner */}
-        {subscriptionStatus && !bannerDismissed && (
+        {/* Subscription Banner - Only show for trial/expiring */}
+        {subscriptionStatus && !bannerDismissed && subscriptionStatus.status === 'trialing' && (
           <>
             {console.log('🎯 Rendering SubscriptionBanner with plan:', subscriptionStatus.plan)}
             <SubscriptionBanner
@@ -664,36 +684,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             />
           </>
         )}
-
-        {/* Premium Status Badge - Show for subscribed users */}
-        {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
-          <View style={styles.premiumStatusBadgeContainer}>
-            <LinearGradient
-              colors={['#FFF8E1', '#FFFBF0']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.premiumStatusBadge}
-            >
-              <View style={styles.premiumStatusIconCircle}>
-                <Text style={styles.crownEmoji}>👑</Text>
-              </View>
-              <View style={styles.premiumStatusTextContainer}>
-                <Text style={styles.premiumStatusTitle}>Premium Active</Text>
-                <Text style={styles.premiumStatusSubtitle}>
-                  {subscriptionStatus?.limits?.minutes_remaining || 0} minutes remaining
-                </Text>
-              </View>
-            </LinearGradient>
-          </View>
-        )}
-
-        {/* Streak Badge - Show for all users */}
-        <View style={styles.streakBadgeContainer}>
-          <View style={styles.statBadge}>
-            <Ionicons name="flame" size={16} color="#D97706" />
-            <Text style={styles.statBadgeText}>3 day streak</Text>
-          </View>
-        </View>
 
         {/* Learning Plans Carousel - Compact Cards */}
         <View style={styles.carouselContainer}>
@@ -718,7 +708,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
               return (
                 <View key={plan.id || index} style={styles.cardContainer}>
-                  <LearningPlanCard
+                  <CompactLearningPlanCard
                     plan={plan}
                     progressStats={progressStats}
                     onContinue={() => handleContinueLearning(plan.id)}
