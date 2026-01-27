@@ -28,6 +28,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
+import { StripeService } from '../../api/generated';
 import {
   SpeakingDNAProfile,
   SpeakingBreakthrough,
@@ -75,8 +76,16 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
     try {
       setError(null);
 
-      // Check premium access first
-      const hasPremium = await speakingDNAService.hasPremiumAccess();
+      // Check premium access using FRESH subscription API data (not stale AsyncStorage)
+      const subscriptionStatus = await StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet();
+      const hasPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
+
+      console.log('[SpeakingDNAScreen] Fresh subscription check:', {
+        plan: subscriptionStatus?.plan,
+        status: subscriptionStatus?.status,
+        hasPremium,
+      });
+
       if (!hasPremium) {
         setError('Speaking DNA is a premium feature. Please upgrade your subscription.');
         setLoading(false);
@@ -129,10 +138,11 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
   };
 
   /**
-   * Handle upgrade button tap
+   * Handle upgrade button tap - Go back since this screen shouldn't be shown to free users
    */
   const handleUpgrade = () => {
-    navigation.navigate('Subscription');
+    console.log('[SpeakingDNAScreen] Upgrade button pressed - going back');
+    navigation.goBack();
   };
 
   // ============================================================================
