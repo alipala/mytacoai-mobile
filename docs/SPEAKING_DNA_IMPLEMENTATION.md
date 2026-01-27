@@ -4115,6 +4115,465 @@ const DNACard = ({ onPress }: { onPress: () => void }) => (
 
 ---
 
+## Specific Code Integration Points (Based on Your Codebase)
+
+### File References
+
+| Component | File Path | Lines | Purpose |
+|-----------|-----------|-------|---------|
+| Learn Tab | `src/screens/Dashboard/DashboardScreen.tsx` | 1,184 | Learning plan card carousel |
+| Learning Plan Card | `src/components/LearningPlanCard.tsx` | 381 | Individual card component |
+| Card Styles | `src/components/styles/LearningPlanCard.styles.ts` | 180+ | Card styling |
+| Details Modal | `src/components/LearningPlanDetailsModal.tsx` | 391 | Full plan details |
+| Profile Screen | `src/screens/Profile/ProfileScreen.tsx` | 1,372 | Profile with tabs |
+
+---
+
+### Integration Point 1: Learning Plan Card (DNA Indicator)
+
+**File:** `src/components/LearningPlanCard.tsx`
+**Location:** After the stats section (around line 320), before action buttons
+
+Add a compact DNA indicator showing confidence trend for this language:
+
+```tsx
+// Add after the existing stats section, before buttons
+// Around line 320 in LearningPlanCard.tsx
+
+{/* DNA Indicator - NEW */}
+{dnaProfile && (
+  <TouchableOpacity
+    style={styles.dnaIndicator}
+    onPress={onDNAPress}
+  >
+    <View style={styles.dnaIconContainer}>
+      <Text style={styles.dnaIcon}>🧬</Text>
+    </View>
+    <View style={styles.dnaContent}>
+      <Text style={styles.dnaArchetype}>
+        {dnaProfile.overall_profile?.speaker_archetype || 'Building DNA...'}
+      </Text>
+      <View style={styles.dnaConfidenceRow}>
+        <View style={[
+          styles.dnaConfidenceBar,
+          { width: `${(dnaProfile.dna_strands?.confidence?.score || 0) * 100}%` }
+        ]} />
+        <Text style={styles.dnaTrend}>
+          {dnaProfile.dna_strands?.confidence?.trend === 'improving' ? '↑' : '→'}
+        </Text>
+      </View>
+    </View>
+    <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+  </TouchableOpacity>
+)}
+```
+
+**Styles to add to `LearningPlanCard.styles.ts`:**
+
+```typescript
+dnaIndicator: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#F0FDFA',
+  borderRadius: 12,
+  padding: 12,
+  marginTop: 12,
+  borderWidth: 1,
+  borderColor: '#99F6E4',
+},
+dnaIconContainer: {
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  backgroundColor: '#CCFBF1',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 10,
+},
+dnaIcon: {
+  fontSize: 16,
+},
+dnaContent: {
+  flex: 1,
+},
+dnaArchetype: {
+  fontSize: 12,
+  fontWeight: '600',
+  color: '#0F766E',
+  marginBottom: 4,
+},
+dnaConfidenceRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+dnaConfidenceBar: {
+  height: 4,
+  backgroundColor: '#4ECDC4',
+  borderRadius: 2,
+  maxWidth: '80%',
+},
+dnaTrend: {
+  marginLeft: 6,
+  fontSize: 12,
+  color: '#10B981',
+},
+```
+
+**Updated Card Mockup:**
+
+```
+┌─────────────────────────────────────────┐
+│                          IN PROGRESS    │
+│  🇳🇱 Dutch                               │
+│     A1 Level                            │
+│                                         │
+│         ╭───────────╮                   │
+│        │    75%     │                   │
+│         ╰───────────╯                   │
+│          Complete                       │
+│                                         │
+│      6          8                       │
+│   Sessions    Total                     │
+│                                         │
+│  ┌─────────────────────────────────────┐│
+│  │ 🧬 "The Thoughtful Builder"      → ││ ← NEW DNA Indicator
+│  │    ████████░░  Confidence ↑        ││
+│  └─────────────────────────────────────┘│
+│                                         │
+│  ┌──────────┐  ┌──────────────────┐    │
+│  │ Continue │  │     Details      │    │
+│  └──────────┘  └──────────────────┘    │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### Integration Point 2: Learning Plan Details Modal (DNA Section)
+
+**File:** `src/components/LearningPlanDetailsModal.tsx`
+**Location:** After stats cards (around line 280), before "Continue Learning" button
+
+Add a dedicated DNA section showing detailed strand info:
+
+```tsx
+// Add after statsContainer, before continueButton
+// Around line 280 in LearningPlanDetailsModal.tsx
+
+{/* Speaking DNA Section - NEW */}
+{dnaProfile && (
+  <View style={styles.dnaSection}>
+    <Text style={styles.dnaSectionTitle}>Speaking DNA</Text>
+
+    <TouchableOpacity
+      style={styles.dnaCard}
+      onPress={() => {
+        onClose();
+        navigation.navigate('SpeakingDNA');
+      }}
+    >
+      <View style={styles.dnaHeader}>
+        <Text style={styles.dnaEmoji}>🧬</Text>
+        <View style={styles.dnaHeaderText}>
+          <Text style={styles.dnaArchetypeName}>
+            {dnaProfile.overall_profile?.speaker_archetype}
+          </Text>
+          <Text style={styles.dnaSessionCount}>
+            Based on {dnaProfile.sessions_analyzed || 0} sessions
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.dnaStrandsPreview}>
+        <View style={styles.dnaStrandRow}>
+          <Text style={styles.dnaStrandLabel}>💪 Confidence</Text>
+          <View style={styles.dnaStrandBarBg}>
+            <View style={[
+              styles.dnaStrandBarFill,
+              { width: `${(dnaProfile.dna_strands?.confidence?.score || 0) * 100}%` }
+            ]} />
+          </View>
+          <Text style={styles.dnaStrandTrend}>
+            {dnaProfile.dna_strands?.confidence?.trend === 'improving' ? '↑' : '→'}
+          </Text>
+        </View>
+
+        <View style={styles.dnaStrandRow}>
+          <Text style={styles.dnaStrandLabel}>🎵 Rhythm</Text>
+          <Text style={styles.dnaStrandValue}>
+            {dnaProfile.dna_strands?.rhythm?.words_per_minute_avg?.toFixed(0) || '--'} WPM
+          </Text>
+        </View>
+
+        <View style={styles.dnaStrandRow}>
+          <Text style={styles.dnaStrandLabel}>📚 Vocabulary</Text>
+          <Text style={styles.dnaStrandValue}>
+            {dnaProfile.dna_strands?.vocabulary?.style?.replace('_', ' ') || '--'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.dnaFooter}>
+        <Text style={styles.dnaViewMore}>View Full DNA Profile</Text>
+        <Ionicons name="chevron-forward" size={16} color="#4ECDC4" />
+      </View>
+    </TouchableOpacity>
+  </View>
+)}
+```
+
+**Updated Modal Mockup:**
+
+```
+┌─────────────────────────────────────────┐
+│  🇳🇱 Dutch Learning Plan            ✕  │
+│     A1 Level                            │
+├─────────────────────────────────────────┤
+│                                         │
+│         ╭───────────╮                   │
+│        │    75%     │                   │
+│         ╰───────────╯                   │
+│        Overall Progress                 │
+│                                         │
+│  ┌─────────┬─────────┬─────────┐       │
+│  │Sessions │  Time   │  Week   │       │
+│  │  6/8    │ 15 min  │ Week 3  │       │
+│  └─────────┴─────────┴─────────┘       │
+│                                         │
+│  ┌─────────────────────────────────────┐│
+│  │ 🧬 Speaking DNA                     ││ ← NEW Section
+│  │                                     ││
+│  │ "The Thoughtful Builder"            ││
+│  │  Based on 6 sessions                ││
+│  │                                     ││
+│  │ 💪 Confidence  ████████░░  ↑       ││
+│  │ 🎵 Rhythm      85 WPM              ││
+│  │ 📚 Vocabulary  Safety First        ││
+│  │                                     ││
+│  │ View Full DNA Profile           →  ││
+│  └─────────────────────────────────────┘│
+│                                         │
+│  ┌─────────────────────────────────────┐│
+│  │        Continue Learning            ││
+│  └─────────────────────────────────────┘│
+│                                         │
+│  Plan Overview                          │
+│  ...                                    │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### Integration Point 3: Profile Screen - Overview Tab (DNA Card)
+
+**File:** `src/screens/Profile/ProfileScreen.tsx`
+**Location:** In `renderOverviewTab()` function, after stats row (around line 720)
+
+Add a prominent DNA card between stats and Recent Activity:
+
+```tsx
+// Add in renderOverviewTab(), after statsContainer
+// Around line 720 in ProfileScreen.tsx
+
+{/* Speaking DNA Card - NEW */}
+<TouchableOpacity
+  style={styles.dnaProfileCard}
+  onPress={() => navigation.navigate('SpeakingDNA')}
+>
+  <View style={styles.dnaProfileHeader}>
+    <View style={styles.dnaProfileIconBg}>
+      <Text style={styles.dnaProfileIcon}>🧬</Text>
+    </View>
+    <View style={styles.dnaProfileTitleContainer}>
+      <Text style={styles.dnaProfileTitle}>Your Speaking DNA</Text>
+      <Text style={styles.dnaProfileSubtitle}>
+        {dnaProfile
+          ? `"${dnaProfile.overall_profile?.speaker_archetype}"`
+          : 'Discover your speaking fingerprint'
+        }
+      </Text>
+    </View>
+    <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+  </View>
+
+  {dnaProfile ? (
+    <View style={styles.dnaProfileStats}>
+      <View style={styles.dnaProfileStatItem}>
+        <Text style={styles.dnaProfileStatValue}>
+          {Math.round((dnaProfile.dna_strands?.confidence?.score || 0) * 100)}%
+        </Text>
+        <Text style={styles.dnaProfileStatLabel}>Confidence</Text>
+      </View>
+      <View style={styles.dnaProfileStatDivider} />
+      <View style={styles.dnaProfileStatItem}>
+        <Text style={styles.dnaProfileStatValue}>
+          {dnaProfile.sessions_analyzed || 0}
+        </Text>
+        <Text style={styles.dnaProfileStatLabel}>Sessions</Text>
+      </View>
+      <View style={styles.dnaProfileStatDivider} />
+      <View style={styles.dnaProfileStatItem}>
+        <Text style={styles.dnaProfileStatValue}>
+          {breakthroughCount || 0}
+        </Text>
+        <Text style={styles.dnaProfileStatLabel}>Breakthroughs</Text>
+      </View>
+    </View>
+  ) : (
+    <View style={styles.dnaProfileEmpty}>
+      <Text style={styles.dnaProfileEmptyText}>
+        Complete a Speaking Assessment to discover your DNA
+      </Text>
+    </View>
+  )}
+
+  {uncelebratedBreakthrough && (
+    <View style={styles.dnaBreakthroughBanner}>
+      <Text style={styles.dnaBreakthroughText}>
+        {uncelebratedBreakthrough.emoji} New: {uncelebratedBreakthrough.title}
+      </Text>
+    </View>
+  )}
+</TouchableOpacity>
+```
+
+**Updated Profile Overview Mockup:**
+
+```
+┌─────────────────────────────────────────┐
+│  Profile                          ⚙️   │
+├─────────────────────────────────────────┤
+│  ┌────────┬────────┬────────┬────────┐ │
+│  │Overview│Progress│ Cards  │ Alerts │ │
+│  └────────┴────────┴────────┴────────┘ │
+│                                         │
+│  ┌───────╮                              │
+│  │   A   │ Welcome back, Ali Pala!     │
+│  └───────╯ Continue your learning...   │
+│                                         │
+│  ┌─────────┬─────────┬─────────┐       │
+│  │   💬    │   📈    │   📚    │       │
+│  │    2    │    5    │   11    │       │
+│  │Conversa-│  Plans  │  Sets   │       │
+│  │ tions   │         │         │       │
+│  └─────────┴─────────┴─────────┘       │
+│                                         │
+│  ┌─────────────────────────────────────┐│
+│  │ 🧬 Your Speaking DNA            →  ││ ← NEW DNA Card
+│  │    "The Thoughtful Builder"        ││
+│  │                                     ││
+│  │  ┌───────┬───────┬───────┐         ││
+│  │  │  65%  │   6   │   2   │         ││
+│  │  │Confid-│Sessions│Break- │         ││
+│  │  │ence   │       │throughs│         ││
+│  │  └───────┴───────┴───────┘         ││
+│  │                                     ││
+│  │  🚀 New: Confidence Breakthrough!  ││
+│  └─────────────────────────────────────┘│
+│                                         │
+│  Recent Activity                        │
+│  ┌─────────────────────────────────────┐│
+│  │ 💬 Practice Session    Jan 27, 2026││
+│  │    En • B2                          ││
+│  └─────────────────────────────────────┘│
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### Integration Point 4: Profile Screen - Add DNA Tab
+
+**File:** `src/screens/Profile/ProfileScreen.tsx`
+**Location:** Tab definitions (around line 202)
+
+Option: Replace "Progress" tab with "DNA" or add as 5th tab:
+
+```tsx
+// Modify TAB_CONFIG around line 163
+const TAB_CONFIG = [
+  { key: 'overview', label: 'Overview', icon: 'home-outline' },
+  { key: 'dna', label: 'DNA', icon: 'analytics-outline' }, // NEW or replace Progress
+  { key: 'cards', label: 'Cards', icon: 'albums-outline' },
+  { key: 'alerts', label: 'Alerts', icon: 'notifications-outline' },
+];
+
+// Add renderDNATab function
+const renderDNATab = () => (
+  <View style={styles.tabContent}>
+    {/* Inline DNA visualization or navigate to full screen */}
+    <SpeakingDNAScreen embedded={true} />
+  </View>
+);
+```
+
+---
+
+### Data Flow: Loading DNA in Components
+
+Add to each component that needs DNA data:
+
+```tsx
+// In DashboardScreen.tsx or ProfileScreen.tsx
+import { speakingDNAService, DNAProfile } from '../services/SpeakingDNAService';
+
+const [dnaProfile, setDnaProfile] = useState<DNAProfile | null>(null);
+const [uncelebratedBreakthrough, setUncelebratedBreakthrough] = useState(null);
+
+useEffect(() => {
+  const loadDNA = async () => {
+    if (currentLanguage) {
+      const profile = await speakingDNAService.getProfile(currentLanguage);
+      setDnaProfile(profile);
+
+      const breakthroughs = await speakingDNAService.getBreakthroughs(
+        currentLanguage,
+        { limit: 1, uncelebratedOnly: true }
+      );
+      if (breakthroughs.length > 0) {
+        setUncelebratedBreakthrough(breakthroughs[0]);
+      }
+    }
+  };
+  loadDNA();
+}, [currentLanguage]);
+```
+
+---
+
+### Styling Constants (Match Your Design System)
+
+Based on your existing app styling:
+
+```typescript
+// DNA-specific colors that match your app
+const DNA_COLORS = {
+  cardBackground: '#F0FDFA',     // Light teal bg
+  cardBorder: '#99F6E4',         // Teal border
+  primary: '#4ECDC4',            // Your app's teal
+  textPrimary: '#0F766E',        // Dark teal text
+  textSecondary: '#6B7280',      // Gray text
+  improving: '#10B981',          // Green for ↑
+  stable: '#6B7280',             // Gray for →
+  declining: '#EF4444',          // Red for ↓
+};
+
+// Consistent with your card styles
+const DNA_CARD_STYLE = {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 16,
+  padding: 16,
+  marginHorizontal: 20,
+  marginVertical: 8,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 8,
+  elevation: 2,
+};
+```
+
+---
+
 ## Summary
 
 This implementation guide provides everything needed to build the Speaking DNA feature:
