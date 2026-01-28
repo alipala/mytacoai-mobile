@@ -69,6 +69,7 @@ import { NewsListScreen, NewsDetailScreen } from './src/screens/News';
 import SpeakingDNAScreen from './src/screens/SpeakingDNA/SpeakingDNAScreen.tsx';
 import SpeakingDNAScreenNew from './src/screens/SpeakingDNA/SpeakingDNAScreenNew.tsx';
 import { SpeakingDNAScreenV2 } from './src/screens/SpeakingDNA/SpeakingDNAScreenV2.tsx';
+import { SpeakingDNAScreenHorizontal } from './src/screens/SpeakingDNA/SpeakingDNAScreenHorizontal.tsx';
 
 // API config will be loaded dynamically after initial render for better startup performance
 
@@ -447,14 +448,15 @@ export default function App() {
           {/* Challenge Session Screen */}
           <Stack.Screen name="ChallengeSession" component={ChallengeSessionScreen} />
 
-          {/* Speaking DNA Screen - V2 REDESIGN */}
+          {/* Speaking DNA Screen - HORIZONTAL PAGING REDESIGN */}
           <Stack.Screen
             name="SpeakingDNA"
-            component={SpeakingDNAScreenV2}
+            component={SpeakingDNAScreenHorizontal}
             options={{ headerShown: false }}
           />
 
-          {/* Old Speaking DNA Screens (backup) */}
+          {/* Old Speaking DNA Screens (backup/testing) */}
+          <Stack.Screen name="SpeakingDNAV2" component={SpeakingDNAScreenV2} options={{ headerShown: false }} />
           <Stack.Screen name="SpeakingDNANew" component={SpeakingDNAScreenNew} />
           <Stack.Screen name="SpeakingDNAOld" component={SpeakingDNAScreen} />
 
