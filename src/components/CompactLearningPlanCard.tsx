@@ -36,6 +36,7 @@ interface CompactLearningPlanCardProps {
   onViewDetails: () => void;
   onViewAssessment?: () => void;
   onCreateNextPlan?: () => void;
+  hideFlag?: boolean; // Hide flag when used inside language group
 }
 
 const getLanguageFlagComponent = (language: string): React.FC<any> | null => {
@@ -149,6 +150,7 @@ export const CompactLearningPlanCard: React.FC<CompactLearningPlanCardProps> = (
   onViewDetails,
   onViewAssessment,
   onCreateNextPlan,
+  hideFlag = false,
 }) => {
   const language = plan.language || plan.target_language || 'English';
   const languageCapitalized = language.charAt(0).toUpperCase() + language.slice(1);
@@ -158,7 +160,7 @@ export const CompactLearningPlanCard: React.FC<CompactLearningPlanCardProps> = (
   const percentage = Math.round((completedSessions / totalSessions) * 100);
   const duration = plan.duration_months || 1;
 
-  const FlagComponent = getLanguageFlagComponent(language);
+  const FlagComponent = !hideFlag ? getLanguageFlagComponent(language) : null;
   const levelColors = getLevelColor(level);
   const statusBadge = getStatusBadge(percentage, completedSessions, totalSessions);
 

@@ -319,34 +319,10 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1D4ED8',
   },
-  carouselContainer: {
-    marginVertical: 8,
-  },
-  carouselContent: {
-    paddingHorizontal: 0,
-  },
-  cardContainer: {
-    width: SCREEN_WIDTH,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paginationDots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#D1D5DB',
-  },
-  dotActive: {
-    backgroundColor: '#4FD1C5',
-    width: 20,
+  // Language Groups Container
+  languageGroupsContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   // Compact Divider
   divider: {

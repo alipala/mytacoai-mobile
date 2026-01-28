@@ -111,48 +111,26 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
 
   return (
     <View style={styles.page}>
-      {/* Clean, subtle background for better chart visibility */}
+      {/* Beautiful gradient background */}
       <LinearGradient
-        colors={['#F9FAFB', '#FFFFFF', '#FFFFFF']}
-        locations={[0, 0.2, 1]}
+        colors={['#F0FDFA', '#FFFFFF', '#F9FAFB']}
+        locations={[0, 0.5, 1]}
         style={styles.radarBackground}
       />
 
-      {/* Radar Chart Container */}
+      {/* Radar Chart Container - Centered */}
       <View style={styles.radarContainer}>
-        <View style={styles.chartWrapper}>
-          <InteractiveRadarChartEnhanced
-            data={radarData}
-            size={SCREEN_WIDTH - 20}
-            onStrandTap={handleStrandTap}
-            selectedStrand={selectedStrand}
-          />
-        </View>
-      </View>
-
-      {/* Stats Bar - Larger Cards */}
-      <View style={styles.statsBar}>
-        <View style={styles.statItem}>
-          <Ionicons name="chatbubbles" size={32} color={THEME_COLORS.primary} />
-          <Text style={styles.statValue}>{profile.sessions_analyzed}</Text>
-          <Text style={styles.statLabel}>Sessions</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Ionicons name="time" size={32} color={THEME_COLORS.primary} />
-          <Text style={styles.statValue}>{Math.round(profile.total_speaking_minutes)}</Text>
-          <Text style={styles.statLabel}>Minutes</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Ionicons name="school" size={32} color={THEME_COLORS.primary} />
-          <Text style={styles.statLabel}>{profile.overall_profile.speaker_archetype.split(' ')[1] || 'Learner'}</Text>
-        </View>
+        <InteractiveRadarChartEnhanced
+          data={radarData}
+          size={SCREEN_WIDTH - 40}
+          onStrandTap={handleStrandTap}
+          selectedStrand={selectedStrand}
+        />
       </View>
 
       {/* Tap Hint */}
       <View style={styles.swipeHint}>
-        <Text style={styles.swipeHintText}>Tap chart points for details • Swipe for insights</Text>
+        <Text style={styles.swipeHintText}>Tap chart or legend for details • Swipe for insights</Text>
         <Ionicons name="chevron-forward" size={16} color={THEME_COLORS.text.secondary} />
       </View>
     </View>
@@ -306,6 +284,12 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
 
   return (
     <View style={styles.page}>
+      {/* Beautiful gradient background */}
+      <LinearGradient
+        colors={['#FEFCE8', '#FFFFFF', '#F0FDFA']}
+        locations={[0, 0.4, 1]}
+        style={styles.radarBackground}
+      />
       <View style={styles.insightsContainer}>
         {/* This Week's Focus */}
         {weeklyFocus && (
@@ -807,48 +791,8 @@ const styles = StyleSheet.create({
   radarContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 20,
-  },
-  chartWrapper: {
-    marginTop: 0,
-  },
-  statsBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-  },
-  statValue: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: THEME_COLORS.primary,
-  },
-  statLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  statDivider: {
-    width: 1,
-    height: 48,
-    backgroundColor: '#E5E7EB',
-    marginHorizontal: 16,
+    paddingHorizontal: 20,
   },
   swipeHint: {
     flexDirection: 'row',

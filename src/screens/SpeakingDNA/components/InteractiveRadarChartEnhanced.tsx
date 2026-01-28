@@ -224,44 +224,30 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
           );
         })}
 
-        {/* HEXAGONAL FILLED AREA - SOLID TEAL */}
+        {/* HEXAGONAL FILLED AREA - Professional design with clean stroke */}
         <AnimatedPolygon
           animatedProps={animatedProps}
           fill="#5EEAD4"
           stroke="none"
         />
 
-        {/* Spider chart connecting LINES - Clean elegant design */}
+        {/* Connecting lines between data points - Clean professional design */}
         {data.map((point, index) => {
           const currentPos = getPointPosition(index, point.score);
           const nextIndex = (index + 1) % data.length;
           const nextPos = getPointPosition(nextIndex, data[nextIndex].score);
 
           return (
-            <G key={`edge-${index}`}>
-              {/* Subtle outer glow */}
-              <Line
-                x1={currentPos.x}
-                y1={currentPos.y}
-                x2={nextPos.x}
-                y2={nextPos.y}
-                stroke="#14B8A6"
-                strokeWidth={5}
-                strokeLinecap="round"
-                opacity={0.15}
-              />
-              {/* Main elegant line */}
-              <Line
-                x1={currentPos.x}
-                y1={currentPos.y}
-                x2={nextPos.x}
-                y2={nextPos.y}
-                stroke="#14B8A6"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                opacity={0.8}
-              />
-            </G>
+            <Line
+              key={`edge-${index}`}
+              x1={currentPos.x}
+              y1={currentPos.y}
+              x2={nextPos.x}
+              y2={nextPos.y}
+              stroke="#14B8A6"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+            />
           );
         })}
 
@@ -351,26 +337,33 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 
       {/* Legend - 3x2 Grid */}
       <View style={styles.legendContainer}>
-        {data.map((point) => (
-          <Pressable
-            key={`legend-${point.strand}`}
-            onPress={() => handleStrandPress(point.strand)}
-            style={[
-              styles.legendItem,
-              selectedStrand === point.strand && styles.legendItemSelected,
-            ]}
-          >
-            <View style={[styles.legendCircle, { backgroundColor: point.color }]} />
-            <Text
+        {data.map((point) => {
+          const isSelected = selectedStrand === point.strand;
+          return (
+            <Pressable
+              key={`legend-${point.strand}`}
+              onPress={() => handleStrandPress(point.strand)}
               style={[
-                styles.legendText,
-                selectedStrand === point.strand && styles.legendTextSelected,
+                styles.legendItem,
+                isSelected && {
+                  backgroundColor: `${point.color}10`,
+                  borderColor: point.color,
+                  borderWidth: 2,
+                },
               ]}
             >
-              {point.label}
-            </Text>
-          </Pressable>
-        ))}
+              <View style={[styles.legendCircle, { backgroundColor: point.color }]} />
+              <Text
+                style={[
+                  styles.legendText,
+                  isSelected && { color: point.color, fontWeight: '700' },
+                ]}
+              >
+                {point.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -394,42 +387,39 @@ const styles = StyleSheet.create({
   legendContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: 20,
-    paddingHorizontal: 10,
+    justifyContent: 'space-between',
+    marginTop: 24,
+    paddingHorizontal: 20,
     width: '100%',
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginHorizontal: 4,
-    marginVertical: 4,
-    borderRadius: 20,
-    backgroundColor: '#F9FAFB',
+    paddingVertical: 10,
+    marginBottom: 8,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
-    minWidth: '30%',
-  },
-  legendItemSelected: {
-    backgroundColor: '#F0FDFA',
-    borderColor: '#14B8A6',
+    width: '48%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
   legendCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     marginRight: 8,
   },
   legendText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#374151',
-  },
-  legendTextSelected: {
-    color: '#0F766E',
-    fontWeight: '700',
+    flex: 1,
   },
 });
 

@@ -34,6 +34,7 @@ import TransitionWrapper from '../../components/TransitionWrapper';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
+import { CollapsibleLanguageGroup } from '../../components/CollapsibleLanguageGroup';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const API_BASE_URL = 'https://taco-voice-ai-e9b98ce8e7c5.herokuapp.com';
@@ -51,8 +52,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [userLevel, setUserLevel] = useState<string>('intermediate');
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [progressStats, setProgressStats] = useState<any>(null);
-  const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
   const [selectedAssessmentPlan, setSelectedAssessmentPlan] = useState<LearningPlan | null>(null);
+  const [expandedLanguage, setExpandedLanguage] = useState<string | null>(null);
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
 
   // Subscription state
@@ -685,69 +686,62 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </>
         )}
 
-        {/* Learning Plans Carousel - Compact Cards */}
-        <View style={styles.carouselContainer}>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={SCREEN_WIDTH}
-            decelerationRate="fast"
-            contentContainerStyle={styles.carouselContent}
-            onScroll={(event) => {
-              const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-              setCurrentPlanIndex(index);
-            }}
-            scrollEventThrottle={16}
-          >
-            {learningPlans.map((plan, index) => {
-              // Check if a next-level plan already exists for this plan
-              const hasNextPlanCreated = learningPlans.some(
-                p => p.previous_plan_id === plan.id
-              );
+        {/* Learning Plans Grouped by Language - Collapsible */}
+        <View style={styles.languageGroupsContainer}>
+          {(() => {
+            // Group learning plans by language
+            const plansByLanguage: Record<string, LearningPlan[]> = {};
+            learningPlans.forEach(plan => {
+              const lang = plan.language || 'english';
+              if (!plansByLanguage[lang]) {
+                plansByLanguage[lang] = [];
+              }
+              plansByLanguage[lang].push(plan);
+            });
 
-              return (
-                <View key={plan.id || index} style={styles.cardContainer}>
-                  <CompactLearningPlanCard
-                    plan={plan}
-                    progressStats={progressStats}
-                    onContinue={() => handleContinueLearning(plan.id)}
-                    onViewDetails={() => handleViewDetails(plan)}
-                    onViewAssessment={() => {
-                      setSelectedAssessmentPlan(plan);
-                      setShowAssessmentModal(true);
-                    }}
-                    onCreateNextPlan={hasNextPlanCreated ? undefined : () => handleCreateNextPlan(plan)}
-                  />
-                </View>
-              );
-            })}
-          </ScrollView>
+            // Get all plan IDs that have a next-level plan created
+            const existingPlanIds = learningPlans
+              .filter(p => p.previous_plan_id)
+              .map(p => p.previous_plan_id!);
 
-          {/* Pagination Dots */}
-          {learningPlans.length > 1 && (
-            <View style={styles.paginationDots}>
-              {learningPlans.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.dot,
-                    index === currentPlanIndex && styles.dotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
-        </View>
+            // Get total count for dynamic height calculation
+            const totalLanguageCount = Object.keys(plansByLanguage).length;
 
-        {/* Speaking DNA Profile Widget */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }}>
-          <DNAProfileWidget
-            language={userLanguage}
-            onPress={() => navigation.navigate('SpeakingDNA', { language: userLanguage })}
-            onRefresh={handleRefresh}
-            isPremium={subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan)}
-          />
+            // Check which languages have DNA analysis (any plan with sessions analyzed > 0)
+            const languagesWithDNA = new Set<string>();
+            learningPlans.forEach(plan => {
+              if (plan.completed_sessions && plan.completed_sessions > 0) {
+                languagesWithDNA.add(plan.language || 'english');
+              }
+            });
+
+            // Render a CollapsibleLanguageGroup for each language
+            return Object.entries(plansByLanguage).map(([language, plans]) => (
+              <CollapsibleLanguageGroup
+                key={language}
+                language={language}
+                plans={plans}
+                progressStats={progressStats}
+                isPremium={subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan)}
+                onContinue={handleContinueLearning}
+                onViewDetails={handleViewDetails}
+                onViewAssessment={(plan) => {
+                  setSelectedAssessmentPlan(plan);
+                  setShowAssessmentModal(true);
+                }}
+                onCreateNextPlan={handleCreateNextPlan}
+                onViewDNA={(lang) => navigation.navigate('SpeakingDNA', { language: lang })}
+                existingPlanIds={existingPlanIds}
+                totalLanguageCount={totalLanguageCount}
+                hasDNAAnalysis={languagesWithDNA.has(language)}
+                isExpanded={expandedLanguage === language}
+                onToggleExpand={() => {
+                  // Toggle: if clicking same group, collapse it; otherwise expand the new one
+                  setExpandedLanguage(expandedLanguage === language ? null : language);
+                }}
+              />
+            ));
+          })()}
         </View>
 
         {/* Divider - Compact */}
