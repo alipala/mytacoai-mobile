@@ -2,10 +2,9 @@
  * Speaking DNA Screen - Horizontal Paging Layout
  * ==============================================
  *
- * A modern, non-scrolling design with 3 swipeable pages:
- * - Page 1: Full-screen interactive radar chart with colorful gradient
- * - Page 2: All 6 DNA strand skill cards
- * - Page 3: Key Insights, Strengths, Focus Areas, Breakthroughs
+ * A modern, non-scrolling design with 2 swipeable pages:
+ * - Page 1: Full-screen interactive radar chart (tap labels for detailed modal)
+ * - Page 2: Key Insights, Strengths, Focus Areas, Breakthroughs
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -36,6 +35,7 @@ import { SpeakingDNAProfile, SpeakingBreakthrough, DNAStrandKey } from '../../ty
 
 // Components
 import { InteractiveRadarChartEnhanced } from './components/InteractiveRadarChartEnhanced';
+import { StrandDetailModal } from './components/StrandDetailModal';
 
 // Constants
 import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from './constants.OLD';
@@ -86,9 +86,10 @@ const PageIndicator: React.FC<PageIndicatorProps> = ({ currentPage, totalPages }
 
 interface RadarPageProps {
   profile: SpeakingDNAProfile;
+  onStrandTapForModal: (strand: DNAStrandKey, label: string, score: number, color: string) => void;
 }
 
-const RadarPage: React.FC<RadarPageProps> = ({ profile }) => {
+const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) => {
   const [selectedStrand, setSelectedStrand] = useState<DNAStrandKey | null>(null);
 
   // Prepare radar data
@@ -101,46 +102,33 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile }) => {
   }));
 
   const handleStrandTap = (strand: DNAStrandKey) => {
-    setSelectedStrand(selectedStrand === strand ? null : strand);
+    const data = radarData.find(d => d.strand === strand);
+    if (data) {
+      setSelectedStrand(strand);
+      onStrandTapForModal(strand, data.label, data.score, data.color);
+    }
   };
-
-  const selectedStrandData = selectedStrand
-    ? radarData.find(d => d.strand === selectedStrand)
-    : null;
 
   return (
     <View style={styles.page}>
-      {/* Colorful Gradient Background */}
+      {/* Clean, subtle background for better chart visibility */}
       <LinearGradient
-        colors={['#14B8A6', '#0D9488', '#F0FDFA', '#FFFFFF']}
-        locations={[0, 0.3, 0.6, 1]}
+        colors={['#F9FAFB', '#FFFFFF', '#FFFFFF']}
+        locations={[0, 0.2, 1]}
         style={styles.radarBackground}
       />
 
       {/* Radar Chart Container */}
       <View style={styles.radarContainer}>
-        <InteractiveRadarChartEnhanced
-          data={radarData}
-          size={SCREEN_WIDTH - 40}
-          onStrandTap={handleStrandTap}
-          selectedStrand={selectedStrand}
-        />
+        <View style={styles.chartWrapper}>
+          <InteractiveRadarChartEnhanced
+            data={radarData}
+            size={SCREEN_WIDTH - 40}
+            onStrandTap={handleStrandTap}
+            selectedStrand={selectedStrand}
+          />
+        </View>
       </View>
-
-      {/* Selected Strand Tooltip */}
-      {selectedStrandData && (
-        <Animated.View style={styles.tooltip}>
-          <View style={[styles.tooltipHeader, { backgroundColor: selectedStrandData.color }]}>
-            <Text style={styles.tooltipTitle}>{selectedStrandData.label}</Text>
-            <Text style={styles.tooltipScore}>{selectedStrandData.score}%</Text>
-          </View>
-          <View style={styles.tooltipBody}>
-            <Text style={styles.tooltipDescription}>
-              {getStrandDescription(selectedStrand, selectedStrandData.score)}
-            </Text>
-          </View>
-        </Animated.View>
-      )}
 
       {/* Stats Bar */}
       <View style={styles.statsBar}>
@@ -160,9 +148,9 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile }) => {
         </View>
       </View>
 
-      {/* Swipe Hint */}
+      {/* Tap Hint */}
       <View style={styles.swipeHint}>
-        <Text style={styles.swipeHintText}>Swipe for details</Text>
+        <Text style={styles.swipeHintText}>Tap labels for details • Swipe for insights</Text>
         <Ionicons name="chevron-forward" size={16} color={THEME_COLORS.text.secondary} />
       </View>
     </View>
@@ -170,65 +158,7 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile }) => {
 };
 
 // ============================================================================
-// PAGE 2: SKILL CARDS PAGE
-// ============================================================================
-
-interface SkillCardsPageProps {
-  profile: SpeakingDNAProfile;
-}
-
-const SkillCardsPage: React.FC<SkillCardsPageProps> = ({ profile }) => {
-  const strands = Object.keys(DNA_STRAND_LABELS) as DNAStrandKey[];
-
-  return (
-    <View style={styles.page}>
-      <View style={styles.skillCardsContainer}>
-        <Text style={styles.pageTitle}>Your DNA Strands</Text>
-        <Text style={styles.pageSubtitle}>Tap any card for details</Text>
-
-        <View style={styles.skillCardsGrid}>
-          {strands.map((strand, index) => {
-            const score = getStrandScore(profile.dna_strands[strand]);
-            const color = DNA_COLORS[strand];
-            const label = DNA_STRAND_LABELS[strand];
-            const level = getScoreLevel(score);
-
-            return (
-              <TouchableOpacity
-                key={strand}
-                style={styles.skillCard}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={[color, adjustColor(color, -20)]}
-                  style={styles.skillCardGradient}
-                >
-                  <View style={styles.skillCardIcon}>
-                    <Ionicons name={getStrandIcon(strand)} size={28} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.skillCardLabel}>{label}</Text>
-                  <Text style={styles.skillCardScore}>{score}%</Text>
-                  <View style={styles.skillCardProgressBg}>
-                    <View
-                      style={[
-                        styles.skillCardProgress,
-                        { width: `${score}%` }
-                      ]}
-                    />
-                  </View>
-                  <Text style={styles.skillCardLevel}>{level}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    </View>
-  );
-};
-
-// ============================================================================
-// PAGE 3: INSIGHTS PAGE
+// PAGE 2: INSIGHTS PAGE
 // ============================================================================
 
 interface InsightsPageProps {
@@ -315,72 +245,6 @@ const formatText = (text: string): string => {
   return text;
 };
 
-const getStrandDescription = (strand: DNAStrandKey, score: number): string => {
-  const descriptions: Record<DNAStrandKey, Record<string, string>> = {
-    rhythm: {
-      low: 'Work on maintaining a steady speaking pace',
-      mid: 'Your speaking rhythm is developing well',
-      high: 'Excellent flow and natural pacing!',
-    },
-    confidence: {
-      low: 'Building your speaking confidence',
-      mid: 'Growing more comfortable speaking',
-      high: 'You speak with great confidence!',
-    },
-    vocabulary: {
-      low: 'Expanding your word choices',
-      mid: 'Good variety in vocabulary use',
-      high: 'Rich and diverse vocabulary!',
-    },
-    accuracy: {
-      low: 'Focus on grammar and pronunciation',
-      mid: 'Solid accuracy in your speech',
-      high: 'Excellent precision and correctness!',
-    },
-    learning: {
-      low: 'Taking on new challenges',
-      mid: 'Actively learning and improving',
-      high: 'Amazing learning momentum!',
-    },
-    emotional: {
-      low: 'Developing emotional expression',
-      mid: 'Good emotional connection',
-      high: 'Expressive and engaging speaker!',
-    },
-  };
-
-  const level = score < 40 ? 'low' : score < 70 ? 'mid' : 'high';
-  return descriptions[strand][level];
-};
-
-const getScoreLevel = (score: number): string => {
-  if (score >= 80) return 'Expert';
-  if (score >= 60) return 'Comfortable';
-  if (score >= 40) return 'Developing';
-  return 'Building';
-};
-
-const getStrandIcon = (strand: DNAStrandKey): keyof typeof Ionicons.glyphMap => {
-  const icons: Record<DNAStrandKey, keyof typeof Ionicons.glyphMap> = {
-    rhythm: 'pulse',
-    confidence: 'trending-up',
-    vocabulary: 'book',
-    accuracy: 'checkmark-done',
-    learning: 'school',
-    emotional: 'heart',
-  };
-  return icons[strand];
-};
-
-const adjustColor = (color: string, amount: number): string => {
-  const hex = color.replace('#', '');
-  const num = parseInt(hex, 16);
-  const r = Math.min(255, Math.max(0, (num >> 16) + amount));
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
-  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
-  return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
-};
-
 const getCategoryColors = (category: string): string[] => {
   const colors: Record<string, string[]> = {
     confidence: ['#9B59B6', '#8E44AD'],
@@ -410,8 +274,33 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
+  // Modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalStrand, setModalStrand] = useState<DNAStrandKey | null>(null);
+  const [modalLabel, setModalLabel] = useState('');
+  const [modalScore, setModalScore] = useState(0);
+  const [modalColor, setModalColor] = useState('');
+
   // Refs
   const pagerRef = useRef<PagerView>(null);
+
+  /**
+   * Handle strand tap to open modal
+   */
+  const handleStrandTapForModal = useCallback((strand: DNAStrandKey, label: string, score: number, color: string) => {
+    setModalStrand(strand);
+    setModalLabel(label);
+    setModalScore(score);
+    setModalColor(color);
+    setModalVisible(true);
+  }, []);
+
+  /**
+   * Close modal
+   */
+  const handleCloseModal = useCallback(() => {
+    setModalVisible(false);
+  }, []);
 
   /**
    * Load DNA profile and breakthroughs
@@ -579,31 +468,36 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
         </View>
       </LinearGradient>
 
-      {/* Pager View - 3 Pages */}
+      {/* Pager View - 2 Pages */}
       <PagerView
         ref={pagerRef}
         style={styles.pagerView}
         initialPage={0}
         onPageSelected={handlePageSelected}
       >
-        {/* Page 1: Radar Chart */}
+        {/* Page 1: Radar Chart with Modal */}
         <View key="radar" style={styles.pageWrapper}>
-          <RadarPage profile={profile} />
+          <RadarPage profile={profile} onStrandTapForModal={handleStrandTapForModal} />
         </View>
 
-        {/* Page 2: Skill Cards */}
-        <View key="skills" style={styles.pageWrapper}>
-          <SkillCardsPage profile={profile} />
-        </View>
-
-        {/* Page 3: Insights */}
+        {/* Page 2: Insights */}
         <View key="insights" style={styles.pageWrapper}>
           <InsightsPage profile={profile} breakthroughs={breakthroughs} />
         </View>
       </PagerView>
 
       {/* Page Indicator */}
-      <PageIndicator currentPage={currentPage} totalPages={3} />
+      <PageIndicator currentPage={currentPage} totalPages={2} />
+
+      {/* Strand Detail Modal */}
+      <StrandDetailModal
+        visible={modalVisible}
+        strand={modalStrand}
+        score={modalScore}
+        label={modalLabel}
+        color={modalColor}
+        onClose={handleCloseModal}
+      />
     </SafeAreaView>
   );
 };
@@ -758,46 +652,11 @@ const styles = StyleSheet.create({
   radarContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 20,
+    justifyContent: 'flex-start',
+    paddingTop: 40,
   },
-  tooltip: {
-    position: 'absolute',
-    bottom: 180,
-    left: 20,
-    right: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  tooltipHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  tooltipTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  tooltipScore: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  tooltipBody: {
-    padding: 16,
-  },
-  tooltipDescription: {
-    fontSize: 15,
-    color: '#4B5563',
-    lineHeight: 22,
+  chartWrapper: {
+    marginTop: -20,
   },
   statsBar: {
     flexDirection: 'row',
@@ -847,87 +706,13 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.text.secondary,
   },
 
-  // Page 2: Skill Cards
-  skillCardsContainer: {
-    flex: 1,
-    padding: 20,
-  },
+  // Page 2: Insights
   pageTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#1F2937',
     textAlign: 'center',
   },
-  pageSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 4,
-    marginBottom: 20,
-  },
-  skillCardsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  skillCard: {
-    width: '48%',
-    marginBottom: 12,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  skillCardGradient: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  skillCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  skillCardLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  skillCardScore: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  skillCardProgressBg: {
-    width: '100%',
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
-    marginTop: 8,
-    overflow: 'hidden',
-  },
-  skillCardProgress: {
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  skillCardLevel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-
-  // Page 3: Insights
   insightsContainer: {
     flex: 1,
     padding: 20,

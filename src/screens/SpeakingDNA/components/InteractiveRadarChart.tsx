@@ -15,7 +15,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import Svg, { Circle, Line, Polygon, G } from 'react-native-svg';
+import Svg, { Circle, Line, Polygon, G, Text as SvgText } from 'react-native-svg';
 
 import { COLORS, SPRING_CONFIGS } from '../constants';
 import { InteractiveRadarChartProps, RadarDataPoint, DNAStrandKey } from '../types';
@@ -124,13 +124,28 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
     return COLORS.strand[strandKey as DNAStrandKey] || COLORS.primary[500];
   }, []);
 
-  // Calculate grid circles
+  // Calculate grid polygons
   const gridLevels = [20, 40, 60, 80, 100];
   const center = size / 2;
   const maxRadius = (size / 2) - 80;
 
-  // Calculate polygon points string
+  // Calculate data polygon points string
   const polygonPoints = radarPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+  // Calculate grid polygon points for each level
+  const gridPolygons = useMemo(() => {
+    const angleStep = (2 * Math.PI) / data.length;
+    return gridLevels.map((level) => {
+      const levelRadius = (level / 100) * maxRadius;
+      const points = data.map((_, index) => {
+        const angle = index * angleStep - Math.PI / 2;
+        const x = center + levelRadius * Math.cos(angle);
+        const y = center + levelRadius * Math.sin(angle);
+        return `${x},${y}`;
+      }).join(' ');
+      return { level, points };
+    });
+  }, [data, gridLevels, maxRadius, center]);
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
@@ -142,22 +157,17 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
         <Animated.View style={[styles.chartContainer, animatedChartStyle]}>
           <Svg width={size} height={size}>
             <G>
-              {/* Grid circles */}
-              {gridLevels.map((level) => {
-                const radius = (level / 100) * maxRadius;
-                return (
-                  <Circle
-                    key={level}
-                    cx={center}
-                    cy={center}
-                    r={radius}
-                    stroke={COLORS.gray[200]}
-                    strokeWidth={1}
-                    strokeDasharray="4, 4"
-                    fill="none"
-                  />
-                );
-              })}
+              {/* Grid polygons (hexagonal/polygonal grid lines) */}
+              {gridPolygons.map(({ level, points }) => (
+                <Polygon
+                  key={`grid-${level}`}
+                  points={points}
+                  stroke={level === 100 ? COLORS.gray[300] : COLORS.gray[200]}
+                  strokeWidth={level === 100 ? 1.5 : 1}
+                  strokeDasharray={level === 100 ? "0" : "3, 3"}
+                  fill="none"
+                />
+              ))}
 
               {/* Axis lines from center to each point */}
               {radarPoints.map((point, index) => {
@@ -172,36 +182,92 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
                     x2={endX}
                     y2={endY}
                     stroke={COLORS.gray[300]}
-                    strokeWidth={1}
+                    strokeWidth={0.5}
                   />
                 );
               })}
 
-              {/* Data polygon */}
+              {/* Grid level labels (show on first axis only) */}
+              {gridLevels.slice(1).map((level) => {
+                const radius = (level / 100) * maxRadius;
+                // Position on the top axis (angle = -90 degrees)
+                const labelX = center;
+                const labelY = center - radius - 8;
+                return (
+                  <SvgText
+                    key={`grid-label-${level}`}
+                    x={labelX}
+                    y={labelY}
+                    fill={COLORS.gray[400]}
+                    fontSize="9"
+                    fontWeight="500"
+                    textAnchor="middle"
+                  >
+                    {level}%
+                  </SvgText>
+                );
+              })}
+
+              {/* Data polygon with gradient-like fill */}
               <Polygon
                 points={polygonPoints}
-                fill={`${COLORS.primary[500]}30`}
+                fill={`${COLORS.primary[400]}25`}
                 stroke={COLORS.primary[500]}
-                strokeWidth={3}
+                strokeWidth={2.5}
                 strokeLinejoin="round"
               />
+              {/* Inner highlight polygon */}
+              <Polygon
+                points={polygonPoints}
+                fill={`${COLORS.primary[300]}15`}
+                stroke="none"
+              />
 
-              {/* Data points (vertices) */}
-              {radarPoints.map((point, index) => (
-                <Circle
-                  key={`point-${index}`}
-                  cx={point.x}
-                  cy={point.y}
-                  r={6}
-                  fill={getStrandColor(point.strand)}
-                  stroke={COLORS.white}
-                  strokeWidth={2}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    handleStrandTap(point.strand);
-                  }}
-                />
-              ))}
+              {/* Data points (vertices) with values */}
+              {radarPoints.map((point, index) => {
+                // Calculate label position (slightly inside from the point)
+                const labelAngle = point.angle;
+                const labelOffset = 20; // Distance from point
+                const labelX = point.x + labelOffset * Math.cos(labelAngle);
+                const labelY = point.y + labelOffset * Math.sin(labelAngle);
+
+                return (
+                  <G key={`point-${index}`}>
+                    {/* Outer glow circle */}
+                    <Circle
+                      cx={point.x}
+                      cy={point.y}
+                      r={10}
+                      fill={`${getStrandColor(point.strand)}20`}
+                    />
+                    {/* Data point */}
+                    <Circle
+                      cx={point.x}
+                      cy={point.y}
+                      r={6}
+                      fill={getStrandColor(point.strand)}
+                      stroke={COLORS.white}
+                      strokeWidth={2.5}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        handleStrandTap(point.strand);
+                      }}
+                    />
+                    {/* Value label */}
+                    <SvgText
+                      x={labelX}
+                      y={labelY}
+                      fill={COLORS.gray[700]}
+                      fontSize="13"
+                      fontWeight="700"
+                      textAnchor="middle"
+                      alignmentBaseline="middle"
+                    >
+                      {Math.round(point.value)}%
+                    </SvgText>
+                  </G>
+                );
+              })}
             </G>
           </Svg>
         </Animated.View>
