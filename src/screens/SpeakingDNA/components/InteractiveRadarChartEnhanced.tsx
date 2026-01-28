@@ -64,8 +64,9 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
   selectedStrand,
 }) => {
   const animationProgress = useSharedValue(0);
+  const pulseAnimation = useSharedValue(1);
   const center = size / 2;
-  const maxRadius = center - 60; // Optimized space for labels
+  const maxRadius = center - 30; // More space for larger chart
 
   const strandCount = data.length;
   const angleStep = (2 * Math.PI) / strandCount;
@@ -82,6 +83,31 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
     });
   }, []);
 
+  // Pulsing animation for selected point
+  useEffect(() => {
+    if (selectedStrand) {
+      pulseAnimation.value = withTiming(1.3, {
+        duration: 800,
+        easing: Easing.inOut(Easing.ease),
+      }, () => {
+        pulseAnimation.value = withTiming(1, {
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+        }, (finished) => {
+          if (finished && selectedStrand) {
+            // Loop the animation
+            pulseAnimation.value = withTiming(1.3, {
+              duration: 800,
+              easing: Easing.inOut(Easing.ease),
+            });
+          }
+        });
+      });
+    } else {
+      pulseAnimation.value = withTiming(1, { duration: 200 });
+    }
+  }, [selectedStrand]);
+
   /**
    * Calculate point position on the radar
    */
@@ -90,17 +116,6 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
     const r = (value / 100) * radius;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
-    return { x, y, angle };
-  };
-
-  /**
-   * Get label position (outside the chart)
-   */
-  const getLabelPosition = (index: number) => {
-    const angle = index * angleStep - Math.PI / 2;
-    const radius = maxRadius + 45;
-    const x = center + radius * Math.cos(angle);
-    const y = center + radius * Math.sin(angle);
     return { x, y, angle };
   };
 
@@ -149,8 +164,9 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
   };
 
   return (
-    <View style={[styles.container, { width: size, height: size }]}>
-      <Svg width={size} height={size}>
+    <View style={styles.container}>
+      <View style={{ width: size, height: size }}>
+        <Svg width={size} height={size}>
         {/* Very subtle center circle - minimal interference */}
         <Circle
           cx={center}
@@ -215,7 +231,7 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
           stroke="none"
         />
 
-        {/* Spider chart connecting LINES between data points - GLOW EFFECT */}
+        {/* Spider chart connecting LINES - Clean elegant design */}
         {data.map((point, index) => {
           const currentPos = getPointPosition(index, point.score);
           const nextIndex = (index + 1) % data.length;
@@ -223,18 +239,7 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 
           return (
             <G key={`edge-${index}`}>
-              {/* Outer glow for immersive effect */}
-              <Line
-                x1={currentPos.x}
-                y1={currentPos.y}
-                x2={nextPos.x}
-                y2={nextPos.y}
-                stroke="#14B8A6"
-                strokeWidth={8}
-                strokeLinecap="round"
-                opacity={0.15}
-              />
-              {/* Middle glow */}
+              {/* Subtle outer glow */}
               <Line
                 x1={currentPos.x}
                 y1={currentPos.y}
@@ -243,58 +248,79 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
                 stroke="#14B8A6"
                 strokeWidth={5}
                 strokeLinecap="round"
-                opacity={0.3}
+                opacity={0.15}
               />
-              {/* Main line - crisp and clean */}
+              {/* Main elegant line */}
               <Line
                 x1={currentPos.x}
                 y1={currentPos.y}
                 x2={nextPos.x}
                 y2={nextPos.y}
                 stroke="#14B8A6"
-                strokeWidth={3}
+                strokeWidth={2.5}
                 strokeLinecap="round"
+                opacity={0.8}
               />
             </G>
           );
         })}
 
-        {/* Data points (vertices) - immersive and beautiful */}
+        {/* Data points (vertices) - LARGER for tap targets */}
         {data.map((point, index) => {
           const pos = getPointPosition(index, point.score);
           const isSelected = selectedStrand === point.strand;
 
+          // Create animated props for pulsing effect
+          const pulseProps = useAnimatedProps(() => {
+            if (!isSelected) return { r: 28, opacity: 0 };
+
+            return {
+              r: 28 * pulseAnimation.value,
+              opacity: 0.3 - (0.2 * (pulseAnimation.value - 1)),
+            };
+          });
+
+          const pulseProps2 = useAnimatedProps(() => {
+            if (!isSelected) return { r: 18, opacity: 0 };
+
+            return {
+              r: 18 * pulseAnimation.value,
+              opacity: 0.4 - (0.25 * (pulseAnimation.value - 1)),
+            };
+          });
+
           return (
             <G key={`vertex-${index}`}>
-              {/* Outer glow - always visible for immersive effect */}
-              <Circle
-                cx={pos.x}
-                cy={pos.y}
-                r={isSelected ? 22 : 16}
-                fill={point.color}
-                opacity={isSelected ? 0.25 : 0.15}
-              />
-              {/* Middle glow */}
-              <Circle
-                cx={pos.x}
-                cy={pos.y}
-                r={isSelected ? 14 : 11}
-                fill={point.color}
-                opacity={0.4}
-              />
+              {/* Pulsing glow - selected only */}
+              {isSelected && (
+                <>
+                  <AnimatedCircle
+                    cx={pos.x}
+                    cy={pos.y}
+                    fill={point.color}
+                    animatedProps={pulseProps}
+                  />
+                  <AnimatedCircle
+                    cx={pos.x}
+                    cy={pos.y}
+                    fill={point.color}
+                    animatedProps={pulseProps2}
+                  />
+                </>
+              )}
               {/* White outer ring */}
               <Circle
                 cx={pos.x}
                 cy={pos.y}
-                r={isSelected ? 10 : 8}
+                r={isSelected ? 13 : 11}
                 fill="#FFFFFF"
                 opacity={1}
               />
-              {/* Main vertex circle - color-coded and prominent */}
+              {/* Main vertex circle - LARGER for better tap target */}
               <Circle
                 cx={pos.x}
                 cy={pos.y}
-                r={isSelected ? 7 : 5.5}
+                r={isSelected ? 10 : 8}
                 fill={point.color}
               />
             </G>
@@ -302,65 +328,50 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
         })}
       </Svg>
 
-      {/* Touchable Labels with Values - ANIMATED */}
+      {/* Invisible Touchable Overlays on Vertices */}
       {data.map((point, index) => {
-        const { x, y } = getLabelPosition(index);
-        const isSelected = selectedStrand === point.strand;
+        const pos = getPointPosition(index, point.score);
 
         return (
-          <Animated.View
-            key={`label-${point.strand}`}
+          <Pressable
+            key={`touch-${point.strand}`}
+            onPress={() => handleStrandPress(point.strand)}
             style={[
-              styles.labelContainer,
+              styles.touchOverlay,
               {
-                left: x - 45,
-                top: y - 28,
+                left: pos.x - 20,
+                top: pos.y - 20,
               },
             ]}
-          >
-            <Pressable onPress={() => handleStrandPress(point.strand)}>
-              <Animated.View
-                style={[
-                  styles.labelBox,
-                  {
-                    backgroundColor: isSelected ? point.color : `${point.color}15`,
-                    borderColor: point.color,
-                    transform: [{ scale: isSelected ? 1.15 : 1 }],
-                    shadowColor: isSelected ? point.color : 'transparent',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: isSelected ? 0.3 : 0,
-                    shadowRadius: isSelected ? 8 : 0,
-                    elevation: isSelected ? 8 : 2,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.labelText,
-                    {
-                      color: isSelected ? '#FFFFFF' : point.color,
-                      fontWeight: isSelected ? '800' : '700',
-                    },
-                  ]}
-                >
-                  {point.label}
-                </Text>
-                <Text
-                  style={[
-                    styles.labelValue,
-                    {
-                      color: isSelected ? '#FFFFFF' : '#1F2937',
-                      fontWeight: isSelected ? '800' : '700',
-                    },
-                  ]}
-                >
-                {point.score}%
-              </Text>
-            </Animated.View>
-          </Pressable>
-        </Animated.View>
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          />
         );
       })}
+      </View>
+
+      {/* Legend - 3x2 Grid */}
+      <View style={styles.legendContainer}>
+        {data.map((point) => (
+          <Pressable
+            key={`legend-${point.strand}`}
+            onPress={() => handleStrandPress(point.strand)}
+            style={[
+              styles.legendItem,
+              selectedStrand === point.strand && styles.legendItemSelected,
+            ]}
+          >
+            <View style={[styles.legendCircle, { backgroundColor: point.color }]} />
+            <Text
+              style={[
+                styles.legendText,
+                selectedStrand === point.strand && styles.legendTextSelected,
+              ]}
+            >
+              {point.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 };
@@ -372,33 +383,53 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+    alignItems: 'center',
   },
-  labelContainer: {
+  touchOverlay: {
     position: 'absolute',
+    width: 40,
+    height: 40,
     zIndex: 10,
   },
-  labelBox: {
+  legendContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 20,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    width: '100%',
+  },
+  legendItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 90,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginHorizontal: 4,
+    marginVertical: 4,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    minWidth: '30%',
   },
-  labelText: {
-    fontSize: 11,
+  legendItemSelected: {
+    backgroundColor: '#F0FDFA',
+    borderColor: '#14B8A6',
+  },
+  legendCircle: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  legendTextSelected: {
+    color: '#0F766E',
     fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  labelValue: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginTop: 2,
   },
 });
 

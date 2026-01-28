@@ -123,34 +123,36 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
         <View style={styles.chartWrapper}>
           <InteractiveRadarChartEnhanced
             data={radarData}
-            size={SCREEN_WIDTH - 40}
+            size={SCREEN_WIDTH - 20}
             onStrandTap={handleStrandTap}
             selectedStrand={selectedStrand}
           />
         </View>
       </View>
 
-      {/* Stats Bar */}
+      {/* Stats Bar - Larger Cards */}
       <View style={styles.statsBar}>
         <View style={styles.statItem}>
+          <Ionicons name="chatbubbles" size={32} color={THEME_COLORS.primary} />
           <Text style={styles.statValue}>{profile.sessions_analyzed}</Text>
           <Text style={styles.statLabel}>Sessions</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statItem}>
+          <Ionicons name="time" size={32} color={THEME_COLORS.primary} />
           <Text style={styles.statValue}>{Math.round(profile.total_speaking_minutes)}</Text>
           <Text style={styles.statLabel}>Minutes</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statItem}>
-          <Ionicons name="school" size={20} color={THEME_COLORS.primary} />
+          <Ionicons name="school" size={32} color={THEME_COLORS.primary} />
           <Text style={styles.statLabel}>{profile.overall_profile.speaker_archetype.split(' ')[1] || 'Learner'}</Text>
         </View>
       </View>
 
       {/* Tap Hint */}
       <View style={styles.swipeHint}>
-        <Text style={styles.swipeHintText}>Tap labels for details • Swipe for insights</Text>
+        <Text style={styles.swipeHintText}>Tap chart points for details • Swipe for insights</Text>
         <Ionicons name="chevron-forward" size={16} color={THEME_COLORS.text.secondary} />
       </View>
     </View>
@@ -806,10 +808,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 40,
+    paddingTop: 20,
   },
   chartWrapper: {
-    marginTop: -20,
+    marginTop: 0,
   },
   statsBar: {
     flexDirection: 'row',
@@ -818,32 +820,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
     marginBottom: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 24,
-    borderRadius: 16,
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
+    gap: 6,
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '800',
     color: THEME_COLORS.primary,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '600',
     color: '#6B7280',
-    marginTop: 4,
   },
   statDivider: {
     width: 1,
-    height: 32,
+    height: 48,
     backgroundColor: '#E5E7EB',
     marginHorizontal: 16,
   },
