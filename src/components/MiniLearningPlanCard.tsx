@@ -144,13 +144,13 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
         {/* Stats Column */}
         <View style={styles.statsColumn}>
           <View style={styles.statRow}>
-            <Ionicons name="calendar" size={14} color="#6B7280" />
+            <Ionicons name="calendar" size={13} color="#6B7280" />
             <Text style={styles.statText}>
               {completedSessions}/{totalSessions} sessions
             </Text>
           </View>
           <View style={styles.statRow}>
-            <Ionicons name="time" size={14} color="#6B7280" />
+            <Ionicons name="time" size={13} color="#6B7280" />
             <Text style={styles.statText}>{completedSessions * 5} min</Text>
           </View>
         </View>
@@ -170,7 +170,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
             end={{ x: 1, y: 0 }}
             style={styles.continueGradient}
           >
-            <Ionicons name="play" size={16} color="#FFFFFF" />
+            <Ionicons name="play" size={14} color="#FFFFFF" />
             <Text style={styles.continueText}>Continue</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -181,7 +181,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
           onPress={handleDetails}
           activeOpacity={0.7}
         >
-          <Ionicons name="information-circle" size={16} color="#4FD1C5" />
+          <Ionicons name="information-circle" size={14} color="#4FD1C5" />
           <Text style={styles.detailsText}>Details</Text>
         </TouchableOpacity>
       </View>
@@ -197,14 +197,16 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
+    paddingTop: 10,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
-    minHeight: 170,
-    maxHeight: 180,
+    minHeight: 188, // Increased from 168
+    maxHeight: 198, // Increased from 178
     overflow: 'hidden',
   },
   // Diagonal Corner Ribbon - Base Style
@@ -245,26 +247,27 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingRight: 50, // Space for diagonal ribbon
+    marginTop: 0,
+    marginBottom: 12, // Increased spacing
+    paddingRight: 50,
   },
   levelBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
   levelText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   progressSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 14, // Increased spacing
   },
   progressContainer: {
-    marginRight: 16,
+    marginRight: 12,
   },
   progressCircle: {
     width: 70,
@@ -305,21 +308,21 @@ const styles = StyleSheet.create({
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
   statText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#6B7280',
   },
   buttonsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     alignItems: 'center',
   },
   continueButton: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 10,
     overflow: 'hidden',
     shadowColor: '#4FD1C5',
     shadowOffset: { width: 0, height: 2 },
@@ -331,12 +334,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 11,
-    paddingHorizontal: 16,
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   continueText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -345,16 +348,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 11,
-    paddingHorizontal: 16,
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#F0FDFA',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1.5,
     borderColor: '#4FD1C5',
   },
   detailsText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: '#4FD1C5',
   },

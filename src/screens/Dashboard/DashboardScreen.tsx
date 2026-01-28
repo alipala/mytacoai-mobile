@@ -35,6 +35,7 @@ import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
 import { CollapsibleLanguageGroup } from '../../components/CollapsibleLanguageGroup';
+import { speakingDNAService } from '../../services/SpeakingDNAService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const API_BASE_URL = 'https://taco-voice-ai-e9b98ce8e7c5.herokuapp.com';
@@ -55,6 +56,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [selectedAssessmentPlan, setSelectedAssessmentPlan] = useState<LearningPlan | null>(null);
   const [expandedLanguage, setExpandedLanguage] = useState<string | null>(null);
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+  const [languagesWithDNA, setLanguagesWithDNA] = useState<Set<string>>(new Set());
 
   // Subscription state
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
@@ -163,7 +165,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
       }
 
-      // Load learning plans, progress stats, and subscription status in parallel
+      // Load learning plans, progress stats, subscription status, and DNA profiles in parallel
       const [plansResponse, statsResponse, subscriptionResponse] = await Promise.all([
         LearningService.getUserLearningPlansApiLearningPlansGet(),
         ProgressService.getProgressStatsApiProgressStatsGet(),
@@ -187,6 +189,41 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
       console.log('📊 Subscription status loaded:', subscriptionResponse);
+
+      // Check which languages have DNA profiles by calling the API
+      // Get unique languages from learning plans
+      const uniqueLanguages = [...new Set(sortedPlans.map(plan => plan.language || 'english'))];
+      const dnaLanguages = new Set<string>();
+
+      // Check DNA profile for each language (only if user is premium)
+      const hasPremium = subscriptionResponse && !['try_learn', 'free'].includes(subscriptionResponse.plan);
+      if (hasPremium && uniqueLanguages.length > 0) {
+        console.log('🧬 Checking DNA profiles for languages:', uniqueLanguages);
+
+        // Check each language in parallel
+        const dnaCheckPromises = uniqueLanguages.map(async (language) => {
+          try {
+            const profile = await speakingDNAService.getProfile(language, false);
+            if (profile && profile.sessions_analyzed > 0) {
+              console.log(`✅ DNA profile exists for ${language} (${profile.sessions_analyzed} sessions)`);
+              return language;
+            }
+            console.log(`❌ No DNA profile for ${language}`);
+            return null;
+          } catch (error) {
+            console.log(`❌ Error checking DNA for ${language}:`, error);
+            return null;
+          }
+        });
+
+        const results = await Promise.all(dnaCheckPromises);
+        results.forEach(lang => {
+          if (lang) dnaLanguages.add(lang);
+        });
+      }
+
+      setLanguagesWithDNA(dnaLanguages);
+      console.log('🧬 Languages with DNA:', Array.from(dnaLanguages));
 
       // If user doesn't have preferences set, infer from most recent learning plan
       if ((!finalLanguage || finalLanguage === 'english') && plansResponse && plansResponse.length > 0) {
@@ -706,14 +743,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
             // Get total count for dynamic height calculation
             const totalLanguageCount = Object.keys(plansByLanguage).length;
-
-            // Check which languages have DNA analysis (any plan with sessions analyzed > 0)
-            const languagesWithDNA = new Set<string>();
-            learningPlans.forEach(plan => {
-              if (plan.completed_sessions && plan.completed_sessions > 0) {
-                languagesWithDNA.add(plan.language || 'english');
-              }
-            });
 
             // Render a CollapsibleLanguageGroup for each language
             return Object.entries(plansByLanguage).map(([language, plans]) => (

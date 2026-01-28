@@ -41,7 +41,12 @@ import PortugueseFlag from '../assets/flags/portuguese.svg';
 import DutchFlag from '../assets/flags/dutch.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const PLAN_CARD_WIDTH = SCREEN_WIDTH - 100; // Width for each mini card
+// Calculate proper card width accounting for all paddings and margins
+const LANGUAGE_GROUP_PADDING = 32; // languageGroupsContainer paddingHorizontal: 16 (left + right)
+const SCROLLVIEW_PADDING = 24; // Padding inside the horizontal ScrollView (12px each side)
+const BORDER_AND_SHADOW = 12; // Account for borders, shadows, and safe spacing
+const PLAN_CARD_WIDTH = SCREEN_WIDTH - LANGUAGE_GROUP_PADDING - SCROLLVIEW_PADDING - BORDER_AND_SHADOW;
+const CARD_SPACING = 12; // Gap between cards for snap effect
 
 // ============================================================================
 // TYPES
@@ -101,6 +106,42 @@ const getLanguageName = (language: string): string => {
 
   return languageMap[language.toLowerCase()] ||
     language.charAt(0).toUpperCase() + language.slice(1);
+};
+
+/**
+ * Get border and background colors based on language flag colors
+ */
+const getLanguageColors = (language: string): { border: string; background: string } => {
+  const colors: Record<string, { border: string; background: string }> = {
+    'dutch': {
+      border: '#FF6B35',      // Dutch Orange (Oranje)
+      background: '#FFF4ED'   // Very light orange
+    },
+    'english': {
+      border: '#C8102E',      // British Red
+      background: '#FEF2F2'   // Very light red
+    },
+    'spanish': {
+      border: '#FBBF24',      // Spanish Yellow/Gold
+      background: '#FFFBEB'   // Very light yellow
+    },
+    'french': {
+      border: '#0055A4',      // French Blue
+      background: '#EFF6FF'   // Very light blue
+    },
+    'german': {
+      border: '#DD0000',      // German Red
+      background: '#FEF2F2'   // Very light red
+    },
+    'portuguese': {
+      border: '#006600',      // Portuguese Green
+      background: '#F0FDF4'   // Very light green
+    },
+  };
+  return colors[language.toLowerCase()] || {
+    border: '#4FD1C5',
+    background: '#FFFFFF'
+  };
 };
 
 /**
@@ -170,6 +211,7 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
   const name = getLanguageName(language);
   const FlagComponent = getLanguageFlagComponent(language);
   const stats = calculateAggregateStats(plans);
+  const languageColors = getLanguageColors(language);
 
   // Calculate dynamic height based on total language count
   const dynamicHeight = calculateDynamicHeight(totalLanguageCount);
@@ -227,7 +269,18 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
   }));
 
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container,
+      {
+        borderWidth: isExpanded ? 2.5 : 2,
+        borderColor: languageColors.border,
+        backgroundColor: isExpanded ? languageColors.background : '#FFFFFF',
+        shadowColor: isExpanded ? languageColors.border : '#000',
+        shadowOpacity: isExpanded ? 0.15 : 0.05,
+        shadowRadius: isExpanded ? 8 : 4,
+        elevation: isExpanded ? 4 : 2,
+      }
+    ]}>
       {/* Collapsible Header - Entire area is tappable, with dynamic height */}
       <TouchableOpacity
         style={[styles.header, { minHeight: dynamicHeight }]}
@@ -312,16 +365,17 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.plansScrollContent}
-            snapToInterval={PLAN_CARD_WIDTH + 16}
+            snapToInterval={PLAN_CARD_WIDTH + CARD_SPACING}
             decelerationRate="fast"
+            snapToAlignment="center"
             style={styles.plansScroller}
+            pagingEnabled={false}
           >
             {plans.map((plan, index) => (
               <View
                 key={plan.id || index}
                 style={[
                   styles.planCardWrapper,
-                  index === 0 && styles.firstCard,
                   index === plans.length - 1 && styles.lastCard,
                 ]}
               >
@@ -352,7 +406,7 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
 const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor removed - applied dynamically per language
     borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -366,7 +420,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 8, // Reduced from 12 to remove white space
   },
   leftSection: {
     flexDirection: 'row',
@@ -374,10 +428,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   flagContainer: {
-    marginRight: 12,
+    marginRight: 10, // Reduced from 12
   },
   flagContainerSmall: {
-    marginRight: 10,
+    marginRight: 8, // Reduced from 10
   },
   languageInfo: {
     flex: 1,
@@ -385,7 +439,7 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2, // Reduced from 4 to tighten spacing
   },
   languageName: {
     fontSize: 16,
@@ -404,7 +458,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4, // Reduced from 6 to make more compact
   },
   statItem: {
     flexDirection: 'row',
@@ -427,14 +481,14 @@ const styles = StyleSheet.create({
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6, // Reduced from 8
   },
   dnaChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
     paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingVertical: 4, // Reduced from 5
     backgroundColor: '#F0FDFA',
     borderRadius: 10,
     borderWidth: 1.5,
@@ -465,18 +519,16 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   plansScrollContent: {
-    paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingTop: 4, // Small padding to cards
+    paddingBottom: 8,
+    paddingHorizontal: 12,
   },
   planCardWrapper: {
     width: PLAN_CARD_WIDTH,
-    paddingHorizontal: 8,
-  },
-  firstCard: {
-    paddingLeft: 12,
+    marginRight: CARD_SPACING,
   },
   lastCard: {
-    paddingRight: 12,
+    marginRight: 0, // No spacing after last card
   },
 });
 
