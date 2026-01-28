@@ -2,12 +2,12 @@
  * Interactive Radar Chart Enhanced
  * =================================
  *
- * A beautiful, interactive radar chart with:
- * - Colorful segment backgrounds (each strand has its color)
+ * A clean, professional radar/spider chart with:
+ * - White background with polygon grid lines
+ * - Gradient filled data polygon
  * - Animated entry with spring effects
  * - Tap on vertices to select/highlight strand
- * - Visual feedback on selection
- * - Haptic feedback on touch
+ * - Simple, elegant labels
  */
 
 import React, { useEffect, useMemo } from 'react';
@@ -18,17 +18,13 @@ import Svg, {
   Polygon,
   G,
   Defs,
-  RadialGradient,
+  LinearGradient,
   Stop,
-  Path,
 } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedProps,
-  withTiming,
   withSpring,
-  Easing,
-  interpolate,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -36,7 +32,6 @@ import { DNAStrandKey } from '../../../types/speakingDNA';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // ============================================================================
 // TYPES
@@ -68,7 +63,7 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 }) => {
   const animationProgress = useSharedValue(0);
   const center = size / 2;
-  const maxRadius = center - 70; // Leave space for labels
+  const maxRadius = center - 60; // Leave space for labels
 
   const strandCount = data.length;
   const angleStep = (2 * Math.PI) / strandCount;
@@ -88,12 +83,27 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
   /**
    * Calculate point position on the radar
    */
-  const getPointPosition = (index: number, value: number, radius: number = maxRadius) => {
+  const getPointPosition = (index: number, value: number) => {
     const angle = index * angleStep - Math.PI / 2; // Start from top
-    const r = (value / 100) * radius;
+    const r = (value / 100) * maxRadius;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
     return { x, y, angle };
+  };
+
+  /**
+   * Generate polygon points string for grid levels
+   */
+  const getGridPolygonPoints = (level: number) => {
+    const points = [];
+    for (let i = 0; i < strandCount; i++) {
+      const angle = i * angleStep - Math.PI / 2;
+      const r = (level / 100) * maxRadius;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      points.push(`${x},${y}`);
+    }
+    return points.join(' ');
   };
 
   /**
@@ -101,26 +111,10 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
    */
   const getLabelPosition = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const radius = maxRadius + 50;
+    const radius = maxRadius + 45;
     const x = center + radius * Math.cos(angle);
     const y = center + radius * Math.sin(angle);
     return { x, y, angle };
-  };
-
-  /**
-   * Generate segment path for colored background
-   */
-  const getSegmentPath = (index: number) => {
-    const startAngle = index * angleStep - Math.PI / 2 - angleStep / 2;
-    const endAngle = startAngle + angleStep;
-    const r = maxRadius + 10;
-
-    const x1 = center + r * Math.cos(startAngle);
-    const y1 = center + r * Math.sin(startAngle);
-    const x2 = center + r * Math.cos(endAngle);
-    const y2 = center + r * Math.sin(endAngle);
-
-    return `M ${center} ${center} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
   };
 
   /**
@@ -150,56 +144,35 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
     onStrandTap?.(strand);
   };
 
-  // Grid levels for reference circles
-  const gridLevels = [25, 50, 75, 100];
+  // Grid levels (20%, 40%, 60%, 80%, 100%)
+  const gridLevels = [20, 40, 60, 80, 100];
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
+      {/* White background */}
+      <View style={[styles.background, { width: size, height: size, borderRadius: size / 2 }]} />
+
       <Svg width={size} height={size}>
         <Defs>
-          {/* Radial gradient for center glow */}
-          <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor="#14B8A6" stopOpacity="0.15" />
-            <Stop offset="70%" stopColor="#14B8A6" stopOpacity="0.05" />
-            <Stop offset="100%" stopColor="#14B8A6" stopOpacity="0" />
-          </RadialGradient>
+          {/* Gradient for data polygon fill */}
+          <LinearGradient id="dataGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0%" stopColor="#E91E63" stopOpacity="0.6" />
+            <Stop offset="100%" stopColor="#E91E63" stopOpacity="0.2" />
+          </LinearGradient>
         </Defs>
 
-        {/* Background circle with gradient */}
-        <Circle
-          cx={center}
-          cy={center}
-          r={maxRadius + 20}
-          fill="url(#centerGlow)"
-        />
-
-        {/* Colored segment backgrounds (subtle) */}
-        <G opacity={0.08}>
-          {data.map((point, index) => (
-            <Path
-              key={`segment-${index}`}
-              d={getSegmentPath(index)}
-              fill={point.color}
-            />
-          ))}
-        </G>
-
-        {/* Grid circles */}
+        {/* Grid polygons (not circles) */}
         {gridLevels.map((level) => (
-          <Circle
+          <Polygon
             key={`grid-${level}`}
-            cx={center}
-            cy={center}
-            r={(level / 100) * maxRadius}
-            stroke="#E5E7EB"
+            points={getGridPolygonPoints(level)}
+            stroke="#D1D5DB"
             strokeWidth={1}
-            strokeDasharray={level === 100 ? undefined : "4,4"}
             fill="none"
-            opacity={0.5}
           />
         ))}
 
-        {/* Axis lines */}
+        {/* Axis lines from center to each vertex */}
         {data.map((_, index) => {
           const point = getPointPosition(index, 100);
           return (
@@ -211,17 +184,16 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
               y2={point.y}
               stroke="#D1D5DB"
               strokeWidth={1}
-              opacity={0.6}
             />
           );
         })}
 
-        {/* Main data polygon (animated, filled) */}
+        {/* Main data polygon (animated, gradient filled) */}
         <AnimatedPolygon
           animatedProps={animatedProps}
-          fill="rgba(20, 184, 166, 0.25)"
-          stroke="#14B8A6"
-          strokeWidth={3}
+          fill="url(#dataGradient)"
+          stroke="#E91E63"
+          strokeWidth={2.5}
           strokeLinejoin="round"
         />
 
@@ -237,8 +209,8 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
                 <Circle
                   cx={pos.x}
                   cy={pos.y}
-                  r={16}
-                  fill={point.color}
+                  r={14}
+                  fill="#E91E63"
                   opacity={0.3}
                 />
               )}
@@ -246,17 +218,17 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
               <Circle
                 cx={pos.x}
                 cy={pos.y}
-                r={isSelected ? 10 : 7}
-                fill={point.color}
+                r={isSelected ? 8 : 6}
+                fill="#E91E63"
                 stroke="#FFFFFF"
-                strokeWidth={3}
+                strokeWidth={2}
               />
             </G>
           );
         })}
       </Svg>
 
-      {/* Touchable Labels with Values */}
+      {/* Labels outside the chart */}
       {data.map((point, index) => {
         const { x, y } = getLabelPosition(index);
         const isSelected = selectedStrand === point.strand;
@@ -268,38 +240,19 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
             style={[
               styles.labelContainer,
               {
-                left: x - 45,
-                top: y - 28,
+                left: x - 50,
+                top: y - 12,
               },
             ]}
           >
-            <View
+            <Text
               style={[
-                styles.labelBox,
-                {
-                  backgroundColor: isSelected ? point.color : `${point.color}15`,
-                  borderColor: point.color,
-                  transform: [{ scale: isSelected ? 1.1 : 1 }],
-                },
+                styles.labelText,
+                isSelected && styles.labelTextSelected,
               ]}
             >
-              <Text
-                style={[
-                  styles.labelText,
-                  { color: isSelected ? '#FFFFFF' : point.color },
-                ]}
-              >
-                {point.label}
-              </Text>
-              <Text
-                style={[
-                  styles.labelValue,
-                  { color: isSelected ? '#FFFFFF' : '#1F2937' },
-                ]}
-              >
-                {point.score}%
-              </Text>
-            </View>
+              {point.label.toUpperCase()}
+            </Text>
           </Pressable>
         );
       })}
@@ -314,33 +267,34 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  background: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   labelContainer: {
     position: 'absolute',
     zIndex: 10,
-  },
-  labelBox: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    width: 100,
     alignItems: 'center',
-    minWidth: 90,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   labelText: {
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.3,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
-  labelValue: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginTop: 2,
+  labelTextSelected: {
+    color: '#E91E63',
+    fontWeight: '700',
   },
 });
 

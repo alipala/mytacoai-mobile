@@ -110,10 +110,10 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile }) => {
 
   return (
     <View style={styles.page}>
-      {/* Colorful Gradient Background */}
+      {/* Light gradient background */}
       <LinearGradient
-        colors={['#14B8A6', '#0D9488', '#F0FDFA', '#FFFFFF']}
-        locations={[0, 0.3, 0.6, 1]}
+        colors={['#F8FAFC', '#F1F5F9', '#FFFFFF']}
+        locations={[0, 0.5, 1]}
         style={styles.radarBackground}
       />
 
@@ -121,7 +121,7 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile }) => {
       <View style={styles.radarContainer}>
         <InteractiveRadarChartEnhanced
           data={radarData}
-          size={SCREEN_WIDTH - 40}
+          size={SCREEN_WIDTH - 60}
           onStrandTap={handleStrandTap}
           selectedStrand={selectedStrand}
         />
