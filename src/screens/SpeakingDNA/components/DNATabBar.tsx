@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { THEME_COLORS, TAB_LABELS } from '../constants';
+import { THEME_COLORS, TAB_LABELS } from '../constants.OLD';
 
 interface DNATabBarProps {
   activeTab: number;

@@ -36,7 +36,7 @@ import { HistoryTab } from './components/tabs/HistoryTab';
 import { BreakthroughsTab } from './components/tabs/BreakthroughsTab';
 
 // Constants
-import { THEME_COLORS, TABS } from './constants';
+import { THEME_COLORS, TABS } from './constants.OLD';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

@@ -719,39 +719,139 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         </View>
       </View>
 
-      {/* Speaking DNA Section */}
-      <TouchableOpacity
-        style={styles.section}
-        onPress={() => {
-          // Use most recent learning plan's language, fallback to preferred language, then english
-          const recentLanguage = learningPlans.length > 0 ? learningPlans[0].language : (user?.preferred_language || 'english');
-          navigation.navigate('SpeakingDNA', { language: recentLanguage });
-        }}
-        activeOpacity={0.7}
-      >
-        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12}}>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Ionicons name="fitness" size={20} color="#14B8A6" style={{marginRight: 8}} />
-            <Text style={styles.sectionTitle}>Speaking DNA</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+      {/* Speaking DNA Section - Enhanced */}
+      <View style={styles.section}>
+        <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 12}}>
+          <Ionicons name="analytics" size={20} color="#14B8A6" style={{marginRight: 8}} />
+          <Text style={styles.sectionTitle}>Your Speaking DNA</Text>
         </View>
-        <View style={{
-          backgroundColor: '#F0FDFA',
-          padding: 16,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: '#99F6E4',
-        }}>
-          <Text style={{
-            fontSize: 14,
-            color: '#0F766E',
-            lineHeight: 20,
+        <TouchableOpacity
+          onPress={() => {
+            // Use most recent learning plan's language, fallback to preferred language, then dutch
+            const recentLanguage = learningPlans.length > 0
+              ? learningPlans[0].language
+              : (user?.preferred_language || 'dutch');
+            if (Platform.OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            navigation.navigate('SpeakingDNA', { language: recentLanguage });
+          }}
+          activeOpacity={0.9}
+          style={{
+            borderRadius: 16,
+            overflow: 'hidden',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 8,
+            elevation: 5,
+          }}
+        >
+          {/* Gradient Card */}
+          <View style={{
+            backgroundColor: '#FFFFFF',
+            borderWidth: 1,
+            borderColor: '#E5E7EB',
           }}>
-            View your unique speaking fingerprint and track your conversation patterns across 6 DNA strands
-          </Text>
-        </View>
-      </TouchableOpacity>
+            {/* Header Row */}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F3F4F6',
+            }}>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                <View style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: '#D1FAE5',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Ionicons name="pulse" size={20} color="#059669" />
+                </View>
+                <View>
+                  <Text style={{fontSize: 16, fontWeight: '700', color: '#111827'}}>
+                    Track Your Progress
+                  </Text>
+                  <Text style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+                    6 DNA Strands Analyzed
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="arrow-forward-circle" size={28} color="#14B8A6" />
+            </View>
+
+            {/* Content Row */}
+            <View style={{
+              flexDirection: 'row',
+              padding: 16,
+              gap: 12,
+            }}>
+              {/* Left: Icon Grid */}
+              <View style={{
+                width: 80,
+                height: 80,
+                backgroundColor: '#F0FDFA',
+                borderRadius: 12,
+                padding: 8,
+                gap: 4,
+              }}>
+                <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#6366F1'}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#8B5CF6'}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#EC4899'}} />
+                </View>
+                <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#F59E0B'}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#10B981'}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#14B8A6'}} />
+                </View>
+                <View style={{alignItems: 'center', marginTop: 4}}>
+                  <Ionicons name="trending-up" size={16} color="#059669" />
+                </View>
+              </View>
+
+              {/* Right: Description */}
+              <View style={{flex: 1, justifyContent: 'center'}}>
+                <Text style={{
+                  fontSize: 14,
+                  color: '#374151',
+                  lineHeight: 20,
+                  marginBottom: 8,
+                }}>
+                  Discover your unique speaking patterns across confidence, vocabulary, rhythm, and more
+                </Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                  <View style={{
+                    backgroundColor: '#FEF3C7',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 8,
+                  }}>
+                    <Text style={{fontSize: 11, fontWeight: '600', color: '#92400E'}}>
+                      Visual Analytics
+                    </Text>
+                  </View>
+                  <View style={{
+                    backgroundColor: '#DBEAFE',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 8,
+                  }}>
+                    <Text style={{fontSize: 11, fontWeight: '600', color: '#1E40AF'}}>
+                      Insights
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Activity</Text>

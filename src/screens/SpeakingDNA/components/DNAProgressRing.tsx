@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS } from '../constants';
+import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS } from '../constants.OLD';
 import { DNAStrandKey } from '../../../types/speakingDNA';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);

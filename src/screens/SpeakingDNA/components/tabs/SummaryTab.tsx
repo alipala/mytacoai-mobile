@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { THEME_COLORS, DNA_STRAND_LABELS, getStrandScore } from '../../constants';
+import { THEME_COLORS, DNA_STRAND_LABELS, getStrandScore } from '../../constants.OLD';
 import { SpeakingDNAProfile, DNAStrandKey } from '../../../../types/speakingDNA';
 import { DNAProgressRing } from '../DNAProgressRing';
 

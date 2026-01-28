@@ -8,7 +8,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { THEME_COLORS, DNA_COLORS } from '../../constants';
+import { THEME_COLORS, DNA_COLORS } from '../../constants.OLD';
 import { SpeakingBreakthrough } from '../../../../types/speakingDNA';
 
 interface BreakthroughsTabProps {

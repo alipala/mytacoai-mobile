@@ -7,7 +7,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { THEME_COLORS, DNA_COLORS, DNA_STRAND_LABELS, getStrandScore } from '../../constants';
+import { THEME_COLORS, DNA_COLORS, DNA_STRAND_LABELS, getStrandScore } from '../../constants.OLD';
 import { SpeakingDNAProfile, DNAStrandKey } from '../../../../types/speakingDNA';
 
 interface HistoryTabProps {

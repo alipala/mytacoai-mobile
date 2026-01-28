@@ -7,7 +7,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { THEME_COLORS } from '../constants';
+import { THEME_COLORS } from '../constants.OLD';
 
 interface DNAHeaderProps {
   language: string;

@@ -9,7 +9,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Circle, Line, Polygon, Text as SvgText } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedProps, withTiming, Easing } from 'react-native-reanimated';
-import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from '../constants';
+import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from '../constants.OLD';
 import { SpeakingDNAProfile, DNAStrandKey } from '../../../types/speakingDNA';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

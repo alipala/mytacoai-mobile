@@ -7,7 +7,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { THEME_COLORS } from '../../constants';
+import { THEME_COLORS } from '../../constants.OLD';
 import { SpeakingDNAProfile } from '../../../../types/speakingDNA';
 
 interface GrowthTabProps {
