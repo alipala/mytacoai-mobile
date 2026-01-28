@@ -158,6 +158,133 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
 };
 
 // ============================================================================
+// PAGE 2: INSIGHTS PAGE - HELPER FUNCTIONS
+// ============================================================================
+
+interface GrowthInsight {
+  title: string;
+  action: string;
+  icon: string;
+}
+
+interface StrengthInsight {
+  title: string;
+  description: string;
+}
+
+interface WeeklyFocus {
+  goal: string;
+  tip: string;
+}
+
+const getGrowthAreaInsights = (growthAreas: string[], strands: any): GrowthInsight[] => {
+  const insights: Record<string, GrowthInsight> = {
+    speaking_confidence: {
+      title: 'Build Speaking Confidence',
+      action: 'Start responses quickly, even if imperfect. Practice saying "I think..." to buy thinking time.',
+      icon: 'trending-up',
+    },
+    grammar_accuracy: {
+      title: 'Improve Grammar Accuracy',
+      action: 'Focus on your common error patterns. Repeat corrected sentences out loud 3 times.',
+      icon: 'checkmark-done',
+    },
+    vocabulary_variety: {
+      title: 'Expand Vocabulary',
+      action: 'Use one new word per session. Write it down and use it in 3 different sentences.',
+      icon: 'book',
+    },
+    taking_challenges: {
+      title: 'Accept More Challenges',
+      action: 'Say YES to the next challenge offered. Growth happens outside comfort zones!',
+      icon: 'flame',
+    },
+    accuracy_focus: {
+      title: 'Balance Speed & Accuracy',
+      action: 'It\'s OK to make mistakes! Focus on communicating your ideas first.',
+      icon: 'speedometer',
+    },
+    vocabulary_exploration: {
+      title: 'Use Varied Vocabulary',
+      action: 'Try synonyms for common words. Replace "good" with "excellent", "great", "wonderful".',
+      icon: 'bulb',
+    },
+  };
+
+  return growthAreas.slice(0, 3).map(area =>
+    insights[area] || {
+      title: formatText(area),
+      action: 'Keep practicing regularly to see improvement in this area.',
+      icon: 'arrow-up',
+    }
+  );
+};
+
+const getStrengthInsights = (strengths: string[]): StrengthInsight[] => {
+  const insights: Record<string, StrengthInsight> = {
+    speaking_confidence: {
+      title: 'Confident Speaker',
+      description: 'You respond quickly and naturally in conversations',
+    },
+    accuracy_focus: {
+      title: 'Accuracy Master',
+      description: 'Your grammar and pronunciation are consistently strong',
+    },
+    vocabulary_exploration: {
+      title: 'Word Explorer',
+      description: 'You experiment with diverse vocabulary and expressions',
+    },
+    challenge_acceptance: {
+      title: 'Challenge Seeker',
+      description: 'You embrace difficult topics and learning opportunities',
+    },
+    consistency: {
+      title: 'Steady Learner',
+      description: 'You maintain consistent practice and steady progress',
+    },
+  };
+
+  return strengths.slice(0, 3).map(strength =>
+    insights[strength] || {
+      title: formatText(strength),
+      description: 'Keep leveraging this strength in your practice',
+    }
+  );
+};
+
+const getWeeklyFocus = (growthAreas: string[], strands: any): WeeklyFocus | null => {
+  if (growthAreas.length === 0) return null;
+
+  const topArea = growthAreas[0];
+
+  const focuses: Record<string, WeeklyFocus> = {
+    speaking_confidence: {
+      goal: 'Reduce hesitation time',
+      tip: 'Start speaking within 2 seconds of each question this week',
+    },
+    grammar_accuracy: {
+      goal: 'Master your top error pattern',
+      tip: strands?.accuracy?.common_errors?.[0]
+        ? `Focus on fixing: ${formatText(strands.accuracy.common_errors[0])}`
+        : 'Pay attention to corrections and repeat them',
+    },
+    vocabulary_variety: {
+      goal: 'Learn 5 new words',
+      tip: 'Pick words from your sessions and use them daily',
+    },
+    taking_challenges: {
+      goal: 'Accept 2 challenges',
+      tip: 'Say YES when the AI offers harder topics or exercises',
+    },
+  };
+
+  return focuses[topArea] || {
+    goal: `Improve ${formatText(topArea)}`,
+    tip: 'Focus on this area during your practice sessions this week',
+  };
+};
+
+// ============================================================================
 // PAGE 2: INSIGHTS PAGE
 // ============================================================================
 
@@ -168,56 +295,82 @@ interface InsightsPageProps {
 
 const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) => {
   const { strengths, growth_areas } = profile.overall_profile;
+  const strands = profile.dna_strands;
+
+  // Get actionable insights
+  const growthInsights = getGrowthAreaInsights(growth_areas, strands);
+  const strengthInsights = getStrengthInsights(strengths);
+  const weeklyFocus = getWeeklyFocus(growth_areas, strands);
 
   return (
     <View style={styles.page}>
       <View style={styles.insightsContainer}>
-        <Text style={styles.pageTitle}>Key Insights</Text>
-
-        {/* Top Strengths */}
-        <View style={styles.insightSection}>
-          <View style={styles.insightHeader}>
-            <Ionicons name="star" size={20} color="#F59E0B" />
-            <Text style={styles.insightSectionTitle}>Top Strengths</Text>
+        {/* This Week's Focus */}
+        {weeklyFocus && (
+          <View style={styles.focusBanner}>
+            <View style={styles.focusBannerHeader}>
+              <Ionicons name="rocket" size={20} color="#FFFFFF" />
+              <Text style={styles.focusBannerTitle}>This Week's Focus</Text>
+            </View>
+            <Text style={styles.focusBannerGoal}>{weeklyFocus.goal}</Text>
+            <Text style={styles.focusBannerTip}>{weeklyFocus.tip}</Text>
           </View>
-          <View style={styles.insightCards}>
-            {strengths.slice(0, 3).map((strength, index) => (
+        )}
+
+        {/* Growth Areas with Actions - Show only top 2 */}
+        {growthInsights.length > 0 && (
+          <View style={styles.insightSection}>
+            <View style={styles.insightHeader}>
+              <Ionicons name="trending-up" size={20} color="#3B82F6" />
+              <Text style={styles.insightSectionTitle}>Areas to Improve</Text>
+            </View>
+            {growthInsights.slice(0, 2).map((insight, index) => (
+              <View key={index} style={styles.growthCard}>
+                <View style={styles.growthCardIconContainer}>
+                  <Ionicons name={insight.icon as any} size={24} color="#FFFFFF" />
+                </View>
+                <View style={styles.growthCardContent}>
+                  <Text style={styles.growthCardTitle}>{insight.title}</Text>
+                  <Text style={styles.growthCardAction}>{insight.action}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Top Strengths - Show only top 2 */}
+        {strengthInsights.length > 0 && (
+          <View style={styles.insightSection}>
+            <View style={styles.insightHeader}>
+              <Ionicons name="star" size={20} color="#F59E0B" />
+              <Text style={styles.insightSectionTitle}>Your Strengths</Text>
+            </View>
+            {strengthInsights.slice(0, 2).map((insight, index) => (
               <View key={index} style={styles.strengthCard}>
-                <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-                <Text style={styles.strengthText}>{formatText(strength)}</Text>
+                <View style={styles.strengthIconContainer}>
+                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                </View>
+                <View style={styles.strengthContent}>
+                  <Text style={styles.strengthTitle}>{insight.title}</Text>
+                  <Text style={styles.strengthDesc}>{insight.description}</Text>
+                </View>
               </View>
             ))}
           </View>
-        </View>
+        )}
 
-        {/* Focus Areas */}
-        <View style={styles.insightSection}>
-          <View style={styles.insightHeader}>
-            <Ionicons name="trending-up" size={20} color="#3B82F6" />
-            <Text style={styles.insightSectionTitle}>Focus Areas</Text>
-          </View>
-          <View style={styles.insightCards}>
-            {growth_areas.slice(0, 3).map((area, index) => (
-              <View key={index} style={styles.focusCard}>
-                <Ionicons name="arrow-up" size={18} color="#F59E0B" />
-                <Text style={styles.focusText}>{formatText(area)}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Recent Breakthrough */}
+        {/* Recent Breakthrough - Show only 1 */}
         {breakthroughs.length > 0 && (
           <View style={styles.insightSection}>
             <View style={styles.insightHeader}>
               <Ionicons name="trophy" size={20} color="#8B5CF6" />
-              <Text style={styles.insightSectionTitle}>Recent Breakthrough</Text>
+              <Text style={styles.insightSectionTitle}>Recent Win</Text>
             </View>
             <LinearGradient
               colors={getCategoryColors(breakthroughs[0].category)}
               style={styles.breakthroughCard}
             >
-              <Text style={styles.breakthroughEmoji}>🎉</Text>
+              <Text style={styles.breakthroughEmoji}>{breakthroughs[0].emoji}</Text>
               <Text style={styles.breakthroughTitle}>{breakthroughs[0].title}</Text>
               <Text style={styles.breakthroughDesc}>{breakthroughs[0].description}</Text>
             </LinearGradient>
@@ -707,85 +860,166 @@ const styles = StyleSheet.create({
   },
 
   // Page 2: Insights
-  pageTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-    textAlign: 'center',
-  },
   insightsContainer: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   insightSection: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   insightHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
     gap: 8,
   },
   insightSectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#1F2937',
   },
-  insightCards: {
-    gap: 8,
+
+  // Weekly Focus Banner
+  focusBanner: {
+    backgroundColor: THEME_COLORS.primary,
+    padding: 14,
+    borderRadius: 14,
+    marginBottom: 16,
+    shadowColor: THEME_COLORS.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
   },
+  focusBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  focusBannerTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  focusBannerGoal: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  focusBannerTip: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 18,
+  },
+
+  // Growth Cards (Areas to Improve)
+  growthCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  growthCardIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#3B82F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  growthCardContent: {
+    flex: 1,
+  },
+  growthCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 3,
+  },
+  growthCardAction: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 17,
+  },
+
+  // Strength Cards
   strengthCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#FFFFFF',
     padding: 12,
-    borderRadius: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: '#10B981',
-    gap: 10,
+    borderRadius: 14,
+    marginBottom: 8,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
   },
-  strengthText: {
+  strengthIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#D1FAE5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  strengthContent: {
     flex: 1,
+  },
+  strengthTitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '700',
     color: '#065F46',
+    marginBottom: 3,
   },
-  focusCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFBEB',
-    padding: 12,
-    borderRadius: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: '#F59E0B',
-    gap: 10,
+  strengthDesc: {
+    fontSize: 12,
+    color: '#047857',
+    lineHeight: 17,
   },
-  focusText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#92400E',
-  },
+
+  // Breakthrough Card
   breakthroughCard: {
-    padding: 16,
-    borderRadius: 16,
+    padding: 14,
+    borderRadius: 14,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
   breakthroughEmoji: {
-    fontSize: 32,
-    marginBottom: 8,
+    fontSize: 28,
+    marginBottom: 6,
   },
   breakthroughTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
   },
   breakthroughDesc: {
-    fontSize: 13,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 3,
   },
 });
 
