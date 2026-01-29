@@ -41,6 +41,14 @@ export const DNAStickyHeader: React.FC<DNAStickyHeaderProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
 
+  // DEBUG: Log prop values
+  console.log('[DNAStickyHeader] Props:', {
+    hasOnShare: !!onShare,
+    hasOnSettings: !!onSettings,
+    hasOnBack: !!onBack,
+    title,
+  });
+
   /**
    * Animated header height
    */
@@ -156,12 +164,16 @@ export const DNAStickyHeader: React.FC<DNAStickyHeaderProps> = ({
           {onShare && (
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={onShare}
+              onPress={() => {
+                console.log('[DNAStickyHeader] Share button pressed!');
+                onShare();
+              }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="share-social-outline" size={18} color={COLORS.white} />
+              <Ionicons name="share-social" size={24} color={COLORS.white} />
             </TouchableOpacity>
           )}
+          {!onShare && console.log('[DNAStickyHeader] onShare is falsy, button NOT rendered')}
 
           {onSettings && (
             <TouchableOpacity
@@ -169,7 +181,7 @@ export const DNAStickyHeader: React.FC<DNAStickyHeaderProps> = ({
               onPress={onSettings}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="ellipsis-horizontal" size={18} color={COLORS.white} />
+              <Ionicons name="ellipsis-horizontal" size={24} color={COLORS.white} />
             </TouchableOpacity>
           )}
         </View>
@@ -204,12 +216,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actionButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: `${COLORS.white}20`,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: `${COLORS.white}35`,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
   },
   titleContainer: {
     flex: 1,

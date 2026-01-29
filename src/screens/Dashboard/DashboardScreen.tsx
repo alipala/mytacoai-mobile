@@ -203,7 +203,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         // Check each language in parallel
         const dnaCheckPromises = uniqueLanguages.map(async (language) => {
           try {
-            const profile = await speakingDNAService.getProfile(language, false);
+            const profile = await speakingDNAService.getProfile(language, true); // Force refresh to bypass cache
             if (profile && profile.sessions_analyzed > 0) {
               console.log(`✅ DNA profile exists for ${language} (${profile.sessions_analyzed} sessions)`);
               return language;

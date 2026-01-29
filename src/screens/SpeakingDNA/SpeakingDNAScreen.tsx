@@ -37,6 +37,7 @@ import {
   DNA_STRAND_ICONS,
 } from '../../types/speakingDNA';
 import { BreakthroughModal } from '../../components/SpeakingDNA/BreakthroughModal';
+import { DNAShareModal } from '../../components/SpeakingDNA/DNAShareModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -68,6 +69,7 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
   const [error, setError] = useState<string | null>(null);
   const [selectedBreakthrough, setSelectedBreakthrough] = useState<SpeakingBreakthrough | null>(null);
   const [showBreakthroughModal, setShowBreakthroughModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   /**
    * Load DNA profile and breakthroughs
@@ -285,7 +287,13 @@ const SpeakingDNAScreen: React.FC<SpeakingDNAScreenProps> = ({ navigation, route
             <Text style={styles.headerTitle}>Your Speaking DNA</Text>
             <Text style={styles.headerLanguage}>{language.charAt(0).toUpperCase() + language.slice(1)}</Text>
           </View>
-          <View style={styles.headerRight} />
+          <TouchableOpacity
+            onPress={() => profile && setShowShareModal(true)}
+            style={styles.shareButton}
+            disabled={!profile}
+          >
+            <Ionicons name="share-social" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         <ScrollView

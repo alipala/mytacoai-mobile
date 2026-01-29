@@ -18,6 +18,9 @@ import Svg, {
   Polygon,
   G,
   Text as SvgText,
+  Defs,
+  RadialGradient,
+  Stop,
 } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -167,28 +170,34 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
     <View style={styles.container}>
       <View style={{ width: size, height: size }}>
         <Svg width={size} height={size}>
-        {/* Very subtle center circle - minimal interference */}
+        {/* Define radial gradient for immersive glow effect */}
+        <Defs>
+          <RadialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#14B8A6" stopOpacity="0.3" />
+            <Stop offset="100%" stopColor="#14B8A6" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+
+        {/* Immersive glow background - like share card */}
         <Circle
           cx={center}
           cy={center}
-          r={maxRadius}
-          fill="#FAFAFA"
-          opacity={0.2}
+          r={maxRadius * 1.2}
+          fill="url(#glowGradient)"
         />
 
-        {/* Grid polygons (spider chart web) - clean and professional */}
+        {/* Grid polygons (spider chart web) - hexagons with dark theme */}
         {gridLevels.map((level) => (
           <Polygon
             key={`grid-${level}`}
             points={getGridPolygonPoints(level)}
-            stroke={level === 100 ? "#9CA3AF" : "#D1D5DB"}
-            strokeWidth={level === 100 ? 1.5 : 0.8}
-            strokeDasharray={level === 100 ? undefined : "5,5"}
+            stroke="rgba(255, 255, 255, 0.15)"
+            strokeWidth={2}
             fill="none"
           />
         ))}
 
-        {/* Axis lines (spider chart spokes) - subtle but visible */}
+        {/* Axis lines (spider chart spokes) - matching share card */}
         {data.map((_, index) => {
           const point = getPointPosition(index, 100);
           return (
@@ -198,58 +207,22 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
               y1={center}
               x2={point.x}
               y2={point.y}
-              stroke="#D1D5DB"
-              strokeWidth={1}
-              opacity={0.6}
+              stroke="rgba(255, 255, 255, 0.2)"
+              strokeWidth={2}
             />
           );
         })}
 
-        {/* Grid level labels (subtle scale indicators) */}
-        {gridLevels.filter(level => level === 40 || level === 60 || level === 80).map((level) => {
-          const labelPos = getPointPosition(0, level);
-          return (
-            <SvgText
-              key={`grid-label-${level}`}
-              x={labelPos.x}
-              y={labelPos.y - 8}
-              fill="#9CA3AF"
-              fontSize="8"
-              fontWeight="500"
-              textAnchor="middle"
-              opacity={0.6}
-            >
-              {level}
-            </SvgText>
-          );
-        })}
+        {/* Grid level labels removed for cleaner design like share card */}
 
-        {/* HEXAGONAL FILLED AREA - Professional design with clean stroke */}
+        {/* HEXAGONAL FILLED AREA - Matching share card style */}
         <AnimatedPolygon
           animatedProps={animatedProps}
-          fill="#5EEAD4"
-          stroke="none"
+          fill="#14B8A6"
+          fillOpacity={0.2}
+          stroke="#14B8A6"
+          strokeWidth={4}
         />
-
-        {/* Connecting lines between data points - Clean professional design */}
-        {data.map((point, index) => {
-          const currentPos = getPointPosition(index, point.score);
-          const nextIndex = (index + 1) % data.length;
-          const nextPos = getPointPosition(nextIndex, data[nextIndex].score);
-
-          return (
-            <Line
-              key={`edge-${index}`}
-              x1={currentPos.x}
-              y1={currentPos.y}
-              x2={nextPos.x}
-              y2={nextPos.y}
-              stroke="#14B8A6"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-            />
-          );
-        })}
 
         {/* Data points (vertices) - LARGER for tap targets */}
         {data.map((point, index) => {
@@ -277,6 +250,14 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 
           return (
             <G key={`vertex-${index}`}>
+              {/* Glow circle - always visible like share card */}
+              <Circle
+                cx={pos.x}
+                cy={pos.y}
+                r={20}
+                fill={point.color}
+                opacity={isSelected ? 0.4 : 0.3}
+              />
               {/* Pulsing glow - selected only */}
               {isSelected && (
                 <>
@@ -294,19 +275,11 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
                   />
                 </>
               )}
-              {/* White outer ring */}
+              {/* Main vertex circle - with white stroke */}
               <Circle
                 cx={pos.x}
                 cy={pos.y}
-                r={isSelected ? 13 : 11}
-                fill="#FFFFFF"
-                opacity={1}
-              />
-              {/* Main vertex circle - LARGER for better tap target */}
-              <Circle
-                cx={pos.x}
-                cy={pos.y}
-                r={isSelected ? 10 : 8}
+                r={isSelected ? 12 : 12}
                 fill={point.color}
               />
             </G>
@@ -399,15 +372,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 8,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     width: '48%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
   },
   legendCircle: {
     width: 14,
@@ -418,7 +386,7 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: '#FFFFFF',
     flex: 1,
   },
 });

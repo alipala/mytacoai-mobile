@@ -36,6 +36,7 @@ import { SpeakingDNAProfile, SpeakingBreakthrough, DNAStrandKey } from '../../ty
 // Components
 import { InteractiveRadarChartEnhanced } from './components/InteractiveRadarChartEnhanced';
 import { StrandDetailModal } from './components/StrandDetailModal';
+import { DNAShareModal } from '../../components/SpeakingDNA/DNAShareModal';
 
 // Constants
 import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from './constants.OLD';
@@ -111,10 +112,9 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
 
   return (
     <View style={styles.page}>
-      {/* Beautiful gradient background */}
+      {/* Dark gradient background matching share card */}
       <LinearGradient
-        colors={['#F0FDFA', '#FFFFFF', '#F9FAFB']}
-        locations={[0, 0.5, 1]}
+        colors={['#0B1A1F', '#0D2832']}
         style={styles.radarBackground}
       />
 
@@ -131,7 +131,7 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
       {/* Tap Hint */}
       <View style={styles.swipeHint}>
         <Text style={styles.swipeHintText}>Tap chart or legend for details • Swipe for insights</Text>
-        <Ionicons name="chevron-forward" size={16} color={THEME_COLORS.text.secondary} />
+        <Ionicons name="chevron-forward" size={16} color="#B4E4DD" />
       </View>
     </View>
   );
@@ -284,10 +284,9 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
 
   return (
     <View style={styles.page}>
-      {/* Beautiful gradient background */}
+      {/* Dark gradient background matching page 1 */}
       <LinearGradient
-        colors={['#FEFCE8', '#FFFFFF', '#F0FDFA']}
-        locations={[0, 0.4, 1]}
+        colors={['#0B1A1F', '#0D2832']}
         style={styles.radarBackground}
       />
       <View style={styles.insightsContainer}>
@@ -420,6 +419,9 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
   const [modalScore, setModalScore] = useState(0);
   const [modalColor, setModalColor] = useState('');
 
+  // Share modal state
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+
   // Refs
   const pagerRef = useRef<PagerView>(null);
 
@@ -440,6 +442,19 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
   const handleCloseModal = useCallback(() => {
     setModalVisible(false);
   }, []);
+
+  /**
+   * Handle share button
+   */
+  const handleShare = useCallback(() => {
+    console.log('[DNA_SHARE_HORIZONTAL] Share button pressed, profile:', !!profile);
+    if (!profile) {
+      console.log('[DNA_SHARE_HORIZONTAL] No profile available');
+      return;
+    }
+    console.log('[DNA_SHARE_HORIZONTAL] Opening share modal...');
+    setShareModalVisible(true);
+  }, [profile]);
 
   /**
    * Load DNA profile and breakthroughs
@@ -590,20 +605,29 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
+      {/* Header - Dark Theme */}
       <LinearGradient
-        colors={[THEME_COLORS.primary, THEME_COLORS.secondary]}
+        colors={['#14B8A6', '#0D9488']}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="close" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Your Speaking DNA</Text>
-          <View style={styles.languageBadge}>
-            <Ionicons name="globe" size={14} color="#FFFFFF" />
-            <Text style={styles.languageText}>{language.toUpperCase()}</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Your Speaking DNA</Text>
+            <View style={styles.languageBadge}>
+              <Ionicons name="globe" size={14} color="#FFFFFF" />
+              <Text style={styles.languageText}>{language.toUpperCase()}</Text>
+            </View>
           </View>
+          <TouchableOpacity
+            onPress={handleShare}
+            style={styles.shareButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="share-social" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -637,6 +661,17 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
         color={modalColor}
         onClose={handleCloseModal}
       />
+
+      {/* Share Modal */}
+      <DNAShareModal
+        visible={shareModalVisible}
+        onClose={() => {
+          console.log('[DNA_SHARE_HORIZONTAL] Closing share modal');
+          setShareModalVisible(false);
+        }}
+        profile={profile}
+        language={language}
+      />
     </SafeAreaView>
   );
 };
@@ -648,7 +683,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark background
   },
   gradient: {
     flex: 1,
@@ -671,10 +706,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 12,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  shareButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerRight: {
     width: 40,
@@ -823,7 +873,7 @@ const styles = StyleSheet.create({
   insightSectionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
 
   // Weekly Focus Banner
@@ -866,17 +916,12 @@ const styles = StyleSheet.create({
   // Growth Cards (Areas to Improve)
   growthCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 12,
     borderRadius: 14,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   growthCardIconContainer: {
     width: 40,
@@ -893,35 +938,30 @@ const styles = StyleSheet.create({
   growthCardTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 3,
   },
   growthCardAction: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 17,
   },
 
   // Strength Cards
   strengthCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 12,
     borderRadius: 14,
     marginBottom: 8,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: '#D1FAE5',
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   strengthIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -932,12 +972,12 @@ const styles = StyleSheet.create({
   strengthTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#065F46',
+    color: '#2ECC71',
     marginBottom: 3,
   },
   strengthDesc: {
     fontSize: 12,
-    color: '#047857',
+    color: '#B4E4DD',
     lineHeight: 17,
   },
 

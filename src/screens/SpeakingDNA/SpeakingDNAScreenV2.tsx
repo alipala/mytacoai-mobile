@@ -34,6 +34,7 @@ import {
   BreakthroughsSection,
 } from './components';
 import { BreakthroughModal } from '../../components/SpeakingDNA/BreakthroughModal';
+import { DNAShareModal } from '../../components/SpeakingDNA/DNAShareModal';
 import { COLORS, SHADOWS, SCROLL_RANGES } from './constants';
 import {
   RadarDataPoint,
@@ -67,6 +68,7 @@ export const SpeakingDNAScreenV2: React.FC<{
   const [selectedStrand, setSelectedStrand] = useState<DNAStrandKey | null>(null);
   const [selectedBreakthrough, setSelectedBreakthrough] = useState<SpeakingBreakthrough | null>(null);
   const [breakthroughModalVisible, setBreakthroughModalVisible] = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
 
   // Get language from route or default to 'dutch'
   const language = route.params?.language || 'dutch';
@@ -283,9 +285,14 @@ export const SpeakingDNAScreenV2: React.FC<{
   }, [navigation]);
 
   const handleShare = useCallback(() => {
-    // TODO: Implement share functionality
-    console.log('Share DNA profile');
-  }, []);
+    console.log('[DNA_SHARE] handleShare called! Profile:', !!profile);
+    if (!profile) {
+      console.log('[DNA_SHARE] No profile available');
+      return;
+    }
+    console.log('[DNA_SHARE] Opening share modal...');
+    setShareModalVisible(true);
+  }, [profile]);
 
   const handleSettings = useCallback(() => {
     // TODO: Navigate to DNA settings
@@ -331,6 +338,12 @@ export const SpeakingDNAScreenV2: React.FC<{
       </View>
     );
   }
+
+  console.log('[SpeakingDNAScreenV2] Rendering with:', {
+    hasProfile: !!profile,
+    hasHandleShare: !!handleShare,
+    shareModalVisible,
+  });
 
   return (
     <View style={styles.container}>
@@ -447,6 +460,17 @@ export const SpeakingDNAScreenV2: React.FC<{
           setSelectedBreakthrough(null);
         }}
       />
+
+      <DNAShareModal
+        visible={shareModalVisible}
+        onClose={() => {
+          console.log('[DNA_SHARE] Closing share modal');
+          setShareModalVisible(false);
+        }}
+        profile={profile}
+        language={language}
+      />
+      {console.log('[SpeakingDNAScreenV2] DNAShareModal props:', { shareModalVisible, hasProfile: !!profile, language })}
     </View>
   );
 };
