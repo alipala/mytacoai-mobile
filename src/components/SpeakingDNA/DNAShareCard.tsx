@@ -12,6 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Polygon, Circle, Line, Defs, RadialGradient, Stop, Text as SvgText } from 'react-native-svg';
 import type { SpeakingDNAProfile } from '../../types/speakingDNA';
 
+// Import SVG flags
+import EnglishFlag from '../../assets/flags/english.svg';
+import SpanishFlag from '../../assets/flags/spanish.svg';
+import FrenchFlag from '../../assets/flags/french.svg';
+import GermanFlag from '../../assets/flags/german.svg';
+import PortugueseFlag from '../../assets/flags/portuguese.svg';
+import DutchFlag from '../../assets/flags/dutch.svg';
+
 // Instagram Story dimensions (9:16 aspect ratio)
 const CARD_WIDTH = 1080;
 const CARD_HEIGHT = 1920;
@@ -43,6 +51,21 @@ const VIRAL_COLORS = {
     learning: '#E67E22',
     emotional: '#E91E63',
   },
+};
+
+/**
+ * Get SVG flag component for language
+ */
+const getLanguageFlagComponent = (language: string): React.FC<any> | null => {
+  const flags: Record<string, React.FC<any>> = {
+    'english': EnglishFlag,
+    'spanish': SpanishFlag,
+    'french': FrenchFlag,
+    'german': GermanFlag,
+    'dutch': DutchFlag,
+    'portuguese': PortugueseFlag,
+  };
+  return flags[language.toLowerCase()] || null;
 };
 
 interface DNAShareCardProps {
@@ -205,12 +228,12 @@ const StrandCard: React.FC<{
   label: string;
   value: number;
   color: string;
-  icon: string;
+  iconName: keyof typeof Ionicons.glyphMap;
   description: string;
-}> = ({ label, value, color, icon, description }) => (
+}> = ({ label, value, color, iconName, description }) => (
   <View style={[styles.strandCard, { backgroundColor: color + '20', borderColor: color }]}>
     <View style={[styles.strandIconContainer, { backgroundColor: color }]}>
-      <Text style={styles.strandIcon}>{icon}</Text>
+      <Ionicons name={iconName} size={32} color="#FFFFFF" />
     </View>
     <Text style={styles.strandLabel}>{label}</Text>
     <Text style={styles.strandDescription}>{description}</Text>
@@ -248,58 +271,61 @@ export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
         label: 'Rhythm',
         value: getStrandScore(profile.dna_strands.rhythm),
         color: VIRAL_COLORS.strand.rhythm,
-        icon: '🎵',
+        iconName: 'water' as const,
       },
       {
         label: 'Confidence',
         value: getStrandScore(profile.dna_strands.confidence),
         color: VIRAL_COLORS.strand.confidence,
-        icon: '⚡',
+        iconName: 'flame' as const,
       },
       {
         label: 'Vocab',
         value: getStrandScore(profile.dna_strands.vocabulary),
         color: VIRAL_COLORS.strand.vocabulary,
-        icon: '📚',
+        iconName: 'library' as const,
       },
       {
         label: 'Accuracy',
         value: getStrandScore(profile.dna_strands.accuracy),
         color: VIRAL_COLORS.strand.accuracy,
-        icon: '🎯',
+        iconName: 'checkmark-circle' as const,
       },
       {
         label: 'Learning',
         value: getStrandScore(profile.dna_strands.learning),
         color: VIRAL_COLORS.strand.learning,
-        icon: '🚀',
+        iconName: 'rocket' as const,
       },
       {
         label: 'Emotional',
         value: getStrandScore(profile.dna_strands.emotional),
         color: VIRAL_COLORS.strand.emotional,
-        icon: '💫',
+        iconName: 'heart' as const,
       },
     ];
 
-    // Top 3 strands with descriptions
-    const topStrands = [...strandData]
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 3)
+    // Featured strands: Rhythm, Emotional, Confidence (most interesting for sharing)
+    const featuredStrands = [
+      strandData.find(s => s.label === 'Rhythm'),
+      strandData.find(s => s.label === 'Emotional'),
+      strandData.find(s => s.label === 'Confidence'),
+    ]
+      .filter(Boolean)
       .map(strand => ({
-        ...strand,
-        description: getStrandDescription(strand.label, profile.dna_strands),
+        ...strand!,
+        description: getStrandDescription(strand!.label, profile.dna_strands),
       }));
 
     // Helper to get strand description from profile
     function getStrandDescription(label: string, strands: any): string {
       const strandMap: Record<string, string> = {
-        'Rhythm': strands.rhythm?.type?.replace(/_/g, ' ') || 'Natural flow',
-        'Confidence': strands.confidence?.level || 'Building up',
+        'Rhythm': strands.rhythm?.pattern?.replace(/_/g, ' ') || strands.rhythm?.type?.replace(/_/g, ' ') || 'Natural flow',
+        'Confidence': strands.confidence?.level?.replace(/_/g, ' ') || 'Building strong',
         'Vocab': strands.vocabulary?.style?.replace(/_/g, ' ') || 'Expanding',
         'Accuracy': strands.accuracy?.pattern || 'Improving',
         'Learning': strands.learning?.type || 'Growing',
-        'Emotional': strands.emotional?.trend || 'Evolving',
+        'Emotional': strands.emotional?.pattern?.replace(/_/g, ' ') || strands.emotional?.trend?.replace(/_/g, ' ') || 'Growing resilience',
       };
       return strandMap[label] || 'Developing';
     }
@@ -313,6 +339,9 @@ export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
       archetype.description ||
       'A distinctive learner with their own approach';
 
+    // Get flag component
+    const FlagComponent = getLanguageFlagComponent(language);
+
     return (
       <View ref={ref} style={styles.cardContainer}>
         <LinearGradient
@@ -323,7 +352,11 @@ export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
           <View style={styles.header}>
             <Text style={styles.title}>MY SPEAKING DNA</Text>
             <View style={styles.languagePill}>
-              <Text style={styles.languageEmoji}>🌍</Text>
+              {FlagComponent && (
+                <View style={styles.flagWrapper}>
+                  <FlagComponent width={32} height={32} />
+                </View>
+              )}
               <Text style={styles.languageText}>{language.toUpperCase()}</Text>
             </View>
           </View>
@@ -346,15 +379,15 @@ export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
             <ViralRadarChart data={strandData} size={650} />
           </View>
 
-          {/* Top 3 Strand Cards */}
+          {/* Featured Strand Cards: Rhythm, Emotional, Confidence */}
           <View style={styles.strandsGrid}>
-            {topStrands.map((strand, index) => (
+            {featuredStrands.map((strand, index) => (
               <StrandCard
                 key={strand.label}
                 label={strand.label}
                 value={Math.round(strand.value)}
                 color={strand.color}
-                icon={strand.icon}
+                iconName={strand.iconName}
                 description={strand.description}
               />
             ))}
@@ -428,22 +461,27 @@ const styles = StyleSheet.create({
   languagePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 40,
     borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    gap: 12,
+  },
+  flagWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  languageEmoji: {
-    fontSize: 24,
-    marginRight: 8,
-  },
   languageText: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
     color: VIRAL_COLORS.text.primary,
-    letterSpacing: 3,
+    letterSpacing: 2,
   },
   // Archetype Hero
   archetypeHero: {
@@ -497,15 +535,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   strandIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-  },
-  strandIcon: {
-    fontSize: 32,
   },
   strandLabel: {
     fontSize: 24,

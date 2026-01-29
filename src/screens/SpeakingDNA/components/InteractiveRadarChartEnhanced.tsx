@@ -215,13 +215,18 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 
         {/* Grid level labels removed for cleaner design like share card */}
 
-        {/* HEXAGONAL FILLED AREA - Matching share card style */}
-        <AnimatedPolygon
-          animatedProps={animatedProps}
+        {/* HEXAGONAL FILLED AREA - Visible and connected */}
+        <Polygon
+          points={data.map((point, index) => {
+            const pos = getPointPosition(index, point.score);
+            return `${pos.x},${pos.y}`;
+          }).join(' ')}
           fill="#14B8A6"
-          fillOpacity={0.2}
+          fillOpacity={0.3}
           stroke="#14B8A6"
-          strokeWidth={4}
+          strokeWidth={6}
+          strokeLinejoin="round"
+          strokeLinecap="round"
         />
 
         {/* Data points (vertices) - LARGER for tap targets */}

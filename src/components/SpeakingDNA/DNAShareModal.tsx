@@ -116,17 +116,17 @@ export const DNAShareModal: React.FC<DNAShareModalProps> = ({
       onRequestClose={onClose}
     >
       <LinearGradient
-        colors={[COLORS.gray[50], COLORS.white]}
+        colors={['#0B1A1F', '#0D2832']}
         style={styles.container}
       >
-        {/* Header */}
+        {/* Header - Dark Theme */}
         <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <TouchableOpacity
             onPress={onClose}
             style={styles.closeButton}
             disabled={isProcessing}
           >
-            <Ionicons name="close" size={28} color={COLORS.text.primary} />
+            <Ionicons name="close" size={28} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Share Your DNA</Text>
           <View style={styles.closeButton} />
@@ -202,12 +202,12 @@ export const DNAShareModal: React.FC<DNAShareModalProps> = ({
           >
             {!isReady ? (
               <>
-                <ActivityIndicator size="small" color={COLORS.white} />
+                <ActivityIndicator size="small" color="#14B8A6" />
                 <Text style={styles.saveButtonText}>Preparing...</Text>
               </>
             ) : (
               <>
-                <Ionicons name="share-social" size={24} color={COLORS.white} />
+                <Ionicons name="share-social" size={24} color="#14B8A6" />
                 <Text style={styles.saveButtonText}>Share Your DNA Card</Text>
               </>
             )}
@@ -229,18 +229,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray[200],
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   closeButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.text.primary,
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   scrollContent: {
     flexGrow: 1,
@@ -252,12 +257,12 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   previewLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text.secondary,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#B4E4DD',
     marginBottom: 16,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   previewWrapper: {
     width: 1080 * PREVIEW_SCALE,
@@ -266,7 +271,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
     borderRadius: 20,
-    ...SHADOWS.lg,
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   previewCard: {
     width: 1080,
@@ -279,7 +285,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(11, 26, 31, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
@@ -288,7 +294,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text.secondary,
+    color: '#B4E4DD',
   },
   instructionsContainer: {
     paddingHorizontal: 32,
@@ -297,14 +303,14 @@ const styles = StyleSheet.create({
   instructionsTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text.primary,
+    color: '#FFFFFF',
     marginBottom: 8,
     textAlign: 'center',
   },
   instructionsText: {
     fontSize: 14,
     fontWeight: '400',
-    color: COLORS.text.secondary,
+    color: '#B4E4DD',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -312,28 +318,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray[200],
+    borderTopColor: 'rgba(20, 184, 166, 0.2)',
     gap: 12,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 16,
     gap: 10,
-    ...SHADOWS.md,
   },
   saveButton: {
-    backgroundColor: COLORS.primary[500],
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    borderWidth: 2,
+    borderColor: '#14B8A6',
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   saveButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#14B8A6',
   },
   shareButton: {
     backgroundColor: COLORS.white,

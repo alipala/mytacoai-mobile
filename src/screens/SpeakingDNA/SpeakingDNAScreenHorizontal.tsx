@@ -33,6 +33,14 @@ import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { StripeService } from '../../api/generated';
 import { SpeakingDNAProfile, SpeakingBreakthrough, DNAStrandKey } from '../../types/speakingDNA';
 
+// Import SVG flags
+import EnglishFlag from '../../assets/flags/english.svg';
+import SpanishFlag from '../../assets/flags/spanish.svg';
+import FrenchFlag from '../../assets/flags/french.svg';
+import GermanFlag from '../../assets/flags/german.svg';
+import PortugueseFlag from '../../assets/flags/portuguese.svg';
+import DutchFlag from '../../assets/flags/dutch.svg';
+
 // Components
 import { InteractiveRadarChartEnhanced } from './components/InteractiveRadarChartEnhanced';
 import { StrandDetailModal } from './components/StrandDetailModal';
@@ -42,6 +50,25 @@ import { DNAShareModal } from '../../components/SpeakingDNA/DNAShareModal';
 import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from './constants.OLD';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Get SVG flag component for language
+ */
+const getLanguageFlagComponent = (language: string): React.FC<any> | null => {
+  const flags: Record<string, React.FC<any>> = {
+    'english': EnglishFlag,
+    'spanish': SpanishFlag,
+    'french': FrenchFlag,
+    'german': GermanFlag,
+    'dutch': DutchFlag,
+    'portuguese': PortugueseFlag,
+  };
+  return flags[language.toLowerCase()] || null;
+};
 
 // ============================================================================
 // PROPS INTERFACE
@@ -128,10 +155,16 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
         />
       </View>
 
-      {/* Tap Hint */}
+      {/* Tap Hint - Redesigned */}
       <View style={styles.swipeHint}>
-        <Text style={styles.swipeHintText}>Tap chart or legend for details • Swipe for insights</Text>
-        <Ionicons name="chevron-forward" size={16} color="#B4E4DD" />
+        <View style={styles.swipeHintBadge}>
+          <Ionicons name="hand-left-outline" size={14} color="#14B8A6" />
+          <Text style={styles.swipeHintText}>Tap strands for details</Text>
+        </View>
+        <View style={styles.swipeHintBadge}>
+          <Ionicons name="chevron-forward" size={14} color="#14B8A6" />
+          <Text style={styles.swipeHintText}>Swipe for insights</Text>
+        </View>
       </View>
     </View>
   );
@@ -514,7 +547,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={[THEME_COLORS.gradient.start, THEME_COLORS.gradient.mid, THEME_COLORS.gradient.end]}
+          colors={['#0B1A1F', '#0D2832']}
           style={styles.gradient}
         >
           <View style={styles.header}>
@@ -525,7 +558,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
             <View style={styles.headerRight} />
           </View>
           <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
+            <ActivityIndicator size="large" color="#14B8A6" />
             <Text style={styles.loadingText}>Analyzing your speaking patterns...</Text>
           </View>
         </LinearGradient>
@@ -541,7 +574,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={[THEME_COLORS.gradient.start, THEME_COLORS.gradient.mid, THEME_COLORS.gradient.end]}
+          colors={['#0B1A1F', '#0D2832']}
           style={styles.gradient}
         >
           <View style={styles.header}>
@@ -572,7 +605,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={[THEME_COLORS.gradient.start, THEME_COLORS.gradient.mid, THEME_COLORS.gradient.end]}
+          colors={['#0B1A1F', '#0D2832']}
           style={styles.gradient}
         >
           <View style={styles.header}>
@@ -583,7 +616,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
             <View style={styles.headerRight} />
           </View>
           <View style={styles.centerContent}>
-            <Ionicons name="flask" size={80} color={THEME_COLORS.primary} />
+            <Ionicons name="flask" size={80} color="#14B8A6" />
             <Text style={styles.emptyTitle}>Build Your DNA Profile</Text>
             <Text style={styles.emptyText}>
               Complete a speaking session to create your unique Speaking DNA profile.
@@ -605,19 +638,25 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header - Dark Theme */}
-      <LinearGradient
-        colors={['#14B8A6', '#0D9488']}
-        style={styles.headerGradient}
-      >
+      {/* Header - Dark Minimalist Design */}
+      <View style={styles.headerContainer}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="close" size={24} color="#FFFFFF" />
+            <Ionicons name="close" size={26} color="#FFFFFF" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Your Speaking DNA</Text>
             <View style={styles.languageBadge}>
-              <Ionicons name="globe" size={14} color="#FFFFFF" />
+              {(() => {
+                const FlagComponent = getLanguageFlagComponent(language);
+                return FlagComponent ? (
+                  <View style={styles.flagIcon}>
+                    <FlagComponent width={20} height={20} />
+                  </View>
+                ) : (
+                  <View style={styles.languageDot} />
+                );
+              })()}
               <Text style={styles.languageText}>{language.toUpperCase()}</Text>
             </View>
           </View>
@@ -626,10 +665,10 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
             style={styles.shareButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="share-social" size={24} color="#FFFFFF" />
+            <Ionicons name="share-social" size={26} color="#14B8A6" />
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Pager View - 2 Pages */}
       <PagerView
@@ -688,23 +727,28 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  headerGradient: {
+  headerContainer: {
+    backgroundColor: 'rgba(11, 26, 31, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
     paddingBottom: 12,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   headerCenter: {
     flex: 1,
@@ -713,18 +757,21 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 0.3,
   },
   shareButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   headerRight: {
     width: 40,
@@ -732,16 +779,33 @@ const styles = StyleSheet.create({
   languageBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 12,
-    gap: 4,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.25)',
+  },
+  languageDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#14B8A6',
+  },
+  flagIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   languageText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#B4E4DD',
+    letterSpacing: 1,
   },
   centerContent: {
     flex: 1,
@@ -758,49 +822,56 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginTop: 16,
   },
   errorText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     marginTop: 8,
+    paddingHorizontal: 32,
   },
   retryButton: {
     marginTop: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: THEME_COLORS.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#14B8A6',
   },
   retryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#14B8A6',
   },
   emptyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginTop: 16,
   },
   emptyText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     marginTop: 8,
+    paddingHorizontal: 32,
   },
   startButton: {
     marginTop: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: THEME_COLORS.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#14B8A6',
   },
   startButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#14B8A6',
     color: '#FFFFFF',
   },
   pagerView: {
@@ -819,19 +890,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    backgroundColor: 'transparent',
   },
   pageIndicatorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#E5E7EB',
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     marginHorizontal: 4,
   },
   pageIndicatorDotActive: {
-    width: 24,
-    backgroundColor: THEME_COLORS.primary,
+    width: 20,
+    backgroundColor: '#14B8A6',
   },
 
   // Page 1: Radar
@@ -848,12 +919,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 8,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  swipeHintBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
     gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   swipeHintText: {
-    fontSize: 13,
-    color: THEME_COLORS.text.secondary,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#B4E4DD',
   },
 
   // Page 2: Insights
@@ -876,17 +959,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Weekly Focus Banner
+  // Weekly Focus Banner - Dark theme
   focusBanner: {
-    backgroundColor: THEME_COLORS.primary,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     padding: 14,
     borderRadius: 14,
     marginBottom: 16,
-    shadowColor: THEME_COLORS.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   focusBannerHeader: {
     flexDirection: 'row',
