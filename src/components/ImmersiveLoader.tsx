@@ -1,11 +1,11 @@
 /**
- * Immersive Loader Component
+ * Immersive Loader Component - Dark Theme
  *
- * Custom loading animation matching the app's design language
- * Inspired by Duolingo's engaging loading states
+ * Custom loading animation matching the app's dark theme design language
+ * Features elegant glassmorphic elements and teal accents
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -25,6 +26,16 @@ interface ImmersiveLoaderProps {
   onFadeOutComplete?: () => void;
 }
 
+// Sparkle positions for random AI sparkle effect
+const SPARKLE_POSITIONS = [
+  { top: '15%', left: '10%' },
+  { top: '20%', right: '15%' },
+  { top: '70%', left: '20%' },
+  { top: '75%', right: '10%' },
+  { top: '40%', left: '5%' },
+  { top: '50%', right: '8%' },
+];
+
 export default function ImmersiveLoader({
   message = 'Loading your progress...',
   isVisible = true,
@@ -32,6 +43,7 @@ export default function ImmersiveLoader({
 }: ImmersiveLoaderProps) {
   // Animations
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const [sparkles, setSparkles] = useState<Array<{ id: number; position: any; anim: Animated.Value }>>([]);
 
   useEffect(() => {
     if (isVisible) {
@@ -41,6 +53,37 @@ export default function ImmersiveLoader({
         duration: 300,
         useNativeDriver: true,
       }).start();
+
+      // Create random sparkles
+      const sparkleInterval = setInterval(() => {
+        const randomPosition = SPARKLE_POSITIONS[Math.floor(Math.random() * SPARKLE_POSITIONS.length)];
+        const sparkleAnim = new Animated.Value(0);
+        const sparkleId = Date.now();
+
+        setSparkles(prev => [...prev, { id: sparkleId, position: randomPosition, anim: sparkleAnim }]);
+
+        // Animate sparkle: fade in, scale up, fade out
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(sparkleAnim, {
+              toValue: 1,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.timing(sparkleAnim, {
+            toValue: 0,
+            duration: 600,
+            delay: 200,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          // Remove sparkle after animation
+          setSparkles(prev => prev.filter(s => s.id !== sparkleId));
+        });
+      }, 800); // New sparkle every 800ms
+
+      return () => clearInterval(sparkleInterval);
     } else {
       // Fade out
       Animated.timing(opacityAnim, {
@@ -61,30 +104,50 @@ export default function ImmersiveLoader({
       pointerEvents={isVisible ? 'auto' : 'none'}
     >
       <LinearGradient
-        colors={['#FFF5F0', '#FFF9E6', '#F0FFFE']}
+        colors={['#0B1A1F', '#0F2832', '#0B1A1F']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        {/* Lottie Animation */}
-        <View style={styles.lottieContainer}>
-          <LottieView
-            source={require('../assets/lottie/loading.json')}
-            autoPlay
-            loop
-            style={{ width: 240, height: 240 }}
-          />
+        {/* Random AI Sparkles */}
+        {sparkles.map((sparkle) => (
+          <Animated.View
+            key={sparkle.id}
+            style={[
+              styles.sparkle,
+              sparkle.position,
+              {
+                opacity: sparkle.anim,
+                transform: [
+                  {
+                    scale: sparkle.anim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.5, 1.2],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Ionicons name="sparkles" size={24} color="#14B8A6" />
+          </Animated.View>
+        ))}
+
+        {/* Lottie Animation with Glow Effect */}
+        <View style={styles.lottieWrapper}>
+          <View style={styles.lottieContainer}>
+            <LottieView
+              source={require('../assets/lottie/loading.json')}
+              autoPlay
+              loop
+              style={{ width: 260, height: 260 }}
+            />
+          </View>
         </View>
 
         {/* Loading text */}
         <View style={styles.textContainer}>
           <Text style={styles.loadingText}>{message}</Text>
-        </View>
-
-        {/* Fun motivational messages */}
-        <View style={styles.tipsContainer}>
-          <Text style={styles.tipEmoji}>✨</Text>
-          <Text style={styles.tipText}>Get ready for your learning adventure!</Text>
         </View>
       </LinearGradient>
     </Animated.View>
@@ -104,40 +167,36 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
-  lottieContainer: {
-    width: 240,
-    height: 240,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 40,
+  // Random AI Sparkles
+  sparkle: {
+    position: 'absolute',
+    zIndex: 1,
   },
-  textContainer: {
-    alignItems: 'center',
+  // Lottie Animation Wrapper with Glow
+  lottieWrapper: {
     marginBottom: 60,
   },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  tipsContainer: {
-    flexDirection: 'row',
+  lottieContainer: {
+    width: 260,
+    height: 260,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 16,
-    maxWidth: width * 0.8,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 50,
+    elevation: 30,
   },
-  tipEmoji: {
-    fontSize: 20,
-    marginRight: 10,
+  // Text Container
+  textContainer: {
+    alignItems: 'center',
   },
-  tipText: {
-    fontSize: 14,
-    color: '#475569',
-    fontWeight: '500',
-    flex: 1,
+  loadingText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
 });
