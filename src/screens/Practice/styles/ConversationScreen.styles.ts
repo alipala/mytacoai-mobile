@@ -450,17 +450,19 @@ export const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.98)',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 24,
     paddingBottom: 32,
     paddingHorizontal: 24,
     maxHeight: SCREEN_HEIGHT * 0.85,
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   modalHeader: {
     alignItems: 'center',
@@ -469,7 +471,7 @@ export const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginTop: 8,
   },
   modalBody: {
@@ -478,16 +480,16 @@ export const styles = StyleSheet.create({
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 12,
     borderRadius: 12,
     marginBottom: 10,
   },
   helpToggleCard: {
     alignItems: 'center',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderWidth: 1,
-    borderColor: '#BBF7D0',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   infoContent: {
     flex: 1,
@@ -496,12 +498,12 @@ export const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 3,
   },
   infoText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 18,
   },
   modalButtonRow: {
@@ -513,21 +515,26 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#14B8A6',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalButtonDisabled: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     opacity: 0.6,
   },
   modalButtonSecondary: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   modalButtonText: {
     fontSize: 17,
@@ -537,7 +544,7 @@ export const styles = StyleSheet.create({
   modalButtonSecondaryText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   endModalContent: {
     backgroundColor: '#FFFFFF',

@@ -413,7 +413,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       <SafeAreaView style={styles.container}>
         <View style={styles.analyzingContainer}>
           <View style={styles.analyzingIconContainer}>
-            <ActivityIndicator size="large" color="#4FD1C5" />
+            <ActivityIndicator size="large" color="#14B8A6" />
           </View>
           <Text style={styles.analyzingTitle}>Analyzing Your Speech</Text>
           <Text style={styles.analyzingSubtitle}>
@@ -434,7 +434,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           activeOpacity={0.7}
           disabled={isRecording}
         >
-          <Ionicons name="close" size={28} color={isRecording ? '#D1D5DB' : '#1F2937'} />
+          <Ionicons name="close" size={28} color={isRecording ? 'rgba(255, 255, 255, 0.3)' : '#FFFFFF'} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Speaking Assessment</Text>
         <View style={styles.placeholder} />
@@ -461,7 +461,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           {/* Topic Card */}
           <View style={styles.topicCard}>
             <View style={styles.topicHeader}>
-              <Ionicons name="chatbubble-ellipses" size={24} color="#4FD1C5" />
+              <Ionicons name="chatbubble-ellipses" size={24} color="#14B8A6" />
               <Text style={styles.topicLabel}>Your Topic</Text>
             </View>
             <Text style={styles.topicName}>{topicName}</Text>
@@ -477,7 +477,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           <View style={styles.tipsSection}>
             <View style={styles.tipCard}>
               <View style={styles.tipIconContainer}>
-                <Ionicons name="time-outline" size={20} color="#4FD1C5" />
+                <Ionicons name="time-outline" size={20} color="#14B8A6" />
               </View>
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>1 minute</Text>
@@ -543,7 +543,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
             {/* Progress Message */}
             {!canStopRecording && (
               <View style={styles.progressMessage}>
-                <Ionicons name="timer-outline" size={20} color="#6B7280" />
+                <Ionicons name="timer-outline" size={20} color="#B4E4DD" />
                 <Text style={styles.progressText}>
                   Keep speaking... {MINIMUM_SPEAKING_TIME - (RECORDING_DURATION - timeRemaining)}s more needed
                 </Text>
@@ -613,7 +613,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
               activeOpacity={0.7}
             >
               <Text style={styles.skipButtonText}>Skip</Text>
-              <Ionicons name="play-skip-forward" size={18} color="#4FD1C5" />
+              <Ionicons name="play-skip-forward" size={18} color="#14B8A6" />
             </TouchableOpacity>
           </View>
         </View>

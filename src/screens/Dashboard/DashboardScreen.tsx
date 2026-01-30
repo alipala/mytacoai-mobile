@@ -414,7 +414,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onPress={handleUpgradePress}
                 activeOpacity={0.7}
               >
-                <Ionicons name="sparkles" size={22} color="#4FD1C5" />
+                <Ionicons name="sparkles" size={22} color="#14B8A6" />
                 <Text style={styles.upgradeButtonText}>Upgrade</Text>
               </TouchableOpacity>
             )}
@@ -442,7 +442,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 {isSubscribed && (
                   <View style={styles.premiumStatusBadgeContainer}>
                     <LinearGradient
-                      colors={['#FFF8E1', '#FFFBF0']}
+                      colors={['rgba(255, 214, 58, 0.15)', 'rgba(255, 214, 58, 0.08)']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.premiumStatusBadge}
@@ -486,7 +486,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       activeOpacity={0.9}
                     >
                       <LinearGradient
-                        colors={[COLORS.turquoise, '#3DA89D']}
+                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.primaryCardGradientNew}
@@ -559,7 +559,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       activeOpacity={0.9}
                     >
                       <LinearGradient
-                        colors={[COLORS.turquoise, '#3DA89D']}
+                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.premiumPrimaryGradient}
@@ -798,7 +798,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             activeOpacity={0.9}
           >
             <LinearGradient
-              colors={[COLORS.turquoise, '#3DA89D', '#2D9E93']}
+              colors={['rgba(20, 184, 166, 0.12)', 'rgba(20, 184, 166, 0.06)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.newSessionGradient}
@@ -806,28 +806,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* Content */}
               <View style={styles.newSessionContent}>
                 <View style={styles.newSessionIconContainer}>
-                  <LinearGradient
-                    colors={['#FFFFFF', '#F0FDFA']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.iconGradientBg}
-                  >
-                    <Ionicons name="add-circle" size={28} color={COLORS.turquoise} />
-                  </LinearGradient>
+                  <View style={styles.iconCircle}>
+                    <Ionicons name="rocket" size={32} color="#14B8A6" />
+                  </View>
                 </View>
                 <View style={styles.newSessionTextContainer}>
-                  <View style={styles.titleRow}>
-                    <Text style={styles.newSessionTitle}>Start New Session</Text>
-                    <View style={styles.newBadge}>
-                      <Ionicons name="sparkles" size={10} color="#FFD63A" />
-                    </View>
-                  </View>
+                  <Text style={styles.newSessionTitle}>Start New Session</Text>
                   <Text style={styles.newSessionSubtitle}>
-                    Choose Quick Practice or Assessment
+                    Practice or Assessment
                   </Text>
                 </View>
                 <View style={styles.arrowContainer}>
-                  <Ionicons name="arrow-forward-circle" size={32} color="rgba(255,255,255,0.95)" />
+                  <Ionicons name="chevron-forward" size={28} color="#14B8A6" />
                 </View>
               </View>
             </LinearGradient>

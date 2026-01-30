@@ -120,7 +120,7 @@ const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScr
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Speaking Assessment</Text>
         <View style={styles.placeholder} />
@@ -134,7 +134,7 @@ const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScr
         {/* Title Section */}
         <View style={styles.titleSection}>
           <View style={styles.iconContainer}>
-            <Ionicons name="mic-outline" size={40} color="#4FD1C5" />
+            <Ionicons name="mic-outline" size={40} color="#14B8A6" />
           </View>
           <Text style={styles.title}>Choose Your Language</Text>
           <Text style={styles.subtitle}>
@@ -201,7 +201,7 @@ const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F',
   },
   header: {
     flexDirection: 'row',
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.15)',
   },
   backButton: {
     padding: 8,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   placeholder: {
     width: 40,
@@ -239,21 +239,23 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -264,14 +266,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 16,
     padding: 20,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 2,
   },
   languageCardSelected: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     borderWidth: 2,
   },
   languageContent: {
@@ -288,12 +295,12 @@ const styles = StyleSheet.create({
   languageName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   languageNativeName: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   checkmark: {
     width: 32,
@@ -306,20 +313,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(20, 184, 166, 0.15)',
   },
   continueButton: {
     flexDirection: 'row',
-    backgroundColor: '#4FD1C5',
-    borderRadius: 12,
+    backgroundColor: '#14B8A6',
+    borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 12,
   },
   continueButtonDisabled: {
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   continueButtonText: {
     fontSize: 18,
