@@ -1666,8 +1666,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       {/* Full-Screen Gradient Background - Extends to status bar */}
       <LinearGradient
-        colors={['#14B8A6', '#F0FDFA', '#FAFAFA', '#FFFFFF']}
-        locations={[0, 0.25, 0.5, 0.85]}
+        colors={['#0B1A1F', '#0D2832', '#0F2C38', '#112E3C']}
+        locations={[0, 0.3, 0.6, 1]}
         style={styles.absoluteGradient}
       >
         <SafeAreaView style={styles.container} edges={['bottom']}>

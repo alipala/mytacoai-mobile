@@ -13,14 +13,16 @@ export const styles = StyleSheet.create({
   modalContainer: {
     width: SCREEN_WIDTH * 0.85,
     maxHeight: SCREEN_HEIGHT * 0.8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.98)',
     borderRadius: 24,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#8B5CF6',
         shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.5,
         shadowRadius: 20,
       },
       android: {
@@ -32,16 +34,18 @@ export const styles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.85,
     minHeight: 220, // Reduced from 300
     maxHeight: SCREEN_HEIGHT * 0.5, // Reduced from 0.6
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.98)',
     borderRadius: 20, // Reduced from 24
     marginVertical: 10, // Reduced from 12
     alignSelf: 'center',
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#8B5CF6',
         shadowOffset: { width: 0, height: 3 }, // Reduced from 4
-        shadowOpacity: 0.12, // Reduced from 0.15
+        shadowOpacity: 0.4, // Reduced from 0.15
         shadowRadius: 10, // Reduced from 12
       },
       android: {
@@ -56,8 +60,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12, // Reduced from 14
     paddingVertical: 8, // Reduced from 10
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    backgroundColor: '#FAFAFA',
+    borderBottomColor: 'rgba(139, 92, 246, 0.2)',
+    backgroundColor: 'rgba(139, 92, 246, 0.08)',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -76,23 +80,27 @@ export const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
   },
   title: {
     fontSize: 13, // Reduced from 15
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#FFFFFF',
   },
   closeButton: {
     width: 28, // Reduced from 32
     height: 28, // Reduced from 32
     borderRadius: 14, // Reduced from 16
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   scrollView: {
     flex: 1,
@@ -113,20 +121,22 @@ export const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
   },
   loadingTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   loadingSubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#B4E4DD',
     marginBottom: 24,
   },
   dotsContainer: {
@@ -154,20 +164,20 @@ export const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12, // Reduced from 13
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#FFFFFF',
     flex: 1,
   },
   summaryCard: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(59, 130, 246, 0.18)',
     padding: 8,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
     marginBottom: 6,
   },
   summaryText: {
     fontSize: 12,
-    color: '#1E40AF',
+    color: '#93C5FD',
     lineHeight: 16,
   },
   responsesContainer: {
@@ -175,13 +185,13 @@ export const styles = StyleSheet.create({
     marginTop: 3, // Reduced from 4
   },
   responseCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(16, 185, 129, 0.20)',
     padding: 14, // Reduced from 20
     paddingTop: 12, // Reduced from 16
     paddingLeft: 18, // Reduced from 22
     borderRadius: 14, // Reduced from 16
     borderWidth: 2,
-    borderColor: '#10B981',
+    borderColor: 'rgba(16, 185, 129, 0.5)',
     minHeight: 60, // Reduced from 85
     justifyContent: 'center',
     position: 'relative',
@@ -190,20 +200,21 @@ export const styles = StyleSheet.create({
       ios: {
         shadowColor: '#10B981',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
       },
       android: {
-        elevation: 4,
+        elevation: 5,
       },
     }),
   },
   responseCardFirst: {
-    borderColor: '#8B5CF6',
-    backgroundColor: '#FEFEFE',
+    borderColor: 'rgba(139, 92, 246, 0.6)',
+    backgroundColor: 'rgba(139, 92, 246, 0.22)',
     ...Platform.select({
       ios: {
         shadowColor: '#8B5CF6',
+        shadowOpacity: 0.4,
       },
     }),
   },
@@ -218,12 +229,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
+    borderColor: 'rgba(11, 26, 31, 0.98)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#10B981',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.4,
         shadowRadius: 4,
       },
       android: {
@@ -242,24 +253,26 @@ export const styles = StyleSheet.create({
   responseText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#FFFFFF',
     lineHeight: 22,
     letterSpacing: 0.2,
   },
   pronunciationButton: {
     padding: 6,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   vocabularyContainer: {
     gap: 12,
   },
   vocabularyCard: {
-    backgroundColor: '#FFF7ED',
+    backgroundColor: 'rgba(251, 146, 60, 0.18)',
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderWidth: 1.5,
+    borderColor: 'rgba(251, 146, 60, 0.4)',
   },
   vocabularyHeader: {
     flexDirection: 'row',
@@ -270,54 +283,54 @@ export const styles = StyleSheet.create({
   vocabularyWord: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#9A3412',
+    color: '#FED7AA',
   },
   vocabularyDefinition: {
     fontSize: 14,
-    color: '#9A3412',
+    color: '#FDE68A',
     marginBottom: 8,
   },
   vocabularyExample: {
     fontSize: 13,
-    color: '#C2410C',
+    color: '#FCA5A5',
     fontStyle: 'italic',
   },
   grammarContainer: {
     gap: 12,
   },
   grammarCard: {
-    backgroundColor: '#FAF5FF',
+    backgroundColor: 'rgba(139, 92, 246, 0.18)',
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E9D5FF',
+    borderWidth: 1.5,
+    borderColor: 'rgba(139, 92, 246, 0.4)',
   },
   grammarPattern: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B21A8',
+    color: '#C4B5FD',
     marginBottom: 8,
   },
   grammarExplanation: {
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#A78BFA',
     marginBottom: 8,
   },
   grammarExample: {
     fontSize: 13,
-    color: '#8B5CF6',
+    color: '#DDD6FE',
     fontStyle: 'italic',
   },
   culturalCard: {
-    backgroundColor: '#FDF2F8',
+    backgroundColor: 'rgba(236, 72, 153, 0.18)',
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FBCFE8',
+    borderWidth: 1.5,
+    borderColor: 'rgba(236, 72, 153, 0.4)',
   },
   culturalText: {
     fontSize: 14,
-    color: '#9F1239',
+    color: '#FBCFE8',
     lineHeight: 20,
   },
   emptyContainer: {
@@ -327,7 +340,7 @@ export const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#94A3B8',
+    color: '#B4E4DD',
     marginTop: 16,
   },
   debugInfo: {
