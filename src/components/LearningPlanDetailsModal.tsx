@@ -14,6 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { styles } from './styles/LearningPlanDetailsModal.styles';
 
+// Import SVG flags
+import EnglishFlag from '../assets/flags/english.svg';
+import SpanishFlag from '../assets/flags/spanish.svg';
+import FrenchFlag from '../assets/flags/french.svg';
+import GermanFlag from '../assets/flags/german.svg';
+import PortugueseFlag from '../assets/flags/portuguese.svg';
+import DutchFlag from '../assets/flags/dutch.svg';
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // ==================== TYPES ====================
@@ -28,33 +36,28 @@ interface LearningPlanDetailsModalProps {
 
 // ==================== HELPER FUNCTIONS ====================
 
-const getLanguageFlag = (language: string): string => {
-  const flags: Record<string, string> = {
-    'english': '🇺🇸',
-    'spanish': '🇪🇸',
-    'french': '🇫🇷',
-    'german': '🇩🇪',
-    'dutch': '🇳🇱',
-    'portuguese': '🇵🇹',
-    'italian': '🇮🇹',
-    'chinese': '🇨🇳',
-    'japanese': '🇯🇵',
-    'korean': '🇰🇷',
-    'turkish': '🇹🇷'
+const getLanguageFlagComponent = (language: string): React.FC<any> | null => {
+  const flags: Record<string, React.FC<any>> = {
+    'english': EnglishFlag,
+    'spanish': SpanishFlag,
+    'french': FrenchFlag,
+    'german': GermanFlag,
+    'dutch': DutchFlag,
+    'portuguese': PortugueseFlag,
   };
-  return flags[language.toLowerCase()] || '🌍';
+  return flags[language.toLowerCase()] || null;
 };
 
 const getLevelColor = (level: string): { bg: string; text: string } => {
   const colors: Record<string, { bg: string; text: string }> = {
-    'A1': { bg: '#FEE2E2', text: '#DC2626' },
-    'A2': { bg: '#FED7AA', text: '#EA580C' },
-    'B1': { bg: '#E9D8FD', text: '#805AD5' },
-    'B2': { bg: '#DBEAFE', text: '#2563EB' },
-    'C1': { bg: '#D1FAE5', text: '#059669' },
-    'C2': { bg: '#FEF3C7', text: '#D97706' }
+    'A1': { bg: 'rgba(220, 38, 38, 0.15)', text: '#FCA5A5' },
+    'A2': { bg: 'rgba(234, 88, 12, 0.15)', text: '#FED7AA' },
+    'B1': { bg: 'rgba(128, 90, 213, 0.15)', text: '#C4B5FD' },
+    'B2': { bg: 'rgba(37, 99, 235, 0.15)', text: '#93C5FD' },
+    'C1': { bg: 'rgba(5, 150, 105, 0.15)', text: '#6EE7B7' },
+    'C2': { bg: 'rgba(217, 119, 6, 0.15)', text: '#FCD34D' }
   };
-  return colors[level.toUpperCase()] || { bg: '#E0F2FE', text: '#0891B2' };
+  return colors[level.toUpperCase()] || { bg: 'rgba(8, 145, 178, 0.15)', text: '#67E8F9' };
 };
 
 // ==================== ANIMATED PROGRESS RING ====================
@@ -91,8 +94,8 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   });
 
   const isComplete = percentage >= 100;
-  const progressColor = isComplete ? '#10B981' : '#4FD1C5';
-  
+  const progressColor = isComplete ? '#10B981' : '#14B8A6';
+
   return (
     <View style={[styles.progressRingWrapper, { width: size, height: size }]}>
       <Svg width={size} height={size}>
@@ -100,7 +103,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#E5E7EB"
+          stroke="rgba(20, 184, 166, 0.15)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -154,6 +157,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   const language = plan?.language || plan?.target_language || 'English';
   const level = plan?.proficiency_level || plan?.target_cefr_level || 'B1';
   const levelColors = getLevelColor(level);
+  const FlagComponent = getLanguageFlagComponent(language);
 
   // Get actual practice minutes used from the plan (tracked by backend)
   // Fallback to estimated calculation if not available
@@ -261,7 +265,11 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <Text style={styles.headerFlag}>{getLanguageFlag(language)}</Text>
+                {FlagComponent && (
+                  <View style={styles.headerFlagContainer}>
+                    <FlagComponent width={44} height={44} />
+                  </View>
+                )}
                 <View>
                   <Text style={styles.headerTitle}>
                     {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
@@ -273,7 +281,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                   </View>
                 </View>
               </View>
-              
+
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={28} color="#FFFFFF" />
               </TouchableOpacity>

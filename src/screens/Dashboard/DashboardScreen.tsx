@@ -401,7 +401,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {/* iOS-Native Header WITH USER BUTTON */}
         <View style={styles.header}>
           <Image
-            source={require('../../assets/logo.png')}
+            source={require('../../assets/logo-transparent.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -663,7 +663,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       {/* Header with Logo + Premium Badge + Streak Badge */}
       <View style={styles.header}>
         <Image
-          source={require('../../assets/logo.png')}
+          source={require('../../assets/logo-transparent.png')}
           style={styles.logo}
           resizeMode="contain"
         />

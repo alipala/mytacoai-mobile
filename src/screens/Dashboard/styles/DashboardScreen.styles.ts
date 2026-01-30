@@ -14,14 +14,14 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#0B1A1F',
     paddingHorizontal: 20,
-    paddingVertical: 18,
-    height: 90,
+    paddingVertical: 16,
+    height: 88,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(20, 184, 166, 0.15)',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   logo: {
-    width: SCREEN_WIDTH < 400 ? 160 : 220, // Responsive: smaller on small phones
-    height: SCREEN_WIDTH < 400 ? 51 : 70, // Maintain aspect ratio
+    width: SCREEN_WIDTH < 400 ? 140 : 180, // Optimized size for transparent logo
+    height: SCREEN_WIDTH < 400 ? 45 : 58, // Maintain aspect ratio
   },
   headerActions: {
     flexDirection: 'row',

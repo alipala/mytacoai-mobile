@@ -43,14 +43,14 @@ interface MiniLearningPlanCardProps {
 
 const getLevelColor = (level: string): { bg: string; text: string } => {
   const colors: Record<string, { bg: string; text: string }> = {
-    'A1': { bg: '#FEE2E2', text: '#DC2626' },
-    'A2': { bg: '#FED7AA', text: '#EA580C' },
-    'B1': { bg: '#E9D8FD', text: '#805AD5' },
-    'B2': { bg: '#DBEAFE', text: '#2563EB' },
-    'C1': { bg: '#D1FAE5', text: '#059669' },
-    'C2': { bg: '#FEF3C7', text: '#D97706' }
+    'A1': { bg: 'rgba(220, 38, 38, 0.15)', text: '#FCA5A5' },
+    'A2': { bg: 'rgba(234, 88, 12, 0.15)', text: '#FED7AA' },
+    'B1': { bg: 'rgba(128, 90, 213, 0.15)', text: '#C4B5FD' },
+    'B2': { bg: 'rgba(37, 99, 235, 0.15)', text: '#93C5FD' },
+    'C1': { bg: 'rgba(5, 150, 105, 0.15)', text: '#6EE7B7' },
+    'C2': { bg: 'rgba(217, 119, 6, 0.15)', text: '#FCD34D' }
   };
-  return colors[level.toUpperCase()] || { bg: '#E0F2FE', text: '#0891B2' };
+  return colors[level.toUpperCase()] || { bg: 'rgba(8, 145, 178, 0.15)', text: '#67E8F9' };
 };
 
 const getStatusBadge = (percentage: number) => {
@@ -165,7 +165,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#4FD1C5', '#3DA89D']}
+            colors={['#14B8A6', '#0D9488']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.continueGradient}
@@ -181,7 +181,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
           onPress={handleDetails}
           activeOpacity={0.7}
         >
-          <Ionicons name="information-circle" size={14} color="#4FD1C5" />
+          <Ionicons name="information-circle" size={14} color="#14B8A6" />
           <Text style={styles.detailsText}>Details</Text>
         </TouchableOpacity>
       </View>
@@ -195,16 +195,18 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.8)',
     borderRadius: 16,
     paddingTop: 10,
     paddingBottom: 14,
     paddingHorizontal: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
     minHeight: 188, // Increased from 168
     maxHeight: 198, // Increased from 178
     overflow: 'hidden',
@@ -273,7 +275,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
@@ -284,7 +286,7 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 35,
     borderWidth: 6,
-    borderColor: '#4FD1C5',
+    borderColor: '#14B8A6',
     borderRightColor: 'transparent',
     borderBottomColor: 'transparent',
   },
@@ -292,14 +294,16 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   progressText: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#14B8A6',
   },
   statsColumn: {
     flex: 1,
@@ -313,7 +317,7 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   buttonsRow: {
     flexDirection: 'row',
@@ -324,11 +328,11 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 10,
     overflow: 'hidden',
-    shadowColor: '#4FD1C5',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 6,
   },
   continueGradient: {
     flexDirection: 'row',
@@ -351,15 +355,15 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#4FD1C5',
+    borderColor: 'rgba(20, 184, 166, 0.4)',
   },
   detailsText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#4FD1C5',
+    color: '#14B8A6',
   },
 });
 

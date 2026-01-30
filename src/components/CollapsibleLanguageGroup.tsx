@@ -27,6 +27,9 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  withRepeat,
+  withSequence,
+  Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import type { LearningPlan } from '../api/generated';
@@ -81,8 +84,8 @@ const calculateDynamicHeight = (totalCount: number): number => {
   const calculatedHeight = availableHeight / totalCount;
 
   // Clamp between min and max for usability
-  const MIN_HEIGHT = 65;  // Minimum readable height (compact)
-  const MAX_HEIGHT = 120; // Maximum to prevent too tall cards (reduced from 140)
+  const MIN_HEIGHT = 80;  // Increased from 65 to extend card height
+  const MAX_HEIGHT = 140; // Increased from 120 to allow taller cards
 
   return Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, calculatedHeight));
 };
@@ -109,38 +112,45 @@ const getLanguageName = (language: string): string => {
 };
 
 /**
- * Get border and background colors based on language flag colors
+ * Get border and background colors based on language flag colors - DARK THEME
  */
-const getLanguageColors = (language: string): { border: string; background: string } => {
-  const colors: Record<string, { border: string; background: string }> = {
+const getLanguageColors = (language: string): { border: string; background: string; glow: string } => {
+  const colors: Record<string, { border: string; background: string; glow: string }> = {
     'dutch': {
-      border: '#FF6B35',      // Dutch Orange (Oranje)
-      background: '#FFF4ED'   // Very light orange
+      border: '#FF6B35',                      // Dutch Orange (Oranje)
+      background: 'rgba(255, 107, 53, 0.12)', // Translucent orange
+      glow: '#FF6B35'
     },
     'english': {
-      border: '#C8102E',      // British Red
-      background: '#FEF2F2'   // Very light red
+      border: '#C8102E',                      // British Red
+      background: 'rgba(200, 16, 46, 0.12)',  // Translucent red
+      glow: '#C8102E'
     },
     'spanish': {
-      border: '#FBBF24',      // Spanish Yellow/Gold
-      background: '#FFFBEB'   // Very light yellow
+      border: '#FBBF24',                      // Spanish Yellow/Gold
+      background: 'rgba(251, 191, 36, 0.12)', // Translucent yellow
+      glow: '#FBBF24'
     },
     'french': {
-      border: '#0055A4',      // French Blue
-      background: '#EFF6FF'   // Very light blue
+      border: '#0055A4',                      // French Blue
+      background: 'rgba(0, 85, 164, 0.12)',   // Translucent blue
+      glow: '#0055A4'
     },
     'german': {
-      border: '#DD0000',      // German Red
-      background: '#FEF2F2'   // Very light red
+      border: '#DD0000',                      // German Red
+      background: 'rgba(221, 0, 0, 0.12)',    // Translucent red
+      glow: '#DD0000'
     },
     'portuguese': {
-      border: '#006600',      // Portuguese Green
-      background: '#F0FDF4'   // Very light green
+      border: '#006600',                      // Portuguese Green
+      background: 'rgba(0, 102, 0, 0.12)',    // Translucent green
+      glow: '#006600'
     },
   };
   return colors[language.toLowerCase()] || {
-    border: '#4FD1C5',
-    background: '#FFFFFF'
+    border: '#14B8A6',
+    background: 'rgba(20, 184, 166, 0.12)',
+    glow: '#14B8A6'
   };
 };
 
@@ -217,7 +227,6 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
   const dynamicHeight = calculateDynamicHeight(totalLanguageCount);
 
   // Animation values
-  const rotation = useSharedValue(isExpanded ? 180 : 0);
   const contentHeight = useSharedValue(isExpanded ? 1 : 0);
 
   /**
@@ -235,12 +244,6 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
    * Sync animation values with isExpanded prop
    */
   React.useEffect(() => {
-    // Animate chevron rotation
-    rotation.value = withSpring(isExpanded ? 180 : 0, {
-      damping: 15,
-      stiffness: 150,
-    });
-
     // Animate content height
     contentHeight.value = withTiming(isExpanded ? 1 : 0, {
       duration: 300,
@@ -259,10 +262,6 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
   };
 
   // Animated styles
-  const chevronStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
   const contentStyle = useAnimatedStyle(() => ({
     opacity: contentHeight.value,
     maxHeight: contentHeight.value === 0 ? 0 : 10000, // Large number for auto-height
@@ -272,89 +271,104 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
     <View style={[
       styles.container,
       {
-        borderWidth: isExpanded ? 2.5 : 2,
-        borderColor: languageColors.border,
-        backgroundColor: isExpanded ? languageColors.background : '#FFFFFF',
-        shadowColor: isExpanded ? languageColors.border : '#000',
-        shadowOpacity: isExpanded ? 0.15 : 0.05,
-        shadowRadius: isExpanded ? 8 : 4,
-        elevation: isExpanded ? 4 : 2,
+        borderWidth: isExpanded ? 2 : 1.5,
+        borderColor: isExpanded ? languageColors.border : `${languageColors.border}80`,
+        backgroundColor: isExpanded ? languageColors.background : 'rgba(11, 26, 31, 0.6)',
+        shadowColor: languageColors.glow,
+        shadowOpacity: isExpanded ? 0.4 : 0.15,
+        shadowRadius: isExpanded ? 12 : 6,
+        elevation: isExpanded ? 8 : 3,
       }
     ]}>
+      {/* DNA Button - Positioned in top-right corner */}
+      {hasDNAAnalysis && (
+        <TouchableOpacity
+          style={[styles.dnaButtonAbsolute, !isPremium && styles.dnaButtonLocked]}
+          onPress={handleDNAPress}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="analytics"
+            size={14}
+            color={isPremium ? '#14B8A6' : '#9CA3AF'}
+          />
+          <Text style={[styles.dnaButtonText, !isPremium && styles.dnaButtonTextLocked]}>
+            DNA Analysis
+          </Text>
+        </TouchableOpacity>
+      )}
+
       {/* Collapsible Header - Entire area is tappable, with dynamic height */}
       <TouchableOpacity
-        style={[styles.header, { minHeight: dynamicHeight }]}
+        style={[styles.headerContainer, { minHeight: dynamicHeight }]}
         onPress={toggleExpand}
         activeOpacity={0.7}
       >
-        {/* Left: SVG Flag + Language Info */}
-        <View style={styles.leftSection}>
-          {FlagComponent && (
-            <View style={[styles.flagContainer, totalLanguageCount > 4 && styles.flagContainerSmall]}>
-              <FlagComponent
-                width={totalLanguageCount > 4 ? 32 : 36}
-                height={totalLanguageCount > 4 ? 32 : 36}
-              />
-            </View>
-          )}
-          <View style={styles.languageInfo}>
-            <View style={styles.topRow}>
-              <Text style={[styles.languageName, totalLanguageCount > 4 && styles.textSmall]}>
-                {name}
-              </Text>
-              <Text style={[styles.planCount, totalLanguageCount > 4 && styles.textSmall]}>
-                ({plans.length})
-              </Text>
-            </View>
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Ionicons name="flash" size={totalLanguageCount > 4 ? 10 : 11} color="#F59E0B" />
-                <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
-                  {stats.avgProgress}% avg
+        {/* Main Content Row */}
+        <View style={styles.header}>
+          {/* Left: SVG Flag + Language Info */}
+          <View style={styles.leftSection}>
+            {FlagComponent && (
+              <View style={[styles.flagContainer, totalLanguageCount > 4 && styles.flagContainerSmall]}>
+                <FlagComponent
+                  width={totalLanguageCount > 4 ? 32 : 36}
+                  height={totalLanguageCount > 4 ? 32 : 36}
+                />
+              </View>
+            )}
+            <View style={styles.languageInfo}>
+              <View style={styles.topRow}>
+                <Text style={[styles.languageName, totalLanguageCount > 4 && styles.textSmall]}>
+                  {name}
+                </Text>
+                <Text style={[styles.planCount, totalLanguageCount > 4 && styles.textSmall]}>
+                  ({plans.length})
                 </Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Ionicons name="calendar" size={totalLanguageCount > 4 ? 10 : 11} color="#6B7280" />
-                <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
-                  {stats.sessionText}
-                </Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Ionicons name="time" size={totalLanguageCount > 4 ? 10 : 11} color="#6B7280" />
-                <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
-                  {stats.timeText}
-                </Text>
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Ionicons name="flash" size={totalLanguageCount > 4 ? 10 : 11} color="#F59E0B" />
+                  <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
+                    {stats.avgProgress}% avg
+                  </Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Ionicons name="calendar" size={totalLanguageCount > 4 ? 10 : 11} color="#6B7280" />
+                  <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
+                    {stats.sessionText}
+                  </Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Ionicons name="time" size={totalLanguageCount > 4 ? 10 : 11} color="#6B7280" />
+                  <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
+                    {stats.timeText}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Right: DNA Button + Chevron */}
-        <View style={styles.rightSection}>
-          {/* DNA Chip - Only show if analysis exists */}
-          {hasDNAAnalysis && (
-            <TouchableOpacity
-              style={[styles.dnaChip, !isPremium && styles.dnaChipLocked]}
-              onPress={handleDNAPress}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name="analytics"
-                size={totalLanguageCount > 4 ? 12 : 13}
-                color={isPremium ? '#14B8A6' : '#9CA3AF'}
-              />
-              <Text style={[styles.dnaText, !isPremium && styles.dnaTextLocked]}>
-                DNA
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Animated Chevron */}
-          <Animated.View style={[styles.chevronContainer, chevronStyle]}>
-            <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
-          </Animated.View>
+        {/* Bottom: Tap to Expand/Collapse Text */}
+        <View style={styles.expandHintContainer}>
+          <View style={styles.expandHintDivider} />
+          <View style={styles.expandHintTextContainer}>
+            <Ionicons
+              name={isExpanded ? "chevron-up" : "chevron-down"}
+              size={12}
+              color="#14B8A6"
+            />
+            <Text style={styles.expandHintText}>
+              {isExpanded ? 'Tap to collapse' : 'Tap to expand'}
+            </Text>
+            <Ionicons
+              name={isExpanded ? "chevron-up" : "chevron-down"}
+              size={12}
+              color="#14B8A6"
+            />
+          </View>
         </View>
       </TouchableOpacity>
 
@@ -408,19 +422,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     // backgroundColor removed - applied dynamically per language
     borderRadius: 14,
-    overflow: 'hidden',
+    overflow: 'visible', // Changed from 'hidden' to allow button shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
+  headerContainer: {
+    // Outer container for entire touchable area
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 14,
-    paddingVertical: 8, // Reduced from 12 to remove white space
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   leftSection: {
     flexDirection: 'row',
@@ -444,13 +462,13 @@ const styles = StyleSheet.create({
   languageName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginRight: 4,
   },
   planCount: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: '#B4E4DD',
   },
   textSmall: {
     fontSize: 14, // Smaller text for 5+ languages
@@ -468,7 +486,7 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   textTiny: {
     fontSize: 10, // Even smaller for 5+ languages
@@ -476,41 +494,67 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 10,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(180, 228, 221, 0.3)',
   },
-  rightSection: {
+  // Bottom Expand/Collapse Hint Section
+  expandHintContainer: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 4,
+    paddingHorizontal: 14,
+  },
+  expandHintDivider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: 'rgba(20, 184, 166, 0.2)',
+    marginBottom: 6,
+  },
+  expandHintTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6, // Reduced from 8
+    gap: 6,
   },
-  dnaChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 4, // Reduced from 5
-    backgroundColor: '#F0FDFA',
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#14B8A6',
-  },
-  dnaChipLocked: {
-    backgroundColor: '#F9FAFB',
-    borderColor: '#E5E7EB',
-  },
-  dnaText: {
+  expandHintText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#14B8A6',
+    letterSpacing: 0.3,
   },
-  dnaTextLocked: {
-    color: '#9CA3AF',
-  },
-  chevronContainer: {
-    width: 24,
-    height: 24,
+  // DNA Button - Positioned Absolutely in Top-Right Corner
+  dnaButtonAbsolute: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#14B8A6',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 10,
+  },
+  dnaButtonLocked: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  dnaButtonText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#14B8A6',
+    letterSpacing: 0.3,
+  },
+  dnaButtonTextLocked: {
+    color: '#B4E4DD',
   },
   content: {
     overflow: 'hidden',
@@ -519,8 +563,8 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   plansScrollContent: {
-    paddingTop: 4, // Small padding to cards
-    paddingBottom: 8,
+    paddingTop: 2, // Reduced from 4 to bring cards closer to divider
+    paddingBottom: 2, // Reduced from 8 to bring cards closer to "Tap to collapse"
     paddingHorizontal: 12,
   },
   planCardWrapper: {
