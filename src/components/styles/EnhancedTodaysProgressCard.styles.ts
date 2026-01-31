@@ -15,15 +15,15 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
   },
   whiteCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.95)',
     padding: 20,
     paddingBottom: 16,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -36,7 +36,7 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   headerDate: {
     fontSize: 13,
@@ -73,7 +73,7 @@ export const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(107, 114, 128, 0.3)',
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,
@@ -85,13 +85,13 @@ export const styles = StyleSheet.create({
   progressBarLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#D1D5DB',
     textAlign: 'center',
   },
   expandableSection: {
     marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: 'rgba(107, 114, 128, 0.3)',
     paddingTop: 12,
   },
   sectionHeader: {
@@ -111,7 +111,7 @@ export const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: '#E5E7EB',
   },
   sectionChevron: {
     fontSize: 12,
@@ -126,7 +126,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(17, 24, 39, 0.6)',
     borderRadius: 10,
     marginTop: 8,
   },
@@ -136,13 +136,13 @@ export const styles = StyleSheet.create({
   breakdownKey: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   breakdownDetail: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#D1D5DB',
   },
   breakdownRight: {
     alignItems: 'flex-end',
@@ -153,7 +153,7 @@ export const styles = StyleSheet.create({
     marginBottom: 2,
   },
   breakdownXP: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -161,21 +161,21 @@ export const styles = StyleSheet.create({
   breakdownXPText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#4B5563',
+    color: '#14B8A6',
   },
   milestoneContainer: {
     marginTop: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#FCD34D',
+    borderColor: 'rgba(251, 191, 36, 0.3)',
   },
   milestoneText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#92400E',
+    color: '#FCD34D',
     textAlign: 'center',
   },
   loadingContainer: {
@@ -185,7 +185,7 @@ export const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#D1D5DB',
     marginTop: 12,
   },
   errorContainer: {

@@ -79,7 +79,7 @@ export default function ErrorSpottingScreen({
     return (
       <View style={styles.container}>
         <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={{ fontSize: 18, color: COLORS.textDark, textAlign: 'center' }}>
+          <Text style={{ fontSize: 18, color: '#FFFFFF', textAlign: 'center' }}>
             Challenge data error. Skipping...
           </Text>
         </View>
@@ -426,7 +426,7 @@ function OptionButtonWithFeedback({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA', // Clean whitish background
+    backgroundColor: '#0B1A1F', // Clean whitish background
   },
   successBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -453,32 +453,32 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.textGray,
+    color: '#D1D5DB',
     marginTop: 4,
   },
   sentenceContainer: {
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red/coral tint for error spotting
     padding: 20,
     borderRadius: 20,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
     elevation: 3,
   },
   sentence: {
     fontSize: 20,
     fontWeight: '600',
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 32,
   },
@@ -489,11 +489,11 @@ const styles = StyleSheet.create({
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
     padding: 18,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(107, 114, 128, 0.3)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -507,14 +507,14 @@ const styles = StyleSheet.create({
     }),
   },
   optionSelected: {
-    borderColor: COLORS.turquoise,
-    backgroundColor: COLORS.turquoiseLight,
+    borderColor: '#14B8A6',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     borderWidth: 1.5,
   },
   optionWrong: {
     borderColor: '#F87171',
     borderWidth: 2,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
     ...Platform.select({
       ios: {
         shadowColor: '#DC2626',
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
   optionCorrect: {
     borderColor: '#34D399',
     borderWidth: 2,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: 'rgba(52, 211, 153, 0.15)',
     ...Platform.select({
       ios: {
         shadowColor: '#059669',
@@ -547,13 +547,13 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(107, 114, 128, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   optionLetterWrong: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
   },
   optionLetterCorrect: {
     backgroundColor: '#D1FAE5',
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
   optionLetterText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#E5E7EB',
   },
   optionLetterTextWrong: {
     color: '#DC2626',
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#E5E7EB',
     flex: 1,
     lineHeight: 22,
   },
@@ -601,12 +601,12 @@ const styles = StyleSheet.create({
   feedbackSubtitle: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#D1D5DB',
     marginBottom: 12,
     textAlign: 'center',
   },
   correctedSentenceContainer: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: 'rgba(52, 211, 153, 0.15)',
     padding: 16,
     borderRadius: 12,
     marginTop: 12,
@@ -623,11 +623,11 @@ const styles = StyleSheet.create({
   correctedSentence: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#E5E7EB',
     lineHeight: 26,
   },
   explanationBox: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     padding: 14,
     borderRadius: 12,
     marginTop: 12,
@@ -638,13 +638,13 @@ const styles = StyleSheet.create({
   explanationLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#374151',
+    color: '#D1D5DB',
     marginBottom: 6,
     letterSpacing: 0.5,
   },
   explanationText: {
     fontSize: 15,
-    color: '#6B7280',
+    color: '#D1D5DB',
     lineHeight: 22,
   },
   doneButton: {
@@ -655,12 +655,12 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.1,
-        shadowRadius: 12,
+        shadowRadius: 16,
       },
       android: {
-        elevation: 4,
+        elevation: 10,
       },
     }),
   },
@@ -675,23 +675,18 @@ const styles = StyleSheet.create({
     paddingBottom: 40, // More space from bottom
   },
   continueButton: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-    alignSelf: 'center',
-    minWidth: SCREEN_WIDTH < 400 ? 180 : 200,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#2563EB',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    backgroundColor: '#3B82F6',
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 10,
   },
   continueButtonText: {
     fontSize: 17,

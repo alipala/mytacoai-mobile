@@ -58,7 +58,7 @@ export default function SessionProgressBar({
 
   return (
     <View style={styles.container}>
-      {/* Single Card Container for All Stats */}
+      {/* Unified Stats Card - Hearts + XP in full width */}
       <View style={styles.statsCard}>
         {/* Left: Hearts + Shield */}
         {showHearts && heartPool && (
@@ -90,7 +90,7 @@ export default function SessionProgressBar({
         )}
       </View>
 
-      {/* Progress Path (replaces progress bar) */}
+      {/* Progress Path - Full width to match stats card */}
       <View style={styles.progressSection}>
         <View style={styles.progressCard}>
           <ProgressPath />
@@ -111,17 +111,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginRight: 60, // Add right margin to create space for the X button notch
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
     borderRadius: 16,
-    borderTopRightRadius: 0, // Remove top-right radius to create notch effect
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
     minHeight: 64, // Increased for 2 rows of hearts
@@ -136,7 +134,7 @@ const styles = StyleSheet.create({
   verticalDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'rgba(20, 184, 166, 0.3)',
     marginHorizontal: 8,
     alignSelf: 'center',
   },
@@ -149,19 +147,19 @@ const styles = StyleSheet.create({
   statBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E0F2FE',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
     minWidth: 70,
     justifyContent: 'center',
   },
   statValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0891B2',
+    color: '#14B8A6',
     letterSpacing: -0.2,
   },
   progressSection: {
@@ -171,13 +169,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },

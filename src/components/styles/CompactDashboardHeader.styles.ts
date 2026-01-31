@@ -7,9 +7,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme background
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
 
   // Logo Section
@@ -28,11 +28,11 @@ export const styles = StyleSheet.create({
   appName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
   },
 
   appNameAI: {
-    color: '#4FD1C5',
+    color: '#14B8A6', // Teal for dark theme
   },
 
   // Badges Section (Right)
@@ -45,12 +45,12 @@ export const styles = StyleSheet.create({
   // Premium Badge
   premiumBadge: {
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    overflow: 'visible', // Allow outer glow
+    shadowColor: '#FBBF24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
 
   premiumGradient: {
@@ -59,6 +59,9 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
   },
 
   crownEmoji: {
@@ -72,14 +75,14 @@ export const styles = StyleSheet.create({
   premiumLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#92400E',
+    color: '#FBBF24', // Gold for premium
     letterSpacing: 0.3,
   },
 
   premiumMinutes: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#B45309',
+    color: '#FCD34D', // Lighter gold
   },
 
   // Free Badge
@@ -89,27 +92,27 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark background
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(107, 114, 128, 0.3)',
     gap: 4,
   },
 
   freeLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray for dark theme
   },
 
   // Streak Badge
   streakBadge: {
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    overflow: 'visible', // Allow outer glow
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
 
   streakGradient: {
@@ -118,6 +121,9 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
   },
 
   fireEmoji: {
@@ -132,14 +138,14 @@ export const styles = StyleSheet.create({
   streakNumber: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#92400E',
+    color: '#EF4444', // Bright red for streak
     lineHeight: 14,
   },
 
   streakLabel: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#B45309',
+    color: '#FCA5A5', // Lighter red
     lineHeight: 10,
   },
 });

@@ -44,17 +44,22 @@ export const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
-  // Compact Premium Badge in Header - Dark Theme
+  // Compact Premium Badge in Header - Dark Theme with Premium Feel
   premiumBadgeCompact: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: 'rgba(255, 214, 58, 0.15)',
+    backgroundColor: 'rgba(251, 191, 36, 0.15)', // Gold tinted
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 214, 58, 0.3)',
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+    shadowColor: '#FBBF24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   crownEmojiCompact: {
     fontSize: 14,
@@ -62,27 +67,32 @@ export const styles = StyleSheet.create({
   premiumTextCompact: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFD63A',
+    color: '#FBBF24', // Gold
     letterSpacing: 0.3,
     lineHeight: 12,
   },
   premiumMinutesCompact: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#FFC107',
+    color: '#FCD34D', // Lighter gold
     lineHeight: 10,
   },
-  // Compact Streak Badge in Header - Dark Theme
+  // Compact Streak Badge in Header - Dark Theme with Glow
   streakBadgeCompact: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red tinted
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   fireEmojiCompact: {
     fontSize: 16,
@@ -90,13 +100,13 @@ export const styles = StyleSheet.create({
   streakNumberCompact: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#EF4444',
+    color: '#EF4444', // Bright red
     lineHeight: 14,
   },
   streakLabelCompact: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#F87171',
+    color: '#FCA5A5', // Lighter red
     lineHeight: 10,
   },
   scrollView: {
@@ -1042,5 +1052,128 @@ export const styles = StyleSheet.create({
     color: '#92400E',
     fontWeight: '500',
     lineHeight: 18,
+  },
+  // Premium Benefits Modal Styles
+  premiumBenefitsContainer: {
+    flex: 1,
+    backgroundColor: '#0B1A1F',
+  },
+  premiumBenefitsGradient: {
+    flex: 1,
+    paddingTop: 60,
+  },
+  premiumBenefitsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
+  },
+  premiumBenefitsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  premiumBenefitsTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  premiumBenefitsCloseButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumBenefitsScroll: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  premiumSubscriptionCard: {
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    alignItems: 'center',
+  },
+  premiumSubscriptionPlan: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FBBF24',
+    marginBottom: 8,
+  },
+  premiumSubscriptionStatus: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FCD34D',
+  },
+  premiumBenefitsList: {
+    gap: 16,
+  },
+  premiumBenefitItem: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    gap: 16,
+  },
+  premiumBenefitIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+  },
+  premiumBenefitTextContainer: {
+    flex: 1,
+  },
+  premiumBenefitTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  premiumBenefitDescription: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#9CA3AF',
+    lineHeight: 20,
+  },
+  premiumThankYouCard: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderRadius: 16,
+    padding: 24,
+    marginTop: 24,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    alignItems: 'center',
+  },
+  premiumThankYouText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  premiumThankYouSubtext: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#D1D5DB',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

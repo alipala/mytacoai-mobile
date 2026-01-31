@@ -478,7 +478,7 @@ export default function NativeCheckScreen({
           {/* Next card (behind) */}
           <Animated.View style={[styles.nextCard, nextCardAnimatedStyle]}>
             <LinearGradient
-              colors={['#E0E7FF', '#C7D2FE']}
+              colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
               style={styles.nextCardGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -493,7 +493,7 @@ export default function NativeCheckScreen({
           <GestureDetector gesture={panGesture}>
             <Animated.View style={[styles.card, cardAnimatedStyle]}>
               <LinearGradient
-                colors={['#FFFFFF', '#FAFBFC']}
+                colors={['rgba(31, 41, 55, 0.95)', 'rgba(17, 24, 39, 0.95)']}
                 style={styles.cardGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
@@ -525,14 +525,9 @@ export default function NativeCheckScreen({
 
                   {/* Sentence as VISUAL HERO */}
                   <View style={styles.sentenceWrapper}>
-                    <LinearGradient
-                      colors={['#F8FBFF', '#F3F7FB']}
-                      style={styles.sentenceGradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
+                    <View style={styles.sentenceGradient}>
                       <Text style={styles.sentence}>{challenge.sentence}</Text>
-                    </LinearGradient>
+                    </View>
                   </View>
 
                   {/* Bottom section with swipe hint and icons */}
@@ -640,7 +635,7 @@ export default function NativeCheckScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // Pure white background like other quiz types
+    backgroundColor: '#0B1A1F', // Dark theme background
   },
   cardStackContainer: {
     flex: 1,
@@ -660,7 +655,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 28,
     borderWidth: 2,
-    borderColor: '#A5B4FC',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   nextCardInner: {
     flex: 1,
@@ -670,7 +665,7 @@ const styles = StyleSheet.create({
   nextCardText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#6366F1',
+    color: '#14B8A6',
     letterSpacing: 0.5,
   },
   card: {
@@ -693,7 +688,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 28,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   overlayLeft: {
     ...StyleSheet.absoluteFillObject,
@@ -743,17 +738,17 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   questionBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   questionText: {
     fontSize: 14, // Smaller - supportive microcopy
     fontWeight: '500', // NOT bold
-    color: '#64748B', // Lighter color
+    color: '#14B8A6', // Teal accent
     textAlign: 'center',
     letterSpacing: 0.2,
   },
@@ -766,13 +761,14 @@ const styles = StyleSheet.create({
     padding: 28,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#E1E8ED',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   sentence: {
     fontSize: 28, // Larger font - sentence as hero
     fontWeight: '500', // Not bold - professional feel
-    color: '#1E293B',
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 40,
   },
@@ -789,7 +785,7 @@ const styles = StyleSheet.create({
   swipeHint: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#94A3B8',
+    color: '#6B7280',
     textAlign: 'center',
     letterSpacing: 0.5,
   },
@@ -817,12 +813,12 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#DC2626',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.6,
+        shadowRadius: 16,
       },
       android: {
-        elevation: 6,
+        elevation: 10,
       },
     }),
   },
@@ -838,12 +834,12 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#10B981',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.6,
+        shadowRadius: 16,
       },
       android: {
-        elevation: 6,
+        elevation: 10,
       },
     }),
   },
@@ -868,9 +864,9 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#4F46E5',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.6,
+        shadowRadius: 16,
       },
       android: {
         elevation: 8,

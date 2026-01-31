@@ -71,13 +71,24 @@ export const CompactDashboardHeader: React.FC<CompactDashboardHeaderProps> = ({
             onPress={handlePremiumPress}
             activeOpacity={0.8}
           >
+            {/* Outer glow for premium feel */}
+            <View style={{
+              position: 'absolute',
+              top: -2,
+              left: -2,
+              right: -2,
+              bottom: -2,
+              borderRadius: 14,
+              backgroundColor: 'rgba(251, 191, 36, 0.2)',
+              opacity: 0.5,
+            }} />
             <LinearGradient
-              colors={['#FFF8E1', '#FFFBF0']}
+              colors={['rgba(251, 191, 36, 0.15)', 'rgba(245, 158, 11, 0.15)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.premiumGradient}
             >
-              <Text style={styles.crownEmoji}>👑</Text>
+              <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
               <View style={styles.premiumTextContainer}>
                 <Text style={styles.premiumLabel}>Premium</Text>
                 {minutesRemaining > 0 && (
@@ -92,7 +103,7 @@ export const CompactDashboardHeader: React.FC<CompactDashboardHeaderProps> = ({
             onPress={handlePremiumPress}
             activeOpacity={0.8}
           >
-            <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
+            <Ionicons name="lock-closed-outline" size={12} color="#9CA3AF" />
             <Text style={styles.freeLabel}>Free Plan</Text>
           </TouchableOpacity>
         )}
@@ -103,13 +114,24 @@ export const CompactDashboardHeader: React.FC<CompactDashboardHeaderProps> = ({
           onPress={handleStreakPress}
           activeOpacity={0.8}
         >
+          {/* Outer glow for streak */}
+          <View style={{
+            position: 'absolute',
+            top: -2,
+            left: -2,
+            right: -2,
+            bottom: -2,
+            borderRadius: 14,
+            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+            opacity: 0.5,
+          }} />
           <LinearGradient
-            colors={['#FEF3C7', '#FDE68A']}
+            colors={['rgba(239, 68, 68, 0.15)', 'rgba(220, 38, 38, 0.15)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.streakGradient}
           >
-            <Text style={styles.fireEmoji}>🔥</Text>
+            <Ionicons name="flame-outline" size={18} color="#EF4444" />
             <View style={styles.streakTextContainer}>
               <Text style={styles.streakNumber}>{currentStreak}</Text>
               <Text style={styles.streakLabel}>day{currentStreak !== 1 ? 's' : ''}</Text>

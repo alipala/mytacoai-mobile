@@ -7,7 +7,7 @@ export { SCREEN_WIDTH, SCREEN_HEIGHT };
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
   },
   successBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -29,12 +29,12 @@ export const styles = StyleSheet.create({
   instructionsText: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#E5E7EB',
     textAlign: 'center',
     marginBottom: 16,
   },
   storyContainer: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
     padding: 16,
     borderRadius: 16,
     marginBottom: 20,
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   storyText: {
     fontSize: 19,
     fontWeight: '400',
-    color: '#1F2937',
+    color: '#E5E7EB',
     lineHeight: 38,
   },
   gap: {
@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   gapEmpty: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
     borderWidth: 0,
     borderBottomWidth: 3,
     borderBottomColor: '#D1D5DB',
@@ -82,10 +82,10 @@ export const styles = StyleSheet.create({
   gapSelected: {
     borderBottomColor: '#3B82F6',
     borderBottomWidth: 4,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
   },
   gapFilled: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
     borderWidth: 2,
     borderColor: '#3B82F6',
     borderRadius: 12,
@@ -97,7 +97,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
   },
   gapIncorrect: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
     borderWidth: 2,
     borderColor: '#EF4444',
     borderRadius: 12,
@@ -105,7 +105,7 @@ export const styles = StyleSheet.create({
   gapWord: {
     fontSize: 19,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#E5E7EB',
   },
   wordBankSection: {
     marginBottom: 16,
@@ -148,7 +148,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     paddingBottom: Platform.OS === 'ios' ? 24 : 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
@@ -165,7 +165,7 @@ export const styles = StyleSheet.create({
     elevation: 6,
   },
   checkButtonDisabled: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(107, 114, 128, 0.3)',
     shadowOpacity: 0,
   },
   checkButtonText: {
@@ -193,12 +193,12 @@ export const styles = StyleSheet.create({
   feedbackSubtitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#D1D5DB',
     textAlign: 'center',
     marginBottom: 24,
   },
   completedStoryBox: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: 'rgba(52, 211, 153, 0.15)',
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
@@ -215,11 +215,11 @@ export const styles = StyleSheet.create({
   completedStoryText: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#1F2937',
+    color: '#E5E7EB',
     lineHeight: 28,
   },
   explanationBox: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
     padding: 20,
     borderRadius: 16,
     marginBottom: 20,
@@ -236,7 +236,7 @@ export const styles = StyleSheet.create({
   explanationText: {
     fontSize: 15,
     fontWeight: '400',
-    color: '#1F2937',
+    color: '#E5E7EB',
     lineHeight: 24,
   },
   continueButton: {
@@ -245,11 +245,13 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 10,
   },
   continueButtonText: {
     fontSize: 18,

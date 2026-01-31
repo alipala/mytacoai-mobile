@@ -7,7 +7,7 @@ export { width, height };
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0B1A1F', // Dark theme background
     zIndex: 1000,
   },
   headerBackground: {
@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 280,
-    opacity: 0.15,
+    opacity: 0.08, // Reduced opacity for dark theme
   },
   scrollView: {
     flex: 1,
@@ -36,7 +36,7 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
     marginBottom: 24,
     textAlign: 'center',
     letterSpacing: 0.5,
@@ -76,9 +76,11 @@ export const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     marginBottom: 20,
-    shadowColor: '#000',
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 6,
   },
@@ -89,7 +91,7 @@ export const styles = StyleSheet.create({
   heroStatLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#9CA3AF', // Lighter gray for dark theme
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -140,12 +142,14 @@ export const styles = StyleSheet.create({
   miniStatCard: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(17, 24, 39, 0.6)', // Dark card background
     padding: 16,
     borderRadius: 16,
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -163,13 +167,13 @@ export const styles = StyleSheet.create({
   miniStatValue: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
     marginBottom: 4,
   },
   miniStatLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray for dark theme
     textAlign: 'center',
   },
   headerEmoji: {
@@ -179,9 +183,8 @@ export const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1F2937',
-    marginBottom: 16,
-    paddingLeft: 4,
+    color: '#FFFFFF', // White for dark theme
+    marginBottom: 0, // Removed because parent container has marginBottom
   },
   achievementsSection: {
     marginBottom: 24,
@@ -192,9 +195,12 @@ export const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     marginBottom: 12,
-    shadowColor: '#000',
+    backgroundColor: 'rgba(17, 24, 39, 0.6)', // Dark card background
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -202,13 +208,15 @@ export const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)', // Teal tinted background
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -221,23 +229,25 @@ export const styles = StyleSheet.create({
   achievementTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
     marginBottom: 4,
   },
   achievementDesc: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#D1D5DB', // Light gray for dark theme
     lineHeight: 18,
   },
   achievementXPBadge: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(251, 191, 36, 0.15)', // Gold tinted background
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    shadowColor: '#FBBF24',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 1,
   },
@@ -253,13 +263,15 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   performanceSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card background
     padding: 20,
     borderRadius: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -275,16 +287,16 @@ export const styles = StyleSheet.create({
   progressBarLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray for dark theme
   },
   progressBarValue: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
   },
   progressBarTrack: {
     height: 12,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(107, 114, 128, 0.3)', // Dark track
     borderRadius: 100,
     overflow: 'hidden',
   },
@@ -316,25 +328,35 @@ export const styles = StyleSheet.create({
   answerValue: {
     fontSize: 24,
     fontWeight: '900',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
     marginBottom: 4,
   },
   answerLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray for dark theme
   },
   answerDivider: {
     width: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(107, 114, 128, 0.3)', // Dark divider
     marginHorizontal: 8,
   },
   timeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(17, 24, 39, 0.6)', // Dark background
     padding: 16,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+  },
+  timeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   timeIcon: {
     fontSize: 32,
@@ -346,13 +368,13 @@ export const styles = StyleSheet.create({
   timeLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray for dark theme
     marginBottom: 4,
   },
   timeValue: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
   },
   encouragementBox: {
     padding: 20,
@@ -362,7 +384,7 @@ export const styles = StyleSheet.create({
   encouragementText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF', // White for dark theme
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -376,13 +398,13 @@ export const styles = StyleSheet.create({
   },
   reviewButtonNew: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: 'visible', // Changed to visible for outer glow
     marginBottom: 12,
     shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   reviewButtonTextNew: {
     fontSize: 18,
@@ -393,12 +415,12 @@ export const styles = StyleSheet.create({
   },
   exitButtonNew: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: 'visible', // Changed to visible for outer glow
     shadowColor: '#06B6D4',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   exitButtonTextNew: {
     fontSize: 18,

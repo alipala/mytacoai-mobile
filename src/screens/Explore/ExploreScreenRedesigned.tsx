@@ -816,21 +816,32 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               activeOpacity={0.8}
               disabled={completedPlans.length === 0}
             >
+              {/* Outer glow layer */}
+              <View style={{
+                position: 'absolute',
+                top: -4,
+                left: -4,
+                right: -4,
+                bottom: -4,
+                borderRadius: 24,
+                backgroundColor: completedPlans.length === 0 ? 'transparent' : 'rgba(220, 38, 38, 0.3)',
+                opacity: completedPlans.length === 0 ? 0 : 0.6,
+              }} />
               <LinearGradient
-                colors={completedPlans.length === 0 ? ['#1F2937', '#111827'] : ['#0D2832', '#0B1A1F']}
+                colors={completedPlans.length === 0 ? ['#3F3F46', '#27272A'] : ['#DC2626', '#991B1B']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
                   borderRadius: 20,
                   padding: 16,
                   minHeight: 120,
-                  borderWidth: 1.5,
-                  borderColor: completedPlans.length === 0 ? 'rgba(107, 114, 128, 0.3)' : 'rgba(247, 90, 90, 0.4)',
-                  shadowColor: completedPlans.length === 0 ? '#4B5563' : '#F75A5A',
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: completedPlans.length === 0 ? 0.2 : 0.3,
-                  shadowRadius: 12,
-                  elevation: 6,
+                  borderWidth: 2,
+                  borderColor: completedPlans.length === 0 ? 'rgba(107, 114, 128, 0.3)' : 'rgba(255, 255, 255, 0.2)',
+                  shadowColor: completedPlans.length === 0 ? '#4B5563' : '#DC2626',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: completedPlans.length === 0 ? 0.2 : 0.6,
+                  shadowRadius: 20,
+                  elevation: 12,
                 }}
               >
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
@@ -839,14 +850,14 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: 'rgba(247, 90, 90, 0.15)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    borderWidth: 1.5,
-                    borderColor: 'rgba(247, 90, 90, 0.3)',
+                    borderWidth: 2,
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
                   }}>
-                    <Ionicons name="school" size={24} color="#F75A5A" />
+                    <Ionicons name="school" size={24} color="#FFFFFF" />
                   </View>
                   <Text style={{
                     fontSize: 16,
@@ -863,19 +874,20 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 </View>
 
                 <View style={{
-                  backgroundColor: 'rgba(247, 90, 90, 0.2)',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 10,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 12,
                   alignSelf: 'center',
-                  borderWidth: 1,
-                  borderColor: 'rgba(247, 90, 90, 0.4)',
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(255, 255, 255, 0.25)',
                 }}>
                   <Text style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: '800',
                     color: '#FFFFFF',
                     textAlign: 'center',
+                    letterSpacing: 0.5,
                   }}>
                     {completedPlans.length > 0
                       ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} →`
@@ -898,21 +910,32 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               onPress={() => handleModeSelection('freestyle')}
               activeOpacity={0.8}
             >
+              {/* Outer glow layer */}
+              <View style={{
+                position: 'absolute',
+                top: -4,
+                left: -4,
+                right: -4,
+                bottom: -4,
+                borderRadius: 24,
+                backgroundColor: 'rgba(20, 184, 166, 0.3)',
+                opacity: 0.6,
+              }} />
               <LinearGradient
-                colors={['#0D2832', '#0B1A1F']}
+                colors={['#14B8A6', '#0D9488']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
                   borderRadius: 20,
                   padding: 16,
                   minHeight: 120,
-                  borderWidth: 1.5,
-                  borderColor: 'rgba(20, 184, 166, 0.4)',
+                  borderWidth: 2,
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
                   shadowColor: '#14B8A6',
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 12,
-                  elevation: 6,
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.6,
+                  shadowRadius: 20,
+                  elevation: 12,
                 }}
               >
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
@@ -921,14 +944,14 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    borderWidth: 1.5,
-                    borderColor: 'rgba(20, 184, 166, 0.3)',
+                    borderWidth: 2,
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
                   }}>
-                    <Ionicons name="flash" size={24} color="#14B8A6" />
+                    <Ionicons name="flash" size={24} color="#FFFFFF" />
                   </View>
                   <Text style={{
                     fontSize: 16,
@@ -945,19 +968,20 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 </View>
 
                 <View style={{
-                  backgroundColor: 'rgba(20, 184, 166, 0.2)',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 10,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 12,
                   alignSelf: 'center',
-                  borderWidth: 1,
-                  borderColor: 'rgba(20, 184, 166, 0.4)',
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(255, 255, 255, 0.25)',
                 }}>
                   <Text style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: '800',
                     color: '#FFFFFF',
                     textAlign: 'center',
+                    letterSpacing: 0.5,
                   }}>
                     All levels →
                   </Text>
@@ -1941,22 +1965,24 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           zIndex: 9999,
         }}>
           <View style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'rgba(31, 41, 55, 0.95)',
             borderRadius: 20,
             padding: 32,
             alignItems: 'center',
-            shadowColor: '#000',
+            borderWidth: 1,
+            borderColor: 'rgba(20, 184, 166, 0.3)',
+            shadowColor: '#14B8A6',
             shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.3,
+            shadowOpacity: 0.4,
             shadowRadius: 20,
             elevation: 10,
           }}>
-            <ActivityIndicator size="large" color="#4ECFBF" />
+            <ActivityIndicator size="large" color="#14B8A6" />
             <Text style={{
               marginTop: 16,
               fontSize: 16,
               fontWeight: '600',
-              color: '#1F2937',
+              color: '#FFFFFF',
             }}>
               Loading challenges...
             </Text>
@@ -2051,9 +2077,13 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
             borderRadius: 12,
             borderWidth: 1,
             borderColor: 'rgba(255, 255, 255, 0.4)',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
           }}>
+            <Ionicons name="flame-outline" size={12} color="#FFFFFF" />
             <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
-              🔥 FEATURED
+              FEATURED
             </Text>
           </View>
 

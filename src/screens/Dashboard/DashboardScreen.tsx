@@ -61,6 +61,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Subscription state
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showPremiumBenefitsModal, setShowPremiumBenefitsModal] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Modal state
@@ -300,9 +301,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    console.log('📱 Setting showPricingModal to true');
-    setShowPricingModal(true);
-    console.log('📱 showPricingModal state updated');
+
+    // Check if user is already premium
+    const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
+
+    if (isPremium) {
+      console.log('📱 User is premium - showing benefits modal');
+      setShowPremiumBenefitsModal(true);
+    } else {
+      console.log('📱 User is free - showing pricing modal');
+      setShowPricingModal(true);
+    }
   };
 
   const handleDismissBanner = () => {
@@ -676,7 +685,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               onPress={handleUpgradePress}
               activeOpacity={0.8}
             >
-              <Text style={styles.crownEmojiCompact}>👑</Text>
+              {/* Outer glow for premium feel */}
+              <View style={{
+                position: 'absolute',
+                top: -2,
+                left: -2,
+                right: -2,
+                bottom: -2,
+                borderRadius: 14,
+                backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                opacity: 0.5,
+              }} />
+              <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
               <View>
                 <Text style={styles.premiumTextCompact}>Premium</Text>
                 <Text style={styles.premiumMinutesCompact}>
@@ -692,7 +712,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               style={styles.streakBadgeCompact}
               activeOpacity={0.8}
             >
-              <Text style={styles.fireEmojiCompact}>🔥</Text>
+              {/* Outer glow for streak */}
+              <View style={{
+                position: 'absolute',
+                top: -2,
+                left: -2,
+                right: -2,
+                bottom: -2,
+                borderRadius: 14,
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                opacity: 0.5,
+              }} />
+              <Ionicons name="flame-outline" size={18} color="#EF4444" />
               <View>
                 <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
                 <Text style={styles.streakLabelCompact}>day{progressStats.current_streak !== 1 ? 's' : ''}</Text>
@@ -842,6 +873,136 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
       />
+
+      {/* Premium Benefits Modal */}
+      <Modal
+        visible={showPremiumBenefitsModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowPremiumBenefitsModal(false)}
+      >
+        <View style={styles.premiumBenefitsContainer}>
+          <LinearGradient
+            colors={['#0B1A1F', '#1F2937']}
+            style={styles.premiumBenefitsGradient}
+          >
+            {/* Header */}
+            <View style={styles.premiumBenefitsHeader}>
+              <View style={styles.premiumBenefitsTitleRow}>
+                <Ionicons name="diamond" size={32} color="#FBBF24" />
+                <Text style={styles.premiumBenefitsTitle}>Premium Benefits</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowPremiumBenefitsModal(false)}
+                style={styles.premiumBenefitsCloseButton}
+              >
+                <Ionicons name="close" size={28} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.premiumBenefitsScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Subscription Info */}
+              <View style={styles.premiumSubscriptionCard}>
+                <Text style={styles.premiumSubscriptionPlan}>
+                  {subscriptionStatus?.plan === 'annual_premium' ? 'Annual Premium' : 'Monthly Premium'}
+                </Text>
+                <Text style={styles.premiumSubscriptionStatus}>
+                  {subscriptionStatus?.limits?.minutes_remaining || 0} minutes remaining
+                </Text>
+              </View>
+
+              {/* Benefits List */}
+              <View style={styles.premiumBenefitsList}>
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="infinite" size={24} color="#14B8A6" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Unlimited Practice</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Practice as much as you want with no session limits
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="mic" size={24} color="#8B5CF6" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>AI Voice Coach</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Get real-time feedback on your pronunciation and fluency
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="stats-chart" size={24} color="#EF4444" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Speaking DNA Analysis</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Advanced analytics to track your speaking patterns and progress
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="flash" size={24} color="#F59E0B" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Priority Support</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Get help faster with dedicated premium support
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="sparkles" size={24} color="#EC4899" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Exclusive Content</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Access premium challenges and advanced learning materials
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="shield-checkmark" size={24} color="#10B981" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Ad-Free Experience</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Focus on learning without any interruptions
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Thank You Message */}
+              <View style={styles.premiumThankYouCard}>
+                <Ionicons name="heart" size={32} color="#EF4444" />
+                <Text style={styles.premiumThankYouText}>
+                  Thank you for being a Premium member!
+                </Text>
+                <Text style={styles.premiumThankYouSubtext}>
+                  Your support helps us create better learning experiences
+                </Text>
+              </View>
+            </ScrollView>
+          </LinearGradient>
+        </View>
+      </Modal>
 
       {/* Session Type Modal */}
       <SessionTypeModal
