@@ -29,6 +29,14 @@ import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import { styles } from './styles/ProfileScreen.styles';
+
+// Flag imports
+import EnglishFlag from '../../assets/flags/english.svg';
+import SpanishFlag from '../../assets/flags/spanish.svg';
+import FrenchFlag from '../../assets/flags/french.svg';
+import GermanFlag from '../../assets/flags/german.svg';
+import PortugueseFlag from '../../assets/flags/portuguese.svg';
+import DutchFlag from '../../assets/flags/dutch.svg';
 import { setBadgeCount } from '../../services/notificationService';
 
 const API_URL = API_BASE_URL;
@@ -197,6 +205,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
   // Refs for Swipeable components to programmatically close them
   const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
+
+  // Helper function to get flag component
+  const getFlagComponent = (language: string) => {
+    const languageLower = language.toLowerCase();
+    switch (languageLower) {
+      case 'english':
+        return EnglishFlag;
+      case 'spanish':
+        return SpanishFlag;
+      case 'french':
+        return FrenchFlag;
+      case 'german':
+        return GermanFlag;
+      case 'portuguese':
+        return PortugueseFlag;
+      case 'dutch':
+        return DutchFlag;
+      default:
+        return null;
+    }
+  };
 
   // Tab Navigation Helpers
   const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
@@ -928,6 +957,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           const currentWeek = Math.ceil((plan.completed_sessions || 0) / 3);
           const isExpanded = expandedPlans[plan.id];
 
+          const FlagComponent = getFlagComponent(plan.language);
+
           return (
             <View key={plan.id} style={styles.progressPlanCard}>
               {/* Header with Progress */}
@@ -937,13 +968,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   if (Platform.OS === 'ios') {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }
-                  setExpandedPlans(prev => ({ ...prev, [plan.id]: !prev[plan.id] }));
+                  // Accordion behavior: collapse all others, toggle current
+                  setExpandedPlans({ [plan.id]: !isExpanded });
                 }}
                 activeOpacity={0.7}
               >
+                {/* Flag Icon */}
+                {FlagComponent && (
+                  <View style={styles.planFlagContainer}>
+                    <FlagComponent width={40} height={40} />
+                  </View>
+                )}
+
                 <View style={styles.progressPlanHeaderLeft}>
-                  <Text style={styles.progressPlanTitle}>
-                    {plan.plan_content.title || `${plan.language} Learning`}
+                  <Text style={styles.progressPlanTitle} numberOfLines={2}>
+                    {plan.goals && plan.goals.length > 0
+                      ? plan.goals.slice(0, 2).join(', ').toUpperCase() + (plan.goals.length > 2 ? '...' : '')
+                      : 'LEARNING'}
                   </Text>
                   <Text style={styles.progressPlanSubtitle}>
                     {plan.proficiency_level} • {plan.duration_months} months • Created {formatDate(plan.created_at)}
@@ -1099,6 +1140,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
     return (
       <View style={styles.flashcardCard}>
+        {/* Category Badge */}
+        <View style={[styles.flashcardCategoryBadge, { borderColor: iconColor }]}>
+          <Ionicons name={iconName} size={11} color={iconColor} />
+          <Text style={[styles.flashcardCategoryText, { color: iconColor }]}>
+            {isLearningPlan ? 'LEARNING PLAN' : 'PRACTICE'}
+          </Text>
+        </View>
+
         <View style={styles.flashcardCardHeader}>
           <View style={[
             styles.flashcardCardIcon,
@@ -1123,7 +1172,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <TouchableOpacity
           style={[
             styles.flashcardStudyButton,
-            isLearningPlan && styles.flashcardStudyButtonLP
+            isLearningPlan ? styles.flashcardStudyButtonLP : styles.flashcardStudyButtonPractice
           ]}
           onPress={() => openFlashcardViewer(item)}
         >
@@ -1161,10 +1210,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.flashcardFilterContainer}>
           <View style={styles.flashcardFilterSegment}>
             <TouchableOpacity
-              style={[
-                styles.flashcardFilterButton,
-                flashcardFilter === 'all' && styles.flashcardFilterButtonActive,
-              ]}
+              style={styles.flashcardFilterButton}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1178,16 +1224,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   styles.flashcardFilterButtonText,
                   flashcardFilter === 'all' && styles.flashcardFilterButtonTextActive,
                 ]}
+                numberOfLines={1}
               >
                 All
               </Text>
+              {flashcardFilter === 'all' && (
+                <View
+                  style={[
+                    styles.flashcardFilterUnderline,
+                    { backgroundColor: '#14B8A6', shadowColor: '#14B8A6' },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.flashcardFilterButton,
-                flashcardFilter === 'practice' && styles.flashcardFilterButtonActive,
-              ]}
+              style={styles.flashcardFilterButton}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1199,18 +1251,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'practice' && styles.flashcardFilterButtonTextActive,
+                  flashcardFilter === 'practice' && {
+                    color: '#F59E0B',
+                    fontWeight: '700',
+                  },
                 ]}
+                numberOfLines={1}
               >
                 Practice
               </Text>
+              {flashcardFilter === 'practice' && (
+                <View
+                  style={[
+                    styles.flashcardFilterUnderline,
+                    { backgroundColor: '#F59E0B', shadowColor: '#F59E0B' },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.flashcardFilterButton,
-                flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonActive,
-              ]}
+              style={styles.flashcardFilterButton}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1222,11 +1283,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonTextActive,
+                  flashcardFilter === 'learning_plan' && {
+                    color: '#6366F1',
+                    fontWeight: '700',
+                  },
                 ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
               >
                 Learning Plan
               </Text>
+              {flashcardFilter === 'learning_plan' && (
+                <View
+                  style={[
+                    styles.flashcardFilterUnderline,
+                    { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
           </View>
         </View>

@@ -223,13 +223,13 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#64748B" />
+            <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
-          <Text style={styles.title}>Voice Selection</Text>
+          <Text style={styles.title}>Choose Your AI Tutor</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4ECFBF" />
+          <ActivityIndicator size="large" color="#14B8A6" />
         </View>
       </View>
     );
@@ -240,9 +240,9 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#64748B" />
+          <Ionicons name="arrow-back" size={24} color="#14B8A6" />
         </TouchableOpacity>
-        <Text style={styles.title}>Voice Selection</Text>
+        <Text style={styles.title}>Choose Your AI Tutor</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -255,28 +255,9 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
         </Text>
       </View>
 
-      {/* Content */}
+      {/* Content - Grid Layout */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.currentVoiceCard}>
-          <Text style={styles.currentVoiceLabel}>Current Voice</Text>
-          <View style={styles.currentVoiceInfo}>
-            <View style={styles.currentVoiceIcon}>
-              <Ionicons name="mic" size={20} color="#4ECFBF" />
-            </View>
-            <Text style={styles.currentVoiceName}>
-              {currentVoice.charAt(0).toUpperCase() + currentVoice.slice(1)}
-            </Text>
-          </View>
-          {voices[currentVoice] && (
-            <Text style={styles.currentVoiceDescription}>
-              {voices[currentVoice].description}
-            </Text>
-          )}
-        </View>
-
-        <Text style={styles.sectionTitle}>Choose Your Preferred Voice</Text>
-
-        <View style={styles.voicesGrid}>
+        <View style={styles.voicesGridContainer}>
           {Object.entries(voices).map(([voiceName, voiceData]) => {
             const isSelected = selectedVoice === voiceName;
             const isCurrent = currentVoice === voiceName;
@@ -285,60 +266,71 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
               <TouchableOpacity
                 key={voiceName}
                 style={[
-                  styles.voiceCard,
+                  styles.voiceCardGrid,
                   isSelected && styles.voiceCardSelected,
+                  isCurrent && styles.voiceCardCurrent,
                 ]}
                 onPress={() => handleSelectVoice(voiceName)}
                 activeOpacity={0.7}
               >
-                <View style={styles.voiceCardHeader}>
+                {/* Status Badges - Top Right */}
+                <View style={styles.badgesContainer}>
+                  {isCurrent && (
+                    <View style={styles.currentBadge}>
+                      <Text style={styles.currentBadgeText}>ACTIVE</Text>
+                    </View>
+                  )}
+                  {isSelected && !isCurrent && (
+                    <View style={styles.selectedBadge}>
+                      <Ionicons name="checkmark-circle" size={16} color="#14B8A6" />
+                    </View>
+                  )}
+                </View>
+
+                {/* Avatar with Glow Container */}
+                <View style={styles.avatarContainer}>
                   {VOICE_AVATARS[voiceName] ? (
-                    <Image
-                      source={VOICE_AVATARS[voiceName]}
-                      style={styles.voiceAvatarImage}
-                      resizeMode="cover"
-                    />
+                    <View style={styles.avatarGlowWrapper}>
+                      <Image
+                        source={VOICE_AVATARS[voiceName]}
+                        style={styles.voiceAvatarImageGrid}
+                        resizeMode="cover"
+                      />
+                    </View>
                   ) : voiceData.icon_url ? (
-                    <Image
-                      source={{ uri: voiceData.icon_url }}
-                      style={styles.voiceAvatarImage}
-                      resizeMode="cover"
-                    />
+                    <View style={styles.avatarGlowWrapper}>
+                      <Image
+                        source={{ uri: voiceData.icon_url }}
+                        style={styles.voiceAvatarImageGrid}
+                        resizeMode="cover"
+                      />
+                    </View>
                   ) : (
-                    <View style={styles.voiceAvatar}>
+                    <View style={styles.voiceAvatarGrid}>
                       <Text style={styles.voiceAvatarText}>
                         {voiceName.charAt(0).toUpperCase()}
                       </Text>
                     </View>
                   )}
-                  {isSelected && (
-                    <View style={styles.checkmark}>
-                      <Ionicons name="checkmark-circle" size={24} color="#4ECFBF" />
-                    </View>
-                  )}
-                  {isCurrent && !isSelected && (
-                    <View style={styles.currentBadge}>
-                      <Text style={styles.currentBadgeText}>CURRENT</Text>
-                    </View>
-                  )}
                 </View>
-                <Text style={styles.voiceName}>
+
+                {/* Voice Info */}
+                <Text style={styles.voiceNameGrid} numberOfLines={1}>
                   {voiceName.charAt(0).toUpperCase() + voiceName.slice(1)}
                 </Text>
-                <Text style={styles.voicePersonality}>{voiceData.personality}</Text>
-                <Text style={styles.voiceDescription} numberOfLines={2}>
-                  {voiceData.description}
+                <Text style={styles.voicePersonalityGrid} numberOfLines={1}>
+                  {voiceData.personality}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
-        {/* How Voice Selection Works */}
+        {/* How It Works */}
         <View style={styles.howItWorksSection}>
           <View style={styles.howItWorksHeader}>
-            <Ionicons name="help-circle" size={20} color="#4ECFBF" />
-            <Text style={styles.howItWorksTitle}>How Voice Selection Works</Text>
+            <Ionicons name="help-circle" size={20} color="#14B8A6" />
+            <Text style={styles.howItWorksTitle}>How It Works</Text>
           </View>
           <View style={styles.howItWorksList}>
             <View style={styles.howItWorksItem}>

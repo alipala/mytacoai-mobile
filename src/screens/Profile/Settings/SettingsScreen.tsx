@@ -169,7 +169,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
         </TouchableOpacity>
 
-        {/* Voice Selection */}
+        {/* AI Tutor Voice */}
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('voice')}
@@ -179,9 +179,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="mic-outline" size={24} color="#10B981" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>Voice Selection</Text>
+            <Text style={styles.menuLabel}>AI Tutor Voice</Text>
             <Text style={styles.menuDescription}>
-              Choose your preferred AI tutor voice
+              Choose your preferred tutor voice
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
