@@ -259,7 +259,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
       <Text style={styles.sectionTitle}>We'll Discuss:</Text>
       {newsContent?.discussion_questions.map((question, index) => (
         <View key={index} style={styles.questionItem}>
-          <Ionicons name="chatbubble-outline" size={20} color="#06B6D4" />
+          <Ionicons name="chatbubble-outline" size={20} color="#14B8A6" />
           <Text style={styles.questionText}>{question}</Text>
         </View>
       ))}
@@ -270,7 +270,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#06B6D4" />
+          <ActivityIndicator size="large" color="#14B8A6" />
           <Text style={styles.loadingText}>Loading content...</Text>
         </View>
       </SafeAreaView>
@@ -434,7 +434,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
           }}
         >
           <Text style={styles.originalLinkText}>Read Original Article</Text>
-          <Ionicons name="open-outline" size={20} color="#06B6D4" />
+          <Ionicons name="open-outline" size={20} color="#14B8A6" />
         </TouchableOpacity>
       </ScrollView>
 
@@ -452,7 +452,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0D2832', // Dark theme secondary background
   },
   scrollView: {
     flex: 1,
@@ -476,44 +476,55 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Darker overlay for dark theme
   },
   placeholderImage: {
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#1F2937', // Dark placeholder
   },
   backButton: {
     position: 'absolute',
     top: 48,
     left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(11, 26, 31, 0.85)', // Dark glassmorphic
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   heroCategoryBadge: {
     position: 'absolute',
     bottom: 16,
     left: 16,
     paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(11, 26, 31, 0.85)', // Dark glassmorphic
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   heroCategoryText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#14B8A6', // Teal accent
     letterSpacing: 0.5,
   },
   contentContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme primary
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -24,
@@ -521,21 +532,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#111827',
-    lineHeight: 30,
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF', // White text
+    lineHeight: 32,
     marginBottom: 16,
     letterSpacing: -0.3,
   },
   statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
+    borderRadius: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   statItem: {
     flex: 1,
@@ -547,16 +560,16 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 20,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(20, 184, 166, 0.3)',
   },
   statText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#B4E4DD', // Light teal
   },
   source: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: '#B4E4DD', // Light teal for secondary text
     fontWeight: '500',
     marginBottom: 20,
   },
@@ -566,37 +579,46 @@ const styles = StyleSheet.create({
   },
   selectorLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '700',
+    color: '#FFFFFF', // White text
     marginBottom: 12,
   },
   recommendedBadge: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#06B6D4',
+    fontWeight: '600',
+    color: '#14B8A6', // Teal accent
   },
   optionsContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   optionButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   optionButtonActive: {
-    backgroundColor: '#06B6D4',
+    backgroundColor: '#14B8A6', // Teal solid
+    borderColor: '#14B8A6',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#B4E4DD', // Light teal
   },
   optionTextActive: {
     color: '#FFFFFF',
+    fontWeight: '700',
   },
   section: {
     paddingHorizontal: 20,
@@ -608,29 +630,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 12,
+    color: '#FFFFFF', // White text
+    marginBottom: 14,
   },
   summaryText: {
     fontSize: 16,
-    color: '#374151',
-    lineHeight: 24,
+    color: '#B4E4DD', // Light teal
+    lineHeight: 26,
   },
   wordCount: {
     fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 8,
+    color: '#6B8A84', // Muted teal
+    marginTop: 10,
   },
   vocabularyList: {
-    marginTop: 12,
+    marginTop: 14,
   },
   vocabularyItem: {
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: 'rgba(20, 184, 166, 0.08)', // Subtle teal background
+    padding: 18,
+    borderRadius: 14,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   vocabularyHeader: {
     flexDirection: 'row',
@@ -639,35 +663,37 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   vocabularyWord: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF', // White text
   },
   vocabularyTranslation: {
     fontSize: 14,
-    color: '#06B6D4',
+    fontWeight: '600',
+    color: '#14B8A6', // Teal accent
   },
   vocabularyExample: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD', // Light teal
     fontStyle: 'italic',
+    lineHeight: 20,
   },
   vocabularyIPA: {
     fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 4,
+    color: '#6B8A84', // Muted teal
+    marginTop: 6,
   },
   questionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 14,
     gap: 12,
   },
   questionText: {
     flex: 1,
     fontSize: 15,
-    color: '#374151',
-    lineHeight: 22,
+    color: '#B4E4DD', // Light teal
+    lineHeight: 24,
   },
   originalLinkButton: {
     flexDirection: 'row',
@@ -675,62 +701,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 20,
     marginTop: 24,
-    paddingVertical: 12,
-    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    gap: 10,
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   originalLinkText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#06B6D4',
+    fontWeight: '700',
+    color: '#14B8A6', // Teal accent
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark translucent
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: 32,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 12,
   },
   startButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#06B6D4',
-    paddingVertical: 16,
+    backgroundColor: '#14B8A6', // Teal button
+    paddingVertical: 18,
     borderRadius: 16,
     gap: 12,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   startButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0D2832',
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     marginTop: 16,
   },
   switchingOverlay: {
     position: 'absolute',
     top: 60,
     right: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark glassmorphic
     borderRadius: 20,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 10,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
     zIndex: 1000,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
 });

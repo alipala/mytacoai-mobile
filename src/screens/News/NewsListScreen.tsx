@@ -276,7 +276,7 @@ export default function NewsListScreen({ navigation }: any) {
         )}
       </View>
 
-      {/* Category Filter - Expert Design */}
+      {/* Category Filter - Option A: Minimal Underline Style (iOS App Store) */}
       <View style={styles.filterWrapper}>
         <ScrollView
           horizontal
@@ -290,33 +290,40 @@ export default function NewsListScreen({ navigation }: any) {
             return (
               <TouchableOpacity
                 key={category}
-                style={[
-                  styles.filterChip,
-                  isSelected && {
-                    backgroundColor: config.color,
-                    shadowColor: config.color,
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
-                    elevation: 4,
-                  },
-                ]}
+                style={styles.filterChip}
                 onPress={() => setSelectedCategory(category)}
-                activeOpacity={0.8}
+                activeOpacity={0.7}
               >
                 <Ionicons
                   name={config.icon as any}
-                  size={16}
-                  color={isSelected ? '#FFFFFF' : config.color}
+                  size={18}
+                  color={isSelected ? config.color : 'rgba(180, 228, 221, 0.4)'}
                   style={styles.filterIcon}
                 />
                 <Text
                   style={[
                     styles.filterChipText,
-                    isSelected && styles.filterChipTextActive,
+                    isSelected && {
+                      color: config.color, // Use unique category color
+                      fontWeight: '700',
+                    },
                   ]}
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}
                 </Text>
+
+                {/* Underline indicator with category color + glow */}
+                {isSelected && (
+                  <View
+                    style={[
+                      styles.activeUnderline,
+                      {
+                        backgroundColor: config.color,
+                        shadowColor: config.color,
+                      },
+                    ]}
+                  />
+                )}
               </TouchableOpacity>
             );
           })}
@@ -333,7 +340,7 @@ export default function NewsListScreen({ navigation }: any) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#06B6D4"
+            tintColor="#14B8A6" // Teal accent for dark theme
           />
         }
         ListEmptyComponent={
@@ -370,7 +377,7 @@ export default function NewsListScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0B1A1F', // Dark theme primary background
   },
   header: {
     flexDirection: 'row',
@@ -378,43 +385,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme header
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF', // White text
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD', // Light teal for secondary text
     marginTop: 4,
   },
   fallbackBadge: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(255, 214, 58, 0.15)', // Dark theme badge
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 214, 58, 0.3)',
   },
   fallbackText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#92400E',
+    color: '#FFD63A', // Bright yellow for dark theme
   },
   listContent: {
     padding: 16,
+    backgroundColor: '#0D2832', // Secondary dark background
   },
   articleCard: {
-    borderRadius: 16,
+    borderRadius: 20, // Slightly larger for modern look
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowColor: '#14B8A6', // Teal glow
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)', // Subtle teal border
     // backgroundColor set dynamically per card with category color
   },
   imageContainer: {
@@ -433,11 +445,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)', // Darker overlay for dark theme
   },
   placeholderImage: {
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#1F2937', // Dark placeholder
   },
   categoryBadge: {
     position: 'absolute',
@@ -445,62 +458,69 @@ const styles = StyleSheet.create({
     left: 14,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
+    borderRadius: 12,
+    backgroundColor: 'rgba(11, 26, 31, 0.85)', // Dark glassmorphic badge
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
     flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   categoryText: {
     fontSize: 11,
     fontWeight: '800',
-    // color set dynamically to match category color in component
+    color: '#14B8A6', // Teal for all categories in dark theme
     letterSpacing: 0.5,
   },
   articleContent: {
-    padding: 18,
+    padding: 20,
+    backgroundColor: 'rgba(11, 26, 31, 0.5)', // Semi-transparent dark background
   },
   articleTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 8,
-    lineHeight: 22,
+    lineHeight: 24,
+    letterSpacing: -0.3,
   },
   articleSource: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: '#B4E4DD', // Light teal for secondary text
     fontWeight: '500',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   arrowPrompt: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     marginTop: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)', // Teal glassmorphic
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   arrowPromptText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: '700',
+    color: '#14B8A6', // Teal accent
     letterSpacing: 0.3,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0D2832',
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     marginTop: 16,
   },
   errorContainer: {
@@ -508,29 +528,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
+    backgroundColor: '#0D2832',
   },
   errorTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
     marginTop: 16,
   },
   errorText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     marginTop: 8,
+    lineHeight: 22,
   },
   retryButton: {
-    backgroundColor: '#06B6D4',
+    backgroundColor: '#14B8A6', // Teal button
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
     marginTop: 24,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   retryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   emptyContainer: {
@@ -538,49 +565,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 64,
+    backgroundColor: '#0D2832',
   },
   emptyText: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: '#B4E4DD',
     marginTop: 16,
   },
   filterWrapper: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    backgroundColor: '#0B1A1F', // Dark header
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)', // Subtle separator
   },
   filterContent: {
     paddingHorizontal: 20,
     alignItems: 'center',
+    gap: 8, // Tight spacing for minimal look
   },
   filterChip: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 24,
-    backgroundColor: '#F9FAFB',
-    marginRight: 10,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    paddingBottom: 12, // Extra space for underline
+    backgroundColor: 'transparent', // No background - minimal!
+    overflow: 'visible',
   },
   filterIcon: {
-    marginRight: 6,
+    marginRight: 7,
   },
   filterChipText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: 'rgba(180, 228, 221, 0.5)', // Muted for inactive
     letterSpacing: 0.2,
   },
-  filterChipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+  // Underline indicator with glow effect
+  activeUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    borderRadius: 2,
+    // backgroundColor and shadowColor set dynamically per category
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });
