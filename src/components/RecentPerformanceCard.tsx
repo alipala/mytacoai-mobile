@@ -38,6 +38,19 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
     });
   }, []);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[RecentPerformanceCard] 🔍 DEBUG - recent data:', JSON.stringify({
+      hasRecent: !!recent,
+      summary: recent?.summary,
+      dailyBreakdownLength: recent?.daily_breakdown?.length,
+      dailyBreakdown: recent?.daily_breakdown,
+      isLoading,
+      hasError: !!error,
+      errorMessage: error?.message
+    }, null, 2));
+  }, [recent, isLoading, error]);
+
   const handleRefresh = async () => {
     await refetchRecent(true);
     onRefresh?.();

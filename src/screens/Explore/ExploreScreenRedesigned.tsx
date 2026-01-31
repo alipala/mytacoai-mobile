@@ -42,7 +42,7 @@ import StatsCarousel from '../../components/StatsCarousel';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import HorizontalStatsCarousel from '../../components/HorizontalStatsCarousel';
 import PlaceholderStatsCard from '../../components/PlaceholderStatsCard';
-import { useDailyStats, useRecentPerformance } from '../../hooks/useStats';
+import { useDailyStats, useRecentPerformance, useLifetimeProgress } from '../../hooks/useStats';
 import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
 import { PricingModal } from '../../components/PricingModal';
 import { heartAPI } from '../../services/heartAPI';
@@ -133,6 +133,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   const { startSession } = useChallengeSession();
   const { daily } = useDailyStats(true);
   const { recent } = useRecentPerformance(7, true); // Check for historical data
+  const { lifetime } = useLifetimeProgress(false, true); // Check for lifetime data to show carousel
 
   // Navigation state
   const [navState, setNavState] = useState<NavigationState>('mode_selection');
@@ -767,27 +768,34 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
       }}
     >
       <ScrollView
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: '#0B1A1F' }}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Show placeholder for new users, carousel for active users */}
         {(() => {
-          const showPlaceholder = !daily || (daily?.overall?.total_challenges === 0 && (!recent || recent.summary.total_challenges === 0));
+          // Only show placeholder if user has NO lifetime data (truly new user)
+          // If they have ANY lifetime challenges, show the carousel (even if recently inactive)
+          const hasLifetimeData = lifetime && lifetime.summary && lifetime.summary.total_challenges > 0;
+          const showPlaceholder = !hasLifetimeData;
+
           console.log('[ExploreScreen] Daily challenges:', daily?.overall?.total_challenges);
           console.log('[ExploreScreen] Recent total challenges:', recent?.summary?.total_challenges);
+          console.log('[ExploreScreen] Lifetime total challenges:', lifetime?.summary?.total_challenges);
           console.log('[ExploreScreen] Show placeholder:', showPlaceholder);
+
           return showPlaceholder ? <PlaceholderStatsCard /> : <HorizontalStatsCarousel onRefresh={reloadDailyStats} />;
         })()}
 
         {/* Section Title */}
-        <View style={{ marginBottom: 8, marginTop: 0, paddingHorizontal: 0 }}>
+        <View style={{ marginBottom: 8, marginTop: 0, paddingHorizontal: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="trophy" size={24} color="#FBBF24" />
           <Text style={{
             fontSize: 22,
             fontWeight: '700',
-            color: '#1F2937',
+            color: '#FFFFFF',
           }}>
-            🏆 Choose Your Quest
+            Choose Your Quest
           </Text>
         </View>
 
@@ -809,13 +817,15 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               disabled={completedPlans.length === 0}
             >
               <LinearGradient
-                colors={completedPlans.length === 0 ? ['#6B7280', '#4B5563'] : ['#F75A5A', '#E74C4C']}
+                colors={completedPlans.length === 0 ? ['#1F2937', '#111827'] : ['#0D2832', '#0B1A1F']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
                   borderRadius: 20,
                   padding: 16,
-                  minHeight: 140,
+                  minHeight: 120,
+                  borderWidth: 1.5,
+                  borderColor: completedPlans.length === 0 ? 'rgba(107, 114, 128, 0.3)' : 'rgba(247, 90, 90, 0.4)',
                   shadowColor: completedPlans.length === 0 ? '#4B5563' : '#F75A5A',
                   shadowOffset: { width: 0, height: 6 },
                   shadowOpacity: completedPlans.length === 0 ? 0.2 : 0.3,
@@ -826,19 +836,17 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: 'rgba(247, 90, 90, 0.15)',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 12,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 6,
+                    marginBottom: 10,
+                    borderWidth: 1.5,
+                    borderColor: 'rgba(247, 90, 90, 0.3)',
                   }}>
-                    <Text style={{ fontSize: 32 }}>👑</Text>
+                    <Ionicons name="school" size={24} color="#F75A5A" />
                   </View>
                   <Text style={{
                     fontSize: 16,
@@ -855,13 +863,13 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 </View>
 
                 <View style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  backgroundColor: 'rgba(247, 90, 90, 0.2)',
                   paddingHorizontal: 12,
                   paddingVertical: 6,
-                  borderRadius: 12,
+                  borderRadius: 10,
                   alignSelf: 'center',
                   borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  borderColor: 'rgba(247, 90, 90, 0.4)',
                 }}>
                   <Text style={{
                     fontSize: 12,
@@ -891,14 +899,16 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={['#4ECFBF', '#3DB8A8']}
+                colors={['#0D2832', '#0B1A1F']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
                   borderRadius: 20,
                   padding: 16,
-                  minHeight: 140,
-                  shadowColor: '#4ECFBF',
+                  minHeight: 120,
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(20, 184, 166, 0.4)',
+                  shadowColor: '#14B8A6',
                   shadowOffset: { width: 0, height: 6 },
                   shadowOpacity: 0.3,
                   shadowRadius: 12,
@@ -908,19 +918,17 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: 'rgba(20, 184, 166, 0.15)',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 6,
+                    borderWidth: 1.5,
+                    borderColor: 'rgba(20, 184, 166, 0.3)',
                   }}>
-                    <Text style={{ fontSize: 32 }}>🚀</Text>
+                    <Ionicons name="flash" size={24} color="#14B8A6" />
                   </View>
                   <Text style={{
                     fontSize: 16,
@@ -937,13 +945,13 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 </View>
 
                 <View style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  backgroundColor: 'rgba(20, 184, 166, 0.2)',
                   paddingHorizontal: 12,
                   paddingVertical: 6,
-                  borderRadius: 12,
+                  borderRadius: 10,
                   alignSelf: 'center',
                   borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  borderColor: 'rgba(20, 184, 166, 0.4)',
                 }}>
                   <Text style={{
                     fontSize: 12,
@@ -1697,8 +1705,8 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   // Main render
   return (
     <TransitionWrapper isLoading={isLoading && navState === 'mode_selection'} loadingMessage="Loading your adventures...">
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-        <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1A1F' }}>
+        <StatusBar barStyle="light-content" />
       {navState === 'mode_selection' && renderModeSelection()}
       {navState === 'completed_plans' && renderCompletedPlans()}
       {navState === 'freestyle_selection' && renderFreestyleSelection()}
