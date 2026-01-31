@@ -232,13 +232,13 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
           }}
           style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="#4ECFBF" />
+          <Ionicons name="chevron-back" size={24} color="#14B8A6" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Ionicons
             name={isTerms ? "document-text" : "shield-checkmark"}
             size={22}
-            color="#4ECFBF"
+            color="#14B8A6"
           />
           <Text style={styles.title}>{title}</Text>
         </View>
@@ -267,7 +267,7 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
           <View key={index} style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionIconContainer}>
-                <Ionicons name={section.icon as any} size={20} color="#4ECFBF" />
+                <Ionicons name={section.icon as any} size={20} color="#14B8A6" />
               </View>
               <Text style={styles.sectionTitle}>{section.title}</Text>
             </View>
@@ -308,11 +308,11 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
           </Text>
           <View style={styles.contactInfo}>
             <View style={styles.contactRow}>
-              <Ionicons name="mail" size={16} color="#4ECFBF" />
+              <Ionicons name="mail" size={16} color="#14B8A6" />
               <Text style={styles.contactText}>hello@mytacoai.com</Text>
             </View>
             <View style={styles.contactRow}>
-              <Ionicons name="call" size={16} color="#4ECFBF" />
+              <Ionicons name="call" size={16} color="#14B8A6" />
               <Text style={styles.contactText}>+31 6 21185593</Text>
             </View>
           </View>
@@ -324,9 +324,9 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
           onPress={handleOpenOnline}
           activeOpacity={0.7}
         >
-          <Ionicons name="globe-outline" size={20} color="#4ECFBF" />
+          <Ionicons name="globe-outline" size={20} color="#14B8A6" />
           <Text style={styles.onlineButtonText}>View Online Version</Text>
-          <Ionicons name="open-outline" size={18} color="#4ECFBF" />
+          <Ionicons name="open-outline" size={18} color="#14B8A6" />
         </TouchableOpacity>
 
         <View style={{ height: 32 }} />
@@ -338,7 +338,7 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0D2832', // Dark theme
   },
   header: {
     flexDirection: 'row',
@@ -346,9 +346,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   backButton: {
     padding: 4,
@@ -368,7 +368,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   content: {
     flex: 1,
@@ -379,38 +380,38 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(20, 184, 166, 0.1)',
   },
   updateText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#B4E4DD',
     fontWeight: '500',
   },
   introCard: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
     padding: 16,
     marginHorizontal: 20,
     marginTop: 16,
     marginBottom: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   introText: {
     fontSize: 14,
-    color: '#1E40AF',
+    color: '#93C5FD',
     lineHeight: 20,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     marginHorizontal: 20,
     marginBottom: 12,
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     flex: 1,
   },
   contentItem: {
@@ -438,32 +439,32 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#374151',
+    color: '#14B8A6',
     marginBottom: 6,
   },
   text: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 20,
   },
   contactCard: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   contactTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   contactSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#B4E4DD',
     marginBottom: 12,
   },
   contactInfo: {
@@ -476,25 +477,25 @@ const styles = StyleSheet.create({
   },
   contactText: {
     fontSize: 14,
-    color: '#0F766E',
+    color: '#14B8A6',
     fontWeight: '500',
   },
   onlineButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     paddingVertical: 14,
     marginHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#4ECFBF',
+    borderColor: '#14B8A6',
     gap: 8,
   },
   onlineButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#4ECFBF',
+    color: '#14B8A6',
   },
 });
 

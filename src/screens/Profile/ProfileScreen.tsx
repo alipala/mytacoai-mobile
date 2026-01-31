@@ -651,7 +651,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     await fetchFlashcardData();
   };
 
-  // Render circular progress
+  // Render circular progress - Dark Theme
   const renderCircularProgress = (percentage: number, size: number = 80) => {
     const radius = (size - 12) / 2;
     const circumference = radius * 2 * Math.PI;
@@ -660,7 +660,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     return (
       <View style={[styles.circularProgress, { width: size, height: size }]}>
         <Svg width={size} height={size}>
-          <Circle cx={size / 2} cy={size / 2} r={radius} stroke="#E5E7EB" strokeWidth="6" fill="none" />
+          <Circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(20, 184, 166, 0.15)" strokeWidth="6" fill="none" />
           <Circle
             cx={size / 2}
             cy={size / 2}
@@ -687,19 +687,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   // Overview Tab
   const renderOverviewTab = () => (
     <View>
-      <View style={styles.welcomeSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
-        </View>
-        <View style={styles.welcomeText}>
-          <Text style={styles.welcomeTitle}>Welcome back, {user?.name || 'User'}!</Text>
-          <Text style={styles.welcomeSubtitle}>
-            {user?.preferred_language
-              ? `Learning ${user.preferred_language} • ${user.preferred_level || 'Beginner'}`
-              : 'Continue your learning journey'}
+      {/* Learning Info Badge */}
+      {user?.preferred_language && (
+        <View style={styles.learningInfoBadge}>
+          <Ionicons name="school" size={16} color="#14B8A6" />
+          <Text style={styles.learningInfoText}>
+            Learning {user.preferred_language} • {user.preferred_level || 'Beginner'}
           </Text>
         </View>
-      </View>
+      )}
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
@@ -719,7 +715,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         </View>
       </View>
 
-      {/* Speaking DNA Section - Enhanced */}
+      {/* Speaking DNA Section - Dark Theme Enhanced */}
       <View style={styles.section}>
         <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 12}}>
           <Ionicons name="analytics" size={20} color="#14B8A6" style={{marginRight: 8}} />
@@ -740,18 +736,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           style={{
             borderRadius: 16,
             overflow: 'hidden',
-            shadowColor: '#000',
+            shadowColor: '#14B8A6',
             shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 8,
+            shadowOpacity: 0.3,
+            shadowRadius: 12,
             elevation: 5,
           }}
         >
-          {/* Gradient Card */}
+          {/* Dark Theme DNA Card */}
           <View style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'rgba(11, 26, 31, 0.8)',
             borderWidth: 1,
-            borderColor: '#E5E7EB',
+            borderColor: 'rgba(20, 184, 166, 0.3)',
           }}>
             {/* Header Row */}
             <View style={{
@@ -760,24 +756,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               justifyContent: 'space-between',
               padding: 16,
               borderBottomWidth: 1,
-              borderBottomColor: '#F3F4F6',
+              borderBottomColor: 'rgba(20, 184, 166, 0.15)',
             }}>
               <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
                 <View style={{
                   width: 36,
                   height: 36,
                   borderRadius: 18,
-                  backgroundColor: '#D1FAE5',
+                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: 'rgba(20, 184, 166, 0.3)',
                 }}>
-                  <Ionicons name="pulse" size={20} color="#059669" />
+                  <Ionicons name="pulse" size={20} color="#14B8A6" />
                 </View>
                 <View>
-                  <Text style={{fontSize: 16, fontWeight: '700', color: '#111827'}}>
+                  <Text style={{fontSize: 16, fontWeight: '700', color: '#FFFFFF'}}>
                     Track Your Progress
                   </Text>
-                  <Text style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+                  <Text style={{fontSize: 12, color: '#B4E4DD', marginTop: 2}}>
                     6 DNA Strands Analyzed
                   </Text>
                 </View>
@@ -791,27 +789,29 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               padding: 16,
               gap: 12,
             }}>
-              {/* Left: Icon Grid */}
+              {/* Left: DNA Icon Grid with Glow */}
               <View style={{
                 width: 80,
                 height: 80,
-                backgroundColor: '#F0FDFA',
+                backgroundColor: 'rgba(20, 184, 166, 0.08)',
                 borderRadius: 12,
                 padding: 8,
                 gap: 4,
+                borderWidth: 1,
+                borderColor: 'rgba(20, 184, 166, 0.2)',
               }}>
                 <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#6366F1'}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#8B5CF6'}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#EC4899'}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#6366F1', shadowColor: '#6366F1', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#8B5CF6', shadowColor: '#8B5CF6', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#EC4899', shadowColor: '#EC4899', shadowOpacity: 0.5, shadowRadius: 4}} />
                 </View>
                 <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#F59E0B'}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#10B981'}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#14B8A6'}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#F59E0B', shadowColor: '#F59E0B', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#10B981', shadowColor: '#10B981', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#14B8A6', shadowColor: '#14B8A6', shadowOpacity: 0.5, shadowRadius: 4}} />
                 </View>
                 <View style={{alignItems: 'center', marginTop: 4}}>
-                  <Ionicons name="trending-up" size={16} color="#059669" />
+                  <Ionicons name="trending-up" size={16} color="#14B8A6" />
                 </View>
               </View>
 
@@ -819,7 +819,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <View style={{flex: 1, justifyContent: 'center'}}>
                 <Text style={{
                   fontSize: 14,
-                  color: '#374151',
+                  color: '#B4E4DD',
                   lineHeight: 20,
                   marginBottom: 8,
                 }}>
@@ -827,22 +827,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 </Text>
                 <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
                   <View style={{
-                    backgroundColor: '#FEF3C7',
+                    backgroundColor: 'rgba(251, 191, 36, 0.15)',
                     paddingHorizontal: 8,
                     paddingVertical: 3,
                     borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: 'rgba(251, 191, 36, 0.3)',
                   }}>
-                    <Text style={{fontSize: 11, fontWeight: '600', color: '#92400E'}}>
+                    <Text style={{fontSize: 11, fontWeight: '600', color: '#FBBF24'}}>
                       Visual Analytics
                     </Text>
                   </View>
                   <View style={{
-                    backgroundColor: '#DBEAFE',
+                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
                     paddingHorizontal: 8,
                     paddingVertical: 3,
                     borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: 'rgba(59, 130, 246, 0.3)',
                   }}>
-                    <Text style={{fontSize: 11, fontWeight: '600', color: '#1E40AF'}}>
+                    <Text style={{fontSize: 11, fontWeight: '600', color: '#3B82F6'}}>
                       Insights
                     </Text>
                   </View>
@@ -904,7 +908,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     if (learningPlans.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <Ionicons name="book-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="book-outline" size={64} color="#6B8A84" />
           <Text style={styles.emptyStateText}>No Learning Plans Yet</Text>
         </View>
       );
@@ -953,10 +957,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                     </Text>
                   </View>
                 </View>
-                <Ionicons 
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                  size={24} 
-                  color="#6B7280" 
+                <Ionicons
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={24}
+                  color="#6B8A84"
                 />
               </TouchableOpacity>
 
@@ -1083,31 +1087,52 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   };
 
   // Flashcards Tab - GRID LAYOUT
-  const renderFlashcardItem = ({ item }: { item: FlashcardSet }) => (
-    <View style={styles.flashcardCard}>
-      <View style={styles.flashcardCardHeader}>
-        <View style={styles.flashcardCardIcon}>
-          <Ionicons name="layers" size={28} color="#F75A5A" />
+  const renderFlashcardItem = ({ item }: { item: FlashcardSet }) => {
+    // Determine if this is a learning plan card
+    const isLearningPlan = item.session_id.startsWith('learning_plan');
+
+    // Different colors for different categories
+    const iconColor = isLearningPlan ? '#6366F1' : '#F59E0B'; // Purple for LP, Amber for Practice
+    const iconBgColor = isLearningPlan ? 'rgba(99, 102, 241, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+    const iconBorderColor = isLearningPlan ? 'rgba(99, 102, 241, 0.3)' : 'rgba(245, 158, 11, 0.3)';
+    const iconName = isLearningPlan ? 'school' : 'fitness';
+
+    return (
+      <View style={styles.flashcardCard}>
+        <View style={styles.flashcardCardHeader}>
+          <View style={[
+            styles.flashcardCardIcon,
+            {
+              backgroundColor: iconBgColor,
+              borderColor: iconBorderColor,
+              shadowColor: iconColor,
+            }
+          ]}>
+            <Ionicons name={iconName} size={28} color={iconColor} />
+          </View>
+          <View style={styles.flashcardCardInfo}>
+            <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
+            <Text style={styles.flashcardCardMeta}>
+              {item.total_cards} cards
+            </Text>
+          </View>
         </View>
-        <View style={styles.flashcardCardInfo}>
-          <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.flashcardCardMeta}>
-            {item.total_cards} cards
-          </Text>
-        </View>
+        <Text style={styles.flashcardCardDescription} numberOfLines={2}>
+          {item.description}
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.flashcardStudyButton,
+            isLearningPlan && styles.flashcardStudyButtonLP
+          ]}
+          onPress={() => openFlashcardViewer(item)}
+        >
+          <Ionicons name="play-circle" size={20} color="#FFFFFF" />
+          <Text style={styles.flashcardStudyButtonText}>Study</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.flashcardCardDescription} numberOfLines={2}>
-        {item.description}
-      </Text>
-      <TouchableOpacity
-        style={styles.flashcardStudyButton}
-        onPress={() => openFlashcardViewer(item)}
-      >
-        <Ionicons name="play-circle" size={20} color="#FFFFFF" />
-        <Text style={styles.flashcardStudyButtonText}>Study</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   const renderFlashcardsTab = () => {
     // Filter flashcard sets based on selected filter
@@ -1218,7 +1243,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           />
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="albums-outline" size={64} color="#D1D5DB" />
+            <Ionicons name="albums-outline" size={64} color="#6B8A84" />
             <Text style={styles.emptyStateText}>
               {flashcardFilter === 'all' ? 'No Flashcards Yet' : `No ${flashcardFilter === 'practice' ? 'Practice' : 'Learning Plan'} Flashcards`}
             </Text>
@@ -1317,9 +1342,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     <TransitionWrapper isLoading={loading} loadingMessage="Loading your profile...">
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-        {/* Header */}
+        {/* Header with Welcome Section */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
+          <View style={styles.headerLeft}>
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarText}>{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
+            </View>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.headerWelcome}>Welcome back</Text>
+              <Text style={styles.headerName}>{user?.name || 'User'}</Text>
+            </View>
+          </View>
           <TouchableOpacity
             onPress={() => {
               if (Platform.OS === 'ios') {
@@ -1329,7 +1362,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             }}
             style={styles.settingsButton}
           >
-            <Ionicons name="settings-outline" size={24} color="#64748B" />
+            <Ionicons name="settings-outline" size={24} color="#14B8A6" />
           </TouchableOpacity>
         </View>
 
@@ -1344,7 +1377,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'overview' ? 'home' : 'home-outline'}
                 size={24}
-                color={activeTab === 'overview' ? '#4FD1C5' : '#9CA3AF'}
+                color={activeTab === 'overview' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>Overview</Text>
             </TouchableOpacity>
@@ -1357,7 +1390,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'progress' ? 'trending-up' : 'trending-up-outline'}
                 size={24}
-                color={activeTab === 'progress' ? '#4FD1C5' : '#9CA3AF'}
+                color={activeTab === 'progress' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>Progress</Text>
             </TouchableOpacity>
@@ -1370,7 +1403,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'flashcards' ? 'albums' : 'albums-outline'}
                 size={24}
-                color={activeTab === 'flashcards' ? '#4FD1C5' : '#9CA3AF'}
+                color={activeTab === 'flashcards' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>Cards</Text>
             </TouchableOpacity>
@@ -1384,7 +1417,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <Ionicons
                   name={activeTab === 'notifications' ? 'notifications' : 'notifications-outline'}
                   size={24}
-                  color={activeTab === 'notifications' ? '#4FD1C5' : '#9CA3AF'}
+                  color={activeTab === 'notifications' ? '#14B8A6' : '#6B8A84'}
                 />
                 <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>Alerts</Text>
                 {unreadCount > 0 && (
@@ -1413,7 +1446,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               style={styles.pageContent}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
               }
             >
               {renderOverviewTab()}
@@ -1426,7 +1459,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               style={styles.pageContent}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
               }
             >
               {renderProgressTab()}
@@ -1444,7 +1477,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               style={styles.pageContent}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
               }
             >
               {renderNotificationsTab()}

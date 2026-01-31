@@ -1,9 +1,14 @@
+/**
+ * AccountPreferencesScreen Dark Theme Styles
+ * ==========================================
+ */
+
 import { StyleSheet, Platform } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme
   },
   header: {
     flexDirection: 'row',
@@ -12,7 +17,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   backButton: {
     padding: 4,
@@ -20,7 +25,8 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   headerSpacer: {
     width: 32,
@@ -29,14 +35,16 @@ export const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#0B1A1F',
   },
   content: {
     flex: 1,
+    backgroundColor: '#0D2832',
   },
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(20, 184, 166, 0.1)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -47,7 +55,7 @@ export const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   field: {
     marginBottom: 20,
@@ -55,30 +63,31 @@ export const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: '#B4E4DD',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   inputDisabled: {
-    backgroundColor: '#F3F4F6',
-    color: '#9CA3AF',
+    backgroundColor: 'rgba(11, 26, 31, 0.4)',
+    color: '#6B8A84',
+    opacity: 0.7,
   },
   fieldNote: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#6B8A84',
     marginTop: 6,
   },
   saveButton: {
-    backgroundColor: '#4ECFBF',
+    backgroundColor: '#14B8A6',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -86,9 +95,14 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 8,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   saveButtonText: {
     fontSize: 16,
@@ -99,21 +113,21 @@ export const styles = StyleSheet.create({
     padding: 20,
   },
   dangerCard: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#FEE2E2',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   dangerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#DC2626',
+    color: '#EF4444',
     marginBottom: 8,
   },
   dangerDescription: {
     fontSize: 14,
-    color: '#991B1B',
+    color: '#FCA5A5',
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -125,6 +139,11 @@ export const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     borderRadius: 8,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   dangerButtonText: {
     fontSize: 14,
@@ -132,32 +151,29 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   disabledSection: {
-    opacity: 0.7,
+    opacity: 0.5,
   },
   disabledSectionTitle: {
-    color: '#9CA3AF',
+    color: '#6B8A84',
   },
   googleAccountNotice: {
     flexDirection: 'row',
-    backgroundColor: '#F0F9FF',
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
     gap: 12,
   },
   googleAccountNoticeIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
   },
   googleAccountNoticeContent: {
     flex: 1,
@@ -165,37 +181,39 @@ export const styles = StyleSheet.create({
   googleAccountNoticeTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#FFFFFF',
     marginBottom: 6,
   },
   googleAccountNoticeText: {
     fontSize: 13,
-    color: '#475569',
+    color: '#B4E4DD',
     lineHeight: 19,
     marginBottom: 8,
   },
   googleAccountNoticeLink: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#3B82F6',
   },
-  // Delete Modal Styles
+  // Delete Modal Styles - Dark Theme
   deleteModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   deleteModalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0D2832',
     borderRadius: 20,
     padding: 28,
     width: '100%',
     maxWidth: 400,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.5,
     shadowRadius: 20,
     elevation: 10,
   },
@@ -207,38 +225,39 @@ export const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#FECACA',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   deleteModalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 6,
+    letterSpacing: -0.5,
   },
   deleteModalSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     marginBottom: 24,
     fontWeight: '500',
   },
   deleteModalWarningBox: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
-    borderColor: '#FEE2E2',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
     marginBottom: 24,
   },
   deleteModalWarningTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#991B1B',
+    color: '#EF4444',
     marginBottom: 12,
   },
   deleteModalWarningList: {
@@ -252,24 +271,24 @@ export const styles = StyleSheet.create({
   deleteModalWarningText: {
     flex: 1,
     fontSize: 13,
-    color: '#7F1D1D',
+    color: '#FCA5A5',
     lineHeight: 18,
   },
   deleteModalButtons: {
     gap: 10,
   },
   deleteCancelButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   deleteCancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: '#14B8A6',
   },
   deleteConfirmButton: {
     backgroundColor: '#EF4444',
@@ -279,20 +298,25 @@ export const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderRadius: 12,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   deleteConfirmButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   deleteConfirmButtonText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  // Level Selector Styles
+  // Level Selector Styles - Dark Theme
   levelSelector: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -307,31 +331,33 @@ export const styles = StyleSheet.create({
   levelSelectorText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   levelSelectorDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 18,
   },
-  // Level Picker Modal Styles
+  // Level Picker Modal Styles - Dark Theme
   levelPickerOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'flex-end',
   },
   levelPickerContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0D2832',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 24,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     paddingHorizontal: 20,
     maxHeight: '80%',
+    borderTopWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 10,
   },
@@ -342,28 +368,34 @@ export const styles = StyleSheet.create({
   levelPickerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 8,
+    letterSpacing: -0.3,
   },
   levelPickerSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
   },
   levelPickerScroll: {
     marginBottom: 16,
   },
   levelOption: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
   },
   levelOptionSelected: {
-    backgroundColor: '#E6F7F5',
-    borderColor: '#4ECFBF',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    borderColor: '#14B8A6',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   levelOptionContent: {
     flex: 1,
@@ -377,33 +409,33 @@ export const styles = StyleSheet.create({
   levelOptionLabel: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#374151',
+    color: '#B4E4DD',
   },
   levelOptionLabelSelected: {
-    color: '#0D9488',
+    color: '#14B8A6',
   },
   levelOptionCheck: {
     marginLeft: 8,
   },
   levelOptionDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#6B8A84',
     lineHeight: 20,
   },
   levelOptionDescriptionSelected: {
-    color: '#0F766E',
+    color: '#B4E4DD',
   },
   levelPickerCancelButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   levelPickerCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: '#14B8A6',
   },
 });

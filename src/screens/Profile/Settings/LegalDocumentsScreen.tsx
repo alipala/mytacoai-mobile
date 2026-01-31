@@ -60,10 +60,10 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
           }}
           style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="#4ECFBF" />
+          <Ionicons name="chevron-back" size={24} color="#14B8A6" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Ionicons name="document-text" size={24} color="#4ECFBF" />
+          <Ionicons name="document-text" size={24} color="#14B8A6" />
           <Text style={styles.title}>Legal & Privacy</Text>
         </View>
         <View style={styles.headerRight} />
@@ -94,11 +94,11 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
               Read our terms and conditions for using MyTaco AI
             </Text>
             <View style={styles.linkContainer}>
-              <Ionicons name="document" size={14} color="#4ECFBF" />
+              <Ionicons name="document" size={14} color="#14B8A6" />
               <Text style={styles.linkText}>View in App</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={24} color="#4ECFBF" />
+          <Ionicons name="chevron-forward" size={24} color="#14B8A6" />
         </TouchableOpacity>
 
         {/* Privacy Policy */}
@@ -116,11 +116,11 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
               Learn how we collect, use, and protect your personal information
             </Text>
             <View style={styles.linkContainer}>
-              <Ionicons name="document" size={14} color="#4ECFBF" />
+              <Ionicons name="document" size={14} color="#14B8A6" />
               <Text style={styles.linkText}>View in App</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={24} color="#4ECFBF" />
+          <Ionicons name="chevron-forward" size={24} color="#14B8A6" />
         </TouchableOpacity>
 
         {/* Subscription Information */}
@@ -169,7 +169,7 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
               onPress={() => handleOpenUrl('tel:+31621185593', 'Support Phone')}
               activeOpacity={0.7}
             >
-              <Ionicons name="call-outline" size={20} color="#4ECFBF" />
+              <Ionicons name="call-outline" size={20} color="#14B8A6" />
               <Text style={styles.supportButtonText}>Call Support</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -177,7 +177,7 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
               onPress={() => handleOpenUrl('mailto:hello@mytacoai.com', 'Support Email')}
               activeOpacity={0.7}
             >
-              <Ionicons name="mail-outline" size={20} color="#4ECFBF" />
+              <Ionicons name="mail-outline" size={20} color="#14B8A6" />
               <Text style={styles.supportButtonText}>Email Us</Text>
             </TouchableOpacity>
           </View>
@@ -190,7 +190,7 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme
   },
   header: {
     flexDirection: 'row',
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   backButton: {
     padding: 4,
@@ -219,14 +219,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   content: {
     flex: 1,
+    backgroundColor: '#0D2832',
   },
   infoBanner: {
     flexDirection: 'row',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
     padding: 16,
     marginHorizontal: 20,
     marginTop: 20,
@@ -234,27 +236,27 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   infoBannerText: {
     flex: 1,
     fontSize: 14,
-    color: '#065F46',
+    color: '#6EE7B7',
     lineHeight: 20,
   },
   documentCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -272,12 +274,12 @@ const styles = StyleSheet.create({
   documentTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   documentDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 18,
     marginBottom: 6,
   },
@@ -288,7 +290,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 12,
-    color: '#4ECFBF',
+    color: '#14B8A6',
     fontWeight: '500',
   },
   infoSection: {
@@ -304,14 +306,14 @@ const styles = StyleSheet.create({
   infoSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   infoCard: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: 'rgba(251, 191, 36, 0.3)',
     gap: 12,
   },
   infoRow: {
@@ -322,7 +324,7 @@ const styles = StyleSheet.create({
   infoText: {
     flex: 1,
     fontSize: 14,
-    color: '#78350F',
+    color: '#FCD34D',
     lineHeight: 20,
   },
   supportSection: {
@@ -330,20 +332,20 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 32,
     padding: 20,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   supportTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   supportText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 20,
     marginBottom: 16,
   },
@@ -356,17 +358,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#4ECFBF',
+    borderColor: '#14B8A6',
     gap: 6,
   },
   supportButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4ECFBF',
+    color: '#14B8A6',
   },
 });
 
