@@ -292,13 +292,13 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
             }}
             style={styles.backButton}
           >
-            <Ionicons name="chevron-back" size={24} color="#4ECFBF" />
+            <Ionicons name="chevron-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
           <Text style={styles.title}>Subscription</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4ECFBF" />
+          <ActivityIndicator size="large" color="#14B8A6" />
           <Text style={styles.loadingText}>Loading subscription...</Text>
         </View>
       </View>
@@ -318,7 +318,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
             }}
             style={styles.backButton}
           >
-            <Ionicons name="chevron-back" size={24} color="#4ECFBF" />
+            <Ionicons name="chevron-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
           <Text style={styles.title}>Subscription</Text>
           <View style={styles.headerSpacer} />
@@ -356,7 +356,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
           }}
           style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="#4ECFBF" />
+          <Ionicons name="chevron-back" size={24} color="#14B8A6" />
         </TouchableOpacity>
         <Text style={styles.title}>Subscription</Text>
         <View style={styles.headerSpacer} />
@@ -367,7 +367,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
         {/* Success Message */}
         {successMessage && (
           <View style={styles.successBanner}>
-            <Ionicons name="checkmark-circle" size={24} color="#059669" />
+            <Ionicons name="checkmark-circle" size={24} color="#10B981" />
             <Text style={styles.successText}>{successMessage}</Text>
           </View>
         )}
@@ -375,7 +375,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
         {/* Error Message */}
         {error && (
           <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle" size={24} color="#DC2626" />
+            <Ionicons name="alert-circle" size={24} color="#EF4444" />
             <Text style={styles.errorBannerText}>{error}</Text>
           </View>
         )}
@@ -386,7 +386,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
             {subscription.is_in_trial && subscription.trial_days_remaining !== null && (
               <View style={styles.trialBanner}>
                 <View style={styles.trialBannerIcon}>
-                  <Ionicons name="information-circle" size={24} color="#2563EB" />
+                  <Ionicons name="information-circle" size={24} color="#3B82F6" />
                 </View>
                 <View style={styles.trialBannerContent}>
                   <Text style={styles.trialBannerTitle}>🎉 Free Trial Active</Text>
@@ -474,7 +474,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
             {subscription.status === 'canceling' && subscription.limits && (
               <View style={styles.warningBox}>
                 <View style={styles.warningHeader}>
-                  <Ionicons name="warning" size={28} color="#C2410C" />
+                  <Ionicons name="warning" size={28} color="#F59E0B" />
                   <Text style={styles.warningTitle}>⚠️ Cancellation Scheduled</Text>
                 </View>
                 <Text style={styles.warningText}>
@@ -519,7 +519,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
           </>
         ) : (
           <View style={styles.noSubscriptionContainer}>
-            <Ionicons name="card-outline" size={64} color="#D1D5DB" />
+            <Ionicons name="card-outline" size={64} color="#6B8A84" />
             <Text style={styles.noSubscriptionText}>
               You don't have an active subscription. Upgrade to a premium plan to access all features.
             </Text>
@@ -533,7 +533,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme
   },
   header: {
     flexDirection: 'row',
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   backButton: {
     padding: 4,
@@ -550,7 +550,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   headerSpacer: {
     width: 32,
@@ -560,30 +561,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#0B1A1F',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#0B1A1F',
   },
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
   },
   retryButton: {
     marginTop: 20,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#4ECFBF',
+    backgroundColor: '#14B8A6',
     borderRadius: 8,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   retryButtonText: {
     fontSize: 16,
@@ -593,48 +601,53 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingTop: 16,
+    backgroundColor: '#0D2832',
   },
   successBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#D1FAE5',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
     gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   successText: {
     flex: 1,
     fontSize: 14,
-    color: '#047857',
+    color: '#6EE7B7',
     lineHeight: 20,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
     gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   errorBannerText: {
     flex: 1,
     fontSize: 14,
-    color: '#991B1B',
+    color: '#FCA5A5',
     lineHeight: 20,
   },
   trialBanner: {
     flexDirection: 'row',
-    backgroundColor: '#DBEAFE',
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#93C5FD',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   trialBannerIcon: {
     marginRight: 12,
@@ -645,12 +658,12 @@ const styles = StyleSheet.create({
   trialBannerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E40AF',
+    color: '#3B82F6',
     marginBottom: 6,
   },
   trialBannerText: {
     fontSize: 14,
-    color: '#1E3A8A',
+    color: '#93C5FD',
     lineHeight: 20,
   },
   trialBannerBold: {
@@ -658,22 +671,22 @@ const styles = StyleSheet.create({
   },
   trialBannerSubtext: {
     fontSize: 14,
-    color: '#1E3A8A',
+    color: '#93C5FD',
     marginTop: 4,
   },
   trialBannerNote: {
     fontSize: 12,
-    color: '#3B82F6',
+    color: '#60A5FA',
     marginTop: 8,
   },
   detailsCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     marginHorizontal: 16,
     marginBottom: 20,
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   detailRow: {
     flexDirection: 'row',
@@ -684,17 +697,17 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   detailValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   trialBadge: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#2563EB',
+    color: '#60A5FA',
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -716,12 +729,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   cancelButton: {
     backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
   },
   reactivateButton: {
     backgroundColor: '#10B981',
+    shadowColor: '#10B981',
   },
   actionButtonText: {
     fontSize: 16,
@@ -729,13 +748,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   warningBox: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
     marginHorizontal: 16,
     marginBottom: 20,
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FCD34D',
+    borderColor: 'rgba(251, 191, 36, 0.3)',
   },
   warningHeader: {
     flexDirection: 'row',
@@ -746,11 +765,11 @@ const styles = StyleSheet.create({
   warningTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#78350F',
+    color: '#FBBF24',
   },
   warningText: {
     fontSize: 14,
-    color: '#92400E',
+    color: '#FCD34D',
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -758,15 +777,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   remainingBox: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.8)',
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.15)',
   },
   remainingTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   remainingList: {
@@ -779,17 +800,17 @@ const styles = StyleSheet.create({
   },
   remainingBullet: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   remainingText: {
     flex: 1,
     fontSize: 14,
-    color: '#4B5563',
+    color: '#B4E4DD',
     lineHeight: 20,
   },
   warningFooter: {
     fontSize: 12,
-    color: '#92400E',
+    color: '#FCD34D',
     lineHeight: 18,
   },
   noSubscriptionContainer: {
@@ -797,11 +818,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
+    backgroundColor: '#0B1A1F',
   },
   noSubscriptionText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     lineHeight: 24,
   },

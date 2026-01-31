@@ -13,7 +13,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
+import Svg, { Polyline, Circle, Line, Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop, Polygon } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecentPerformance } from '../hooks/useStats';
 import { styles, CARD_WIDTH } from './styles/RecentPerformanceCard.styles';
@@ -37,6 +37,19 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
       setForceRender(prev => prev + 1);
     });
   }, []);
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[RecentPerformanceCard] 🔍 DEBUG - recent data:', JSON.stringify({
+      hasRecent: !!recent,
+      summary: recent?.summary,
+      dailyBreakdownLength: recent?.daily_breakdown?.length,
+      dailyBreakdown: recent?.daily_breakdown,
+      isLoading,
+      hasError: !!error,
+      errorMessage: error?.message
+    }, null, 2));
+  }, [recent, isLoading, error]);
 
   const handleRefresh = async () => {
     await refetchRecent(true);
@@ -97,7 +110,7 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
     return (
       <View style={styles.card}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#06B6D4" />
+          <ActivityIndicator size="large" color="#14B8A6" />
           <Text style={styles.loadingText}>Loading your performance trends...</Text>
         </View>
       </View>
@@ -176,32 +189,32 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
     trendText = 'No Challenges Today';
   } else if (daysSinceLastPractice >= 3) {
     // Haven't practiced in 3+ days
-    trendIcon = '👋';
+    trendIcon = 'hand-left-outline';
     trendColor = '#F59E0B';
     trendText = 'Come Back';
   } else if (daysWithPractice === 1) {
     // Just started
-    trendIcon = '🚀';
-    trendColor = '#06B6D4';
+    trendIcon = 'rocket-outline';
+    trendColor = '#14B8A6';
     trendText = 'Just Started';
   } else if (daysWithPractice >= 5) {
     // Practicing consistently
-    trendIcon = '🔥';
+    trendIcon = 'flame-outline';
     trendColor = '#EF4444';
     trendText = 'On Fire';
   } else if (trendDiff > 5) {
     // Accuracy improving
-    trendIcon = '↑';
+    trendIcon = 'trending-up-outline';
     trendColor = '#10B981';
     trendText = 'Improving';
   } else if (trendDiff < -5) {
     // Accuracy declining
-    trendIcon = '↓';
+    trendIcon = 'trending-down-outline';
     trendColor = '#EF4444';
     trendText = 'Needs Focus';
   } else {
     // Regular practice, stable accuracy
-    trendIcon = '💪';
+    trendIcon = 'barbell-outline';
     trendColor = '#8B5CF6';
     trendText = 'Keep Going';
   }
@@ -267,11 +280,7 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
             </View>
           </View>
           <View style={[styles.trendBadge, { backgroundColor: `${trendColor}20` }]}>
-            {trendIcon.includes('-') ? (
-              <Ionicons name={trendIcon as any} size={18} color={trendColor} style={{ marginRight: 4 }} />
-            ) : (
-              <Text style={[styles.trendIcon, { color: trendColor }]}>{trendIcon}</Text>
-            )}
+            <Ionicons name={trendIcon as any} size={16} color={trendColor} style={{ marginRight: 4 }} />
             <Text style={[styles.trendText, { color: trendColor }]}>{trendText}</Text>
           </View>
         </View>
@@ -279,35 +288,72 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
         {/* Sparkline Chart */}
         <View style={styles.chartContainer}>
           <Svg width={chartWidth + 80} height={chartHeight + 40}>
-            {/* Grid lines */}
-            <Line x1="40" y1="10" x2={chartWidth + 40} y2="10" stroke="#E5E7EB" strokeWidth="1" />
-            <Line x1="40" y1={chartHeight / 2 + 10} x2={chartWidth + 40} y2={chartHeight / 2 + 10} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4,4" />
-            <Line x1="40" y1={chartHeight + 10} x2={chartWidth + 40} y2={chartHeight + 10} stroke="#E5E7EB" strokeWidth="1" />
+            {/* Gradients definition */}
+            <Defs>
+              <SvgLinearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <Stop offset="0%" stopColor="#14B8A6" stopOpacity="0.8" />
+                <Stop offset="50%" stopColor="#3B82F6" stopOpacity="1" />
+                <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+              </SvgLinearGradient>
+              <SvgLinearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <Stop offset="0%" stopColor="#14B8A6" stopOpacity="0.3" />
+                <Stop offset="100%" stopColor="#14B8A6" stopOpacity="0" />
+              </SvgLinearGradient>
+            </Defs>
 
-            {/* Sparkline */}
+            {/* Grid lines */}
+            <Line x1="40" y1="10" x2={chartWidth + 40} y2="10" stroke="rgba(107, 114, 128, 0.3)" strokeWidth="1" />
+            <Line x1="40" y1={chartHeight / 2 + 10} x2={chartWidth + 40} y2={chartHeight / 2 + 10} stroke="rgba(107, 114, 128, 0.2)" strokeWidth="1" strokeDasharray="4,4" />
+            <Line x1="40" y1={chartHeight + 10} x2={chartWidth + 40} y2={chartHeight + 10} stroke="rgba(107, 114, 128, 0.3)" strokeWidth="1" />
+
+            {/* Area fill under graph */}
+            <Polygon
+              points={`${sparklinePoints} ${chartWidth + 40},${chartHeight + 10} 40,${chartHeight + 10}`}
+              fill="url(#areaGradient)"
+            />
+
+            {/* Sparkline with gradient and glow */}
             <Polyline
               points={sparklinePoints}
               fill="none"
-              stroke="#06B6D4"
-              strokeWidth="3"
+              stroke="url(#lineGradient)"
+              strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
 
-            {/* Data points */}
+            {/* Data points with color coding and glow */}
             {accuracyData.map((accuracy, index) => {
               const x = 40 + index * stepX;
               const y = chartHeight - ((accuracy - minAccuracy) / range) * chartHeight + 10;
+              const isToday = index === accuracyData.length - 1;
+              const isMilestone = accuracy >= 85;
+
+              // Color code by accuracy
+              let pointColor = '#F59E0B'; // Yellow for medium
+              if (accuracy >= 85) pointColor = '#10B981'; // Green for excellent
+              else if (accuracy < 70) pointColor = '#EF4444'; // Red for needs work
+
               return (
-                <Circle
-                  key={index}
-                  cx={x}
-                  cy={y}
-                  r="4"
-                  fill="#FFFFFF"
-                  stroke="#06B6D4"
-                  strokeWidth="2"
-                />
+                <React.Fragment key={index}>
+                  {/* Glow effect */}
+                  <Circle
+                    cx={x}
+                    cy={y}
+                    r={isToday ? "8" : "6"}
+                    fill={pointColor}
+                    opacity="0.3"
+                  />
+                  {/* Main point */}
+                  <Circle
+                    cx={x}
+                    cy={y}
+                    r={isToday ? "5" : "4"}
+                    fill={pointColor}
+                    stroke="#FFFFFF"
+                    strokeWidth="2"
+                  />
+                </React.Fragment>
               );
             })}
 
@@ -316,7 +362,7 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
               x="5"
               y="15"
               fontSize="10"
-              fill="#6B7280"
+              fill="#D1D5DB"
               fontWeight="600"
             >
               {Math.round(maxAccuracy)}%
@@ -325,7 +371,7 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
               x="5"
               y={chartHeight + 15}
               fontSize="10"
-              fill="#6B7280"
+              fill="#D1D5DB"
               fontWeight="600"
             >
               {Math.round(minAccuracy)}%

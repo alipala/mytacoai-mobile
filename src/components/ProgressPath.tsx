@@ -170,13 +170,13 @@ function ProgressNode({ index, state, challengeType, total, challengeId }: Progr
             </View>
           )}
           {state === 'upcoming' && (
-            <View style={[styles.upcomingNodeDot, { backgroundColor: '#E5E7EB' }]} />
+            <View style={[styles.upcomingNodeDot, { backgroundColor: '#4B5563' }]} />
           )}
         </View>
       </Animated.View>
 
       {/* Node label below */}
-      <Text style={[styles.nodeLabel, { color: state === 'upcoming' ? '#9CA3AF' : '#6B7280' }]}>
+      <Text style={[styles.nodeLabel, { color: state === 'upcoming' ? '#6B7280' : '#D1D5DB' }]}>
         {index + 1}
       </Text>
     </View>
@@ -217,7 +217,7 @@ function ConnectionLine({ state }: ConnectionLineProps) {
         style={[
           styles.connector,
           {
-            backgroundColor: state === 'lit' ? '#10B981' : '#E5E7EB',
+            backgroundColor: state === 'lit' ? '#10B981' : '#4B5563',
           },
           animatedStyle,
         ]}

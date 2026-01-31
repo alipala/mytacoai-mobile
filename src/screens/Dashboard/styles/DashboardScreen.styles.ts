@@ -5,21 +5,23 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4FD1C5',
+    backgroundColor: '#0B1A1F',
   },
-  // iOS-Native Header - Premium Design with Larger Logo (matches bottom tab height)
+  // iOS-Native Header - Dark Theme Design with Larger Logo
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#4FD1C5',
+    backgroundColor: '#0B1A1F',
     paddingHorizontal: 20,
-    paddingVertical: 18, // Increased from 14 to 18
-    height: 90, // Increased from 68 to 90 (matches typical iOS tab bar)
+    paddingVertical: 16,
+    height: 88,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   logo: {
-    width: SCREEN_WIDTH < 400 ? 160 : 220, // Responsive: smaller on small phones
-    height: SCREEN_WIDTH < 400 ? 51 : 70, // Maintain aspect ratio
+    width: SCREEN_WIDTH < 400 ? 140 : 180, // Optimized size for transparent logo
+    height: SCREEN_WIDTH < 400 ? 45 : 58, // Maintain aspect ratio
   },
   headerActions: {
     flexDirection: 'row',
@@ -30,22 +32,89 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 10, // Increased from 8 to 10
-    paddingHorizontal: 18, // Increased from 16 to 18
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22, // Increased from 20 to 22
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: '#14B8A6',
   },
   upgradeButtonText: {
-    color: '#4FD1C5',
-    fontSize: 17, // Increased from 16 to 17
+    color: '#14B8A6',
+    fontSize: 17,
     fontWeight: '700',
+  },
+  // Compact Premium Badge in Header - Dark Theme with Premium Feel
+  premiumBadgeCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(251, 191, 36, 0.15)', // Gold tinted
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+    shadowColor: '#FBBF24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  crownEmojiCompact: {
+    fontSize: 14,
+  },
+  premiumTextCompact: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FBBF24', // Gold
+    letterSpacing: 0.3,
+    lineHeight: 12,
+  },
+  premiumMinutesCompact: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#FCD34D', // Lighter gold
+    lineHeight: 10,
+  },
+  // Compact Streak Badge in Header - Dark Theme with Glow
+  streakBadgeCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red tinted
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  fireEmojiCompact: {
+    fontSize: 16,
+  },
+  streakNumberCompact: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#EF4444', // Bright red
+    lineHeight: 14,
+  },
+  streakLabelCompact: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#FCA5A5', // Lighter red
+    lineHeight: 10,
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#F7F9FA',
+    backgroundColor: '#0D2832',
   },
   scrollContent: {
-    paddingBottom: 20, // Reduced from 30
+    paddingBottom: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -55,7 +124,7 @@ export const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   errorContainer: {
     flex: 1,
@@ -63,17 +132,17 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
     gap: 16,
-    backgroundColor: '#F7F9FA',
+    backgroundColor: '#0D2832',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   errorMessage: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -268,34 +337,10 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1D4ED8',
   },
-  carouselContainer: {
-    marginVertical: 8,
-  },
-  carouselContent: {
-    paddingHorizontal: 0,
-  },
-  cardContainer: {
-    width: SCREEN_WIDTH,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paginationDots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#D1D5DB',
-  },
-  dotActive: {
-    backgroundColor: '#4FD1C5',
-    width: 20,
+  // Language Groups Container
+  languageGroupsContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   // Compact Divider
   divider: {
@@ -322,78 +367,59 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   newSessionButton: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#4ECFBF',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
   newSessionGradient: {
-    paddingVertical: 18,
-    paddingHorizontal: 20,
+    paddingVertical: 22,
+    paddingHorizontal: 24,
     position: 'relative',
   },
   newSessionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
     position: 'relative',
     zIndex: 1,
   },
   newSessionIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    position: 'relative',
   },
-  iconGradientBg: {
-    width: '100%',
-    height: '100%',
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
   },
   newSessionTextContainer: {
     flex: 1,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
   newSessionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.15)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  newBadge: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(255, 214, 58, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 214, 58, 0.5)',
+    marginBottom: 4,
+    letterSpacing: 0.3,
   },
   newSessionSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#B4E4DD',
+    fontWeight: '600',
   },
   arrowContainer: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -543,24 +569,26 @@ export const styles = StyleSheet.create({
   secondaryCardTitleNew: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   secondaryCardSubtitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   // PRIMARY - Create Learning Plan (Large, Turquoise)
   primaryCardNew: {
     width: '100%',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#4ECFBF',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.25)',
   },
   primaryCardGradientNew: {
     paddingHorizontal: 24,
@@ -679,8 +707,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#FFE4B3',
-    shadowColor: '#FFA500',
+    borderColor: 'rgba(255, 214, 58, 0.3)',
+    shadowColor: '#FFD63A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -691,7 +719,7 @@ export const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 214, 58, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#FFD63A',
@@ -710,13 +738,13 @@ export const styles = StyleSheet.create({
   premiumStatusTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#92400E',
+    color: '#FFD63A',
     marginBottom: 2,
   },
   premiumStatusSubtitle: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#B45309',
+    color: '#FFC107',
   },
   // Streak Badge Container - For users with learning plans
   streakBadgeContainer: {
@@ -1024,5 +1052,128 @@ export const styles = StyleSheet.create({
     color: '#92400E',
     fontWeight: '500',
     lineHeight: 18,
+  },
+  // Premium Benefits Modal Styles
+  premiumBenefitsContainer: {
+    flex: 1,
+    backgroundColor: '#0B1A1F',
+  },
+  premiumBenefitsGradient: {
+    flex: 1,
+    paddingTop: 60,
+  },
+  premiumBenefitsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
+  },
+  premiumBenefitsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  premiumBenefitsTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  premiumBenefitsCloseButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumBenefitsScroll: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  premiumSubscriptionCard: {
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    alignItems: 'center',
+  },
+  premiumSubscriptionPlan: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FBBF24',
+    marginBottom: 8,
+  },
+  premiumSubscriptionStatus: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FCD34D',
+  },
+  premiumBenefitsList: {
+    gap: 16,
+  },
+  premiumBenefitItem: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    gap: 16,
+  },
+  premiumBenefitIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+  },
+  premiumBenefitTextContainer: {
+    flex: 1,
+  },
+  premiumBenefitTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  premiumBenefitDescription: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#9CA3AF',
+    lineHeight: 20,
+  },
+  premiumThankYouCard: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderRadius: 16,
+    padding: 24,
+    marginTop: 24,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    alignItems: 'center',
+  },
+  premiumThankYouText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  premiumThankYouSubtext: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#D1D5DB',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

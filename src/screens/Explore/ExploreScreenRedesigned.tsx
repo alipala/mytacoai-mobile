@@ -42,7 +42,7 @@ import StatsCarousel from '../../components/StatsCarousel';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import HorizontalStatsCarousel from '../../components/HorizontalStatsCarousel';
 import PlaceholderStatsCard from '../../components/PlaceholderStatsCard';
-import { useDailyStats, useRecentPerformance } from '../../hooks/useStats';
+import { useDailyStats, useRecentPerformance, useLifetimeProgress } from '../../hooks/useStats';
 import { OutOfHeartsModal } from '../../components/OutOfHeartsModal';
 import { PricingModal } from '../../components/PricingModal';
 import { heartAPI } from '../../services/heartAPI';
@@ -133,6 +133,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   const { startSession } = useChallengeSession();
   const { daily } = useDailyStats(true);
   const { recent } = useRecentPerformance(7, true); // Check for historical data
+  const { lifetime } = useLifetimeProgress(false, true); // Check for lifetime data to show carousel
 
   // Navigation state
   const [navState, setNavState] = useState<NavigationState>('mode_selection');
@@ -767,27 +768,34 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
       }}
     >
       <ScrollView
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: '#0B1A1F' }}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Show placeholder for new users, carousel for active users */}
         {(() => {
-          const showPlaceholder = !daily || (daily?.overall?.total_challenges === 0 && (!recent || recent.summary.total_challenges === 0));
+          // Only show placeholder if user has NO lifetime data (truly new user)
+          // If they have ANY lifetime challenges, show the carousel (even if recently inactive)
+          const hasLifetimeData = lifetime && lifetime.summary && lifetime.summary.total_challenges > 0;
+          const showPlaceholder = !hasLifetimeData;
+
           console.log('[ExploreScreen] Daily challenges:', daily?.overall?.total_challenges);
           console.log('[ExploreScreen] Recent total challenges:', recent?.summary?.total_challenges);
+          console.log('[ExploreScreen] Lifetime total challenges:', lifetime?.summary?.total_challenges);
           console.log('[ExploreScreen] Show placeholder:', showPlaceholder);
+
           return showPlaceholder ? <PlaceholderStatsCard /> : <HorizontalStatsCarousel onRefresh={reloadDailyStats} />;
         })()}
 
         {/* Section Title */}
-        <View style={{ marginBottom: 8, marginTop: 0, paddingHorizontal: 0 }}>
+        <View style={{ marginBottom: 8, marginTop: 0, paddingHorizontal: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="trophy" size={24} color="#FBBF24" />
           <Text style={{
             fontSize: 22,
             fontWeight: '700',
-            color: '#1F2937',
+            color: '#FFFFFF',
           }}>
-            🏆 Choose Your Quest
+            Choose Your Quest
           </Text>
         </View>
 
@@ -808,37 +816,48 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               activeOpacity={0.8}
               disabled={completedPlans.length === 0}
             >
+              {/* Outer glow layer */}
+              <View style={{
+                position: 'absolute',
+                top: -4,
+                left: -4,
+                right: -4,
+                bottom: -4,
+                borderRadius: 24,
+                backgroundColor: completedPlans.length === 0 ? 'transparent' : 'rgba(220, 38, 38, 0.3)',
+                opacity: completedPlans.length === 0 ? 0 : 0.6,
+              }} />
               <LinearGradient
-                colors={completedPlans.length === 0 ? ['#6B7280', '#4B5563'] : ['#F75A5A', '#E74C4C']}
+                colors={completedPlans.length === 0 ? ['#3F3F46', '#27272A'] : ['#DC2626', '#991B1B']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
                   borderRadius: 20,
                   padding: 16,
-                  minHeight: 140,
-                  shadowColor: completedPlans.length === 0 ? '#4B5563' : '#F75A5A',
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: completedPlans.length === 0 ? 0.2 : 0.3,
-                  shadowRadius: 12,
-                  elevation: 6,
+                  minHeight: 120,
+                  borderWidth: 2,
+                  borderColor: completedPlans.length === 0 ? 'rgba(107, 114, 128, 0.3)' : 'rgba(255, 255, 255, 0.2)',
+                  shadowColor: completedPlans.length === 0 ? '#4B5563' : '#DC2626',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: completedPlans.length === 0 ? 0.2 : 0.6,
+                  shadowRadius: 20,
+                  elevation: 12,
                 }}
               >
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 12,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 6,
+                    marginBottom: 10,
+                    borderWidth: 2,
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
                   }}>
-                    <Text style={{ fontSize: 32 }}>👑</Text>
+                    <Ionicons name="school" size={24} color="#FFFFFF" />
                   </View>
                   <Text style={{
                     fontSize: 16,
@@ -855,19 +874,20 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 </View>
 
                 <View style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
                   borderRadius: 12,
                   alignSelf: 'center',
-                  borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(255, 255, 255, 0.25)',
                 }}>
                   <Text style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: '800',
                     color: '#FFFFFF',
                     textAlign: 'center',
+                    letterSpacing: 0.5,
                   }}>
                     {completedPlans.length > 0
                       ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} →`
@@ -890,37 +910,48 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               onPress={() => handleModeSelection('freestyle')}
               activeOpacity={0.8}
             >
+              {/* Outer glow layer */}
+              <View style={{
+                position: 'absolute',
+                top: -4,
+                left: -4,
+                right: -4,
+                bottom: -4,
+                borderRadius: 24,
+                backgroundColor: 'rgba(20, 184, 166, 0.3)',
+                opacity: 0.6,
+              }} />
               <LinearGradient
-                colors={['#4ECFBF', '#3DB8A8']}
+                colors={['#14B8A6', '#0D9488']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
                   borderRadius: 20,
                   padding: 16,
-                  minHeight: 140,
-                  shadowColor: '#4ECFBF',
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 12,
-                  elevation: 6,
+                  minHeight: 120,
+                  borderWidth: 2,
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                  shadowColor: '#14B8A6',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.6,
+                  shadowRadius: 20,
+                  elevation: 12,
                 }}
               >
               <View style={{ flex: 1, justifyContent: 'space-between' }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 6,
+                    borderWidth: 2,
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
                   }}>
-                    <Text style={{ fontSize: 32 }}>🚀</Text>
+                    <Ionicons name="flash" size={24} color="#FFFFFF" />
                   </View>
                   <Text style={{
                     fontSize: 16,
@@ -937,19 +968,20 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 </View>
 
                 <View style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
                   borderRadius: 12,
                   alignSelf: 'center',
-                  borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(255, 255, 255, 0.25)',
                 }}>
                   <Text style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: '800',
                     color: '#FFFFFF',
                     textAlign: 'center',
+                    letterSpacing: 0.5,
                   }}>
                     All levels →
                   </Text>
@@ -1087,19 +1119,19 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           alignItems: 'center',
           paddingHorizontal: 20,
           paddingVertical: 16,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#0B1A1F',
           borderBottomWidth: 1,
-          borderBottomColor: '#E5E7EB',
+          borderBottomColor: 'rgba(20, 184, 166, 0.2)',
         }}>
           <TouchableOpacity onPress={handleBack} style={{ marginRight: 12 }}>
-            <Text style={{ fontSize: 28, color: '#06B6D4' }}>←</Text>
+            <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
-          <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
             Choose Language & Level
           </Text>
         </View>
 
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: '#0B1A1F' }}>
           <ScrollView
             style={{ flex: 1 }}
             contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 120 }}
@@ -1107,28 +1139,30 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           >
             {/* Selected Summary with gradient */}
             <LinearGradient
-              colors={['#F0FDFA', '#E8F7F5']}
+              colors={['#0D2832', '#0B1A1F']}
               style={{
                 borderRadius: 16,
                 padding: 20,
                 marginBottom: 28,
-                borderLeftWidth: 5,
-                borderLeftColor: '#06B6D4',
-                shadowColor: '#06B6D4',
+                borderLeftWidth: 4,
+                borderLeftColor: '#14B8A6',
+                borderWidth: 1,
+                borderColor: 'rgba(20, 184, 166, 0.3)',
+                shadowColor: '#14B8A6',
                 shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
+                shadowOpacity: 0.3,
                 shadowRadius: 8,
               }}
             >
               <Text style={{
                 fontSize: 18,
                 fontWeight: '800',
-                color: '#0E7490',
+                color: '#FFFFFF',
                 marginBottom: 6,
               }}>
                 Selected: {LANGUAGES.find(l => l.code === selectedLanguage)?.name} · {selectedLevel}
               </Text>
-              <Text style={{ fontSize: 14, color: '#0891B2', fontWeight: '600' }}>
+              <Text style={{ fontSize: 14, color: '#B4E4DD', fontWeight: '600' }}>
                 Tap Continue to see challenges
               </Text>
             </LinearGradient>
@@ -1138,17 +1172,19 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: '#FEF3C7',
+                backgroundColor: 'rgba(251, 191, 36, 0.15)',
                 paddingVertical: 12,
                 paddingHorizontal: 16,
                 borderRadius: 12,
                 marginBottom: 16,
+                borderWidth: 1,
+                borderColor: 'rgba(251, 191, 36, 0.3)',
               }}>
-                <ActivityIndicator size="small" color="#D97706" style={{ marginRight: 12 }} />
+                <ActivityIndicator size="small" color="#FBBF24" style={{ marginRight: 12 }} />
                 <Text style={{
                   fontSize: 14,
                   fontWeight: '600',
-                  color: '#92400E',
+                  color: '#FBBF24',
                 }}>
                   Loading challenge counts...
                 </Text>
@@ -1156,16 +1192,18 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
             )}
 
             {/* Language Selection */}
-            <Text style={{
-              fontSize: 13,
-              fontWeight: '800',
-              color: '#6B7280',
-              marginBottom: 16,
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}>
-              🌍 LANGUAGE
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <Ionicons name="language" size={18} color="#14B8A6" />
+              <Text style={{
+                fontSize: 13,
+                fontWeight: '800',
+                color: '#B4E4DD',
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+              }}>
+                LANGUAGE
+              </Text>
+            </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
               {LANGUAGES.map((lang) => (
                 <TouchableOpacity
@@ -1180,43 +1218,47 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                   }}
                   activeOpacity={0.7}
                 >
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: selectedLanguage === lang.code ? '#ECFEFF' : '#F9FAFB',
-                    borderRadius: 16,
-                    padding: 16,
-                    borderWidth: 2,
-                    borderColor: selectedLanguage === lang.code ? '#06B6D4' : '#E5E7EB',
-                    shadowColor: selectedLanguage === lang.code ? '#06B6D4' : '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: selectedLanguage === lang.code ? 0.2 : 0.05,
-                    shadowRadius: 4,
-                  }}>
+                  <LinearGradient
+                    colors={selectedLanguage === lang.code ? ['#0D2832', '#0B1A1F'] : ['#1F2937', '#111827']}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      borderRadius: 16,
+                      padding: 16,
+                      borderWidth: 2,
+                      borderColor: selectedLanguage === lang.code ? 'rgba(20, 184, 166, 0.6)' : 'rgba(107, 114, 128, 0.3)',
+                      shadowColor: selectedLanguage === lang.code ? '#14B8A6' : '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: selectedLanguage === lang.code ? 0.3 : 0.1,
+                      shadowRadius: 4,
+                    }}
+                  >
                     <Text style={{ fontSize: 28, marginRight: 12 }}>{lang.flag}</Text>
                     <Text style={{
                       fontSize: 16,
                       fontWeight: '700',
-                      color: selectedLanguage === lang.code ? '#0E7490' : '#6B7280',
+                      color: selectedLanguage === lang.code ? '#FFFFFF' : '#9CA3AF',
                     }}>
                       {lang.name}
                     </Text>
-                  </View>
+                  </LinearGradient>
                 </TouchableOpacity>
               ))}
             </View>
 
             {/* Level Selection */}
-            <Text style={{
-              fontSize: 13,
-              fontWeight: '800',
-              color: '#6B7280',
-              marginBottom: 16,
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}>
-              📊 CEFR LEVEL
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <Ionicons name="bar-chart" size={18} color="#8B5CF6" />
+              <Text style={{
+                fontSize: 13,
+                fontWeight: '800',
+                color: '#C4B5FD',
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+              }}>
+                CEFR LEVEL
+              </Text>
+            </View>
             <View style={{ gap: 12, marginBottom: 32 }}>
               {LEVELS.map(({ level, name }) => {
                 const challengeCount = levelChallengeCount[level] || 0;
@@ -1236,33 +1278,35 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                     activeOpacity={isDisabled ? 1 : 0.7}
                     disabled={isDisabled}
                   >
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      backgroundColor: isDisabled ? '#F3F4F6' : (selectedLevel === level ? '#ECFEFF' : '#F9FAFB'),
-                      borderRadius: 16,
-                      padding: 16,
-                      borderWidth: 2,
-                      borderColor: isDisabled ? '#D1D5DB' : (selectedLevel === level ? '#06B6D4' : '#E5E7EB'),
-                      opacity: isDisabled ? 0.5 : 1,
-                      shadowColor: selectedLevel === level && !isDisabled ? '#06B6D4' : '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: selectedLevel === level && !isDisabled ? 0.2 : 0.05,
-                      shadowRadius: 4,
-                    }}>
+                    <LinearGradient
+                      colors={isDisabled ? ['#1F2937', '#111827'] : (selectedLevel === level ? ['#0D2832', '#0B1A1F'] : ['#1F2937', '#111827'])}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderRadius: 16,
+                        padding: 16,
+                        borderWidth: 2,
+                        borderColor: isDisabled ? 'rgba(107, 114, 128, 0.2)' : (selectedLevel === level ? 'rgba(139, 92, 246, 0.6)' : 'rgba(107, 114, 128, 0.3)'),
+                        opacity: isDisabled ? 0.5 : 1,
+                        shadowColor: selectedLevel === level && !isDisabled ? '#8B5CF6' : '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: selectedLevel === level && !isDisabled ? 0.3 : 0.1,
+                        shadowRadius: 4,
+                      }}
+                    >
                       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                         <Text style={{
                           fontSize: 18,
                           fontWeight: '800',
-                          color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#0E7490' : '#6B7280'),
+                          color: isDisabled ? '#6B7280' : (selectedLevel === level ? '#FFFFFF' : '#9CA3AF'),
                           minWidth: 40,
                         }}>
                           {level}
                         </Text>
                         <Text style={{
                           fontSize: 15,
-                          color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#0891B2' : '#9CA3AF'),
+                          color: isDisabled ? '#6B7280' : (selectedLevel === level ? '#B4E4DD' : '#6B7280'),
                           marginLeft: 12,
                           flex: 1,
                         }}>
@@ -1270,29 +1314,31 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                         </Text>
                       </View>
                       <View style={{
-                        backgroundColor: isDisabled ? '#E5E7EB' : (selectedLevel === level ? '#06B6D4' : '#D1D5DB'),
+                        backgroundColor: isDisabled ? 'rgba(107, 114, 128, 0.2)' : (selectedLevel === level ? 'rgba(139, 92, 246, 0.3)' : 'rgba(107, 114, 128, 0.2)'),
                         paddingHorizontal: 10,
                         paddingVertical: 4,
                         borderRadius: 12,
                         minWidth: 50,
                         alignItems: 'center',
+                        borderWidth: 1,
+                        borderColor: isDisabled ? 'rgba(107, 114, 128, 0.3)' : (selectedLevel === level ? 'rgba(139, 92, 246, 0.5)' : 'rgba(107, 114, 128, 0.3)'),
                       }}>
                         {loadingLevelCounts ? (
                           <ActivityIndicator
                             size="small"
-                            color={selectedLevel === level ? '#FFFFFF' : '#6B7280'}
+                            color={selectedLevel === level ? '#8B5CF6' : '#6B7280'}
                           />
                         ) : (
                           <Text style={{
                             fontSize: 12,
                             fontWeight: '700',
-                            color: isDisabled ? '#9CA3AF' : (selectedLevel === level ? '#FFFFFF' : '#6B7280'),
+                            color: isDisabled ? '#6B7280' : (selectedLevel === level ? '#FFFFFF' : '#9CA3AF'),
                           }}>
                             {challengeCount} {isDisabled ? '🔒' : ''}
                           </Text>
                         )}
                       </View>
-                    </View>
+                    </LinearGradient>
                   </TouchableOpacity>
                 );
               })}
@@ -1308,12 +1354,12 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
             paddingHorizontal: 20,
             paddingVertical: 16,
             paddingBottom: Platform.OS === 'ios' ? 32 : 16,
-            backgroundColor: '#FFFFFF',
+            backgroundColor: '#0B1A1F',
             borderTopWidth: 1,
-            borderTopColor: '#E5E7EB',
-            shadowColor: '#000',
+            borderTopColor: 'rgba(20, 184, 166, 0.2)',
+            shadowColor: '#14B8A6',
             shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.1,
+            shadowOpacity: 0.2,
             shadowRadius: 12,
             elevation: 8,
           }}>
@@ -1324,16 +1370,18 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               disabled={levelChallengeCount[selectedLevel] === 0}
             >
               <LinearGradient
-                colors={levelChallengeCount[selectedLevel] === 0 ? ['#9CA3AF', '#6B7280'] : ['#06B6D4', '#0891B2']}
+                colors={levelChallengeCount[selectedLevel] === 0 ? ['#1F2937', '#111827'] : ['#0D2832', '#0B1A1F']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
                   borderRadius: 16,
                   paddingVertical: 18,
                   alignItems: 'center',
-                  shadowColor: '#06B6D4',
+                  borderWidth: 2,
+                  borderColor: levelChallengeCount[selectedLevel] === 0 ? 'rgba(107, 114, 128, 0.3)' : 'rgba(20, 184, 166, 0.6)',
+                  shadowColor: '#14B8A6',
                   shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: levelChallengeCount[selectedLevel] === 0 ? 0 : 0.3,
+                  shadowOpacity: levelChallengeCount[selectedLevel] === 0 ? 0 : 0.4,
                   shadowRadius: 8,
                   elevation: 4,
                 }}
@@ -1384,6 +1432,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
       <Animated.View
         style={{
           flex: 1,
+          backgroundColor: '#0B1A1F',
           opacity: fadeAnim,
           transform: [{ translateX: slideAnim }],
         }}
@@ -1394,18 +1443,21 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           alignItems: 'center',
           paddingHorizontal: 20,
           paddingVertical: 16,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#0B1A1F',
           borderBottomWidth: 1,
-          borderBottomColor: '#E5E7EB',
+          borderBottomColor: 'rgba(20, 184, 166, 0.2)',
         }}>
           <TouchableOpacity onPress={handleBack} style={{ marginRight: 12 }}>
-            <Text style={{ fontSize: 28, color: '#06B6D4' }}>←</Text>
+            <Ionicons name="arrow-back" size={28} color="#14B8A6" />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
-              🎮 {languageUpper.toUpperCase()} • Level {level}
-            </Text>
-            <Text style={{ fontSize: 14, color: '#6B7280' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="game-controller" size={20} color="#14B8A6" />
+              <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
+                {languageUpper.toUpperCase()} • Level {level}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 14, color: '#B4E4DD', marginTop: 4 }}>
               Pick how you want to play
             </Text>
           </View>
@@ -1697,8 +1749,8 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
   // Main render
   return (
     <TransitionWrapper isLoading={isLoading && navState === 'mode_selection'} loadingMessage="Loading your adventures...">
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-        <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1A1F' }}>
+        <StatusBar barStyle="light-content" />
       {navState === 'mode_selection' && renderModeSelection()}
       {navState === 'completed_plans' && renderCompletedPlans()}
       {navState === 'freestyle_selection' && renderFreestyleSelection()}
@@ -1913,22 +1965,24 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           zIndex: 9999,
         }}>
           <View style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'rgba(31, 41, 55, 0.95)',
             borderRadius: 20,
             padding: 32,
             alignItems: 'center',
-            shadowColor: '#000',
+            borderWidth: 1,
+            borderColor: 'rgba(20, 184, 166, 0.3)',
+            shadowColor: '#14B8A6',
             shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.3,
+            shadowOpacity: 0.4,
             shadowRadius: 20,
             elevation: 10,
           }}>
-            <ActivityIndicator size="large" color="#4ECFBF" />
+            <ActivityIndicator size="large" color="#14B8A6" />
             <Text style={{
               marginTop: 16,
               fontSize: 16,
               fontWeight: '600',
-              color: '#1F2937',
+              color: '#FFFFFF',
             }}>
               Loading challenges...
             </Text>
@@ -2023,9 +2077,13 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
             borderRadius: 12,
             borderWidth: 1,
             borderColor: 'rgba(255, 255, 255, 0.4)',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
           }}>
+            <Ionicons name="flame-outline" size={12} color="#FFFFFF" />
             <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
-              🔥 FEATURED
+              FEATURED
             </Text>
           </View>
 

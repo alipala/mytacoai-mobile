@@ -8,12 +8,12 @@ export const styles = StyleSheet.create({
     marginBottom: 0,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.95)',
     borderWidth: 2,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -38,11 +38,11 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#9CA3AF',
     marginTop: 2,
   },
   trendBadge: {
@@ -78,18 +78,18 @@ export const styles = StyleSheet.create({
   insightDivider: {
     width: 1,
     height: 30,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(107, 114, 128, 0.3)',
   },
   insightLabel: {
     fontSize: 11,
-    color: '#6B7280',
+    color: '#9CA3AF',
     marginBottom: 4,
     textAlign: 'center',
   },
   insightValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   expandIndicator: {
@@ -113,13 +113,13 @@ export const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(107, 114, 128, 0.3)',
     marginVertical: 12,
   },
   detailsTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 10,
   },
   dailyGrid: {
@@ -130,27 +130,27 @@ export const styles = StyleSheet.create({
   },
   dailyItem: {
     width: '48%',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(17, 24, 39, 0.6)',
     borderRadius: 10,
     padding: 8,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(107, 114, 128, 0.3)',
   },
   dailyDate: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 3,
   },
   dailyChallenges: {
     fontSize: 11,
-    color: '#6B7280',
+    color: '#D1D5DB',
     marginBottom: 2,
   },
   dailyAccuracy: {
     fontSize: 11,
-    color: '#06B6D4',
+    color: '#14B8A6',
     fontWeight: '600',
   },
   errorContainer: {
@@ -164,17 +164,17 @@ export const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#EF4444',
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#D1D5DB',
     textAlign: 'center',
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: '#06B6D4',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
@@ -190,7 +190,7 @@ export const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#D1D5DB',
     marginTop: 12,
   },
   emptyContainer: {
@@ -204,12 +204,12 @@ export const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   emptyMessage: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#D1D5DB',
     textAlign: 'center',
     paddingHorizontal: 20,
   },

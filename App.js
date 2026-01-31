@@ -65,29 +65,36 @@ import ChallengeSessionScreen from './src/screens/Explore/ChallengeSessionScreen
 // News Screens (Daily News Tab Feature)
 import { NewsListScreen, NewsDetailScreen } from './src/screens/News';
 
+// Speaking DNA Screens
+import SpeakingDNAScreen from './src/screens/SpeakingDNA/SpeakingDNAScreen.tsx';
+import SpeakingDNAScreenNew from './src/screens/SpeakingDNA/SpeakingDNAScreenNew.tsx';
+import { SpeakingDNAScreenV2 } from './src/screens/SpeakingDNA/SpeakingDNAScreenV2.tsx';
+import { SpeakingDNAScreenHorizontal } from './src/screens/SpeakingDNA/SpeakingDNAScreenHorizontal.tsx';
+
 // API config will be loaded dynamically after initial render for better startup performance
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Main App Tabs (after login) - Premium iOS Design
+// Main App Tabs (after login) - Dark Theme Design
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarActiveTintColor: '#06B6D4', // Modern turquoise - matches app theme
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: '#14B8A6', // Teal accent - matches app theme
+        tabBarInactiveTintColor: '#6B7280', // Muted gray for inactive
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 0,
+          backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark translucent background
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(20, 184, 166, 0.2)', // Subtle teal border
           height: 88,
           paddingBottom: 28,
           paddingTop: 12,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.08,
+          shadowColor: '#14B8A6',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.3,
           shadowRadius: 12,
-          elevation: 8,
+          elevation: 12,
         },
         tabBarLabelStyle: {
           fontSize: 13,
@@ -96,7 +103,7 @@ function MainTabs() {
         },
         tabBarIcon: ({ focused, color }) => {
           let iconName;
-          const iconSize = 26; // Consistent size for all icons - prevents cutoff
+          const iconSize = 26; // Consistent size for all icons
 
           if (route.name === 'Dashboard') {
             // Conversation bubbles - modern, immersive, represents speaking/dialogue
@@ -441,6 +448,18 @@ export default function App() {
 
           {/* Challenge Session Screen */}
           <Stack.Screen name="ChallengeSession" component={ChallengeSessionScreen} />
+
+          {/* Speaking DNA Screen - HORIZONTAL PAGING REDESIGN */}
+          <Stack.Screen
+            name="SpeakingDNA"
+            component={SpeakingDNAScreenHorizontal}
+            options={{ headerShown: false }}
+          />
+
+          {/* Old Speaking DNA Screens (backup/testing) */}
+          <Stack.Screen name="SpeakingDNAV2" component={SpeakingDNAScreenV2} options={{ headerShown: false }} />
+          <Stack.Screen name="SpeakingDNANew" component={SpeakingDNAScreenNew} />
+          <Stack.Screen name="SpeakingDNAOld" component={SpeakingDNAScreen} />
 
           {/* Main App (with tabs) */}
           <Stack.Screen name="Main" component={MainTabs} />

@@ -29,6 +29,14 @@ import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import { styles } from './styles/ProfileScreen.styles';
+
+// Flag imports
+import EnglishFlag from '../../assets/flags/english.svg';
+import SpanishFlag from '../../assets/flags/spanish.svg';
+import FrenchFlag from '../../assets/flags/french.svg';
+import GermanFlag from '../../assets/flags/german.svg';
+import PortugueseFlag from '../../assets/flags/portuguese.svg';
+import DutchFlag from '../../assets/flags/dutch.svg';
 import { setBadgeCount } from '../../services/notificationService';
 
 const API_URL = API_BASE_URL;
@@ -197,6 +205,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
   // Refs for Swipeable components to programmatically close them
   const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
+
+  // Helper function to get flag component
+  const getFlagComponent = (language: string) => {
+    const languageLower = language.toLowerCase();
+    switch (languageLower) {
+      case 'english':
+        return EnglishFlag;
+      case 'spanish':
+        return SpanishFlag;
+      case 'french':
+        return FrenchFlag;
+      case 'german':
+        return GermanFlag;
+      case 'portuguese':
+        return PortugueseFlag;
+      case 'dutch':
+        return DutchFlag;
+      default:
+        return null;
+    }
+  };
 
   // Tab Navigation Helpers
   const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
@@ -651,7 +680,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     await fetchFlashcardData();
   };
 
-  // Render circular progress
+  // Render circular progress - Dark Theme
   const renderCircularProgress = (percentage: number, size: number = 80) => {
     const radius = (size - 12) / 2;
     const circumference = radius * 2 * Math.PI;
@@ -660,7 +689,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     return (
       <View style={[styles.circularProgress, { width: size, height: size }]}>
         <Svg width={size} height={size}>
-          <Circle cx={size / 2} cy={size / 2} r={radius} stroke="#E5E7EB" strokeWidth="6" fill="none" />
+          <Circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(20, 184, 166, 0.15)" strokeWidth="6" fill="none" />
           <Circle
             cx={size / 2}
             cy={size / 2}
@@ -687,19 +716,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   // Overview Tab
   const renderOverviewTab = () => (
     <View>
-      <View style={styles.welcomeSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
-        </View>
-        <View style={styles.welcomeText}>
-          <Text style={styles.welcomeTitle}>Welcome back, {user?.name || 'User'}!</Text>
-          <Text style={styles.welcomeSubtitle}>
-            {user?.preferred_language
-              ? `Learning ${user.preferred_language} • ${user.preferred_level || 'Beginner'}`
-              : 'Continue your learning journey'}
+      {/* Learning Info Badge */}
+      {user?.preferred_language && (
+        <View style={styles.learningInfoBadge}>
+          <Ionicons name="school" size={16} color="#14B8A6" />
+          <Text style={styles.learningInfoText}>
+            Learning {user.preferred_language} • {user.preferred_level || 'Beginner'}
           </Text>
         </View>
-      </View>
+      )}
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
@@ -717,6 +742,148 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           <Text style={styles.statValue}>{flashcardSets.length}</Text>
           <Text style={styles.statLabel}>Sets</Text>
         </View>
+      </View>
+
+      {/* Speaking DNA Section - Dark Theme Enhanced */}
+      <View style={styles.section}>
+        <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 12}}>
+          <Ionicons name="analytics" size={20} color="#14B8A6" style={{marginRight: 8}} />
+          <Text style={styles.sectionTitle}>Your Speaking DNA</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            // Use most recent learning plan's language, fallback to preferred language, then dutch
+            const recentLanguage = learningPlans.length > 0
+              ? learningPlans[0].language
+              : (user?.preferred_language || 'dutch');
+            if (Platform.OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            navigation.navigate('SpeakingDNA', { language: recentLanguage });
+          }}
+          activeOpacity={0.9}
+          style={{
+            borderRadius: 16,
+            overflow: 'hidden',
+            shadowColor: '#14B8A6',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 12,
+            elevation: 5,
+          }}
+        >
+          {/* Dark Theme DNA Card */}
+          <View style={{
+            backgroundColor: 'rgba(11, 26, 31, 0.8)',
+            borderWidth: 1,
+            borderColor: 'rgba(20, 184, 166, 0.3)',
+          }}>
+            {/* Header Row */}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: 'rgba(20, 184, 166, 0.15)',
+            }}>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                <View style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: 'rgba(20, 184, 166, 0.3)',
+                }}>
+                  <Ionicons name="pulse" size={20} color="#14B8A6" />
+                </View>
+                <View>
+                  <Text style={{fontSize: 16, fontWeight: '700', color: '#FFFFFF'}}>
+                    Track Your Progress
+                  </Text>
+                  <Text style={{fontSize: 12, color: '#B4E4DD', marginTop: 2}}>
+                    6 DNA Strands Analyzed
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="arrow-forward-circle" size={28} color="#14B8A6" />
+            </View>
+
+            {/* Content Row */}
+            <View style={{
+              flexDirection: 'row',
+              padding: 16,
+              gap: 12,
+            }}>
+              {/* Left: DNA Icon Grid with Glow */}
+              <View style={{
+                width: 80,
+                height: 80,
+                backgroundColor: 'rgba(20, 184, 166, 0.08)',
+                borderRadius: 12,
+                padding: 8,
+                gap: 4,
+                borderWidth: 1,
+                borderColor: 'rgba(20, 184, 166, 0.2)',
+              }}>
+                <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#6366F1', shadowColor: '#6366F1', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#8B5CF6', shadowColor: '#8B5CF6', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#EC4899', shadowColor: '#EC4899', shadowOpacity: 0.5, shadowRadius: 4}} />
+                </View>
+                <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#F59E0B', shadowColor: '#F59E0B', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#10B981', shadowColor: '#10B981', shadowOpacity: 0.5, shadowRadius: 4}} />
+                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#14B8A6', shadowColor: '#14B8A6', shadowOpacity: 0.5, shadowRadius: 4}} />
+                </View>
+                <View style={{alignItems: 'center', marginTop: 4}}>
+                  <Ionicons name="trending-up" size={16} color="#14B8A6" />
+                </View>
+              </View>
+
+              {/* Right: Description */}
+              <View style={{flex: 1, justifyContent: 'center'}}>
+                <Text style={{
+                  fontSize: 14,
+                  color: '#B4E4DD',
+                  lineHeight: 20,
+                  marginBottom: 8,
+                }}>
+                  Discover your unique speaking patterns across confidence, vocabulary, rhythm, and more
+                </Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                  <View style={{
+                    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: 'rgba(251, 191, 36, 0.3)',
+                  }}>
+                    <Text style={{fontSize: 11, fontWeight: '600', color: '#FBBF24'}}>
+                      Visual Analytics
+                    </Text>
+                  </View>
+                  <View style={{
+                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: 'rgba(59, 130, 246, 0.3)',
+                  }}>
+                    <Text style={{fontSize: 11, fontWeight: '600', color: '#3B82F6'}}>
+                      Insights
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -770,7 +937,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     if (learningPlans.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <Ionicons name="book-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="book-outline" size={64} color="#6B8A84" />
           <Text style={styles.emptyStateText}>No Learning Plans Yet</Text>
         </View>
       );
@@ -790,6 +957,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           const currentWeek = Math.ceil((plan.completed_sessions || 0) / 3);
           const isExpanded = expandedPlans[plan.id];
 
+          const FlagComponent = getFlagComponent(plan.language);
+
           return (
             <View key={plan.id} style={styles.progressPlanCard}>
               {/* Header with Progress */}
@@ -799,13 +968,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   if (Platform.OS === 'ios') {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }
-                  setExpandedPlans(prev => ({ ...prev, [plan.id]: !prev[plan.id] }));
+                  // Accordion behavior: collapse all others, toggle current
+                  setExpandedPlans({ [plan.id]: !isExpanded });
                 }}
                 activeOpacity={0.7}
               >
+                {/* Flag Icon */}
+                {FlagComponent && (
+                  <View style={styles.planFlagContainer}>
+                    <FlagComponent width={40} height={40} />
+                  </View>
+                )}
+
                 <View style={styles.progressPlanHeaderLeft}>
-                  <Text style={styles.progressPlanTitle}>
-                    {plan.plan_content.title || `${plan.language} Learning`}
+                  <Text style={styles.progressPlanTitle} numberOfLines={2}>
+                    {plan.goals && plan.goals.length > 0
+                      ? plan.goals.slice(0, 2).join(', ').toUpperCase() + (plan.goals.length > 2 ? '...' : '')
+                      : 'LEARNING'}
                   </Text>
                   <Text style={styles.progressPlanSubtitle}>
                     {plan.proficiency_level} • {plan.duration_months} months • Created {formatDate(plan.created_at)}
@@ -819,10 +998,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                     </Text>
                   </View>
                 </View>
-                <Ionicons 
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                  size={24} 
-                  color="#6B7280" 
+                <Ionicons
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={24}
+                  color="#6B8A84"
                 />
               </TouchableOpacity>
 
@@ -949,31 +1128,60 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   };
 
   // Flashcards Tab - GRID LAYOUT
-  const renderFlashcardItem = ({ item }: { item: FlashcardSet }) => (
-    <View style={styles.flashcardCard}>
-      <View style={styles.flashcardCardHeader}>
-        <View style={styles.flashcardCardIcon}>
-          <Ionicons name="layers" size={28} color="#F75A5A" />
-        </View>
-        <View style={styles.flashcardCardInfo}>
-          <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.flashcardCardMeta}>
-            {item.total_cards} cards
+  const renderFlashcardItem = ({ item }: { item: FlashcardSet }) => {
+    // Determine if this is a learning plan card
+    const isLearningPlan = item.session_id.startsWith('learning_plan');
+
+    // Different colors for different categories
+    const iconColor = isLearningPlan ? '#6366F1' : '#F59E0B'; // Purple for LP, Amber for Practice
+    const iconBgColor = isLearningPlan ? 'rgba(99, 102, 241, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+    const iconBorderColor = isLearningPlan ? 'rgba(99, 102, 241, 0.3)' : 'rgba(245, 158, 11, 0.3)';
+    const iconName = isLearningPlan ? 'school' : 'fitness';
+
+    return (
+      <View style={styles.flashcardCard}>
+        {/* Category Badge */}
+        <View style={[styles.flashcardCategoryBadge, { borderColor: iconColor }]}>
+          <Ionicons name={iconName} size={11} color={iconColor} />
+          <Text style={[styles.flashcardCategoryText, { color: iconColor }]}>
+            {isLearningPlan ? 'LEARNING PLAN' : 'PRACTICE'}
           </Text>
         </View>
+
+        <View style={styles.flashcardCardHeader}>
+          <View style={[
+            styles.flashcardCardIcon,
+            {
+              backgroundColor: iconBgColor,
+              borderColor: iconBorderColor,
+              shadowColor: iconColor,
+            }
+          ]}>
+            <Ionicons name={iconName} size={28} color={iconColor} />
+          </View>
+          <View style={styles.flashcardCardInfo}>
+            <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
+            <Text style={styles.flashcardCardMeta}>
+              {item.total_cards} cards
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.flashcardCardDescription} numberOfLines={2}>
+          {item.description}
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.flashcardStudyButton,
+            isLearningPlan ? styles.flashcardStudyButtonLP : styles.flashcardStudyButtonPractice
+          ]}
+          onPress={() => openFlashcardViewer(item)}
+        >
+          <Ionicons name="play-circle" size={20} color="#FFFFFF" />
+          <Text style={styles.flashcardStudyButtonText}>Study</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.flashcardCardDescription} numberOfLines={2}>
-        {item.description}
-      </Text>
-      <TouchableOpacity
-        style={styles.flashcardStudyButton}
-        onPress={() => openFlashcardViewer(item)}
-      >
-        <Ionicons name="play-circle" size={20} color="#FFFFFF" />
-        <Text style={styles.flashcardStudyButtonText}>Study</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   const renderFlashcardsTab = () => {
     // Filter flashcard sets based on selected filter
@@ -1002,10 +1210,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.flashcardFilterContainer}>
           <View style={styles.flashcardFilterSegment}>
             <TouchableOpacity
-              style={[
-                styles.flashcardFilterButton,
-                flashcardFilter === 'all' && styles.flashcardFilterButtonActive,
-              ]}
+              style={styles.flashcardFilterButton}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1019,16 +1224,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   styles.flashcardFilterButtonText,
                   flashcardFilter === 'all' && styles.flashcardFilterButtonTextActive,
                 ]}
+                numberOfLines={1}
               >
                 All
               </Text>
+              {flashcardFilter === 'all' && (
+                <View
+                  style={[
+                    styles.flashcardFilterUnderline,
+                    { backgroundColor: '#14B8A6', shadowColor: '#14B8A6' },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.flashcardFilterButton,
-                flashcardFilter === 'practice' && styles.flashcardFilterButtonActive,
-              ]}
+              style={styles.flashcardFilterButton}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1040,18 +1251,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'practice' && styles.flashcardFilterButtonTextActive,
+                  flashcardFilter === 'practice' && {
+                    color: '#F59E0B',
+                    fontWeight: '700',
+                  },
                 ]}
+                numberOfLines={1}
               >
                 Practice
               </Text>
+              {flashcardFilter === 'practice' && (
+                <View
+                  style={[
+                    styles.flashcardFilterUnderline,
+                    { backgroundColor: '#F59E0B', shadowColor: '#F59E0B' },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.flashcardFilterButton,
-                flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonActive,
-              ]}
+              style={styles.flashcardFilterButton}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1063,11 +1283,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonTextActive,
+                  flashcardFilter === 'learning_plan' && {
+                    color: '#6366F1',
+                    fontWeight: '700',
+                  },
                 ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
               >
                 Learning Plan
               </Text>
+              {flashcardFilter === 'learning_plan' && (
+                <View
+                  style={[
+                    styles.flashcardFilterUnderline,
+                    { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -1084,7 +1318,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           />
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="albums-outline" size={64} color="#D1D5DB" />
+            <Ionicons name="albums-outline" size={64} color="#6B8A84" />
             <Text style={styles.emptyStateText}>
               {flashcardFilter === 'all' ? 'No Flashcards Yet' : `No ${flashcardFilter === 'practice' ? 'Practice' : 'Learning Plan'} Flashcards`}
             </Text>
@@ -1183,9 +1417,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     <TransitionWrapper isLoading={loading} loadingMessage="Loading your profile...">
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-        {/* Header */}
+        {/* Header with Welcome Section */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
+          <View style={styles.headerLeft}>
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarText}>{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
+            </View>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.headerWelcome}>Welcome back</Text>
+              <Text style={styles.headerName}>{user?.name || 'User'}</Text>
+            </View>
+          </View>
           <TouchableOpacity
             onPress={() => {
               if (Platform.OS === 'ios') {
@@ -1195,7 +1437,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             }}
             style={styles.settingsButton}
           >
-            <Ionicons name="settings-outline" size={24} color="#64748B" />
+            <Ionicons name="settings-outline" size={24} color="#14B8A6" />
           </TouchableOpacity>
         </View>
 
@@ -1210,7 +1452,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'overview' ? 'home' : 'home-outline'}
                 size={24}
-                color={activeTab === 'overview' ? '#4FD1C5' : '#9CA3AF'}
+                color={activeTab === 'overview' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>Overview</Text>
             </TouchableOpacity>
@@ -1223,7 +1465,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'progress' ? 'trending-up' : 'trending-up-outline'}
                 size={24}
-                color={activeTab === 'progress' ? '#4FD1C5' : '#9CA3AF'}
+                color={activeTab === 'progress' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>Progress</Text>
             </TouchableOpacity>
@@ -1236,7 +1478,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'flashcards' ? 'albums' : 'albums-outline'}
                 size={24}
-                color={activeTab === 'flashcards' ? '#4FD1C5' : '#9CA3AF'}
+                color={activeTab === 'flashcards' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>Cards</Text>
             </TouchableOpacity>
@@ -1250,7 +1492,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <Ionicons
                   name={activeTab === 'notifications' ? 'notifications' : 'notifications-outline'}
                   size={24}
-                  color={activeTab === 'notifications' ? '#4FD1C5' : '#9CA3AF'}
+                  color={activeTab === 'notifications' ? '#14B8A6' : '#6B8A84'}
                 />
                 <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>Alerts</Text>
                 {unreadCount > 0 && (
@@ -1279,7 +1521,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               style={styles.pageContent}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
               }
             >
               {renderOverviewTab()}
@@ -1292,7 +1534,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               style={styles.pageContent}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
               }
             >
               {renderProgressTab()}
@@ -1310,7 +1552,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               style={styles.pageContent}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4FD1C5" colors={['#4FD1C5']} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
               }
             >
               {renderNotificationsTab()}

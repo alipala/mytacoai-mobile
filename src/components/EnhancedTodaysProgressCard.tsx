@@ -16,6 +16,7 @@ import {
   Animated,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -114,13 +115,13 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     return '#EF4444'; // Red - Needs improvement
   };
 
-  // Format streak emoji
-  const getStreakEmoji = (streak: number): string => {
-    if (streak >= 30) return '🔥🔥🔥'; // Legendary
-    if (streak >= 14) return '🔥🔥'; // Hot
-    if (streak >= 7) return '🔥'; // On fire
-    if (streak >= 3) return '⭐'; // Getting there
-    return '✨'; // Starting out
+  // Get streak icon - returns empty string now since we'll use Ionicons directly in JSX
+  const getStreakIcon = (streak: number): { name: string; count: number } => {
+    if (streak >= 30) return { name: 'flame', count: 3 }; // Legendary
+    if (streak >= 14) return { name: 'flame', count: 2 }; // Hot
+    if (streak >= 7) return { name: 'flame', count: 1 }; // On fire
+    if (streak >= 3) return { name: 'star', count: 1 }; // Getting there
+    return { name: 'sparkles', count: 1 }; // Starting out
   };
 
   // Handle retry
@@ -349,7 +350,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
   }
 
   const accuracyColor = getAccuracyColor(daily.overall.accuracy);
-  const streakEmoji = getStreakEmoji(daily.streak.current);
+  const streakIcon = getStreakIcon(daily.streak.current);
 
   return (
     <Animated.View
@@ -364,7 +365,10 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
       <View style={styles.whiteCard}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>🔥 Today's Progress</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="flame-outline" size={20} color="#14B8A6" />
+            <Text style={styles.headerTitle}>Today's Progress</Text>
+          </View>
           <Text style={styles.headerDate}>
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </Text>
@@ -373,11 +377,11 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           {/* Challenges Completed */}
-          <View style={[styles.statBox, { backgroundColor: '#F0FFFE', borderColor: '#4ECFBF' }]}>
-            <Text style={[styles.statValue, { color: '#4ECFBF' }]}>
+          <View style={[styles.statBox, { backgroundColor: 'rgba(20, 184, 166, 0.15)', borderColor: '#14B8A6' }]}>
+            <Text style={[styles.statValue, { color: '#14B8A6' }]}>
               {daily.overall.total_challenges}
             </Text>
-            <Text style={[styles.statLabel, { color: '#2C9B8B' }]}>Completed</Text>
+            <Text style={[styles.statLabel, { color: '#14B8A6' }]}>Completed</Text>
           </View>
 
           {/* Accuracy */}
@@ -387,10 +391,10 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
               {
                 backgroundColor:
                   accuracyColor === '#10B981'
-                    ? '#F0FDF4'
+                    ? 'rgba(16, 185, 129, 0.15)'
                     : accuracyColor === '#F59E0B'
-                    ? '#FFF9F0'
-                    : '#FFF5F5',
+                    ? 'rgba(245, 158, 11, 0.15)'
+                    : 'rgba(239, 68, 68, 0.15)',
                 borderColor: accuracyColor,
               },
             ]}
@@ -402,11 +406,16 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
           </View>
 
           {/* Streak */}
-          <View style={[styles.statBox, { backgroundColor: '#FFF9F0', borderColor: '#FFA955' }]}>
-            <Text style={[styles.statValue, { color: '#FFA955' }]}>
-              {streakEmoji} {daily.streak.current}
-            </Text>
-            <Text style={[styles.statLabel, { color: '#E08B3D' }]}>Day Streak</Text>
+          <View style={[styles.statBox, { backgroundColor: 'rgba(251, 191, 36, 0.15)', borderColor: '#FCD34D' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              {Array.from({ length: streakIcon.count }).map((_, i) => (
+                <Ionicons key={i} name={streakIcon.name as any} size={16} color="#FCD34D" />
+              ))}
+              <Text style={[styles.statValue, { color: '#FCD34D' }]}>
+                {daily.streak.current}
+              </Text>
+            </View>
+            <Text style={[styles.statLabel, { color: '#FCD34D' }]}>Day Streak</Text>
           </View>
         </View>
 
@@ -435,7 +444,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         {Object.keys(daily.by_language).length > 0 && (
           <ExpandableSection
             title="By Language"
-            icon="🌍"
+            iconName="globe-outline"
             items={daily.by_language}
             expanded={expandedSection === 'language'}
             onToggle={() => toggleSection('language')}
@@ -446,7 +455,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         {Object.keys(daily.by_type).length > 0 && (
           <ExpandableSection
             title="By Challenge Type"
-            icon="🎯"
+            iconName="trophy-outline"
             items={daily.by_type}
             expanded={expandedSection === 'type'}
             onToggle={() => toggleSection('type')}
@@ -458,7 +467,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         {Object.keys(daily.by_level).length > 0 && (
           <ExpandableSection
             title="By CEFR Level"
-            icon="📊"
+            iconName="bar-chart-outline"
             items={daily.by_level}
             expanded={expandedSection === 'level'}
             onToggle={() => toggleSection('level')}
@@ -469,9 +478,12 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         {/* Streak Milestone */}
         {daily.streak.next_milestone && (
           <View style={styles.milestoneContainer}>
-            <Text style={styles.milestoneText}>
-              🎯 {daily.streak.next_milestone - daily.streak.current} days until {daily.streak.next_milestone}-day milestone!
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <Ionicons name="trophy-outline" size={14} color="#FCD34D" />
+              <Text style={styles.milestoneText}>
+                {daily.streak.next_milestone - daily.streak.current} days until {daily.streak.next_milestone}-day milestone!
+              </Text>
+            </View>
           </View>
         )}
       </View>
@@ -482,7 +494,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
 // Expandable Section Component
 interface ExpandableSectionProps {
   title: string;
-  icon: string;
+  iconName: string;
   items: Record<string, DailyStatsBreakdown>;
   expanded: boolean;
   onToggle: () => void;
@@ -492,7 +504,7 @@ interface ExpandableSectionProps {
 
 function ExpandableSection({
   title,
-  icon,
+  iconName,
   items,
   expanded,
   onToggle,
@@ -501,7 +513,7 @@ function ExpandableSection({
 }: ExpandableSectionProps) {
   const maxHeight = animValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 300],
+    outputRange: [0, 250],
   });
 
   const getAccuracyColor = (accuracy: number): string => {
@@ -514,13 +526,18 @@ function ExpandableSection({
     <View style={styles.expandableSection}>
       <TouchableOpacity style={styles.sectionHeader} onPress={onToggle}>
         <View style={styles.sectionHeaderLeft}>
-          <Text style={styles.sectionIcon}>{icon}</Text>
+          <Ionicons name={iconName as any} size={18} color="#14B8A6" style={{ marginRight: 8 }} />
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
-        <Text style={styles.sectionChevron}>{expanded ? '▼' : '▶'}</Text>
+        <Ionicons name={expanded ? "chevron-down" : "chevron-forward"} size={16} color="#9CA3AF" />
       </TouchableOpacity>
 
-      <Animated.View style={[styles.sectionContent, { maxHeight, overflow: 'hidden' }]}>
+      <Animated.View style={[{ maxHeight, overflow: 'hidden' }]}>
+        <ScrollView
+          style={styles.sectionContent}
+          nestedScrollEnabled={true}
+          showsVerticalScrollIndicator={false}
+        >
         {Object.entries(items)
           .filter(([key]) => key !== 'unknown') // Filter out "unknown" entries
           .map(([key, data]) => {
@@ -554,6 +571,7 @@ function ExpandableSection({
             </View>
           );
         })}
+        </ScrollView>
       </Animated.View>
     </View>
   );

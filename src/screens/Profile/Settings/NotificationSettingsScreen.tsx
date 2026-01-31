@@ -180,7 +180,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#64748B" />
+            <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
           <Text style={styles.title}>Notification Settings</Text>
           <View style={styles.headerSpacer} />
@@ -199,12 +199,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#64748B" />
+          <Ionicons name="arrow-back" size={24} color="#14B8A6" />
         </TouchableOpacity>
         <Text style={styles.title}>Notification Settings</Text>
         {isSaving && (
           <View style={styles.savingIndicator}>
-            <ActivityIndicator size="small" color="#4ECFBF" />
+            <ActivityIndicator size="small" color="#14B8A6" />
           </View>
         )}
         {!isSaving && <View style={styles.headerSpacer} />}
@@ -223,7 +223,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         {/* System Settings */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="settings" size={20} color="#4ECFBF" />
+            <Ionicons name="settings" size={20} color="#14B8A6" />
             <Text style={styles.sectionTitle}>System Settings</Text>
           </View>
 
@@ -248,7 +248,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         {/* Practice & Learning */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="school" size={20} color="#4ECFBF" />
+            <Ionicons name="school" size={20} color="#14B8A6" />
             <Text style={styles.sectionTitle}>Practice & Learning</Text>
           </View>
 
@@ -264,9 +264,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               onValueChange={() =>
                 handleToggle('practice_reminders', practiceReminders, setPracticeReminders)
               }
-              trackColor={{ false: '#E5E7EB', true: '#4ECFBF80' }}
-              thumbColor={practiceReminders ? '#4ECFBF' : '#9CA3AF'}
-              ios_backgroundColor="#E5E7EB"
+              trackColor={{ false: 'rgba(20, 184, 166, 0.2)', true: 'rgba(20, 184, 166, 0.5)' }}
+              thumbColor={practiceReminders ? '#14B8A6' : '#6B8A84'}
+              ios_backgroundColor="rgba(20, 184, 166, 0.2)"
             />
           </View>
 
@@ -282,9 +282,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               onValueChange={() =>
                 handleToggle('achievement_alerts', achievementAlerts, setAchievementAlerts)
               }
-              trackColor={{ false: '#E5E7EB', true: '#4ECFBF80' }}
-              thumbColor={achievementAlerts ? '#4ECFBF' : '#9CA3AF'}
-              ios_backgroundColor="#E5E7EB"
+              trackColor={{ false: 'rgba(20, 184, 166, 0.2)', true: 'rgba(20, 184, 166, 0.5)' }}
+              thumbColor={achievementAlerts ? '#14B8A6' : '#6B8A84'}
+              ios_backgroundColor="rgba(20, 184, 166, 0.2)"
             />
           </View>
 
@@ -300,9 +300,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               onValueChange={() =>
                 handleToggle('learning_plan_updates', learningPlanUpdates, setLearningPlanUpdates)
               }
-              trackColor={{ false: '#E5E7EB', true: '#4ECFBF80' }}
-              thumbColor={learningPlanUpdates ? '#4ECFBF' : '#9CA3AF'}
-              ios_backgroundColor="#E5E7EB"
+              trackColor={{ false: 'rgba(20, 184, 166, 0.2)', true: 'rgba(20, 184, 166, 0.5)' }}
+              thumbColor={learningPlanUpdates ? '#14B8A6' : '#6B8A84'}
+              ios_backgroundColor="rgba(20, 184, 166, 0.2)"
             />
           </View>
         </View>
@@ -326,9 +326,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               onValueChange={() =>
                 handleToggle('product_updates', productUpdates, setProductUpdates)
               }
-              trackColor={{ false: '#E5E7EB', true: '#4ECFBF80' }}
-              thumbColor={productUpdates ? '#4ECFBF' : '#9CA3AF'}
-              ios_backgroundColor="#E5E7EB"
+              trackColor={{ false: 'rgba(20, 184, 166, 0.2)', true: 'rgba(20, 184, 166, 0.5)' }}
+              thumbColor={productUpdates ? '#14B8A6' : '#6B8A84'}
+              ios_backgroundColor="rgba(20, 184, 166, 0.2)"
             />
           </View>
         </View>
@@ -395,7 +395,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F',
   },
   header: {
     flexDirection: 'row',
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   backButton: {
     padding: 4,
@@ -412,7 +412,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   headerSpacer: {
     width: 32,
@@ -430,33 +431,34 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     marginTop: 8,
   },
   infoBanner: {
     flexDirection: 'row',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
     padding: 16,
     marginHorizontal: 20,
     marginTop: 16,
     borderRadius: 12,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   infoBannerText: {
     flex: 1,
     fontSize: 14,
-    color: '#1E40AF',
+    color: '#93C5FD',
     lineHeight: 20,
   },
   content: {
     flex: 1,
+    backgroundColor: '#0D2832',
   },
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(20, 184, 166, 0.1)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -467,25 +469,27 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   systemSettingsCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(11, 26, 31, 0.6)',
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   systemSettingsIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   systemSettingsInfo: {
     flex: 1,
@@ -493,12 +497,12 @@ const styles = StyleSheet.create({
   systemSettingsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   systemSettingsDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   settingItem: {
     flexDirection: 'row',
@@ -506,7 +510,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(20, 184, 166, 0.1)',
   },
   settingInfo: {
     flex: 1,
@@ -515,12 +519,12 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 20,
   },
   infoSection: {
@@ -535,7 +539,7 @@ const styles = StyleSheet.create({
   infoSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   infoList: {
     gap: 16,
@@ -557,31 +561,34 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   infoText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 20,
   },
   noteCard: {
     flexDirection: 'row',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
     padding: 16,
     marginHorizontal: 20,
     marginVertical: 20,
     borderRadius: 12,
     gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   noteText: {
     flex: 1,
     fontSize: 14,
-    color: '#92400E',
+    color: '#6EE7B7',
     lineHeight: 20,
   },
   noteBold: {
     fontWeight: '600',
+    color: '#10B981',
   },
 });
 

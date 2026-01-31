@@ -1,11 +1,10 @@
 /**
  * Horizontal Stats Carousel
  *
- * Makes the detailed stats cards scrollable horizontally with colorful backgrounds
- * Cards:
- * - Today's Progress (Daily 0-24h)
- * - Recent Performance (Weekly 7-day trend)
- * - Lifetime Progress (All-time achievements)
+ * Smart carousel that shows different cards based on user activity:
+ * - Active users: Daily → Recent → Lifetime (3 cards)
+ * - Inactive users with history: WelcomeBack → Lifetime (2 cards)
+ * - New users: Shown via placeholder in parent
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -17,9 +16,12 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import EnhancedTodaysProgressCard from './EnhancedTodaysProgressCard';
 import RecentPerformanceCard from './RecentPerformanceCard';
 import LifetimeProgressCard from './LifetimeProgressCard';
+import WelcomeBackCard from './WelcomeBackCard';
+import { useDailyStats, useRecentPerformance, useLifetimeProgress } from '../hooks/useStats';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 40; // 20px margin on each side
@@ -30,8 +32,50 @@ interface HorizontalStatsCarouselProps {
 }
 
 export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCarouselProps) {
+  const navigation = useNavigation();
   const scrollViewRef = useRef<ScrollView>(null);
   const arrowAnim = useRef(new Animated.Value(0)).current;
+
+  // Fetch user stats
+  const { daily } = useDailyStats(true);
+  const { recent } = useRecentPerformance(7, true);
+  const { lifetime } = useLifetimeProgress(false, true);
+
+  // Determine user activity state
+  const hasRecentActivity = recent && recent.summary && recent.summary.total_challenges > 0;
+  const hasLifetimeData = lifetime && lifetime.summary && lifetime.summary.total_challenges > 0;
+
+  // Calculate days since last activity
+  const calculateDaysSince = () => {
+    if (!recent || !recent.daily_breakdown) return 7;
+
+    // Find last day with activity
+    const lastActiveDay = recent.daily_breakdown
+      .reverse()
+      .find((day: any) => day.challenges > 0);
+
+    if (!lastActiveDay) return 7;
+
+    const today = new Date();
+    const lastActive = new Date(lastActiveDay.date);
+    const diffTime = Math.abs(today.getTime() - lastActive.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  };
+
+  const daysSinceActive = calculateDaysSince();
+  const isInactive = !hasRecentActivity && hasLifetimeData;
+
+  // Debug logging
+  console.log('[HorizontalStatsCarousel] 🔍 State:', {
+    hasRecentActivity,
+    hasLifetimeData,
+    isInactive,
+    daysSinceActive,
+    recentChallenges: recent?.summary?.total_challenges,
+    lifetimeChallenges: lifetime?.summary?.total_challenges,
+  });
 
   // Animate arrow to pulse and slide
   useEffect(() => {
@@ -61,11 +105,34 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
     outputRange: [0.6, 1, 0.6],
   });
 
+  // Format last active date
+  const getLastActiveDate = () => {
+    if (!recent || !recent.daily_breakdown) return 'Recently';
+
+    const lastActiveDay = recent.daily_breakdown
+      .reverse()
+      .find((day: any) => day.challenges > 0);
+
+    if (!lastActiveDay) return 'Recently';
+
+    const date = new Date(lastActiveDay.date);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  // Handle resume practice navigation
+  const handleResumePractice = () => {
+    // Navigate to practice/challenge selection
+    // This will be handled by parent navigation
+    onRefresh();
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.swipeIndicator}>
-          <Text style={styles.sectionSubtitle}>Swipe to see more</Text>
+          <Text style={styles.sectionSubtitle}>
+            {isInactive ? 'Swipe for detailed stats' : 'Swipe to see more'}
+          </Text>
           <Animated.Text
             style={[
               styles.animatedArrow,
@@ -90,20 +157,42 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
         contentContainerStyle={styles.scrollContent}
         style={styles.scrollView}
       >
-        {/* Card 1: Today's Progress */}
-        <View style={styles.cardWrapper}>
-          <EnhancedTodaysProgressCard onRefresh={onRefresh} />
-        </View>
+        {isInactive ? (
+          // Inactive user with history: Show WelcomeBack + Lifetime (2 cards)
+          <>
+            <View style={styles.cardWrapper}>
+              <WelcomeBackCard
+                userName={undefined} // Can pass from parent if needed
+                totalChallenges={lifetime?.summary?.total_challenges || 0}
+                totalXP={lifetime?.summary?.total_xp || 0}
+                longestStreak={lifetime?.summary?.longest_streak || 0}
+                currentStreak={lifetime?.summary?.current_streak || 0}
+                lastActiveDate={getLastActiveDate()}
+                daysSinceActive={daysSinceActive}
+                onResumePractice={handleResumePractice}
+              />
+            </View>
 
-        {/* Card 2: Recent Performance (7-day Accuracy Trend) */}
-        <View style={styles.cardWrapper}>
-          <RecentPerformanceCard onRefresh={onRefresh} initiallyExpanded={true} maxDays={4} />
-        </View>
+            <View style={styles.cardWrapper}>
+              <LifetimeProgressCard onRefresh={onRefresh} />
+            </View>
+          </>
+        ) : (
+          // Active user: Show all 3 cards (Daily → Recent → Lifetime)
+          <>
+            <View style={styles.cardWrapper}>
+              <EnhancedTodaysProgressCard onRefresh={onRefresh} />
+            </View>
 
-        {/* Card 3: Lifetime Progress (All-time achievements) */}
-        <View style={styles.cardWrapper}>
-          <LifetimeProgressCard onRefresh={onRefresh} />
-        </View>
+            <View style={styles.cardWrapper}>
+              <RecentPerformanceCard onRefresh={onRefresh} initiallyExpanded={true} maxDays={4} />
+            </View>
+
+            <View style={styles.cardWrapper}>
+              <LifetimeProgressCard onRefresh={onRefresh} />
+            </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -126,7 +215,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#B4E4DD',
     fontWeight: '500',
   },
   animatedArrow: {
@@ -135,10 +224,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scrollView: {
-    paddingLeft: 20, // 20px margin from screen edge
+    // No padding - handled by cardWrapper margins
   },
   scrollContent: {
-    paddingRight: 20, // 20px margin from screen edge
+    paddingLeft: 20,
+    paddingRight: 20 + CARD_SPACING, // Compensate for last card's marginRight
   },
   cardWrapper: {
     width: CARD_WIDTH,

@@ -240,7 +240,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="close" size={28} color="#1F2937" />
+              <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -397,7 +397,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                     <Ionicons
                       name={vocabularyExpanded ? 'chevron-up' : 'chevron-down'}
                       size={24}
-                      color="#6B7280"
+                      color="#B4E4DD"
                     />
                   </TouchableOpacity>
 
@@ -428,7 +428,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                   <Text style={styles.sectionTitle}>We'll Discuss:</Text>
                   {newsContent.discussion_questions.map((question, index) => (
                     <View key={index} style={styles.questionItem}>
-                      <Ionicons name="chatbubble-outline" size={20} color="#06B6D4" />
+                      <Ionicons name="chatbubble-outline" size={20} color="#14B8A6" />
                       <Text style={styles.questionText}>{question}</Text>
                     </View>
                   ))}
@@ -470,28 +470,30 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker overlay
     justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme primary
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: SCREEN_HEIGHT * 0.92,
     paddingBottom: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
     elevation: 20,
+    borderTopWidth: 2,
+    borderTopColor: 'rgba(20, 184, 166, 0.3)',
   },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'rgba(20, 184, 166, 0.4)', // Teal drag handle
     borderRadius: 3,
     alignSelf: 'center',
     marginTop: 12,
@@ -502,14 +504,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   modalHeaderTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   closeButton: {
     padding: 4,
@@ -519,10 +521,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    backgroundColor: '#0D2832',
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD', // Light teal
     marginTop: 16,
   },
   switchingOverlay: {
@@ -530,14 +533,16 @@ const styles = StyleSheet.create({
     top: 80,
     right: 20,
     zIndex: 1000,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark glassmorphic
     padding: 12,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   scrollView: {
     flex: 1,
@@ -548,7 +553,7 @@ const styles = StyleSheet.create({
   heroContainer: {
     position: 'relative',
     height: 180,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#1F2937', // Dark background
   },
   heroImage: {
     width: '100%',
@@ -558,24 +563,27 @@ const styles = StyleSheet.create({
   placeholderImage: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#1F2937', // Dark placeholder
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Darker overlay
   },
   heroCategoryBadge: {
     position: 'absolute',
     bottom: 16,
     left: 20,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 7,
+    borderRadius: 12,
+    backgroundColor: 'rgba(11, 26, 31, 0.85)', // Dark glassmorphic
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   heroCategoryText: {
-    color: '#FFFFFF',
+    color: '#14B8A6', // Teal accent
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -586,7 +594,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     lineHeight: 30,
     marginBottom: 12,
   },
@@ -594,11 +602,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
     borderRadius: 12,
-    marginBottom: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   statItem: {
     flexDirection: 'row',
@@ -607,67 +617,73 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: '#B4E4DD', // Light teal
+    fontWeight: '600',
   },
   statDivider: {
     width: 1,
     height: 16,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'rgba(20, 184, 166, 0.3)',
     marginHorizontal: 12,
   },
   source: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: '#B4E4DD', // Light teal
     fontStyle: 'italic',
   },
   selectorContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: 'rgba(20, 184, 166, 0.15)',
   },
   selectorLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF', // White text
     marginBottom: 12,
   },
   recommendedBadge: {
-    color: '#10B981',
+    color: '#14B8A6', // Teal accent
     fontSize: 13,
     fontWeight: '600',
   },
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
   },
   optionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 2,
-    borderColor: 'transparent',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   optionButtonActive: {
-    backgroundColor: '#E0F2FE',
-    borderColor: '#06B6D4',
+    backgroundColor: '#14B8A6', // Teal solid
+    borderColor: '#14B8A6',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#B4E4DD', // Light teal
   },
   optionTextActive: {
-    color: '#06B6D4',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   section: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: 'rgba(20, 184, 166, 0.15)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -675,101 +691,108 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 12,
+    color: '#FFFFFF', // White text
+    marginBottom: 14,
   },
   summaryText: {
     fontSize: 15,
     lineHeight: 24,
-    color: '#374151',
+    color: '#B4E4DD', // Light teal
   },
   wordCount: {
     fontSize: 13,
-    color: '#9CA3AF',
-    marginTop: 8,
+    color: '#6B8A84', // Muted teal
+    marginTop: 10,
   },
   vocabularyList: {
-    marginTop: 8,
+    marginTop: 12,
     gap: 12,
   },
   vocabularyItem: {
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    borderRadius: 12,
+    backgroundColor: 'rgba(20, 184, 166, 0.08)', // Subtle teal background
+    padding: 16,
+    borderRadius: 14,
     borderLeftWidth: 3,
-    borderLeftColor: '#06B6D4',
+    borderLeftColor: '#14B8A6', // Teal accent border
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   vocabularyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
     flexWrap: 'wrap',
   },
   vocabularyWord: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginRight: 8,
   },
   vocabularyTranslation: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#14B8A6', // Teal accent
     fontStyle: 'italic',
+    fontWeight: '600',
   },
   vocabularyExample: {
     fontSize: 14,
-    color: '#4B5563',
+    color: '#B4E4DD', // Light teal
     lineHeight: 20,
   },
   vocabularyIPA: {
     fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 4,
+    color: '#6B8A84', // Muted teal
+    marginTop: 6,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   questionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
-    gap: 10,
+    marginBottom: 14,
+    gap: 12,
   },
   questionText: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
+    color: '#B4E4DD', // Light teal
+    lineHeight: 22,
   },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: 'rgba(20, 184, 166, 0.2)',
+    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark translucent
   },
   startButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#06B6D4',
-    paddingVertical: 16,
+    backgroundColor: '#14B8A6', // Teal button
+    paddingVertical: 18,
     borderRadius: 16,
-    gap: 10,
-    shadowColor: '#06B6D4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    gap: 12,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   startButtonDisabled: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: 'rgba(20, 184, 166, 0.4)', // Muted teal
+    opacity: 0.6,
   },
   startButtonText: {
     fontSize: 17,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
 });
 

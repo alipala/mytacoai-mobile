@@ -19,6 +19,7 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -229,7 +230,7 @@ export default function MicroQuizScreen({
           <>
             {isCorrectAnswer() ? (
               <>
-                <Text style={[styles.feedbackTitle, { color: '#2563EB' }]}>
+                <Text style={[styles.feedbackTitle, { color: '#6EE7B7' }]}>
                   Perfect!
                 </Text>
                 <Text style={styles.feedbackSubtitle}>
@@ -237,7 +238,7 @@ export default function MicroQuizScreen({
                 </Text>
               </>
             ) : (
-              <Text style={[styles.feedbackTitle, { color: '#D97706', marginBottom: 12 }]}>
+              <Text style={[styles.feedbackTitle, { color: '#FCA5A5', marginBottom: 12 }]}>
                 Almost there!
               </Text>
             )}
@@ -303,7 +304,10 @@ export default function MicroQuizScreen({
               activeOpacity={1}
             >
               <Animated.View style={[styles.continueButton, continueButtonAnimatedStyle]}>
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <View style={styles.continueButtonContent}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                </View>
               </Animated.View>
             </TouchableOpacity>
           </View>
@@ -395,11 +399,11 @@ function OptionButtonWithFeedback({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA', // Clean whitish background
+    backgroundColor: '#0B1A1F', // Dark theme background
   },
   successBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)', // Dark teal glow
     zIndex: 0,
   },
   content: {
@@ -422,26 +426,26 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   questionContainer: {
-    backgroundColor: '#FFF7ED',
+    backgroundColor: 'rgba(139, 92, 246, 0.15)', // Purple tint
     padding: 20,
     borderRadius: 20,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#FED7AA',
-    shadowColor: '#92400E',
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+    shadowColor: '#8B5CF6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 3,
   },
   question: {
     fontSize: 20,
     fontWeight: '600',
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 32,
   },
@@ -450,16 +454,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   optionButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card background
     padding: 18,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(107, 114, 128, 0.3)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.03,
+        shadowOpacity: 0.3,
         shadowRadius: 4,
       },
       android: {
@@ -468,19 +472,19 @@ const styles = StyleSheet.create({
     }),
   },
   optionSelected: {
-    borderColor: COLORS.orange,
-    backgroundColor: '#FFF7ED',
+    borderColor: '#14B8A6',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     borderWidth: 1.5,
   },
   optionWrong: {
     borderColor: '#F87171',
     borderWidth: 2,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
     ...Platform.select({
       ios: {
         shadowColor: '#DC2626',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.3,
         shadowRadius: 6,
       },
       android: {
@@ -491,12 +495,12 @@ const styles = StyleSheet.create({
   optionCorrect: {
     borderColor: '#34D399',
     borderWidth: 2,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: 'rgba(52, 211, 153, 0.15)',
     ...Platform.select({
       ios: {
         shadowColor: '#059669',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.3,
         shadowRadius: 6,
       },
       android: {
@@ -507,15 +511,15 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#E5E7EB',
     textAlign: 'center',
     lineHeight: 24,
   },
   optionTextWrong: {
-    color: '#DC2626',
+    color: '#FCA5A5',
   },
   optionTextCorrect: {
-    color: '#059669',
+    color: '#6EE7B7',
   },
   feedbackTitle: {
     fontSize: 24,
@@ -527,12 +531,12 @@ const styles = StyleSheet.create({
   feedbackSubtitle: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#B4E4DD',
     marginBottom: 12,
     textAlign: 'center',
   },
   explanationBox: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     padding: 14,
     borderRadius: 12,
     marginTop: 12,
@@ -543,13 +547,13 @@ const styles = StyleSheet.create({
   explanationLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#374151',
+    color: '#93C5FD',
     marginBottom: 6,
     letterSpacing: 0.5,
   },
   explanationText: {
     fontSize: 15,
-    color: '#6B7280',
+    color: '#D1D5DB',
     lineHeight: 22,
   },
   continueButtonContainer: {
@@ -558,23 +562,23 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   continueButton: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-    alignSelf: 'center',
-    minWidth: SCREEN_WIDTH < 400 ? 180 : 200,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#2563EB',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    backgroundColor: '#3B82F6',
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  continueButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   continueButtonText: {
     fontSize: 17,

@@ -133,7 +133,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons name="settings" size={24} color="#4ECFBF" />
+          <Ionicons name="settings" size={24} color="#14B8A6" />
           <Text style={styles.title}>App Settings</Text>
         </View>
         <TouchableOpacity
@@ -145,7 +145,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
           }}
           style={styles.closeButton}
         >
-          <Ionicons name="close" size={24} color="#64748B" />
+          <Ionicons name="close" size={24} color="#B4E4DD" />
         </TouchableOpacity>
       </View>
 
@@ -166,10 +166,10 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
               Manage your profile and account settings
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
         </TouchableOpacity>
 
-        {/* Voice Selection */}
+        {/* AI Tutor Voice */}
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('voice')}
@@ -179,12 +179,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="mic-outline" size={24} color="#10B981" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>Voice Selection</Text>
+            <Text style={styles.menuLabel}>AI Tutor Voice</Text>
             <Text style={styles.menuDescription}>
-              Choose your preferred AI tutor voice
+              Choose your preferred tutor voice
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
         </TouchableOpacity>
 
         {/* Notification Settings */}
@@ -202,7 +202,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
               Customize reminders and notification preferences
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
         </TouchableOpacity>
 
         {/* Subscription Management */}
@@ -220,7 +220,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
               Manage your subscription and billing
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
         </TouchableOpacity>
 
         {/* Legal & Privacy */}
@@ -238,7 +238,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
               Terms of Use and Privacy Policy
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
         </TouchableOpacity>
 
         {/* Version Information */}
@@ -277,7 +277,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
               Sign out and clear your session
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
         </TouchableOpacity>
       </ScrollView>
 
@@ -325,7 +325,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme
   },
   header: {
     flexDirection: 'row',
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -344,7 +344,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   closeButton: {
     padding: 4,
@@ -352,6 +353,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingTop: 12,
+    backgroundColor: '#0D2832',
   },
   menuItem: {
     flexDirection: 'row',
@@ -359,7 +361,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(20, 184, 166, 0.1)',
   },
   menuIcon: {
     width: 48,
@@ -368,6 +370,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.15)',
   },
   menuInfo: {
     flex: 1,
@@ -375,12 +379,12 @@ const styles = StyleSheet.create({
   menuLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   menuDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   versionItem: {
     flexDirection: 'row',
@@ -388,27 +392,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    opacity: 0.8,
+    borderBottomColor: 'rgba(20, 184, 166, 0.1)',
+    opacity: 0.7,
   },
   helpNote: {
     flexDirection: 'row',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
     padding: 16,
     marginHorizontal: 20,
     marginTop: 24,
     marginBottom: 12,
     borderRadius: 12,
     gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.25)',
   },
   helpNoteText: {
     flex: 1,
     fontSize: 14,
-    color: '#92400E',
+    color: '#FBBF24',
     lineHeight: 20,
   },
   helpNoteBold: {
     fontWeight: '600',
+    color: '#FDE047',
   },
   // Logout Button Styles
   logoutButton: {
@@ -417,7 +424,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(239, 68, 68, 0.2)',
     marginTop: 24,
   },
   logoutLabel: {
@@ -426,10 +433,10 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginBottom: 4,
   },
-  // Logout Modal Styles
+  // Logout Modal Styles - Dark Theme
   logoutModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -437,12 +444,14 @@ const styles = StyleSheet.create({
   logoutModalContainer: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0D2832',
     borderRadius: 24,
     padding: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.5,
     shadowRadius: 20,
     elevation: 10,
   },
@@ -454,20 +463,23 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   logoutModalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 12,
+    letterSpacing: -0.5,
   },
   logoutModalMessage: {
     fontSize: 15,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 28,
@@ -480,13 +492,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   logoutCancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#4B5563',
+    color: '#14B8A6',
   },
   logoutConfirmButton: {
     flex: 1,
@@ -494,6 +508,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#EF4444',
     alignItems: 'center',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   logoutConfirmButtonText: {
     fontSize: 16,

@@ -102,9 +102,9 @@ export default function ChallengeSessionScreen({
     sessionRef.current = session;
   }, [session]);
 
-  // Get background color - clean whitish for all challenge types
+  // Get background color - dark theme for all challenge types
   const getBackgroundColor = () => {
-    return '#FAFAFA'; // Clean whitish background
+    return '#0B1A1F'; // Dark theme background
   };
 
   // Disable swipe-back gesture when session is active
@@ -484,21 +484,21 @@ export default function ChallengeSessionScreen({
 
   return (
     <View style={[styles.container, { backgroundColor: getBackgroundColor() }]}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <SafeAreaView style={styles.safeArea}>
         {/* Session Progress Bar - Only show if session exists */}
         {session && !showLoading && <SessionProgressBar heartPool={session.heartPool} />}
       </SafeAreaView>
 
-      {/* Close Button - Floating in top-left corner */}
+      {/* Close Button - Compact top-right corner */}
       {session && !showLoading && !showSummary && (
         <TouchableOpacity
           style={styles.closeButton}
           onPress={handleQuit}
           activeOpacity={0.7}
         >
-          <Ionicons name="close" size={28} color="#6B7280" />
+          <Ionicons name="close" size={24} color="#D1D5DB" />
         </TouchableOpacity>
       )}
 
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0B1A1F',
   },
   calculatingAnimation: {
     width: 200,
@@ -698,48 +698,52 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#D1D5DB',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0B1A1F',
     overflow: 'hidden', // Hide anything that extends beyond bounds
   },
   closeButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 52 : 12, // Positioned to sit in the notch
-    right: 8, // Right side with small margin
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    top: Platform.OS === 'ios' ? 50 : 10, // Compact positioning at top
+    right: 16, // Aligned with card margins
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)', // Red background for exit action
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1001, // Higher z-index to sit above stats card
-    shadowColor: '#000',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.4,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
   // Custom Quit Modal Styles
   quitModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   quitModalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1F2937',
     borderRadius: 24,
     padding: 32,
     width: '100%',
     maxWidth: 400,
     alignItems: 'center',
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.4,
     shadowRadius: 24,
     elevation: 10,
   },
@@ -749,7 +753,7 @@ const styles = StyleSheet.create({
   quitModalTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -759,14 +763,14 @@ const styles = StyleSheet.create({
   },
   quitModalText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#D1D5DB',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 16,
   },
   quitModalTextBold: {
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   quitModalInfoRow: {
     flexDirection: 'row',
@@ -776,7 +780,7 @@ const styles = StyleSheet.create({
   },
   quitModalInfoText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#D1D5DB',
     marginLeft: 10,
     flex: 1,
   },
@@ -793,21 +797,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   quitModalButtonCancel: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   quitModalButtonQuit: {
     backgroundColor: '#EF4444',
   },
   quitModalButtonDisabled: {
-    backgroundColor: '#FCA5A5',
+    backgroundColor: 'rgba(239, 68, 68, 0.5)',
     opacity: 0.7,
   },
   quitModalButtonTextCancel: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#374151',
+    color: '#14B8A6',
   },
   quitModalButtonTextQuit: {
     fontSize: 16,

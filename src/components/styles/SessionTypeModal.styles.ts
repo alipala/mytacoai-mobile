@@ -22,14 +22,14 @@ export const styles = StyleSheet.create({
     maxWidth: 500,
   },
   glassContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(11, 26, 31, 0.98)',
     borderRadius: 32,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
     ...Platform.select({
       ios: {
-        shadowColor: '#4ECFBF',
+        shadowColor: '#14B8A6',
         shadowOffset: { width: 0, height: 20 },
         shadowOpacity: 0.4,
         shadowRadius: 40,
@@ -82,12 +82,12 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#B4E4DD',
     fontWeight: '500',
   },
   closeButton: {
@@ -97,9 +97,11 @@ export const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   optionsContainer: {
     padding: 20,
@@ -108,9 +110,11 @@ export const styles = StyleSheet.create({
   optionCard: {
     borderRadius: 20,
     overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.25)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#14B8A6',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.15,
         shadowRadius: 12,

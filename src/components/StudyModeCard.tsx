@@ -102,12 +102,7 @@ export function StudyModeCard({
 
       {/* Challenge Card */}
       <View style={styles.card}>
-        <LinearGradient
-          colors={['#FFFFFF', '#F8FAFC']}
-          style={styles.cardGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        >
+        <View style={styles.cardGradient}>
           {/* Challenge Type */}
           <View style={styles.typeContainer}>
             <Text style={styles.typeEmoji}>{challenge.emoji || '📚'}</Text>
@@ -133,12 +128,15 @@ export function StudyModeCard({
 
           {/* Explanation */}
           <View style={styles.explanationContainer}>
-            <Text style={styles.explanationLabel}>💡 Explanation:</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Ionicons name="bulb-outline" size={18} color="#FBBF24" />
+              <Text style={styles.explanationLabel}>Explanation:</Text>
+            </View>
             <Text style={styles.explanationText}>
               {(challenge as any).explanation || 'No explanation available'}
             </Text>
           </View>
-        </LinearGradient>
+        </View>
       </View>
 
       {/* Next Button */}
@@ -147,6 +145,17 @@ export function StudyModeCard({
         onPress={onNext}
         activeOpacity={0.8}
       >
+        {/* Outer glow layer */}
+        <View style={{
+          position: 'absolute',
+          top: -4,
+          left: -4,
+          right: -4,
+          bottom: -4,
+          borderRadius: 20,
+          backgroundColor: 'rgba(59, 130, 246, 0.3)',
+          opacity: 0.6,
+        }} />
         <LinearGradient
           colors={['#3B82F6', '#2563EB']}
           style={styles.nextButtonGradient}
@@ -162,7 +171,7 @@ export function StudyModeCard({
 
       {/* Footer Note */}
       <View style={styles.footer}>
-        <Ionicons name="information-circle-outline" size={18} color="#64748B" />
+        <Ionicons name="information-circle-outline" size={18} color="#9CA3AF" />
         <Text style={styles.footerText}>
           No hearts consumed in Study Mode
         </Text>
@@ -174,7 +183,7 @@ export function StudyModeCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#0B1A1F', // Dark theme background
   },
   content: {
     padding: 20,
@@ -206,16 +215,18 @@ const styles = StyleSheet.create({
   progress: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#475569',
+    color: '#E5E7EB', // Light gray for dark theme
   },
   card: {
     borderRadius: 20,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#14B8A6',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.3,
         shadowRadius: 12,
       },
       android: {
@@ -225,6 +236,7 @@ const styles = StyleSheet.create({
   },
   cardGradient: {
     padding: 24,
+    backgroundColor: 'rgba(31, 41, 55, 0.95)', // Dark card background
   },
   typeContainer: {
     flexDirection: 'row',
@@ -238,7 +250,7 @@ const styles = StyleSheet.create({
   typeText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#FFFFFF', // White for dark theme
   },
   questionContainer: {
     marginBottom: 24,
@@ -246,7 +258,7 @@ const styles = StyleSheet.create({
   questionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#9CA3AF', // Light gray for dark theme
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -254,7 +266,7 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#1E293B',
+    color: '#E5E7EB', // Light text for dark theme
     lineHeight: 28,
   },
   answerContainer: {
@@ -272,41 +284,46 @@ const styles = StyleSheet.create({
     color: '#10B981',
   },
   answerBox: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)', // Green tinted dark background
     borderWidth: 2,
-    borderColor: '#10B981',
+    borderColor: 'rgba(16, 185, 129, 0.5)',
     borderRadius: 12,
     padding: 16,
   },
   answerText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#059669',
+    color: '#10B981', // Keep green but brighter for dark theme
     lineHeight: 26,
   },
   explanationContainer: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(17, 24, 39, 0.6)', // Dark background
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(107, 114, 128, 0.3)',
   },
   explanationLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#475569',
-    marginBottom: 8,
+    color: '#D1D5DB', // Light gray for dark theme
+    marginBottom: 0, // Removed since we moved it to parent container
   },
   explanationText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#64748B',
+    color: '#9CA3AF', // Medium gray for dark theme
     lineHeight: 24,
   },
   nextButton: {
     marginTop: 24,
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: 'visible', // Allow outer glow
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   nextButtonGradient: {
     flexDirection: 'row',
@@ -332,6 +349,6 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748B',
+    color: '#9CA3AF', // Light gray for dark theme
   },
 });

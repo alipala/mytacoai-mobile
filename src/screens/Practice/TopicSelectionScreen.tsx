@@ -441,7 +441,10 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
               key={topic.id}
               style={[
                 styles.topicCard,
-                selectedTopic === topic.id && styles.topicCardSelected,
+                selectedTopic === topic.id && {
+                  ...styles.topicCardSelected,
+                  borderColor: topic.color,
+                },
               ]}
               onPress={() => handleTopicSelect(topic.id)}
               activeOpacity={0.7}
@@ -459,8 +462,8 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
                 <Text style={styles.topicDescription}>{topic.description}</Text>
               </View>
               {selectedTopic === topic.id && (
-                <View style={styles.checkmark}>
-                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                <View style={[styles.checkmark, { backgroundColor: topic.color }]}>
+                  <Ionicons name="checkmark" size={20} color="#FFFFFF" />
                 </View>
               )}
             </TouchableOpacity>

@@ -328,7 +328,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
             </View>
             <View style={styles.headerRight}>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#64748B" />
+                <Ionicons name="close" size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -388,7 +388,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                       <Ionicons
                         name={expandedSections.has('responses') ? 'chevron-up' : 'chevron-down'}
                         size={18}
-                        color="#64748B"
+                        color="#B4E4DD"
                       />
                     </TouchableOpacity>
 
@@ -430,7 +430,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                       <Ionicons
                         name={expandedSections.has('vocabulary') ? 'chevron-up' : 'chevron-down'}
                         size={20}
-                        color="#64748B"
+                        color="#B4E4DD"
                       />
                     </TouchableOpacity>
 
@@ -470,7 +470,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                       <Ionicons
                         name={expandedSections.has('grammar') ? 'chevron-up' : 'chevron-down'}
                         size={20}
-                        color="#64748B"
+                        color="#B4E4DD"
                       />
                     </TouchableOpacity>
 

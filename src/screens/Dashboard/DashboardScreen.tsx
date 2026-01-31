@@ -25,6 +25,7 @@ import * as Haptics from 'expo-haptics';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
 import { LearningPlanCard } from '../../components/LearningPlanCard';
+import { CompactLearningPlanCard } from '../../components/CompactLearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
@@ -32,6 +33,9 @@ import { SessionTypeModal } from '../../components/SessionTypeModal';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
+import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
+import { CollapsibleLanguageGroup } from '../../components/CollapsibleLanguageGroup';
+import { speakingDNAService } from '../../services/SpeakingDNAService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const API_BASE_URL = 'https://taco-voice-ai-e9b98ce8e7c5.herokuapp.com';
@@ -49,13 +53,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [userLevel, setUserLevel] = useState<string>('intermediate');
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [progressStats, setProgressStats] = useState<any>(null);
-  const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
   const [selectedAssessmentPlan, setSelectedAssessmentPlan] = useState<LearningPlan | null>(null);
+  const [expandedLanguage, setExpandedLanguage] = useState<string | null>(null);
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+  const [languagesWithDNA, setLanguagesWithDNA] = useState<Set<string>>(new Set());
 
   // Subscription state
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showPremiumBenefitsModal, setShowPremiumBenefitsModal] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Modal state
@@ -160,7 +166,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
       }
 
-      // Load learning plans, progress stats, and subscription status in parallel
+      // Load learning plans, progress stats, subscription status, and DNA profiles in parallel
       const [plansResponse, statsResponse, subscriptionResponse] = await Promise.all([
         LearningService.getUserLearningPlansApiLearningPlansGet(),
         ProgressService.getProgressStatsApiProgressStatsGet(),
@@ -184,6 +190,41 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
       console.log('📊 Subscription status loaded:', subscriptionResponse);
+
+      // Check which languages have DNA profiles by calling the API
+      // Get unique languages from learning plans
+      const uniqueLanguages = [...new Set(sortedPlans.map(plan => plan.language || 'english'))];
+      const dnaLanguages = new Set<string>();
+
+      // Check DNA profile for each language (only if user is premium)
+      const hasPremium = subscriptionResponse && !['try_learn', 'free'].includes(subscriptionResponse.plan);
+      if (hasPremium && uniqueLanguages.length > 0) {
+        console.log('🧬 Checking DNA profiles for languages:', uniqueLanguages);
+
+        // Check each language in parallel
+        const dnaCheckPromises = uniqueLanguages.map(async (language) => {
+          try {
+            const profile = await speakingDNAService.getProfile(language, true); // Force refresh to bypass cache
+            if (profile && profile.sessions_analyzed > 0) {
+              console.log(`✅ DNA profile exists for ${language} (${profile.sessions_analyzed} sessions)`);
+              return language;
+            }
+            console.log(`❌ No DNA profile for ${language}`);
+            return null;
+          } catch (error) {
+            console.log(`❌ Error checking DNA for ${language}:`, error);
+            return null;
+          }
+        });
+
+        const results = await Promise.all(dnaCheckPromises);
+        results.forEach(lang => {
+          if (lang) dnaLanguages.add(lang);
+        });
+      }
+
+      setLanguagesWithDNA(dnaLanguages);
+      console.log('🧬 Languages with DNA:', Array.from(dnaLanguages));
 
       // If user doesn't have preferences set, infer from most recent learning plan
       if ((!finalLanguage || finalLanguage === 'english') && plansResponse && plansResponse.length > 0) {
@@ -260,9 +301,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    console.log('📱 Setting showPricingModal to true');
-    setShowPricingModal(true);
-    console.log('📱 showPricingModal state updated');
+
+    // Check if user is already premium
+    const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
+
+    if (isPremium) {
+      console.log('📱 User is premium - showing benefits modal');
+      setShowPremiumBenefitsModal(true);
+    } else {
+      console.log('📱 User is free - showing pricing modal');
+      setShowPricingModal(true);
+    }
   };
 
   const handleDismissBanner = () => {
@@ -361,7 +410,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {/* iOS-Native Header WITH USER BUTTON */}
         <View style={styles.header}>
           <Image
-            source={require('../../assets/logo.png')}
+            source={require('../../assets/logo-transparent.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -374,7 +423,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onPress={handleUpgradePress}
                 activeOpacity={0.7}
               >
-                <Ionicons name="sparkles" size={22} color="#4FD1C5" />
+                <Ionicons name="sparkles" size={22} color="#14B8A6" />
                 <Text style={styles.upgradeButtonText}>Upgrade</Text>
               </TouchableOpacity>
             )}
@@ -402,7 +451,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 {isSubscribed && (
                   <View style={styles.premiumStatusBadgeContainer}>
                     <LinearGradient
-                      colors={['#FFF8E1', '#FFFBF0']}
+                      colors={['rgba(255, 214, 58, 0.15)', 'rgba(255, 214, 58, 0.08)']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.premiumStatusBadge}
@@ -446,7 +495,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       activeOpacity={0.9}
                     >
                       <LinearGradient
-                        colors={[COLORS.turquoise, '#3DA89D']}
+                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.primaryCardGradientNew}
@@ -519,7 +568,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       activeOpacity={0.9}
                     >
                       <LinearGradient
-                        colors={[COLORS.turquoise, '#3DA89D']}
+                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.premiumPrimaryGradient}
@@ -545,6 +594,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           <View style={styles.premiumPill}>
                             <Ionicons name="trophy-outline" size={13} color="rgba(255,255,255,0.95)" />
                             <Text style={styles.premiumPillText}>Track progress</Text>
+                          </View>
+                          <View style={styles.premiumPill}>
+                            <Ionicons name="fitness-outline" size={13} color="rgba(255,255,255,0.95)" />
+                            <Text style={styles.premiumPillText}>DNA Analysis</Text>
                           </View>
                         </View>
                       </LinearGradient>
@@ -616,24 +669,65 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
-      {/* iOS-Native Header WITH USER BUTTON - THIS IS WHAT YOU WANT! */}
+      {/* Header with Logo + Premium Badge + Streak Badge */}
       <View style={styles.header}>
         <Image
-          source={require('../../assets/logo.png')}
+          source={require('../../assets/logo-transparent.png')}
           style={styles.logo}
           resizeMode="contain"
         />
 
         <View style={styles.headerActions}>
-          {/* Upgrade Button - only show for free users */}
-          {subscriptionStatus?.plan === 'free' && (
+          {/* Premium Badge */}
+          {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
             <TouchableOpacity
-              style={styles.upgradeButton}
+              style={styles.premiumBadgeCompact}
               onPress={handleUpgradePress}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <Ionicons name="sparkles" size={22} color="#4FD1C5" />
-              <Text style={styles.upgradeButtonText}>Upgrade</Text>
+              {/* Outer glow for premium feel */}
+              <View style={{
+                position: 'absolute',
+                top: -2,
+                left: -2,
+                right: -2,
+                bottom: -2,
+                borderRadius: 14,
+                backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                opacity: 0.5,
+              }} />
+              <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
+              <View>
+                <Text style={styles.premiumTextCompact}>Premium</Text>
+                <Text style={styles.premiumMinutesCompact}>
+                  {subscriptionStatus?.limits?.minutes_remaining || 0} min
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Streak Badge */}
+          {progressStats && (
+            <TouchableOpacity
+              style={styles.streakBadgeCompact}
+              activeOpacity={0.8}
+            >
+              {/* Outer glow for streak */}
+              <View style={{
+                position: 'absolute',
+                top: -2,
+                left: -2,
+                right: -2,
+                bottom: -2,
+                borderRadius: 14,
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                opacity: 0.5,
+              }} />
+              <Ionicons name="flame-outline" size={18} color="#EF4444" />
+              <View>
+                <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
+                <Text style={styles.streakLabelCompact}>day{progressStats.current_streak !== 1 ? 's' : ''}</Text>
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -647,8 +741,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Subscription Banner */}
-        {subscriptionStatus && !bannerDismissed && (
+        {/* Subscription Banner - Only show for trial/expiring */}
+        {subscriptionStatus && !bannerDismissed && subscriptionStatus.status === 'trialing' && (
           <>
             {console.log('🎯 Rendering SubscriptionBanner with plan:', subscriptionStatus.plan)}
             <SubscriptionBanner
@@ -660,89 +754,54 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </>
         )}
 
-        {/* Premium Status Badge - Show for subscribed users */}
-        {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
-          <View style={styles.premiumStatusBadgeContainer}>
-            <LinearGradient
-              colors={['#FFF8E1', '#FFFBF0']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.premiumStatusBadge}
-            >
-              <View style={styles.premiumStatusIconCircle}>
-                <Text style={styles.crownEmoji}>👑</Text>
-              </View>
-              <View style={styles.premiumStatusTextContainer}>
-                <Text style={styles.premiumStatusTitle}>Premium Active</Text>
-                <Text style={styles.premiumStatusSubtitle}>
-                  {subscriptionStatus?.limits?.minutes_remaining || 0} minutes remaining
-                </Text>
-              </View>
-            </LinearGradient>
-          </View>
-        )}
+        {/* Learning Plans Grouped by Language - Collapsible */}
+        <View style={styles.languageGroupsContainer}>
+          {(() => {
+            // Group learning plans by language
+            const plansByLanguage: Record<string, LearningPlan[]> = {};
+            learningPlans.forEach(plan => {
+              const lang = plan.language || 'english';
+              if (!plansByLanguage[lang]) {
+                plansByLanguage[lang] = [];
+              }
+              plansByLanguage[lang].push(plan);
+            });
 
-        {/* Streak Badge - Show for all users */}
-        <View style={styles.streakBadgeContainer}>
-          <View style={styles.statBadge}>
-            <Ionicons name="flame" size={16} color="#D97706" />
-            <Text style={styles.statBadgeText}>3 day streak</Text>
-          </View>
-        </View>
+            // Get all plan IDs that have a next-level plan created
+            const existingPlanIds = learningPlans
+              .filter(p => p.previous_plan_id)
+              .map(p => p.previous_plan_id!);
 
-        {/* Learning Plans Carousel - Compact Cards */}
-        <View style={styles.carouselContainer}>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={SCREEN_WIDTH}
-            decelerationRate="fast"
-            contentContainerStyle={styles.carouselContent}
-            onScroll={(event) => {
-              const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-              setCurrentPlanIndex(index);
-            }}
-            scrollEventThrottle={16}
-          >
-            {learningPlans.map((plan, index) => {
-              // Check if a next-level plan already exists for this plan
-              const hasNextPlanCreated = learningPlans.some(
-                p => p.previous_plan_id === plan.id
-              );
+            // Get total count for dynamic height calculation
+            const totalLanguageCount = Object.keys(plansByLanguage).length;
 
-              return (
-                <View key={plan.id || index} style={styles.cardContainer}>
-                  <LearningPlanCard
-                    plan={plan}
-                    progressStats={progressStats}
-                    onContinue={() => handleContinueLearning(plan.id)}
-                    onViewDetails={() => handleViewDetails(plan)}
-                    onViewAssessment={() => {
-                      setSelectedAssessmentPlan(plan);
-                      setShowAssessmentModal(true);
-                    }}
-                    onCreateNextPlan={hasNextPlanCreated ? undefined : () => handleCreateNextPlan(plan)}
-                  />
-                </View>
-              );
-            })}
-          </ScrollView>
-
-          {/* Pagination Dots */}
-          {learningPlans.length > 1 && (
-            <View style={styles.paginationDots}>
-              {learningPlans.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.dot,
-                    index === currentPlanIndex && styles.dotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
+            // Render a CollapsibleLanguageGroup for each language
+            return Object.entries(plansByLanguage).map(([language, plans]) => (
+              <CollapsibleLanguageGroup
+                key={language}
+                language={language}
+                plans={plans}
+                progressStats={progressStats}
+                isPremium={subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan)}
+                onContinue={handleContinueLearning}
+                onViewDetails={handleViewDetails}
+                onViewAssessment={(plan) => {
+                  setSelectedAssessmentPlan(plan);
+                  setShowAssessmentModal(true);
+                }}
+                onCreateNextPlan={handleCreateNextPlan}
+                onViewDNA={(lang) => navigation.navigate('SpeakingDNA', { language: lang })}
+                existingPlanIds={existingPlanIds}
+                totalLanguageCount={totalLanguageCount}
+                hasDNAAnalysis={languagesWithDNA.has(language)}
+                isExpanded={expandedLanguage === language}
+                onToggleExpand={() => {
+                  // Toggle: if clicking same group, collapse it; otherwise expand the new one
+                  setExpandedLanguage(expandedLanguage === language ? null : language);
+                }}
+              />
+            ));
+          })()}
         </View>
 
         {/* Divider - Compact */}
@@ -770,7 +829,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             activeOpacity={0.9}
           >
             <LinearGradient
-              colors={[COLORS.turquoise, '#3DA89D', '#2D9E93']}
+              colors={['rgba(20, 184, 166, 0.12)', 'rgba(20, 184, 166, 0.06)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.newSessionGradient}
@@ -778,28 +837,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* Content */}
               <View style={styles.newSessionContent}>
                 <View style={styles.newSessionIconContainer}>
-                  <LinearGradient
-                    colors={['#FFFFFF', '#F0FDFA']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.iconGradientBg}
-                  >
-                    <Ionicons name="add-circle" size={28} color={COLORS.turquoise} />
-                  </LinearGradient>
+                  <View style={styles.iconCircle}>
+                    <Ionicons name="rocket" size={32} color="#14B8A6" />
+                  </View>
                 </View>
                 <View style={styles.newSessionTextContainer}>
-                  <View style={styles.titleRow}>
-                    <Text style={styles.newSessionTitle}>Start New Session</Text>
-                    <View style={styles.newBadge}>
-                      <Ionicons name="sparkles" size={10} color="#FFD63A" />
-                    </View>
-                  </View>
+                  <Text style={styles.newSessionTitle}>Start New Session</Text>
                   <Text style={styles.newSessionSubtitle}>
-                    Choose Quick Practice or Assessment
+                    Practice or Assessment
                   </Text>
                 </View>
                 <View style={styles.arrowContainer}>
-                  <Ionicons name="arrow-forward-circle" size={32} color="rgba(255,255,255,0.95)" />
+                  <Ionicons name="chevron-forward" size={28} color="#14B8A6" />
                 </View>
               </View>
             </LinearGradient>
@@ -824,6 +873,136 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
       />
+
+      {/* Premium Benefits Modal */}
+      <Modal
+        visible={showPremiumBenefitsModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowPremiumBenefitsModal(false)}
+      >
+        <View style={styles.premiumBenefitsContainer}>
+          <LinearGradient
+            colors={['#0B1A1F', '#1F2937']}
+            style={styles.premiumBenefitsGradient}
+          >
+            {/* Header */}
+            <View style={styles.premiumBenefitsHeader}>
+              <View style={styles.premiumBenefitsTitleRow}>
+                <Ionicons name="diamond" size={32} color="#FBBF24" />
+                <Text style={styles.premiumBenefitsTitle}>Premium Benefits</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowPremiumBenefitsModal(false)}
+                style={styles.premiumBenefitsCloseButton}
+              >
+                <Ionicons name="close" size={28} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.premiumBenefitsScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Subscription Info */}
+              <View style={styles.premiumSubscriptionCard}>
+                <Text style={styles.premiumSubscriptionPlan}>
+                  {subscriptionStatus?.plan === 'annual_premium' ? 'Annual Premium' : 'Monthly Premium'}
+                </Text>
+                <Text style={styles.premiumSubscriptionStatus}>
+                  {subscriptionStatus?.limits?.minutes_remaining || 0} minutes remaining
+                </Text>
+              </View>
+
+              {/* Benefits List */}
+              <View style={styles.premiumBenefitsList}>
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="infinite" size={24} color="#14B8A6" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Unlimited Practice</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Practice as much as you want with no session limits
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="mic" size={24} color="#8B5CF6" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>AI Voice Coach</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Get real-time feedback on your pronunciation and fluency
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="stats-chart" size={24} color="#EF4444" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Speaking DNA Analysis</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Advanced analytics to track your speaking patterns and progress
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="flash" size={24} color="#F59E0B" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Priority Support</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Get help faster with dedicated premium support
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="sparkles" size={24} color="#EC4899" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Exclusive Content</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Access premium challenges and advanced learning materials
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.premiumBenefitItem}>
+                  <View style={styles.premiumBenefitIconContainer}>
+                    <Ionicons name="shield-checkmark" size={24} color="#10B981" />
+                  </View>
+                  <View style={styles.premiumBenefitTextContainer}>
+                    <Text style={styles.premiumBenefitTitle}>Ad-Free Experience</Text>
+                    <Text style={styles.premiumBenefitDescription}>
+                      Focus on learning without any interruptions
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Thank You Message */}
+              <View style={styles.premiumThankYouCard}>
+                <Ionicons name="heart" size={32} color="#EF4444" />
+                <Text style={styles.premiumThankYouText}>
+                  Thank you for being a Premium member!
+                </Text>
+                <Text style={styles.premiumThankYouSubtext}>
+                  Your support helps us create better learning experiences
+                </Text>
+              </View>
+            </ScrollView>
+          </LinearGradient>
+        </View>
+      </Modal>
 
       {/* Session Type Modal */}
       <SessionTypeModal

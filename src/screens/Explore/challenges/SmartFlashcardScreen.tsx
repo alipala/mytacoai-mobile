@@ -237,7 +237,7 @@ export default function SmartFlashcardScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA', // Clean whitish background
+    backgroundColor: '#0B1A1F', // Clean whitish background
   },
   content: {
     flex: 1,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
     borderRadius: 24,
     padding: 32,
     ...Platform.select({
@@ -328,16 +328,16 @@ const styles = StyleSheet.create({
   explanationLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   explanationText: {
     fontSize: 18,
-    color: COLORS.textGray,
+    color: '#D1D5DB',
     lineHeight: 28,
   },
   exampleSection: {
-    backgroundColor: '#F3E8FF',
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   exampleText: {
     fontSize: 16,
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     lineHeight: 24,
     fontStyle: 'italic',
   },
@@ -367,21 +367,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   doneButton: {
-    backgroundColor: COLORS.darkNavy,
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: '#3B82F6',
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
     alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 10,
   },
   doneButtonText: {
     fontSize: 18,

@@ -167,7 +167,7 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
               <View style={styles.glassContainer}>
                 {/* Header with gradient background */}
                 <LinearGradient
-                  colors={['rgba(78, 207, 191, 0.1)', 'rgba(78, 207, 191, 0.05)']}
+                  colors={['rgba(20, 184, 166, 0.08)', 'rgba(20, 184, 166, 0.03)']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.header}
@@ -175,7 +175,7 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                   <View style={styles.headerContent}>
                     <View style={styles.iconBadge}>
                       <LinearGradient
-                        colors={[COLORS.turquoise, '#3DA89D']}
+                        colors={['#14B8A6', '#0D9488']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.iconBadgeGradient}
@@ -220,7 +220,7 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                       activeOpacity={0.9}
                     >
                       <LinearGradient
-                        colors={[COLORS.turquoise, '#3DA89D']}
+                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.optionGradient}
@@ -278,7 +278,7 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                       activeOpacity={0.9}
                     >
                       <LinearGradient
-                        colors={['#8B5CF6', '#7C3AED']}
+                        colors={['rgba(139, 92, 246, 0.15)', 'rgba(124, 58, 237, 0.08)']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.optionGradient}

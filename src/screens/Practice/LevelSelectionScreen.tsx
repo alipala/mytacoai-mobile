@@ -143,7 +143,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Level</Text>
         <View style={styles.placeholder} />
@@ -172,7 +172,10 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
               key={level.id}
               style={[
                 styles.levelCard,
-                selectedLevel === level.id && styles.levelCardSelected,
+                selectedLevel === level.id && {
+                  ...styles.levelCardSelected,
+                  borderColor: level.color,
+                },
               ]}
               onPress={() => handleLevelSelect(level.id)}
               activeOpacity={0.7}
@@ -194,12 +197,13 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
                 </View>
                 <View style={styles.levelIcons}>
                   {selectedLevel === level.id && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={24}
-                      color="#10B981"
-                      style={styles.checkIcon}
-                    />
+                    <View style={[styles.checkmark, { backgroundColor: level.color }]}>
+                      <Ionicons
+                        name="checkmark"
+                        size={20}
+                        color="#FFFFFF"
+                      />
+                    </View>
                   )}
                   <Ionicons
                     name={
@@ -208,7 +212,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
                         : 'chevron-down'
                     }
                     size={20}
-                    color="#9CA3AF"
+                    color="#B4E4DD"
                   />
                 </View>
               </View>
@@ -231,7 +235,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
 
         {/* Help Text */}
         <View style={styles.helpContainer}>
-          <Ionicons name="help-circle" size={20} color="#6B7280" />
+          <Ionicons name="help-circle" size={20} color="#B4E4DD" />
           <Text style={styles.helpText}>
             Not sure about your level? Don't worry! You can always adjust it later.
           </Text>
@@ -260,7 +264,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F',
   },
   header: {
     flexDirection: 'row',
@@ -269,7 +273,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.15)',
   },
   backButton: {
     padding: 8,
@@ -277,7 +281,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   placeholder: {
     width: 40,
@@ -288,7 +292,7 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -299,7 +303,7 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#B4E4DD',
     marginTop: 8,
     textAlign: 'center',
   },
@@ -313,12 +317,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     marginBottom: 24,
     lineHeight: 24,
   },
@@ -326,20 +330,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   levelCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 2,
   },
   levelCardSelected: {
     borderColor: '#14B8A6',
-    backgroundColor: '#F0FDFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
   },
   levelHeader: {
     flexDirection: 'row',
@@ -364,17 +368,25 @@ const styles = StyleSheet.create({
   levelName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   levelDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#B4E4DD',
   },
   levelIcons: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  checkmark: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   checkIcon: {
     marginRight: 4,
@@ -383,12 +395,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
   skillsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   skillItem: {
@@ -407,13 +419,13 @@ const styles = StyleSheet.create({
   skillText: {
     flex: 1,
     fontSize: 14,
-    color: '#4B5563',
+    color: '#B4E4DD',
     lineHeight: 20,
   },
   helpContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 16,
     borderRadius: 12,
     marginTop: 24,
@@ -422,14 +434,14 @@ const styles = StyleSheet.create({
   helpText: {
     flex: 1,
     fontSize: 14,
-    color: '#6B7280',
+    color: '#B4E4DD',
     lineHeight: 20,
   },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(20, 184, 166, 0.15)',
   },
   continueButton: {
     flexDirection: 'row',
@@ -437,11 +449,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#14B8A6',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     gap: 8,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 12,
   },
   continueButtonDisabled: {
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   continueButtonText: {
     fontSize: 17,

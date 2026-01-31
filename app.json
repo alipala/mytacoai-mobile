@@ -29,6 +29,8 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice conversations for language practice.",
         "NSCameraUsageDescription": "This app may need access to your camera for future video features.",
+        "NSPhotoLibraryAddUsageDescription": "This app needs access to your photo library to save your Speaking DNA cards.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save your Speaking DNA cards.",
         "NSUserNotificationsUsageDescription": "This app uses notifications to send you important updates and reminders about your language learning progress.",
         "LSApplicationQueriesSchemes": [
           "mailto",
@@ -63,6 +65,8 @@
         "MODIFY_AUDIO_SETTINGS",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
         "com.google.android.c2dm.permission.RECEIVE",
         "com.android.vending.BILLING"
       ],
