@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme background
   },
   header: {
     flexDirection: 'row',
@@ -12,12 +12,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)', // Teal border
+    backgroundColor: 'rgba(31, 41, 55, 0.5)', // Dark semi-transparent
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   closeButton: {
     padding: 8,
@@ -28,13 +29,13 @@ export const styles = StyleSheet.create({
   subheader: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(31, 41, 55, 0.5)', // Dark background
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
   subheaderText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -42,28 +43,61 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+  },
+  stepItem: {
+    alignItems: 'center',
+    gap: 6,
   },
   stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E5E7EB',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    borderWidth: 2,
+    borderColor: 'rgba(148, 163, 184, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepCircleActive: {
-    backgroundColor: '#4FD1C5',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)',
+    borderColor: '#14B8A6',
+    borderWidth: 2.5,
+  },
+  stepCircleCompleted: {
+    backgroundColor: '#14B8A6',
+    borderColor: '#14B8A6',
   },
   stepNumber: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#6B7280',
   },
   stepNumberActive: {
-    color: '#FFFFFF',
+    color: '#14B8A6',
+    fontSize: 15,
   },
-  stepChevron: {
-    marginHorizontal: 8,
+  stepLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  stepLabelActive: {
+    color: '#14B8A6',
+    fontWeight: '700',
+  },
+  stepLabelCompleted: {
+    color: '#9CA3AF',
+  },
+  stepConnector: {
+    width: 24,
+    height: 2,
+    backgroundColor: 'rgba(148, 163, 184, 0.3)',
+    marginHorizontal: 4,
+    marginBottom: 18,
+  },
+  stepConnectorCompleted: {
+    backgroundColor: '#14B8A6',
   },
   scrollView: {
     flex: 1,
@@ -74,13 +108,15 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   errorContainer: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red tinted dark
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   errorText: {
-    color: '#DC2626',
+    color: '#FCA5A5', // Light red
     fontSize: 14,
   },
   stepContainer: {
@@ -93,19 +129,19 @@ export const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 14,
-    color: '#4FD1C5',
+    color: '#14B8A6', // Teal
     marginLeft: 4,
   },
   stepTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginBottom: 8,
     textAlign: 'center',
   },
   stepSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     marginBottom: 24,
     textAlign: 'center',
     lineHeight: 24,
@@ -120,15 +156,22 @@ export const styles = StyleSheet.create({
   goalCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
+    borderRadius: 20,
     padding: 20,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
-  goalIcon: {
-    fontSize: 40,
+  goalIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   goalInfo: {
     flex: 1,
@@ -136,12 +179,52 @@ export const styles = StyleSheet.create({
   goalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginBottom: 4,
   },
   goalDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
+  },
+  selectionCounterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  selectionCounterBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+  },
+  selectionCounterText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#14B8A6',
+    letterSpacing: 0.3,
+  },
+  maxReachedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  maxReachedText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#10B981',
   },
   subGoalsContainer: {
     gap: 12,
@@ -150,15 +233,15 @@ export const styles = StyleSheet.create({
   subGoalCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
+    borderRadius: 16,
     padding: 16,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
   subGoalCardSelected: {
-    backgroundColor: '#E6FFFA',
-    borderColor: '#4FD1C5',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)', // Teal tinted
+    borderColor: '#14B8A6', // Teal border
   },
   subGoalCardDisabled: {
     opacity: 0.5,
@@ -168,15 +251,15 @@ export const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: '#6B7280', // Gray border
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
     marginTop: 2,
   },
   checkboxSelected: {
-    backgroundColor: '#4FD1C5',
-    borderColor: '#4FD1C5',
+    backgroundColor: '#14B8A6', // Teal
+    borderColor: '#14B8A6',
   },
   subGoalInfo: {
     flex: 1,
@@ -184,34 +267,33 @@ export const styles = StyleSheet.create({
   subGoalTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginBottom: 4,
   },
   subGoalDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     lineHeight: 20,
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  selectionCount: {
-    fontSize: 14,
-    color: '#6B7280',
+    borderTopColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
   continueButton: {
     flexDirection: 'row',
-    backgroundColor: '#4FD1C5',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: '#14B8A6', // Teal
+    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   continueButtonText: {
     fontSize: 16,
@@ -221,98 +303,107 @@ export const styles = StyleSheet.create({
   durationContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 24,
+    gap: 8,
+    marginBottom: 16,
   },
   durationCard: {
     width: '48%',
-    aspectRatio: 1,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
+    borderRadius: 14,
+    padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: 'rgba(20, 184, 166, 0.2)', // Teal border
+    minHeight: 85,
   },
   durationCardSelected: {
-    backgroundColor: '#E6FFFA',
-    borderColor: '#4FD1C5',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)', // Teal tinted
+    borderColor: '#14B8A6', // Teal border
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   durationNumber: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
-    marginTop: 8,
+    color: '#FFFFFF', // White text
+    marginTop: 2,
   },
   durationLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
+    fontSize: 12,
+    color: '#9CA3AF', // Light gray
+    marginTop: 1,
   },
   durationSessions: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 8,
+    fontSize: 10,
+    color: '#6B8A84', // Muted teal
+    marginTop: 4,
   },
   summaryCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
+    padding: 14,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.3)', // Teal border
   },
   summaryTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 16,
+    color: '#FFFFFF', // White text
+    marginBottom: 12,
   },
   summaryItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   summaryItemHighlight: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    marginTop: 8,
-    paddingTop: 16,
+    borderTopColor: 'rgba(20, 184, 166, 0.3)', // Teal border
+    marginTop: 6,
+    paddingTop: 10,
   },
   summaryLabel: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: '#9CA3AF', // Light gray
   },
   summaryValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   summarySubGoals: {
     flex: 1,
     alignItems: 'flex-end',
   },
   summarySubGoalItem: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 2,
+    fontSize: 11,
+    color: '#9CA3AF', // Light gray
+    marginBottom: 1,
   },
   summaryValueHighlight: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#4FD1C5',
+    color: '#14B8A6', // Teal accent
   },
   createButton: {
     flexDirection: 'row',
-    backgroundColor: '#4FD1C5',
-    borderRadius: 12,
+    backgroundColor: '#14B8A6', // Teal
+    borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   createButtonText: {
     fontSize: 18,
@@ -329,21 +420,23 @@ export const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)', // Teal tinted dark
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
   },
   creatingTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginBottom: 12,
     textAlign: 'center',
   },
   creatingSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 40,
@@ -356,31 +449,22 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   successIconContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
-  successCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#10B981',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+  successLottie: {
+    width: 200,
+    height: 200,
   },
   successTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginBottom: 12,
     textAlign: 'center',
   },
   successSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
@@ -396,35 +480,70 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  flagWrapper: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    borderRadius: 8,
+    paddingBottom: 2,
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 10,
+      },
+    }),
+  },
+  iconWrapper: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 2,
+  },
   successStatValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1F2937',
-    marginTop: 12,
+    color: '#FFFFFF', // White text
+    marginTop: 8,
+  },
+  successStatValueSmall: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF', // White text
+    marginTop: 8,
   },
   successStatLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     marginTop: 4,
   },
   successButton: {
+    width: '85%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 25,
+    elevation: 15,
+  },
+  successButtonGradient: {
     flexDirection: 'row',
-    backgroundColor: '#4FD1C5',
-    borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#4FD1C5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    gap: 10,
   },
   successButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 19,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
 });

@@ -8,8 +8,10 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -37,6 +39,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
   const [recordingObject, setRecordingObject] = useState<Audio.Recording | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [canStopRecording, setCanStopRecording] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const countdownScaleAnim = useRef(new Animated.Value(0)).current;
@@ -379,27 +382,44 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
   };
 
   const handleBack = () => {
-    if (isRecording) {
-      Alert.alert(
-        'Stop Recording?',
-        'Are you sure you want to cancel the recording?',
-        [
-          { text: 'Continue Recording', style: 'cancel' },
-          {
-            text: 'Stop',
-            style: 'destructive',
-            onPress: async () => {
-              if (recordingObject) {
-                await recordingObject.stopAndUnloadAsync();
-              }
-              navigation.goBack();
-            },
-          },
-        ]
-      );
-    } else {
-      navigation.goBack();
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    setShowExitModal(true);
+  };
+
+  const handleConfirmExit = async () => {
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    }
+
+    setShowExitModal(false);
+
+    // Stop and cleanup recording if active
+    if (isRecording && recordingObject) {
+      try {
+        await recordingObject.stopAndUnloadAsync();
+      } catch (e) {
+        console.log('Recording already stopped');
+      }
+    }
+
+    // Clear any timers
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    console.log('[ASSESSMENT] User exited early - assessment NOT saved');
+
+    // Navigate back without saving
+    navigation.goBack();
+  };
+
+  const handleCancelExit = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowExitModal(false);
   };
 
   const formatTime = (seconds: number) => {
@@ -432,9 +452,8 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           onPress={handleBack}
           style={styles.backButton}
           activeOpacity={0.7}
-          disabled={isRecording}
         >
-          <Ionicons name="close" size={28} color={isRecording ? 'rgba(255, 255, 255, 0.3)' : '#FFFFFF'} />
+          <Ionicons name="close" size={28} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Speaking Assessment</Text>
         <View style={styles.placeholder} />
@@ -475,9 +494,9 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
         {/* Tips Section */}
         {!isRecording && (
           <View style={styles.tipsSection}>
-            <View style={styles.tipCard}>
-              <View style={styles.tipIconContainer}>
-                <Ionicons name="time-outline" size={20} color="#14B8A6" />
+            <View style={[styles.tipCard, styles.tipCardTime]}>
+              <View style={[styles.tipIconContainer, styles.tipIconContainerTime]}>
+                <Ionicons name="time-outline" size={22} color="#EF4444" />
               </View>
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>1 minute</Text>
@@ -485,9 +504,9 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
               </View>
             </View>
 
-            <View style={styles.tipCard}>
-              <View style={styles.tipIconContainer}>
-                <Ionicons name="mic-outline" size={20} color="#8B5CF6" />
+            <View style={[styles.tipCard, styles.tipCardMic]}>
+              <View style={[styles.tipIconContainer, styles.tipIconContainerMic]}>
+                <Ionicons name="mic-outline" size={22} color="#3B82F6" />
               </View>
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Speak clearly</Text>
@@ -495,9 +514,9 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
               </View>
             </View>
 
-            <View style={styles.tipCard}>
-              <View style={styles.tipIconContainer}>
-                <Ionicons name="star-outline" size={20} color="#F59E0B" />
+            <View style={[styles.tipCard, styles.tipCardStar]}>
+              <View style={[styles.tipIconContainer, styles.tipIconContainerStar]}>
+                <Ionicons name="star-outline" size={22} color="#10B981" />
               </View>
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Be yourself</Text>
@@ -618,6 +637,64 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           </View>
         </View>
       )}
+
+      {/* Custom Exit Modal */}
+      <Modal
+        visible={showExitModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelExit}
+      >
+        <View style={styles.exitModalOverlay}>
+          <View style={styles.exitModalContainer}>
+            {/* Icon */}
+            <View style={styles.exitModalIconContainer}>
+              <Ionicons name="warning" size={48} color="#EF4444" />
+            </View>
+
+            {/* Title */}
+            <Text style={styles.exitModalTitle}>Exit Assessment?</Text>
+
+            {/* Message */}
+            <Text style={styles.exitModalMessage}>
+              {isRecording
+                ? 'Your recording will be discarded and this assessment will not be saved. Are you sure you want to exit?'
+                : 'Are you sure you want to exit without completing the speaking assessment?'}
+            </Text>
+
+            {/* Buttons */}
+            <View style={styles.exitModalButtons}>
+              {/* Cancel Button */}
+              <TouchableOpacity
+                style={styles.exitModalCancelButton}
+                onPress={handleCancelExit}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.exitModalCancelText}>
+                  {isRecording ? 'Continue Recording' : 'Cancel'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Exit Button */}
+              <TouchableOpacity
+                style={styles.exitModalExitButton}
+                onPress={handleConfirmExit}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#EF4444', '#DC2626']}
+                  style={styles.exitModalExitGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="exit-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.exitModalExitText}>Exit</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

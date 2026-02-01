@@ -76,7 +76,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -94,7 +94,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
           style={styles.homeButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="home-outline" size={24} color="#1F2937" />
+          <Ionicons name="home-outline" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -102,7 +102,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
       {sessionSummary && (
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
-            <Ionicons name="document-text-outline" size={20} color="#4ECFBF" />
+            <Ionicons name="document-text-outline" size={20} color="#14B8A6" />
             <Text style={styles.summaryTitle}>Session Summary</Text>
           </View>
           <Text style={styles.summaryText}>{sessionSummary}</Text>
@@ -231,7 +231,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             onPress={handlePrevious}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color="#4ECFBF" />
+            <Ionicons name="chevron-back" size={24} color="#14B8A6" />
             <Text style={styles.navButtonText}>Previous</Text>
           </TouchableOpacity>
 
@@ -253,7 +253,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             activeOpacity={0.7}
           >
             <Text style={styles.navButtonText}>Next</Text>
-            <Ionicons name="chevron-forward" size={24} color="#4ECFBF" />
+            <Ionicons name="chevron-forward" size={24} color="#14B8A6" />
           </TouchableOpacity>
         </View>
       )}
@@ -278,7 +278,7 @@ const ScoreCard: React.FC<{ label: string; score: number; color: string }> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0B1A1F', // Dark theme background
   },
   header: {
     flexDirection: 'row',
@@ -286,9 +286,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.95)', // Dark header
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
   backButton: {
     padding: 8,
@@ -303,21 +303,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     marginTop: 2,
   },
   summaryCard: {
-    backgroundColor: '#F0FAFA',
-    borderRadius: 12,
+    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal tinted dark
+    borderRadius: 16,
     padding: 16,
     margin: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(78, 207, 191, 0.3)',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -328,11 +328,11 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   summaryText: {
     fontSize: 14,
-    color: '#374151',
+    color: '#B4E4DD', // Light teal
     lineHeight: 20,
   },
   summaryStats: {
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   summaryStatText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
   },
   content: {
     flex: 1,
@@ -361,19 +361,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F75A5A',
+    color: '#14B8A6', // Teal for section titles
     marginBottom: 12,
   },
   sentenceCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   sentenceText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     lineHeight: 24,
   },
   scoresGrid: {
@@ -382,18 +382,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   scoreCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card
+    borderRadius: 16,
     padding: 16,
     flex: 1,
     minWidth: (SCREEN_WIDTH - 56) / 2, // Account for padding and gap
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     marginBottom: 8,
   },
   scoreValue: {
@@ -401,8 +401,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   issueCard: {
-    backgroundColor: '#FEE2E2',
-    borderRadius: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red tinted dark
+    borderRadius: 16,
     padding: 16,
     marginBottom: 8,
     borderWidth: 1,
@@ -417,51 +417,51 @@ const styles = StyleSheet.create({
   issueTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#991B1B',
+    color: '#FCA5A5', // Light red
     flex: 1,
   },
   issueCorrection: {
     fontSize: 14,
-    color: '#374151',
+    color: '#D1D5DB', // Light gray
     marginBottom: 4,
   },
   issueLabel: {
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White
   },
   issueExplanation: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     fontStyle: 'italic',
   },
   suggestionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card
+    borderRadius: 16,
     padding: 16,
     marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   suggestionText: {
     fontSize: 14,
-    color: '#374151',
+    color: '#D1D5DB', // Light gray
     flex: 1,
     lineHeight: 20,
   },
   alternativeCard: {
-    backgroundColor: '#F0FAFA',
-    borderRadius: 12,
+    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal tinted dark
+    borderRadius: 16,
     padding: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(78, 207, 191, 0.3)',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   alternativeText: {
     fontSize: 14,
-    color: '#374151',
+    color: '#B4E4DD', // Light teal
     lineHeight: 20,
   },
   footer: {
@@ -470,9 +470,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(31, 41, 55, 0.95)', // Dark footer
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
   navButton: {
     flexDirection: 'row',
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   navButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4ECFBF',
+    color: '#14B8A6', // Teal
   },
   pagination: {
     flexDirection: 'row',
@@ -493,10 +493,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'rgba(107, 114, 128, 0.5)', // Dark gray
   },
   paginationDotActive: {
-    backgroundColor: '#4ECFBF',
+    backgroundColor: '#14B8A6', // Teal
     width: 24,
   },
 });

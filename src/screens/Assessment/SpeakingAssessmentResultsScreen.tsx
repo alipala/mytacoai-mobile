@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import type { SpeakingAssessmentResponse } from '../../api/generated';
 import { CreateLearningPlanModal } from '../../components/CreateLearningPlanModal';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -34,6 +35,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   const [activeTab, setActiveTab] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
+  const progressAnimation = useRef(new Animated.Value(0)).current;
 
   const handleSaveAndProceed = () => {
     if (Platform.OS === 'ios') {
@@ -94,62 +96,104 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     }
   };
 
+  // Animate progress ring on mount
+  useEffect(() => {
+    Animated.timing(progressAnimation, {
+      toValue: result.overall_score,
+      duration: 1500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  // Get unique icon color for each skill
+  const getSkillIconColor = (index: number): string => {
+    const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'];
+    return colors[index % colors.length];
+  };
+
   // Overview Tab
-  const renderOverview = () => (
-    <View style={styles.tabContent}>
-      {/* Hero Section with Score */}
-      <LinearGradient
-        colors={getGradientColors(result.overall_score)}
-        style={styles.heroGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.scoreCircleWhite}>
-          <Text style={styles.overallScoreText}>{result.overall_score}</Text>
-          <Text style={styles.scoreOutOf}>/100</Text>
-        </View>
-        <Text style={styles.scoreLabel}>{getScoreLabel(result.overall_score)}</Text>
-        <Text style={styles.recommendedLevel}>
-          Recommended Level: <Text style={styles.levelText}>{result.recommended_level}</Text>
-        </Text>
-      </LinearGradient>
+  const renderOverview = () => {
+    const size = 180;
+    const strokeWidth = 12;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const progress = result.overall_score / 100;
+    const strokeDashoffset = circumference * (1 - progress);
 
-      {/* Skills Grid */}
-      <View style={styles.skillsGrid}>
-        {skills.map((skill, index) => (
-          <View key={index} style={styles.skillCard}>
-            <View style={[styles.skillIconContainer, { backgroundColor: getScoreColor(skill.score) + '20' }]}>
-              <Ionicons name={skill.icon as any} size={24} color={getScoreColor(skill.score)} />
+    return (
+      <View style={styles.tabContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.overviewScrollContent}>
+          {/* Hero Section with Score */}
+          <View style={styles.scoreContainer}>
+            {/* Circular Progress Ring with SVG */}
+            <View style={styles.progressRingContainer}>
+              <Svg width={size} height={size} style={styles.svgProgress}>
+                {/* Background Circle */}
+                <Circle
+                  cx={size / 2}
+                  cy={size / 2}
+                  r={radius}
+                  stroke="rgba(31, 41, 55, 0.8)"
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                />
+                {/* Progress Circle */}
+                <Circle
+                  cx={size / 2}
+                  cy={size / 2}
+                  r={radius}
+                  stroke={getScoreColor(result.overall_score)}
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  rotation="-90"
+                  origin={`${size / 2}, ${size / 2}`}
+                />
+              </Svg>
+
+              {/* Score Text Overlay */}
+              <View style={styles.progressRingInner}>
+                <Text style={styles.overallScoreText}>{result.overall_score}</Text>
+                <View style={styles.scoreMaxContainer}>
+                  <View style={styles.scoreMaxDivider} />
+                  <Text style={styles.scoreMaxText}>100</Text>
+                </View>
+              </View>
             </View>
-            <Text style={styles.skillLabel}>{skill.label}</Text>
-            <Text style={[styles.skillScore, { color: getScoreColor(skill.score) }]}>
-              {skill.score}
-            </Text>
-          </View>
-        ))}
-      </View>
 
-      {/* Transcript Card */}
-      <View style={styles.transcriptCard}>
-        <View style={styles.transcriptHeader}>
-          <Ionicons name="chatbubble-outline" size={20} color="#4FD1C5" />
-          <Text style={styles.transcriptTitle}>What You Said</Text>
-        </View>
-        <Text style={styles.transcriptText}>{result.recognized_text}</Text>
+            {/* Score Info */}
+            <View style={styles.scoreInfo}>
+              <Text style={styles.recommendedLevel}>
+                Recommended Level: <Text style={styles.levelText}>{result.recommended_level}</Text>
+              </Text>
+            </View>
+          </View>
+
+          {/* Transcript Card */}
+          <View style={styles.transcriptCard}>
+            <View style={styles.transcriptHeader}>
+              <Ionicons name="chatbubble-outline" size={20} color="#14B8A6" />
+              <Text style={styles.transcriptTitle}>What You Said</Text>
+            </View>
+            <Text style={styles.transcriptText}>{result.recognized_text}</Text>
+          </View>
+        </ScrollView>
       </View>
-    </View>
-  );
+    );
+  };
 
   // Skills Detail Tab
   const renderSkillsDetail = () => (
     <View style={styles.tabContent}>
-      <Text style={styles.tabTitle}>Skills Breakdown</Text>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.tabScrollContent}>
+        <Text style={styles.tabTitle}>Skills Breakdown</Text>
         {skills.map((skill, index) => (
           <View key={index} style={styles.skillDetailCard}>
             <View style={styles.skillDetailHeader}>
-              <View style={[styles.skillIconContainer, { backgroundColor: getScoreColor(skill.score) + '20' }]}>
-                <Ionicons name={skill.icon as any} size={24} color={getScoreColor(skill.score)} />
+              <View style={[styles.skillIconContainer, { backgroundColor: getSkillIconColor(index) + '20' }]}>
+                <Ionicons name={skill.icon as any} size={24} color={getSkillIconColor(index)} />
               </View>
               <View style={styles.skillDetailInfo}>
                 <Text style={styles.skillDetailLabel}>{skill.label}</Text>
@@ -160,12 +204,12 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
                         styles.skillDetailScoreFill,
                         {
                           width: `${skill.score}%`,
-                          backgroundColor: getScoreColor(skill.score),
+                          backgroundColor: getSkillIconColor(index),
                         },
                       ]}
                     />
                   </View>
-                  <Text style={[styles.skillDetailScoreText, { color: getScoreColor(skill.score) }]}>
+                  <Text style={[styles.skillDetailScoreText, { color: getSkillIconColor(index) }]}>
                     {skill.score}
                   </Text>
                 </View>
@@ -191,8 +235,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   // Action Plan Tab
   const renderActionPlan = () => (
     <View style={styles.tabContent}>
-      <Text style={styles.tabTitle}>Your Action Plan</Text>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.tabScrollContent, { paddingTop: 24 }]}>
         {/* Strengths */}
         <View style={styles.actionSection}>
           <View style={styles.actionSectionHeader}>
@@ -258,45 +301,48 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
       {/* Tab Navigator */}
       <View style={styles.tabNavigator}>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 0 && styles.tabButtonActive]}
+          style={styles.tabButton}
           onPress={() => handleTabPress(0)}
         >
           <Ionicons
             name="analytics-outline"
             size={20}
-            color={activeTab === 0 ? '#4FD1C5' : '#9CA3AF'}
+            color={activeTab === 0 ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.tabButtonText, activeTab === 0 && styles.tabButtonTextActive]}>
             Overview
           </Text>
+          {activeTab === 0 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 1 && styles.tabButtonActive]}
+          style={styles.tabButton}
           onPress={() => handleTabPress(1)}
         >
           <Ionicons
             name="bar-chart-outline"
             size={20}
-            color={activeTab === 1 ? '#4FD1C5' : '#9CA3AF'}
+            color={activeTab === 1 ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.tabButtonText, activeTab === 1 && styles.tabButtonTextActive]}>
             Skills
           </Text>
+          {activeTab === 1 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 2 && styles.tabButtonActive]}
+          style={styles.tabButton}
           onPress={() => handleTabPress(2)}
         >
           <Ionicons
             name="clipboard-outline"
             size={20}
-            color={activeTab === 2 ? '#4FD1C5' : '#9CA3AF'}
+            color={activeTab === 2 ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.tabButtonText, activeTab === 2 && styles.tabButtonTextActive]}>
             Plan
           </Text>
+          {activeTab === 2 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
       </View>
 
@@ -326,7 +372,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#4FD1C5', '#38B2AC']}
+            colors={['#14B8A6', '#0D9488']}
             style={styles.proceedButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -354,7 +400,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1A1F', // Dark theme background
   },
   header: {
     flexDirection: 'row',
@@ -363,12 +409,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)', // Teal border
+    backgroundColor: 'rgba(31, 41, 55, 0.5)', // Dark semi-transparent header
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   closeButton: {
     padding: 8,
@@ -378,11 +425,11 @@ const styles = StyleSheet.create({
   },
   tabNavigator: {
     flexDirection: 'row',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(31, 41, 55, 0.5)', // Dark tab bar
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)', // Teal border
   },
   tabButton: {
     flex: 1,
@@ -390,20 +437,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 8,
+    gap: 6,
+    position: 'relative',
   },
-  tabButtonActive: {
-    backgroundColor: '#E6FFFA',
+  tabUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: '#14B8A6',
+    borderRadius: 2,
   },
   tabButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: '#9CA3AF', // Light gray
   },
   tabButtonTextActive: {
-    color: '#4FD1C5',
+    color: '#14B8A6', // Teal accent
   },
   tabScroll: {
     flex: 1,
@@ -413,99 +466,134 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     flex: 1,
+  },
+  overviewScrollContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 20,
+    paddingBottom: 40,
+  },
+  tabScrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   tabTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginBottom: 20,
+    marginTop: 20,
   },
-  heroGradient: {
-    borderRadius: 24,
-    padding: 40,
+  scoreContainer: {
     alignItems: 'center',
     marginBottom: 24,
+    paddingVertical: 16,
   },
-  scoreCircleWhite: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: '#FFFFFF',
+  progressRingContainer: {
+    width: 180,
+    height: 180,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
+  },
+  svgProgress: {
+    position: 'absolute',
+  },
+  progressRingInner: {
+    position: 'absolute',
+    width: 144,
+    height: 144,
+    borderRadius: 72,
+    backgroundColor: 'rgba(15, 35, 40, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   overallScoreText: {
-    fontSize: 56,
+    fontSize: 52,
     fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  scoreOutOf: {
-    fontSize: 18,
-    color: '#6B7280',
-  },
-  scoreLabel: {
-    fontSize: 22,
-    fontWeight: '600',
     color: '#FFFFFF',
-    marginBottom: 8,
+  },
+  scoreMaxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 6,
+  },
+  scoreMaxDivider: {
+    width: 20,
+    height: 2,
+    backgroundColor: 'rgba(148, 163, 184, 0.4)',
+  },
+  scoreMaxText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontWeight: '600',
+  },
+  scoreInfo: {
+    alignItems: 'center',
   },
   recommendedLevel: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    opacity: 0.9,
+    fontSize: 15,
+    color: '#B4E4DD',
   },
   levelText: {
     fontWeight: '700',
-    fontSize: 18,
+    fontSize: 16,
+    color: '#14B8A6',
   },
   skillsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 20,
   },
   skillCard: {
-    width: (SCREEN_WIDTH - 64) / 2,
-    backgroundColor: '#F9FAFB',
+    width: (SCREEN_WIDTH - 60) / 2,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.3)', // Teal border
   },
   skillIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   skillLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 4,
+    color: '#9CA3AF', // Light gray
+    marginBottom: 2,
+    textAlign: 'center',
   },
   skillScore: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   transcriptCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.3)', // Teal border
   },
   transcriptHeader: {
     flexDirection: 'row',
@@ -516,20 +604,20 @@ const styles = StyleSheet.create({
   transcriptTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   transcriptText: {
     fontSize: 15,
-    color: '#374151',
+    color: '#D1D5DB', // Light gray
     lineHeight: 24,
   },
   skillDetailCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
+    borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(20, 184, 166, 0.3)', // Teal border
   },
   skillDetailHeader: {
     flexDirection: 'row',
@@ -543,7 +631,7 @@ const styles = StyleSheet.create({
   skillDetailLabel: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
     marginBottom: 8,
   },
   skillDetailScoreContainer: {
@@ -554,7 +642,7 @@ const styles = StyleSheet.create({
   skillDetailScoreBar: {
     flex: 1,
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(107, 114, 128, 0.3)', // Dark gray
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -568,7 +656,7 @@ const styles = StyleSheet.create({
   },
   skillFeedback: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     lineHeight: 22,
   },
   examplesContainer: {
@@ -584,7 +672,7 @@ const styles = StyleSheet.create({
   exampleText: {
     flex: 1,
     fontSize: 13,
-    color: '#6B7280',
+    color: '#9CA3AF', // Light gray
     fontStyle: 'italic',
   },
   actionSection: {
@@ -597,12 +685,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 12,
     borderBottomWidth: 2,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(20, 184, 166, 0.3)', // Teal border
   },
   actionSectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#FFFFFF', // White text
   },
   actionItem: {
     flexDirection: 'row',
@@ -614,44 +702,52 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#F59E0B', // Keep orange (works on dark)
     marginTop: 6,
   },
   improvementBullet: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#3B82F6', // Keep blue (works on dark)
     marginTop: 6,
   },
   stepNumberBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)', // Teal tinted dark
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
   },
   stepNumberText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4FD1C5',
+    color: '#14B8A6', // Teal accent
   },
   actionText: {
     flex: 1,
     fontSize: 15,
-    color: '#374151',
+    color: '#D1D5DB', // Light gray
     lineHeight: 22,
   },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(20, 184, 166, 0.2)', // Teal border
+    backgroundColor: 'rgba(31, 41, 55, 0.5)', // Dark footer
   },
   proceedButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
+    borderRadius: 14,
+    overflow: 'visible', // Changed to visible for outer glow
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   proceedButtonGradient: {
     flexDirection: 'row',
@@ -660,6 +756,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    borderRadius: 14,
   },
   proceedButtonText: {
     fontSize: 18,

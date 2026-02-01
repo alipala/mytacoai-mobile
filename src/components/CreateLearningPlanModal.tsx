@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,23 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Animated,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LearningService } from '../api/generated';
 import { styles } from './styles/CreateLearningPlanModal.styles';
+import LottieView from 'lottie-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+// Import flag SVGs as components
+import PortugueseFlag from '../assets/flags/portuguese.svg';
+import SpanishFlag from '../assets/flags/spanish.svg';
+import FrenchFlag from '../assets/flags/french.svg';
+import GermanFlag from '../assets/flags/german.svg';
+import DutchFlag from '../assets/flags/dutch.svg';
+import EnglishFlag from '../assets/flags/english.svg';
 
 interface CreateLearningPlanModalProps {
   visible: boolean;
@@ -62,7 +74,53 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
   const [error, setError] = useState<string | null>(null);
   const [createdPlanId, setCreatedPlanId] = useState<string | null>(null);
 
+  // Animation values
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   console.log('📋 CreateLearningPlanModal render - visible:', visible, 'step:', step);
+
+  // Get flag component based on language
+  const getFlagComponent = () => {
+    const lang = language.toLowerCase();
+    switch (lang) {
+      case 'portuguese':
+        return PortugueseFlag;
+      case 'spanish':
+        return SpanishFlag;
+      case 'french':
+        return FrenchFlag;
+      case 'german':
+        return GermanFlag;
+      case 'dutch':
+        return DutchFlag;
+      case 'english':
+        return EnglishFlag;
+      default:
+        return null;
+    }
+  };
+
+  // Get flag glow color based on language
+  const getFlagGlowColor = () => {
+    const lang = language.toLowerCase();
+    switch (lang) {
+      case 'portuguese':
+        return '#D52B1E'; // Red from Portuguese flag
+      case 'spanish':
+        return '#F1BF00'; // Yellow from Spanish flag
+      case 'french':
+        return '#0055A4'; // Blue from French flag
+      case 'german':
+        return '#FFCE00'; // Gold from German flag
+      case 'dutch':
+        return '#FF4500'; // Orange from Dutch flag
+      case 'english':
+        return '#C8102E'; // Red from English flag
+      default:
+        return '#14B8A6'; // Teal fallback
+    }
+  };
 
   // Load enriched goals when modal opens
   useEffect(() => {
@@ -81,8 +139,33 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
       setSelectedSubGoals([]);
       setDuration(3);
       setError(null);
+      slideAnim.setValue(0);
+      fadeAnim.setValue(1);
     }
   }, [visible]);
+
+  // Animate step transitions
+  useEffect(() => {
+    if (visible && (step === 'goals' || step === 'subgoals' || step === 'duration')) {
+      // Slide and fade in animation
+      slideAnim.setValue(50);
+      fadeAnim.setValue(0);
+
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [step, visible]);
 
   const loadEnrichedGoals = async () => {
     try {
@@ -223,37 +306,65 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
       { key: 'duration', label: 'Duration', number: 3 },
     ];
 
+    const getCurrentStepIndex = () => {
+      if (step === 'goals') return 0;
+      if (step === 'subgoals') return 1;
+      if (step === 'duration' || step === 'creating') return 2;
+      return 0;
+    };
+
+    const currentStepIndex = getCurrentStepIndex();
+
     return (
       <View style={styles.progressSteps}>
-        {steps.map((s, index) => (
-          <React.Fragment key={s.key}>
-            <View
-              style={[
-                styles.stepCircle,
-                (step === s.key || (s.key === 'duration' && step === 'creating')) &&
-                  styles.stepCircleActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.stepNumber,
-                  (step === s.key || (s.key === 'duration' && step === 'creating')) &&
-                    styles.stepNumberActive,
-                ]}
-              >
-                {s.number}
-              </Text>
-            </View>
-            {index < steps.length - 1 && (
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="#D1D5DB"
-                style={styles.stepChevron}
-              />
-            )}
-          </React.Fragment>
-        ))}
+        {steps.map((s, index) => {
+          const isCompleted = index < currentStepIndex;
+          const isActive = index === currentStepIndex;
+
+          return (
+            <React.Fragment key={s.key}>
+              <View style={styles.stepItem}>
+                <View
+                  style={[
+                    styles.stepCircle,
+                    isActive && styles.stepCircleActive,
+                    isCompleted && styles.stepCircleCompleted,
+                  ]}
+                >
+                  {isCompleted ? (
+                    <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.stepNumber,
+                        isActive && styles.stepNumberActive,
+                      ]}
+                    >
+                      {s.number}
+                    </Text>
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.stepLabel,
+                    isActive && styles.stepLabelActive,
+                    isCompleted && styles.stepLabelCompleted,
+                  ]}
+                >
+                  {s.label}
+                </Text>
+              </View>
+              {index < steps.length - 1 && (
+                <View
+                  style={[
+                    styles.stepConnector,
+                    isCompleted && styles.stepConnectorCompleted,
+                  ]}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
       </View>
     );
   };
@@ -280,12 +391,14 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
         </View>
 
         {/* Subheader */}
-        <View style={styles.subheader}>
-          <Text style={styles.subheaderText}>
-            {language.charAt(0).toUpperCase() + language.slice(1)} • Level: {recommendedLevel}
-          </Text>
-          {renderProgressSteps()}
-        </View>
+        {step !== 'success' && (
+          <View style={styles.subheader}>
+            <Text style={styles.subheaderText}>
+              {language.charAt(0).toUpperCase() + language.slice(1)} • Level: {recommendedLevel}
+            </Text>
+            {renderProgressSteps()}
+          </View>
+        )}
 
         <ScrollView
           style={styles.scrollView}
@@ -300,54 +413,88 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
 
           {/* Step 1: Main Goal Selection */}
           {step === 'goals' && (
-            <View style={styles.stepContainer}>
+            <Animated.View
+              style={[
+                styles.stepContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateX: slideAnim }],
+                },
+              ]}
+            >
               <Text style={styles.stepTitle}>What's your main learning goal?</Text>
-              <Text style={styles.stepSubtitle}>
-                Choose the primary reason you're learning {language}
-              </Text>
 
               {isLoading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#4FD1C5" />
+                  <ActivityIndicator size="large" color="#14B8A6" />
                 </View>
               ) : (
                 <View style={styles.goalsContainer}>
-                  {mainGoals.map((goal) => (
-                    <TouchableOpacity
-                      key={goal.id}
-                      onPress={() => handleMainGoalSelect(goal.id)}
-                      style={styles.goalCard}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.goalIcon}>{goal.icon}</Text>
-                      <View style={styles.goalInfo}>
-                        <Text style={styles.goalTitle}>{goal.text}</Text>
-                        <Text style={styles.goalDescription}>{goal.description}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-                    </TouchableOpacity>
-                  ))}
+                  {mainGoals.map((goal) => {
+                    // Map emoji icons to Ionicons
+                    const getIconName = (emoji: string) => {
+                      const iconMap: { [key: string]: string } = {
+                        '💼': 'briefcase-outline',
+                        '✈️': 'airplane-outline',
+                        '🎓': 'school-outline',
+                        '🗣️': 'chatbubbles-outline',
+                        '📚': 'book-outline',
+                        '🌍': 'globe-outline',
+                        '💡': 'bulb-outline',
+                        '🏠': 'home-outline',
+                        '🎭': 'musical-notes-outline',
+                        '📱': 'phone-portrait-outline',
+                        '🎨': 'color-palette-outline',
+                      };
+                      return iconMap[emoji] || 'star-outline';
+                    };
+
+                    return (
+                      <TouchableOpacity
+                        key={goal.id}
+                        onPress={() => handleMainGoalSelect(goal.id)}
+                        style={styles.goalCard}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.goalIconContainer}>
+                          <Ionicons name={getIconName(goal.icon) as any} size={28} color="#14B8A6" />
+                        </View>
+                        <View style={styles.goalInfo}>
+                          <Text style={styles.goalTitle}>{goal.text}</Text>
+                          <Text style={styles.goalDescription}>{goal.description}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               )}
-            </View>
+            </Animated.View>
           )}
 
           {/* Step 2: Sub-Goals Selection */}
           {step === 'subgoals' && (
-            <View style={styles.stepContainer}>
+            <Animated.View
+              style={[
+                styles.stepContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateX: slideAnim }],
+                },
+              ]}
+            >
               <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                <Ionicons name="chevron-back" size={20} color="#4FD1C5" />
+                <Ionicons name="chevron-back" size={20} color="#14B8A6" />
                 <Text style={styles.backButtonText}>Back to goals</Text>
               </TouchableOpacity>
 
-              <Text style={styles.stepTitle}>What specific areas to focus on?</Text>
-              <Text style={styles.stepSubtitle}>
-                Select up to 3 focus areas (optional - you can skip this step)
+              <Text style={styles.stepTitle}>
+                Choose up to 3 focus areas {selectedSubGoals.length > 0 && `(${selectedSubGoals.length}/3)`}
               </Text>
 
               {isLoading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#4FD1C5" />
+                  <ActivityIndicator size="large" color="#14B8A6" />
                 </View>
               ) : (
                 <>
@@ -390,9 +537,6 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
                   </View>
 
                   <View style={styles.footer}>
-                    <Text style={styles.selectionCount}>
-                      {selectedSubGoals.length} of 3 selected
-                    </Text>
                     <TouchableOpacity
                       onPress={() => setStep('duration')}
                       style={styles.continueButton}
@@ -404,21 +548,26 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
                   </View>
                 </>
               )}
-            </View>
+            </Animated.View>
           )}
 
           {/* Step 3: Duration Selection */}
           {step === 'duration' && (
-            <View style={styles.stepContainer}>
+            <Animated.View
+              style={[
+                styles.stepContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateX: slideAnim }],
+                },
+              ]}
+            >
               <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                <Ionicons name="chevron-back" size={20} color="#4FD1C5" />
+                <Ionicons name="chevron-back" size={20} color="#14B8A6" />
                 <Text style={styles.backButtonText}>Back to focus areas</Text>
               </TouchableOpacity>
 
               <Text style={styles.stepTitle}>How long do you want to study?</Text>
-              <Text style={styles.stepSubtitle}>
-                Choose a duration that fits your schedule and goals
-              </Text>
 
               <View style={styles.durationContainer}>
                 {[1, 2, 3, 6].map((months) => (
@@ -433,8 +582,8 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
                   >
                     <Ionicons
                       name="calendar"
-                      size={32}
-                      color={duration === months ? '#4FD1C5' : '#9CA3AF'}
+                      size={22}
+                      color={duration === months ? '#14B8A6' : '#9CA3AF'}
                     />
                     <Text style={styles.durationNumber}>{months}</Text>
                     <Text style={styles.durationLabel}>
@@ -500,14 +649,14 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
                 <Ionicons name="flash" size={20} color="#FFFFFF" />
                 <Text style={styles.createButtonText}>Create My Learning Plan</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           )}
 
           {/* Step 4: Creating */}
           {step === 'creating' && (
             <View style={styles.creatingContainer}>
               <View style={styles.creatingIconContainer}>
-                <ActivityIndicator size="large" color="#4FD1C5" />
+                <ActivityIndicator size="large" color="#14B8A6" />
               </View>
               <Text style={styles.creatingTitle}>Creating Your Personalized Plan</Text>
               <Text style={styles.creatingSubtitle}>
@@ -521,9 +670,12 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
           {step === 'success' && (
             <View style={styles.successContainer}>
               <View style={styles.successIconContainer}>
-                <View style={styles.successCircle}>
-                  <Ionicons name="checkmark" size={64} color="#FFFFFF" />
-                </View>
+                <LottieView
+                  source={require('../assets/lottie/success_login.json')}
+                  autoPlay
+                  loop={false}
+                  style={styles.successLottie}
+                />
               </View>
               <Text style={styles.successTitle}>Plan Created Successfully!</Text>
               <Text style={styles.successSubtitle}>
@@ -531,17 +683,47 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
               </Text>
               <View style={styles.successStatsContainer}>
                 <View style={styles.successStat}>
-                  <Ionicons name="calendar-outline" size={24} color="#4FD1C5" />
+                  <View
+                    style={[
+                      styles.flagWrapper,
+                      Platform.select({
+                        ios: {
+                          shadowColor: getFlagGlowColor(),
+                        },
+                      })
+                    ]}
+                  >
+                    {(() => {
+                      const FlagComponent = getFlagComponent();
+                      if (FlagComponent) {
+                        return <FlagComponent width={52} height={52} />;
+                      }
+                      return <Ionicons name="globe-outline" size={36} color="#14B8A6" />;
+                    })()}
+                  </View>
+                  <Text style={styles.successStatValueSmall}>
+                    {language.charAt(0).toUpperCase() + language.slice(1)}
+                  </Text>
+                  <Text style={styles.successStatLabel}>Language</Text>
+                </View>
+                <View style={styles.successStat}>
+                  <View style={styles.iconWrapper}>
+                    <Ionicons name="calendar-outline" size={36} color="#14B8A6" />
+                  </View>
                   <Text style={styles.successStatValue}>{duration}</Text>
                   <Text style={styles.successStatLabel}>Months</Text>
                 </View>
                 <View style={styles.successStat}>
-                  <Ionicons name="book-outline" size={24} color="#4FD1C5" />
+                  <View style={styles.iconWrapper}>
+                    <Ionicons name="book-outline" size={36} color="#14B8A6" />
+                  </View>
                   <Text style={styles.successStatValue}>{duration * 8}</Text>
                   <Text style={styles.successStatLabel}>Sessions</Text>
                 </View>
                 <View style={styles.successStat}>
-                  <Ionicons name="trophy-outline" size={24} color="#4FD1C5" />
+                  <View style={styles.iconWrapper}>
+                    <Ionicons name="trophy-outline" size={36} color="#14B8A6" />
+                  </View>
                   <Text style={styles.successStatValue}>{recommendedLevel}</Text>
                   <Text style={styles.successStatLabel}>Level</Text>
                 </View>
@@ -555,8 +737,16 @@ export const CreateLearningPlanModal: React.FC<CreateLearningPlanModalProps> = (
                 style={styles.successButton}
                 activeOpacity={0.8}
               >
-                <Text style={styles.successButtonText}>Start Learning</Text>
-                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                <LinearGradient
+                  colors={['#10B981', '#059669']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.successButtonGradient}
+                >
+                  <Ionicons name="rocket" size={22} color="#FFFFFF" />
+                  <Text style={styles.successButtonText}>Start Learning</Text>
+                  <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           )}
