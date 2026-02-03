@@ -45,6 +45,7 @@ import DutchFlag from '../../assets/flags/dutch.svg';
 import { InteractiveRadarChartEnhanced } from './components/InteractiveRadarChartEnhanced';
 import { StrandDetailModal } from './components/StrandDetailModal';
 import { DNAShareModal } from '../../components/SpeakingDNA/DNAShareModal';
+import { VoiceSignatureCarousel } from './components/VoiceSignatureCarousel';
 
 // Constants
 import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from './constants.OLD';
@@ -163,7 +164,7 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
         </View>
         <View style={styles.swipeHintBadge}>
           <Ionicons name="chevron-forward" size={14} color="#14B8A6" />
-          <Text style={styles.swipeHintText}>Swipe for insights</Text>
+          <Text style={styles.swipeHintText}>Swipe for voice analysis</Text>
         </View>
       </View>
     </View>
@@ -432,6 +433,52 @@ const getCategoryColors = (category: string): string[] => {
 // MAIN COMPONENT
 // ============================================================================
 
+// ============================================================================
+// VOICE SIGNATURE PAGE
+// ============================================================================
+
+interface VoiceSignaturePageProps {
+  profile: SpeakingDNAProfile;
+}
+
+const VoiceSignaturePage: React.FC<VoiceSignaturePageProps> = ({ profile }) => {
+  const acousticMetrics = profile.baseline_assessment?.acoustic_metrics;
+
+  if (!acousticMetrics) {
+    return (
+      <View style={styles.page}>
+        <LinearGradient
+          colors={['#0B1A1F', '#0D2832']}
+          style={styles.radarBackground}
+        />
+        <View style={styles.emptyPageContainer}>
+          <Ionicons name="mic-off-outline" size={64} color="#9CA3AF" />
+          <Text style={styles.emptyPageTitle}>Voice Signature Unavailable</Text>
+          <Text style={styles.emptyPageSubtitle}>
+            Complete a speaking assessment to capture your unique acoustic fingerprint
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.page}>
+      <LinearGradient
+        colors={['#0B1A1F', '#0D2832']}
+        style={styles.radarBackground}
+      />
+      <View style={styles.voiceSignaturePageContainer}>
+        <VoiceSignatureCarousel acousticMetrics={acousticMetrics} />
+      </View>
+    </View>
+  );
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalProps> = ({
   navigation,
   route
@@ -670,7 +717,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
         </View>
       </View>
 
-      {/* Pager View - 2 Pages */}
+      {/* Pager View - 3 Pages */}
       <PagerView
         ref={pagerRef}
         style={styles.pagerView}
@@ -682,14 +729,24 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
           <RadarPage profile={profile} onStrandTapForModal={handleStrandTapForModal} />
         </View>
 
-        {/* Page 2: Insights */}
+        {/* Page 2: Voice Signature (only if acoustic metrics exist) */}
+        {profile?.baseline_assessment?.acoustic_metrics && (
+          <View key="voice" style={styles.pageWrapper}>
+            <VoiceSignaturePage profile={profile} />
+          </View>
+        )}
+
+        {/* Page 3: Insights */}
         <View key="insights" style={styles.pageWrapper}>
           <InsightsPage profile={profile} breakthroughs={breakthroughs} />
         </View>
       </PagerView>
 
       {/* Page Indicator */}
-      <PageIndicator currentPage={currentPage} totalPages={2} />
+      <PageIndicator
+        currentPage={currentPage}
+        totalPages={profile?.baseline_assessment?.acoustic_metrics ? 3 : 2}
+      />
 
       {/* Strand Detail Modal */}
       <StrandDetailModal
@@ -1087,6 +1144,34 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     marginTop: 3,
+  },
+
+  // Page 3: Voice Signature
+  voiceSignaturePageContainer: {
+    flex: 1,
+    paddingTop: 20,
+    backgroundColor: 'transparent',
+  },
+  emptyPageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    backgroundColor: 'transparent',
+  },
+  emptyPageTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  emptyPageSubtitle: {
+    fontSize: 14,
+    color: '#B4E4DD',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

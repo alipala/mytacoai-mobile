@@ -9,9 +9,11 @@ import {
   Platform,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
 import type { SpeakingAssessmentResponse } from '../../api/generated';
 import { CreateLearningPlanModal } from '../../components/CreateLearningPlanModal';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,7 +30,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   navigation,
   route,
 }) => {
-  const { language, topicName, assessmentResult } = route.params;
+  const { language, topicName, assessmentResult, audioUri, recordingDuration } = route.params;
   const result: SpeakingAssessmentResponse = assessmentResult;
 
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
@@ -36,6 +38,13 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   const scrollX = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
   const progressAnimation = useRef(new Animated.Value(0)).current;
+
+  // Audio playback state
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [playbackPosition, setPlaybackPosition] = useState(0);
+  const [playbackDuration, setPlaybackDuration] = useState(recordingDuration || 60);
 
   const handleSaveAndProceed = () => {
     if (Platform.OS === 'ios') {
@@ -61,6 +70,75 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     }
     navigation.navigate('Main', { screen: 'Dashboard' });
   };
+
+  // Audio playback handlers
+  const handlePlayPause = async () => {
+    try {
+      if (Platform.OS === 'ios') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+
+      if (!audioUri) {
+        console.warn('[AUDIO] No audio URI available');
+        return;
+      }
+
+      if (isPlaying) {
+        // Pause audio
+        if (sound) {
+          await sound.pauseAsync();
+          setIsPlaying(false);
+        }
+      } else {
+        // Play audio
+        if (sound) {
+          // Resume existing sound
+          await sound.playAsync();
+          setIsPlaying(true);
+        } else {
+          // Load and play new sound
+          setIsLoadingAudio(true);
+          console.log('[AUDIO] Loading audio from URI:', audioUri);
+
+          const { sound: newSound } = await Audio.Sound.createAsync(
+            { uri: audioUri },
+            { shouldPlay: true },
+            (status) => {
+              if (status.isLoaded) {
+                setPlaybackPosition(status.positionMillis / 1000);
+                if (status.durationMillis) {
+                  setPlaybackDuration(status.durationMillis / 1000);
+                }
+                if (status.didJustFinish) {
+                  setIsPlaying(false);
+                  setPlaybackPosition(0);
+                }
+              }
+            }
+          );
+
+          setSound(newSound);
+          setIsPlaying(true);
+          setIsLoadingAudio(false);
+          console.log('[AUDIO] Audio loaded and playing');
+        }
+      }
+    } catch (error) {
+      console.error('[AUDIO] Error playing audio:', error);
+      setIsLoadingAudio(false);
+      setIsPlaying(false);
+    }
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        console.log('[AUDIO] Unloading sound');
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
 
   const getScoreColor = (score: number): string => {
     if (score >= 80) return '#10B981';
@@ -170,6 +248,54 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
               </Text>
             </View>
           </View>
+
+          {/* Audio Player Card */}
+          {audioUri && (
+            <View style={styles.audioPlayerCard}>
+              <View style={styles.audioPlayerHeader}>
+                <Ionicons name="musical-notes-outline" size={20} color="#14B8A6" />
+                <Text style={styles.audioPlayerTitle}>Your Recording</Text>
+                <Text style={styles.audioPlayerDuration}>
+                  {Math.floor(playbackPosition)}s / {Math.floor(playbackDuration)}s
+                </Text>
+              </View>
+
+              {/* Play/Pause Button */}
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={handlePlayPause}
+                disabled={isLoadingAudio}
+              >
+                {isLoadingAudio ? (
+                  <ActivityIndicator size="large" color="#14B8A6" />
+                ) : (
+                  <Ionicons
+                    name={isPlaying ? 'pause-circle' : 'play-circle'}
+                    size={64}
+                    color="#14B8A6"
+                  />
+                )}
+              </TouchableOpacity>
+
+              {/* Progress Bar */}
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBarBackground}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${(playbackPosition / playbackDuration) * 100}%`,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.audioPlayerHint}>
+                <Ionicons name="headset-outline" size={14} color="#9CA3AF" /> Tap to listen to your assessment recording
+              </Text>
+            </View>
+          )}
 
           {/* Transcript Card */}
           <View style={styles.transcriptCard}>
@@ -283,6 +409,226 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     </View>
   );
 
+  // DNA Profile Tab - NEW!
+  const renderDNAProfile = () => {
+    const dnaProfile = result.dna_profile;
+
+    if (!dnaProfile) {
+      return (
+        <View style={styles.tabContent}>
+          <View style={styles.dnaPlaceholder}>
+            <Ionicons name="flask-outline" size={64} color="#6B7280" />
+            <Text style={styles.dnaPlaceholderTitle}>DNA Analysis Coming Soon</Text>
+            <Text style={styles.dnaPlaceholderText}>
+              Complete a few more practice sessions to unlock your Speaking DNA profile
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    const strands = dnaProfile.dna_strands || {};
+    const acousticMetrics = dnaProfile.baseline_assessment?.acoustic_metrics || {};
+
+    // DNA Strand data with colors and icons
+    const dnaData = [
+      {
+        key: 'rhythm',
+        label: 'Rhythm',
+        data: strands.rhythm,
+        color: '#8B5CF6',
+        icon: 'pulse-outline',
+        getValue: () => strands.rhythm?.words_per_minute_avg || 0,
+        getSubtext: () => strands.rhythm?.type || 'Analyzing...'
+      },
+      {
+        key: 'confidence',
+        label: 'Confidence',
+        data: strands.confidence,
+        color: '#F59E0B',
+        icon: 'flash-outline',
+        getValue: () => (strands.confidence?.score || 0) * 100,
+        getSubtext: () => strands.confidence?.level || 'Analyzing...'
+      },
+      {
+        key: 'vocabulary',
+        label: 'Vocabulary',
+        data: strands.vocabulary,
+        color: '#10B981',
+        icon: 'book-outline',
+        getValue: () => strands.vocabulary?.unique_words_per_session || 0,
+        getSubtext: () => strands.vocabulary?.style || 'Analyzing...'
+      },
+      {
+        key: 'accuracy',
+        label: 'Accuracy',
+        data: strands.accuracy,
+        color: '#EF4444',
+        icon: 'checkmark-circle-outline',
+        getValue: () => (strands.accuracy?.grammar_accuracy || 0) * 100,
+        getSubtext: () => strands.accuracy?.pattern || 'Analyzing...'
+      },
+      {
+        key: 'learning',
+        label: 'Learning',
+        data: strands.learning,
+        color: '#3B82F6',
+        icon: 'trending-up-outline',
+        getValue: () => (strands.learning?.challenge_acceptance || 0) * 100,
+        getSubtext: () => strands.learning?.type || 'Analyzing...'
+      },
+      {
+        key: 'emotional',
+        label: 'Emotional',
+        data: strands.emotional,
+        color: '#EC4899',
+        icon: 'heart-outline',
+        getValue: () => ((strands.emotional?.session_start_confidence || 0) + (strands.emotional?.session_end_confidence || 0)) * 50,
+        getSubtext: () => strands.emotional?.pattern || 'Analyzing...'
+      },
+    ];
+
+    return (
+      <View style={styles.tabContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.tabScrollContent, { paddingTop: 16 }]}>
+          {/* DNA Header */}
+          <View style={styles.dnaHeader}>
+            <Text style={styles.dnaHeaderEmoji}>🧬</Text>
+            <Text style={styles.dnaHeaderTitle}>Your Speaking DNA</Text>
+            <Text style={styles.dnaHeaderSubtitle}>
+              {dnaProfile.overall_profile?.speaker_archetype || 'Unique Speaker Profile'}
+            </Text>
+          </View>
+
+          {/* DNA Strands */}
+          <View style={styles.dnaStrandsSection}>
+            <Text style={styles.dnaSectionTitle}>DNA Strands</Text>
+            {dnaData.map((strand, index) => (
+              <View key={strand.key} style={styles.dnaStrandCard}>
+                <View style={styles.dnaStrandHeader}>
+                  <View style={[styles.dnaStrandIconContainer, { backgroundColor: strand.color + '20' }]}>
+                    <Ionicons name={strand.icon as any} size={24} color={strand.color} />
+                  </View>
+                  <View style={styles.dnaStrandInfo}>
+                    <Text style={styles.dnaStrandLabel}>{strand.label}</Text>
+                    <Text style={styles.dnaStrandSubtext}>{strand.getSubtext()}</Text>
+                  </View>
+                  <View style={styles.dnaStrandValueContainer}>
+                    <Text style={[styles.dnaStrandValue, { color: strand.color }]}>
+                      {Math.round(strand.getValue())}
+                    </Text>
+                  </View>
+                </View>
+                {strand.data?.description && (
+                  <Text style={styles.dnaStrandDescription}>{strand.data.description}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* Acoustic Metrics - Voice Signature */}
+          {Object.keys(acousticMetrics).length > 0 && (
+            <View style={styles.acousticSection}>
+              <Text style={styles.dnaSectionTitle}>🎤 Voice Signature</Text>
+
+              {/* Pitch Analysis */}
+              <View style={styles.acousticCard}>
+                <View style={styles.acousticHeader}>
+                  <Ionicons name="musical-note-outline" size={20} color="#8B5CF6" />
+                  <Text style={styles.acousticTitle}>Pitch Profile</Text>
+                </View>
+                <View style={styles.acousticMetricsGrid}>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Average</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {Math.round(acousticMetrics.pitch_mean || 0)} Hz
+                    </Text>
+                  </View>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Range</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {Math.round(acousticMetrics.pitch_std || 0)} Hz
+                    </Text>
+                  </View>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Min</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {Math.round(acousticMetrics.pitch_min || 0)} Hz
+                    </Text>
+                  </View>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Max</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {Math.round(acousticMetrics.pitch_max || 0)} Hz
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Voice Quality */}
+              <View style={styles.acousticCard}>
+                <View style={styles.acousticHeader}>
+                  <Ionicons name="radio-outline" size={20} color="#10B981" />
+                  <Text style={styles.acousticTitle}>Voice Quality</Text>
+                </View>
+                <View style={styles.acousticMetricsGrid}>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Jitter</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {((acousticMetrics.jitter || 0) * 100).toFixed(2)}%
+                    </Text>
+                    <Text style={styles.acousticMetricHint}>Voice stability</Text>
+                  </View>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Shimmer</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {((acousticMetrics.shimmer || 0) * 100).toFixed(2)}%
+                    </Text>
+                    <Text style={styles.acousticMetricHint}>Volume control</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Speaking Patterns */}
+              <View style={styles.acousticCard}>
+                <View style={styles.acousticHeader}>
+                  <Ionicons name="time-outline" size={20} color="#F59E0B" />
+                  <Text style={styles.acousticTitle}>Speaking Patterns</Text>
+                </View>
+                <View style={styles.acousticMetricsGrid}>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Speaking Time</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {((acousticMetrics.speaking_ratio || 0) * 100).toFixed(0)}%
+                    </Text>
+                  </View>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Pauses</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {acousticMetrics.pause_count || 0}
+                    </Text>
+                  </View>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Avg Pause</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {((acousticMetrics.avg_pause_duration_ms || 0) / 1000).toFixed(1)}s
+                    </Text>
+                  </View>
+                  <View style={styles.acousticMetricItem}>
+                    <Text style={styles.acousticMetricLabel}>Energy</Text>
+                    <Text style={styles.acousticMetricValue}>
+                      {((acousticMetrics.energy_mean || 0) * 100).toFixed(0)}%
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -344,6 +690,21 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           </Text>
           {activeTab === 2 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tabButton}
+          onPress={() => handleTabPress(3)}
+        >
+          <Ionicons
+            name="flask-outline"
+            size={20}
+            color={activeTab === 3 ? '#14B8A6' : '#9CA3AF'}
+          />
+          <Text style={[styles.tabButtonText, activeTab === 3 && styles.tabButtonTextActive]}>
+            DNA
+          </Text>
+          {activeTab === 3 && <View style={styles.tabUnderline} />}
+        </TouchableOpacity>
       </View>
 
       {/* Tab Content */}
@@ -362,6 +723,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
         <View style={styles.tabPage}>{renderOverview()}</View>
         <View style={styles.tabPage}>{renderSkillsDetail()}</View>
         <View style={styles.tabPage}>{renderActionPlan()}</View>
+        <View style={styles.tabPage}>{renderDNAProfile()}</View>
       </ScrollView>
 
       {/* Footer Button */}
@@ -587,6 +949,63 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  audioPlayerCard: {
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    alignItems: 'center',
+  },
+  audioPlayerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+    width: '100%',
+  },
+  audioPlayerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  audioPlayerDuration: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  playButton: {
+    marginVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 80,
+    height: 80,
+  },
+  progressBarContainer: {
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 4,
+    backgroundColor: 'rgba(148, 163, 184, 0.2)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#14B8A6',
+    borderRadius: 2,
+  },
+  audioPlayerHint: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 4,
+  },
   transcriptCard: {
     backgroundColor: 'rgba(31, 41, 55, 0.6)', // Dark card
     borderRadius: 16,
@@ -762,6 +1181,156 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  // DNA Tab Styles
+  dnaPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  dnaPlaceholderTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#E5E7EB',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  dnaPlaceholderText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  dnaHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  dnaHeaderEmoji: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  dnaHeaderTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  dnaHeaderSubtitle: {
+    fontSize: 14,
+    color: '#14B8A6',
+    textAlign: 'center',
+  },
+  dnaStrandsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  dnaSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#E5E7EB',
+    marginBottom: 12,
+  },
+  dnaStrandCard: {
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+  },
+  dnaStrandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  dnaStrandIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  dnaStrandInfo: {
+    flex: 1,
+  },
+  dnaStrandLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  dnaStrandSubtext: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textTransform: 'capitalize',
+  },
+  dnaStrandValueContainer: {
+    alignItems: 'flex-end',
+  },
+  dnaStrandValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  dnaStrandDescription: {
+    fontSize: 13,
+    color: '#B4E4DD',
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  acousticSection: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  acousticCard: {
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+  },
+  acousticHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  acousticTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  acousticMetricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  acousticMetricItem: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  acousticMetricLabel: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginBottom: 4,
+  },
+  acousticMetricValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#14B8A6',
+    marginBottom: 2,
+  },
+  acousticMetricHint: {
+    fontSize: 10,
+    color: '#6B7280',
+    fontStyle: 'italic',
   },
 });
 

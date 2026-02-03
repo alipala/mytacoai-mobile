@@ -260,6 +260,12 @@ class SpeakingDNAService {
       const userId = await getUserId();
       const cacheKey = `${CACHE_KEYS.profile}${userId}_${language}`;
 
+      // If force refresh, invalidate cache BEFORE checking
+      if (forceRefresh) {
+        console.log('[SpeakingDNAService] Force refresh - clearing cache');
+        await AsyncStorage.removeItem(cacheKey);
+      }
+
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         const cached = await getCachedData<DNAProfileResponse>(
@@ -273,7 +279,7 @@ class SpeakingDNAService {
       }
 
       // Fetch from API
-      console.log(`[SpeakingDNAService] Fetching profile for language: ${language}`);
+      console.log(`[SpeakingDNAService] Fetching fresh profile from API for language: ${language}`);
       const headers = await getAuthHeaders();
       const response = await axios.get<DNAProfileResponse>(
         `${API_BASE_URL}${API_ENDPOINTS.PROFILE}/${language}`,
@@ -310,6 +316,12 @@ class SpeakingDNAService {
       const userId = await getUserId();
       const cacheKey = `${CACHE_KEYS.evolution}${userId}_${language}_${weeks}`;
 
+      // If force refresh, invalidate cache BEFORE checking
+      if (forceRefresh) {
+        console.log('[SpeakingDNAService] Force refresh - clearing evolution cache');
+        await AsyncStorage.removeItem(cacheKey);
+      }
+
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         const cached = await getCachedData<DNAEvolutionResponse>(
@@ -323,7 +335,7 @@ class SpeakingDNAService {
       }
 
       // Fetch from API
-      console.log(`[SpeakingDNAService] Fetching evolution for language: ${language}, weeks: ${weeks}`);
+      console.log(`[SpeakingDNAService] Fetching fresh evolution from API for language: ${language}, weeks: ${weeks}`);
       const headers = await getAuthHeaders();
       const response = await axios.get<DNAEvolutionResponse>(
         `${API_BASE_URL}${API_ENDPOINTS.EVOLUTION}/${language}`,
@@ -367,6 +379,12 @@ class SpeakingDNAService {
       const userId = await getUserId();
       const cacheKey = `${CACHE_KEYS.breakthroughs}${userId}_${language}_${limit}_${uncelebratedOnly}`;
 
+      // If force refresh, invalidate cache BEFORE checking
+      if (forceRefresh) {
+        console.log('[SpeakingDNAService] Force refresh - clearing breakthroughs cache');
+        await AsyncStorage.removeItem(cacheKey);
+      }
+
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         const cached = await getCachedData<DNABreakthroughsResponse>(
@@ -381,7 +399,7 @@ class SpeakingDNAService {
 
       // Fetch from API
       console.log(
-        `[SpeakingDNAService] Fetching breakthroughs for language: ${language}, limit: ${limit}, uncelebrated: ${uncelebratedOnly}`
+        `[SpeakingDNAService] Fetching fresh breakthroughs from API for language: ${language}, limit: ${limit}, uncelebrated: ${uncelebratedOnly}`
       );
       const headers = await getAuthHeaders();
       const response = await axios.get<DNABreakthroughsResponse>(

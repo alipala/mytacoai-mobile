@@ -1,0 +1,1 @@
+export { VoiceCheckModal } from './VoiceCheckModal';

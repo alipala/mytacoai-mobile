@@ -43,6 +43,10 @@ import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { BreakthroughModal } from '../../components/SpeakingDNA/BreakthroughModal';
 import { SpeakingBreakthrough } from '../../types/speakingDNA';
 
+// Voice Check integration
+import { useVoiceCheckSchedule } from '../../hooks/useVoiceCheckSchedule';
+import { VoiceCheckModal } from '../../components/VoiceCheckModal';
+
 interface ConversationScreenProps {
   navigation: any;
   route: any;
@@ -341,6 +345,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [currentBreakthrough, setCurrentBreakthrough] = useState<SpeakingBreakthrough | null>(null);
   const [breakthroughQueue, setBreakthroughQueue] = useState<SpeakingBreakthrough[]>([]);
 
+  // Voice Check state
+  const [showVoiceCheckModal, setShowVoiceCheckModal] = useState(false);
+  const [voiceCheckPrompt, setVoiceCheckPrompt] = useState<any>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<'dashboard' | 'analysis' | null>(null);
+
   // Realtime service ref
   const realtimeServiceRef = useRef<RealtimeService | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -407,6 +416,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     sessionType: dnaSessionType,
     debug: __DEV__, // Enable debug logging in development
   });
+
+  // Voice Check schedule management
+  const {
+    status: voiceCheckStatus,
+    completeVoiceCheck,
+    skipVoiceCheck,
+    refreshStatus: refreshVoiceCheckStatus,
+  } = useVoiceCheckSchedule(planId, !!planId); // Only enabled if we have a plan ID
 
   // Use refs to ensure event handlers always have latest values
   const conversationHelpOptionsRef = useRef(conversationHelpOptions);
@@ -584,7 +601,26 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setBreakthroughQueue(remainingQueue);
       setShowBreakthroughModal(true);
     }
-  }, [breakthroughQueue, showBreakthroughModal, currentBreakthrough]);
+    // If no breakthroughs and voice check is due, show voice check
+    else if (breakthroughQueue.length === 0 && !showBreakthroughModal && !showVoiceCheckModal && voiceCheckPrompt) {
+      console.log('[VOICE_CHECK] No breakthroughs, showing voice check modal');
+      setShowVoiceCheckModal(true);
+    }
+  }, [breakthroughQueue, showBreakthroughModal, currentBreakthrough, showVoiceCheckModal, voiceCheckPrompt]);
+
+  // 🎙️ Voice Check: Update prompt when status changes
+  useEffect(() => {
+    if (voiceCheckStatus?.is_due && voiceCheckStatus.prompt && !voiceCheckPrompt) {
+      console.log('[VOICE_CHECK] 🎙️ Voice check is due - setting prompt');
+      console.log('[VOICE_CHECK] Current session:', voiceCheckStatus.current_session);
+      console.log('[VOICE_CHECK] Prompt:', voiceCheckStatus.prompt.title);
+      setVoiceCheckPrompt(voiceCheckStatus.prompt);
+    } else if (!voiceCheckStatus?.is_due && voiceCheckPrompt) {
+      // Clear prompt if voice check is no longer due
+      console.log('[VOICE_CHECK] Voice check no longer due - clearing prompt');
+      setVoiceCheckPrompt(null);
+    }
+  }, [voiceCheckStatus, voiceCheckPrompt]);
 
   // Load voice preference early to prevent avatar flicker and show timer badge
   useEffect(() => {
@@ -1065,6 +1101,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     console.log('[DNA] Closing breakthrough modal');
     setShowBreakthroughModal(false);
     setCurrentBreakthrough(null);
+
+    // 🎙️ After breakthrough modal closes, check if voice check should be shown
+    // Only show if:
+    // 1. We have a voice check prompt (voice check is due)
+    // 2. No more breakthroughs in queue
+    // 3. Voice check modal is not already showing
+    if (voiceCheckPrompt && breakthroughQueue.length === 0 && !showVoiceCheckModal) {
+      console.log('[VOICE_CHECK] 🎙️ Showing voice check modal after breakthrough');
+      setShowVoiceCheckModal(true);
+    }
   };
 
   // 🧬 Speaking DNA: Handle breakthrough share (optional)
@@ -1074,6 +1120,139 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     // For now, just log it
     Alert.alert('Share Feature', 'Sharing breakthroughs coming soon!', [{ text: 'OK' }]);
   };
+
+  // 🎙️ Voice Check handlers
+  const handleVoiceCheckComplete = async (audioBase64: string) => {
+    try {
+      console.log('[VOICE_CHECK] 🎤 Voice check recording completed');
+      console.log('[VOICE_CHECK] Audio size:', Math.round(audioBase64.length / 1024), 'KB');
+
+      // Prepare voice-only session data for DNA analysis
+      const voiceCheckSessionData = {
+        session_id: `voice_check_${Date.now()}`,
+        session_type: 'voice_check',
+        duration_seconds: 30, // Voice checks are 30 seconds
+        user_turns: [], // No turns for voice-only recording
+        corrections_received: [],
+        challenges_offered: 0,
+        challenges_accepted: 0,
+        topics_discussed: [voiceCheckPrompt?.title || 'Voice Check'],
+        audio_base64: audioBase64,
+        audio_format: 'm4a',
+      };
+
+      const targetLanguage = learningPlan?.language || language || 'english';
+
+      console.log('[VOICE_CHECK] Sending voice check to DNA analysis...');
+
+      // Analyze with DNA service
+      const dnaResult = await speakingDNAService.analyzeSession(
+        targetLanguage.toLowerCase(),
+        voiceCheckSessionData
+      );
+
+      console.log('[VOICE_CHECK] ✅ DNA analysis complete');
+
+      // Mark voice check as completed in learning plan
+      if (voiceCheckStatus && planId) {
+        await completeVoiceCheck(voiceCheckStatus.current_session);
+        console.log('[VOICE_CHECK] ✅ Marked as completed in learning plan');
+      }
+
+      // Close modal
+      setShowVoiceCheckModal(false);
+      setVoiceCheckPrompt(null);
+
+      // Execute pending navigation if any
+      const navAction = pendingNavigation;
+      setPendingNavigation(null);
+
+      if (navAction === 'dashboard') {
+        console.log('[VOICE_CHECK] 🧭 Executing pending dashboard navigation');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+        });
+      } else if (navAction === 'analysis') {
+        console.log('[VOICE_CHECK] 🧭 Executing pending analysis navigation');
+        if (backgroundAnalyses && backgroundAnalyses.length > 0) {
+          navigation.navigate('SentenceAnalysis', {
+            analyses: backgroundAnalyses,
+            sessionSummary: sessionSummary,
+            duration: formatDuration(sessionDuration),
+            messageCount: messages.filter(m => m.role === 'user').length,
+          });
+        } else {
+          // Fallback to dashboard if no analyses
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+          });
+        }
+      }
+
+      // Show success message (after navigation starts)
+      Alert.alert(
+        '🧬 DNA Updated!',
+        'Your acoustic voice profile has been updated with new data.',
+        [{ text: 'Great!', onPress: () => {} }]
+      );
+    } catch (error: any) {
+      console.error('[VOICE_CHECK] ❌ Error completing voice check:', error);
+      Alert.alert('Error', 'Failed to process voice check. Please try again.');
+    }
+  };
+
+  const handleVoiceCheckSkip = async () => {
+    try {
+      console.log('[VOICE_CHECK] ⏭️ User skipped voice check');
+
+      // Mark as skipped in backend
+      if (voiceCheckStatus && planId) {
+        await skipVoiceCheck(voiceCheckStatus.current_session);
+      }
+
+      // Close modal
+      setShowVoiceCheckModal(false);
+      setVoiceCheckPrompt(null);
+
+      // Execute pending navigation if any
+      const navAction = pendingNavigation;
+      setPendingNavigation(null);
+
+      if (navAction === 'dashboard') {
+        console.log('[VOICE_CHECK] 🧭 Executing pending dashboard navigation (after skip)');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+        });
+      } else if (navAction === 'analysis') {
+        console.log('[VOICE_CHECK] 🧭 Executing pending analysis navigation (after skip)');
+        if (backgroundAnalyses && backgroundAnalyses.length > 0) {
+          navigation.navigate('SentenceAnalysis', {
+            analyses: backgroundAnalyses,
+            sessionSummary: sessionSummary,
+            duration: formatDuration(sessionDuration),
+            messageCount: messages.filter(m => m.role === 'user').length,
+          });
+        } else {
+          // Fallback to dashboard if no analyses
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main', params: { screen: 'Dashboard' } }],
+          });
+        }
+      }
+
+      console.log('[VOICE_CHECK] ✅ Voice check skipped');
+    } catch (error: any) {
+      console.error('[VOICE_CHECK] ❌ Error skipping voice check:', error);
+      // Still close modal even if skip fails
+      setShowVoiceCheckModal(false);
+      setVoiceCheckPrompt(null);
+    }
+  };
+
 
   // Toggle recording state (mute/unmute microphone)
   const handleToggleRecording = () => {
@@ -1473,6 +1652,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             const targetLanguage = learningPlan?.language || language || 'english';
 
             console.log('[DNA] Calling DNA analysis service for language:', targetLanguage);
+
             const dnaResult = await speakingDNAService.analyzeSession(
               targetLanguage.toLowerCase(),
               sessionData
@@ -1484,6 +1664,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             if (dnaResult.breakthroughs.length > 0) {
               console.log('[DNA] 🎉 Setting breakthrough queue:', dnaResult.breakthroughs.length, 'breakthroughs');
               setBreakthroughQueue(dnaResult.breakthroughs);
+            }
+
+            // 🎙️ Check if voice check is due (only for learning plan sessions)
+            if (planId) {
+              console.log('[VOICE_CHECK] Refreshing voice check status after session...');
+              await refreshVoiceCheckStatus(); // Refresh status after session completion
+
+              // Note: The refreshed status will be available in the next render
+              // The useEffect will handle showing the modal when voiceCheckPrompt is set
+              console.log('[VOICE_CHECK] Status refresh complete');
             }
           } else {
             console.log('[DNA] ⏭️ Skipping DNA analysis - no user turns recorded');
@@ -1613,6 +1803,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const handleViewAnalysis = () => {
     setShowSavingModal(false);
 
+    // 🎙️ Check if voice check is due before navigating
+    if (voiceCheckPrompt && !showVoiceCheckModal) {
+      console.log('[VOICE_CHECK] 🎙️ Voice check due - showing modal before analysis navigation');
+      setPendingNavigation('analysis'); // Store pending navigation
+      setShowVoiceCheckModal(true);
+      return; // Don't navigate yet, wait for voice check to complete
+    }
+
     // Check if we have analyses to show
     if (backgroundAnalyses && backgroundAnalyses.length > 0) {
       // Navigate to Sentence Analysis screen
@@ -1645,6 +1843,14 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Handle go to dashboard after session save
   const handleGoDashboard = () => {
     setShowSavingModal(false);
+
+    // 🎙️ Check if voice check is due before navigating
+    if (voiceCheckPrompt && !showVoiceCheckModal) {
+      console.log('[VOICE_CHECK] 🎙️ Voice check due - showing modal before dashboard navigation');
+      setPendingNavigation('dashboard'); // Store pending navigation
+      setShowVoiceCheckModal(true);
+      return; // Don't navigate yet, wait for voice check to complete
+    }
 
     // Navigate back to dashboard
     navigation.reset({
@@ -2065,6 +2271,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         onClose={handleBreakthroughClose}
         onShare={handleBreakthroughShare}
       />
+
+      {/* 🎙️ Voice Check Modal */}
+      {voiceCheckPrompt && (
+        <VoiceCheckModal
+          visible={showVoiceCheckModal}
+          prompt={voiceCheckPrompt}
+          language={learningPlan?.language || language || 'english'}
+          onComplete={handleVoiceCheckComplete}
+          onSkip={handleVoiceCheckSkip}
+        />
+      )}
 
       {/* Final Assessment Results Modal */}
       {showAssessmentResults && assessmentResult && (

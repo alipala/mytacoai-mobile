@@ -348,13 +348,15 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
 
       console.log('Assessment response received:', response);
 
-      // Navigate to results screen
+      // Navigate to results screen with audio URI for playback
       setIsAnalyzing(false);
       navigation.replace('SpeakingAssessmentResults', {
         language,
         topic,
         topicName,
         assessmentResult: response,
+        audioUri: audioUri, // Pass audio URI for playback on results screen
+        recordingDuration: RECORDING_DURATION - timeRemaining,
       });
     } catch (error: any) {
       console.error('Error processing recording:', error);

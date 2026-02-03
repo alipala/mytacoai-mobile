@@ -30,6 +30,7 @@ import {
   DNAStickyHeader,
   DNAStrandCarousel,
   InsightsHub,
+  VoiceSignatureCarousel,
   EvolutionTimeline,
   BreakthroughsSection,
 } from './components';
@@ -86,6 +87,8 @@ export const SpeakingDNAScreenV2: React.FC<{
 
       setError(null);
 
+      console.log(`[SpeakingDNAScreenV2] Fetching DNA data (forceRefresh: ${isRefresh})`);
+
       // Fetch all data in parallel
       const [profileData, evolutionData, breakthroughsData] = await Promise.all([
         SpeakingDNAService.getProfile(language, isRefresh),
@@ -97,11 +100,29 @@ export const SpeakingDNAScreenV2: React.FC<{
         archetype: profileData?.overall_profile?.speaker_archetype,
         sessions: profileData?.sessions_analyzed,
         minutes: profileData?.total_speaking_minutes,
+        hasBaseline: !!profileData?.baseline_assessment,
+        hasAcoustic: !!profileData?.baseline_assessment?.acoustic_metrics,
         strands: Object.keys(profileData?.dna_strands || {}).map(key => ({
           key,
           score: getStrandScore((profileData?.dna_strands as any)[key]),
         })),
       });
+
+      // DETAILED LOGGING FOR DEBUGGING
+      if (profileData) {
+        console.log('[DNA DEBUG] Profile top-level keys:', Object.keys(profileData));
+        if (profileData.baseline_assessment) {
+          console.log('[DNA DEBUG] baseline_assessment keys:', Object.keys(profileData.baseline_assessment));
+          console.log('[DNA DEBUG] baseline_assessment content:', JSON.stringify(profileData.baseline_assessment, null, 2));
+        } else {
+          console.log('[DNA DEBUG] ❌ NO baseline_assessment in profile!');
+        }
+      }
+
+      // If baseline_assessment is missing after a forced refresh, log warning but continue
+      if (profileData && !profileData.baseline_assessment) {
+        console.warn('[SpeakingDNAScreenV2] ⚠️ Baseline assessment still missing after refresh');
+      }
 
       setProfile(profileData);
       setEvolution(evolutionData);
@@ -116,11 +137,12 @@ export const SpeakingDNAScreenV2: React.FC<{
   }, [language]);
 
   /**
-   * Initial data fetch
+   * Initial data fetch - ALWAYS force refresh to ensure we get latest baseline_assessment
    */
   useEffect(() => {
-    fetchDNAData();
-  }, [fetchDNAData]);
+    console.log('[SpeakingDNAScreenV2] Initial mount - forcing fresh data fetch');
+    fetchDNAData(true);
+  }, [language]);
 
   /**
    * Scroll handler
@@ -339,6 +361,7 @@ export const SpeakingDNAScreenV2: React.FC<{
     );
   }
 
+  console.log('🔴🔴🔴 [CRITICAL DEBUG] SpeakingDNAScreenV2 IS RENDERING! 🔴🔴🔴');
   console.log('[SpeakingDNAScreenV2] Rendering with:', {
     hasProfile: !!profile,
     hasHandleShare: !!handleShare,
@@ -430,6 +453,15 @@ export const SpeakingDNAScreenV2: React.FC<{
             ? profile.overall_profile.growth_areas.map(g => typeof g === 'string' ? g : JSON.stringify(g))
             : []}
         />
+
+        {/* Voice Signature Carousel - 3rd Horizontal Section */}
+        {profile.baseline_assessment?.acoustic_metrics && (() => {
+          console.log('[DNA SCREEN] Rendering Voice Signature Carousel');
+          console.log('[DNA SCREEN] Acoustic metrics:', profile.baseline_assessment.acoustic_metrics);
+          return true;
+        })() && (
+          <VoiceSignatureCarousel acousticMetrics={profile.baseline_assessment.acoustic_metrics} />
+        )}
 
         {/* Evolution Timeline */}
         {timelineWeeks.length > 0 && (
@@ -664,6 +696,67 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 32,
+  },
+  // Voice Signature Section Styles
+  voiceSignatureSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+    marginBottom: 16,
+  },
+  sectionHeader: {
+    marginBottom: 16,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  sectionEmoji: {
+    fontSize: 24,
+    marginRight: 8,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gray[900],
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: COLORS.gray[600],
+    marginTop: 2,
+  },
+  acousticGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  acousticMetricCard: {
+    flex: 1,
+    minWidth: '45%',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  acousticMetricHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  acousticMetricTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray[900],
+    marginLeft: 6,
+  },
+  acousticMetricMainValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  acousticMetricSubValue: {
+    fontSize: 12,
+    color: COLORS.gray[600],
   },
 });
 
