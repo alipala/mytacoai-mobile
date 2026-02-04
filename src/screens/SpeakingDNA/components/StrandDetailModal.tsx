@@ -27,6 +27,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 import { DNAStrandKey } from '../../../types/speakingDNA';
 
@@ -69,42 +70,30 @@ const getStrandIcon = (strand: DNAStrandKey): keyof typeof Ionicons.glyphMap => 
   return icons[strand];
 };
 
-const getStrandInfo = (strand: DNAStrandKey, score: number): StrandInfo => {
-  const descriptions: Record<DNAStrandKey, string> = {
-    rhythm: 'Your speaking pace and natural flow when expressing ideas',
-    confidence: 'Self-assurance and comfort level while speaking',
-    vocabulary: 'Range and variety of words you use in conversations',
-    accuracy: 'Precision in grammar, pronunciation, and language structure',
-    learning: 'Growth mindset and eagerness to try new challenges',
-    emotional: 'Ability to express emotions and connect with others',
-  };
+const getStrandInfo = (strand: DNAStrandKey, score: number, t: any): StrandInfo => {
+  const description = t(`profile.dna.strand_desc_${strand}`);
 
-  const tips: Record<DNAStrandKey, string> = {
-    rhythm: score < 60 ? 'Try speaking with a metronome app' : 'Excellent natural flow!',
-    confidence: score < 60 ? 'Record yourself and listen back' : 'Very confident speaker!',
-    vocabulary: score < 60 ? 'Learn 5 new words daily' : 'Rich and diverse vocabulary!',
-    accuracy: score < 60 ? 'Focus on common mistake patterns' : 'Highly accurate speaker!',
-    learning: score < 60 ? 'Challenge yourself with harder topics' : 'Amazing curiosity!',
-    emotional: score < 60 ? 'Practice expressing feelings openly' : 'Great emotional connection!',
-  };
+  const tip = score < 60
+    ? t(`profile.dna.strand_tip_${strand}_low`)
+    : t(`profile.dna.strand_tip_${strand}_high`);
 
   const getLevel = (score: number): string => {
-    if (score >= 80) return 'Expert';
-    if (score >= 60) return 'Comfortable';
-    if (score >= 40) return 'Developing';
-    return 'Building';
+    if (score >= 80) return t('profile.dna.strand_level_expert');
+    if (score >= 60) return t('profile.dna.strand_level_comfortable');
+    if (score >= 40) return t('profile.dna.strand_level_developing');
+    return t('profile.dna.strand_level_building');
   };
 
   const level = getLevel(score);
 
-  const nextLevel = score < 40 ? `${40 - score}% to Developing` :
-                    score < 60 ? `${60 - score}% to Comfortable` :
-                    score < 80 ? `${80 - score}% to Expert` :
-                    'Mastered!';
+  const nextLevel = score < 40 ? t('profile.dna.strand_next_to_developing', { percent: 40 - score }) :
+                    score < 60 ? t('profile.dna.strand_next_to_comfortable', { percent: 60 - score }) :
+                    score < 80 ? t('profile.dna.strand_next_to_expert', { percent: 80 - score }) :
+                    t('profile.dna.strand_next_mastered');
 
   return {
-    description: descriptions[strand],
-    tip: tips[strand],
+    description,
+    tip,
     level,
     nextLevel,
     icon: getStrandIcon(strand),
@@ -132,6 +121,7 @@ export const StrandDetailModal: React.FC<StrandDetailModalProps> = ({
   color,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const overlayOpacity = useSharedValue(0);
 
@@ -172,7 +162,7 @@ export const StrandDetailModal: React.FC<StrandDetailModalProps> = ({
 
   if (!strand) return null;
 
-  const info = getStrandInfo(strand, score);
+  const info = getStrandInfo(strand, score, t);
 
   return (
     <Modal
@@ -229,7 +219,7 @@ export const StrandDetailModal: React.FC<StrandDetailModalProps> = ({
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="information-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.sectionTitle}>What is this?</Text>
+                <Text style={styles.sectionTitle}>{t('profile.dna.strand_modal_what')}</Text>
               </View>
               <Text style={styles.description}>{info.description}</Text>
             </View>
@@ -239,7 +229,7 @@ export const StrandDetailModal: React.FC<StrandDetailModalProps> = ({
               <View style={styles.tipContainer}>
                 <View style={styles.tipHeader}>
                   <Ionicons name="bulb" size={20} color="#FFFFFF" />
-                  <Text style={styles.sectionTitle}>Tip for You</Text>
+                  <Text style={styles.sectionTitle}>{t('profile.dna.strand_modal_tip')}</Text>
                 </View>
                 <Text style={styles.tipText}>{info.tip}</Text>
               </View>
@@ -254,7 +244,7 @@ export const StrandDetailModal: React.FC<StrandDetailModalProps> = ({
             )}
 
             {/* Action Hint */}
-            <Text style={styles.hintText}>Tap outside to close</Text>
+            <Text style={styles.hintText}>{t('profile.dna.strand_modal_close_hint')}</Text>
           </LinearGradient>
         </Animated.View>
       </View>

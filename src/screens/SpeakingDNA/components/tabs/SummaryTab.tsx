@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { THEME_COLORS, DNA_STRAND_LABELS, getStrandScore } from '../../constants.OLD';
+import { THEME_COLORS, getStrandScore } from '../../constants.OLD';
 import { SpeakingDNAProfile, DNAStrandKey } from '../../../../types/speakingDNA';
 import { DNAProgressRing } from '../DNAProgressRing';
 
@@ -15,7 +15,7 @@ interface SummaryTabProps {
 }
 
 export const SummaryTab: React.FC<SummaryTabProps> = ({ profile }) => {
-  const strands = Object.keys(DNA_STRAND_LABELS) as DNAStrandKey[];
+  const strands: DNAStrandKey[] = ['rhythm', 'confidence', 'vocabulary', 'accuracy', 'learning', 'emotional'];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>

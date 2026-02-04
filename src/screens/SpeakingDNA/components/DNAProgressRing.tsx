@@ -13,7 +13,8 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS } from '../constants.OLD';
+import { useTranslation } from 'react-i18next';
+import { DNA_COLORS, THEME_COLORS } from '../constants.OLD';
 import { DNAStrandKey } from '../../../types/speakingDNA';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -31,12 +32,13 @@ export const DNAProgressRing: React.FC<DNAProgressRingProps> = ({
   size = 100,
   delay = 0,
 }) => {
+  const { t } = useTranslation();
   const progress = useSharedValue(0);
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const color = DNA_COLORS[strand];
-  const label = DNA_STRAND_LABELS[strand];
+  const label = t(`profile.dna.strand_${strand}`);
 
   useEffect(() => {
     setTimeout(() => {

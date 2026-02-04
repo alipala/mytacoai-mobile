@@ -124,10 +124,10 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal, t }
   const [selectedStrand, setSelectedStrand] = useState<DNAStrandKey | null>(null);
 
   // Prepare radar data
-  const strands = Object.keys(DNA_STRAND_LABELS) as DNAStrandKey[];
+  const strands: DNAStrandKey[] = ['rhythm', 'confidence', 'vocabulary', 'accuracy', 'learning', 'emotional'];
   const radarData = strands.map((strand) => ({
     strand,
-    label: DNA_STRAND_LABELS[strand],
+    label: t(`profile.dna.strand_${strand}`),
     score: getStrandScore(profile.dna_strands[strand]),
     color: DNA_COLORS[strand],
   }));
