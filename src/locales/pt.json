@@ -1022,6 +1022,32 @@
       "hearts_not_refunded": "Corações usados NÃO serão reembolsados",
       "keep_playing": "Continuar Jogando",
       "quit_button": "Sair"
+    },
+    "stats": {
+      "lifetime_progress": "Progresso Total",
+      "all_time_achievements": "Conquistas de todos os tempos",
+      "challenges": "Desafios",
+      "accuracy": "Precisão",
+      "total_xp": "XP Total",
+      "best_streak": "Melhor Sequência",
+      "top_languages": "Melhores Idiomas",
+      "top_challenge_types": "Melhores Tipos de Desafios",
+      "accuracy_trend": "Tendência de Precisão",
+      "last_7_days": "Últimos 7 dias",
+      "welcome_back": "Bem-vindo de Volta",
+      "last_active": "Última atividade:",
+      "day_ago": "dia atrás",
+      "days_ago": "dias atrás",
+      "choose_quest_continue": "Escolha sua missão abaixo para continuar!",
+      "swipe_detailed_stats": "Deslize para estatísticas detalhadas",
+      "day_streak_active": "Sequência de {{count}} Dias Ativa!",
+      "start_your_journey": "Comece Sua Jornada!",
+      "complete_quest_keep_streak": "Complete uma missão abaixo para manter sua sequência",
+      "choose_quest_earn_rewards": "Escolha uma missão abaixo para começar a ganhar recompensas",
+      "save_streak": "Salvar Sequência",
+      "boost_stats": "Melhorar Estatísticas",
+      "earn_badges": "Ganhar Emblemas",
+      "choose_quest_below": "Escolher missão abaixo"
     }
   },
   "news": {

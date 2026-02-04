@@ -1022,6 +1022,32 @@
       "hearts_not_refunded": "Hearts used will NOT be refunded",
       "keep_playing": "Keep Playing",
       "quit_button": "Quit"
+    },
+    "stats": {
+      "lifetime_progress": "Lifetime Progress",
+      "all_time_achievements": "All-time achievements",
+      "challenges": "Challenges",
+      "accuracy": "Accuracy",
+      "total_xp": "Total XP",
+      "best_streak": "Best Streak",
+      "top_languages": "Top Languages",
+      "top_challenge_types": "Top Challenge Types",
+      "accuracy_trend": "Accuracy Trend",
+      "last_7_days": "Last 7 days",
+      "welcome_back": "Welcome Back",
+      "last_active": "Last active:",
+      "day_ago": "day ago",
+      "days_ago": "days ago",
+      "choose_quest_continue": "Choose your quest below to continue!",
+      "swipe_detailed_stats": "Swipe for detailed stats",
+      "day_streak_active": "{{count}}-Day Streak Active!",
+      "start_your_journey": "Start Your Journey!",
+      "complete_quest_keep_streak": "Complete a quest below to keep your streak alive",
+      "choose_quest_earn_rewards": "Choose a quest below to begin earning rewards",
+      "save_streak": "Save Streak",
+      "boost_stats": "Boost Stats",
+      "earn_badges": "Earn Badges",
+      "choose_quest_below": "Choose quest below"
     }
   },
   "news": {

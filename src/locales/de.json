@@ -1022,6 +1022,32 @@
       "hearts_not_refunded": "Verwendete Herzen werden NICHT zurückerstattet",
       "keep_playing": "Weiterspielen",
       "quit_button": "Beenden"
+    },
+    "stats": {
+      "lifetime_progress": "Gesamtfortschritt",
+      "all_time_achievements": "Erfolge aller Zeiten",
+      "challenges": "Herausforderungen",
+      "accuracy": "Genauigkeit",
+      "total_xp": "Gesamt-XP",
+      "best_streak": "Beste Serie",
+      "top_languages": "Top-Sprachen",
+      "top_challenge_types": "Top-Herausforderungstypen",
+      "accuracy_trend": "Genauigkeitstrend",
+      "last_7_days": "Letzte 7 Tage",
+      "welcome_back": "Willkommen zurück",
+      "last_active": "Zuletzt aktiv:",
+      "day_ago": "Tag her",
+      "days_ago": "Tage her",
+      "choose_quest_continue": "Wählen Sie unten Ihre Quest, um fortzufahren!",
+      "swipe_detailed_stats": "Wischen für detaillierte Statistiken",
+      "day_streak_active": "{{count}}-Tages-Serie Aktiv!",
+      "start_your_journey": "Starten Sie Ihre Reise!",
+      "complete_quest_keep_streak": "Vervollständigen Sie eine Quest unten, um Ihre Serie zu halten",
+      "choose_quest_earn_rewards": "Wählen Sie eine Quest unten, um Belohnungen zu verdienen",
+      "save_streak": "Serie speichern",
+      "boost_stats": "Stats verbessern",
+      "earn_badges": "Abzeichen verdienen",
+      "choose_quest_below": "Quest unten wählen"
     }
   },
   "news": {

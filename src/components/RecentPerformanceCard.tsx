@@ -13,6 +13,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Svg, { Polyline, Circle, Line, Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop, Polygon } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecentPerformance } from '../hooks/useStats';
@@ -25,6 +26,7 @@ interface RecentPerformanceCardProps {
 }
 
 export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = false, maxDays = 7 }: RecentPerformanceCardProps) {
+  const { t } = useTranslation();
   const { recent, isLoading, error, refetchRecent } = useRecentPerformance(7, true);
   const [showDetails, setShowDetails] = useState(initiallyExpanded);
   const [forceRender, setForceRender] = useState(0);
@@ -275,8 +277,8 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
           <View style={styles.headerLeft}>
             <Ionicons name="trending-up-outline" size={32} color="#06B6D4" style={{ marginRight: 12 }} />
             <View>
-              <Text style={styles.headerTitle}>Accuracy Trend</Text>
-              <Text style={styles.headerSubtitle}>Last 7 days</Text>
+              <Text style={styles.headerTitle}>{t('explore.stats.accuracy_trend')}</Text>
+              <Text style={styles.headerSubtitle}>{t('explore.stats.last_7_days')}</Text>
             </View>
           </View>
           <View style={[styles.trendBadge, { backgroundColor: `${trendColor}20` }]}>

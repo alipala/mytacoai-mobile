@@ -1022,6 +1022,32 @@
       "hearts_not_refunded": "Les cœurs utilisés ne seront PAS remboursés",
       "keep_playing": "Continuer à jouer",
       "quit_button": "Quitter"
+    },
+    "stats": {
+      "lifetime_progress": "Progression Totale",
+      "all_time_achievements": "Réalisations de tous les temps",
+      "challenges": "Défis",
+      "accuracy": "Précision",
+      "total_xp": "XP Total",
+      "best_streak": "Meilleure Série",
+      "top_languages": "Meilleures Langues",
+      "top_challenge_types": "Meilleurs Types de Défis",
+      "accuracy_trend": "Tendance de Précision",
+      "last_7_days": "7 derniers jours",
+      "welcome_back": "Bienvenue de Retour",
+      "last_active": "Dernière activité :",
+      "day_ago": "jour passé",
+      "days_ago": "jours passés",
+      "choose_quest_continue": "Choisissez votre quête ci-dessous pour continuer !",
+      "swipe_detailed_stats": "Glissez pour des statistiques détaillées",
+      "day_streak_active": "Série de {{count}} Jours Active !",
+      "start_your_journey": "Commencez Votre Voyage !",
+      "complete_quest_keep_streak": "Complétez une quête ci-dessous pour maintenir votre série",
+      "choose_quest_earn_rewards": "Choisissez une quête ci-dessous pour commencer à gagner des récompenses",
+      "save_streak": "Sauver la Série",
+      "boost_stats": "Booster les Stats",
+      "earn_badges": "Gagner des Badges",
+      "choose_quest_below": "Choisir une quête ci-dessous"
     }
   },
   "news": {

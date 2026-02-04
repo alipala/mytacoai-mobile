@@ -1022,6 +1022,32 @@
       "hearts_not_refunded": "Kullanılan canlar iade EDİLMEYECEK",
       "keep_playing": "Oynamaya Devam Et",
       "quit_button": "Çık"
+    },
+    "stats": {
+      "lifetime_progress": "Toplam İlerleme",
+      "all_time_achievements": "Tüm zamanların başarıları",
+      "challenges": "Görevler",
+      "accuracy": "Doğruluk",
+      "total_xp": "Toplam XP",
+      "best_streak": "En İyi Seri",
+      "top_languages": "En İyi Diller",
+      "top_challenge_types": "En İyi Görev Türleri",
+      "accuracy_trend": "Doğruluk Trendi",
+      "last_7_days": "Son 7 gün",
+      "welcome_back": "Tekrar Hoş Geldiniz",
+      "last_active": "Son aktif:",
+      "day_ago": "gün önce",
+      "days_ago": "gün önce",
+      "choose_quest_continue": "Devam etmek için aşağıdan görevinizi seçin!",
+      "swipe_detailed_stats": "Detaylı istatistikler için kaydırın",
+      "day_streak_active": "{{count}} Günlük Seri Aktif!",
+      "start_your_journey": "Yolculuğunuza Başlayın!",
+      "complete_quest_keep_streak": "Serinizi korumak için aşağıdan bir görev tamamlayın",
+      "choose_quest_earn_rewards": "Ödül kazanmaya başlamak için aşağıdan bir görev seçin",
+      "save_streak": "Seriyi Kaydet",
+      "boost_stats": "İstatistikleri Artır",
+      "earn_badges": "Rozet Kazan",
+      "choose_quest_below": "Aşağıdan görev seçin"
     }
   },
   "news": {

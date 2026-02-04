@@ -1022,6 +1022,32 @@
       "hearts_not_refunded": "Los corazones usados NO serán reembolsados",
       "keep_playing": "Seguir Jugando",
       "quit_button": "Abandonar"
+    },
+    "stats": {
+      "lifetime_progress": "Progreso Total",
+      "all_time_achievements": "Logros históricos",
+      "challenges": "Desafíos",
+      "accuracy": "Precisión",
+      "total_xp": "XP Total",
+      "best_streak": "Mejor Racha",
+      "top_languages": "Mejores Idiomas",
+      "top_challenge_types": "Mejores Tipos de Desafíos",
+      "accuracy_trend": "Tendencia de Precisión",
+      "last_7_days": "Últimos 7 días",
+      "welcome_back": "Bienvenido de Nuevo",
+      "last_active": "Última actividad:",
+      "day_ago": "día atrás",
+      "days_ago": "días atrás",
+      "choose_quest_continue": "¡Elige tu misión a continuación para continuar!",
+      "swipe_detailed_stats": "Desliza para estadísticas detalladas",
+      "day_streak_active": "¡Racha de {{count}} Días Activa!",
+      "start_your_journey": "¡Comienza Tu Viaje!",
+      "complete_quest_keep_streak": "Completa una misión a continuación para mantener tu racha",
+      "choose_quest_earn_rewards": "Elige una misión a continuación para comenzar a ganar recompensas",
+      "save_streak": "Guardar Racha",
+      "boost_stats": "Mejorar Estadísticas",
+      "earn_badges": "Ganar Insignias",
+      "choose_quest_below": "Elige misión abajo"
     }
   },
   "news": {

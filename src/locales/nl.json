@@ -1022,6 +1022,32 @@
       "hearts_not_refunded": "Gebruikte harten worden NIET terugbetaald",
       "keep_playing": "Blijf Spelen",
       "quit_button": "Stoppen"
+    },
+    "stats": {
+      "lifetime_progress": "Totale Voortgang",
+      "all_time_achievements": "Prestaties aller tijden",
+      "challenges": "Uitdagingen",
+      "accuracy": "Nauwkeurigheid",
+      "total_xp": "Totale XP",
+      "best_streak": "Beste Reeks",
+      "top_languages": "Top Talen",
+      "top_challenge_types": "Top Uitdagingstypes",
+      "accuracy_trend": "Nauwkeurigheidstrend",
+      "last_7_days": "Laatste 7 dagen",
+      "welcome_back": "Welkom Terug",
+      "last_active": "Laatst actief:",
+      "day_ago": "dag geleden",
+      "days_ago": "dagen geleden",
+      "choose_quest_continue": "Kies je quest hieronder om door te gaan!",
+      "swipe_detailed_stats": "Veeg voor gedetailleerde statistieken",
+      "day_streak_active": "{{count}}-Dagen Reeks Actief!",
+      "start_your_journey": "Start Je Reis!",
+      "complete_quest_keep_streak": "Voltooi een quest hieronder om je reeks te behouden",
+      "choose_quest_earn_rewards": "Kies een quest hieronder om beloningen te verdienen",
+      "save_streak": "Reeks opslaan",
+      "boost_stats": "Stats verbeteren",
+      "earn_badges": "Badges verdienen",
+      "choose_quest_below": "Quest hieronder kiezen"
     }
   },
   "news": {
