@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 interface DocumentSection {
   title: string;
@@ -31,180 +32,181 @@ interface DocumentViewerScreenProps {
   documentType: 'terms' | 'privacy';
 }
 
-const TERMS_DATA: DocumentSection[] = [
+const getTermsData = (t: any): DocumentSection[] => [
   {
-    title: "Acceptance of Terms",
+    title: t('legal_documents.terms.acceptance.title'),
     icon: "book-outline",
     content: [
       {
-        subtitle: "Agreement to Terms",
-        text: "By accessing and using Language Tutor's services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service."
+        subtitle: t('legal_documents.terms.acceptance.agreement.subtitle'),
+        text: t('legal_documents.terms.acceptance.agreement.text')
       },
       {
-        subtitle: "Eligibility",
-        text: "You must be at least 13 years old to use our services. If you are under 18, you must have your parent or guardian's permission to use our services."
+        subtitle: t('legal_documents.terms.acceptance.eligibility.subtitle'),
+        text: t('legal_documents.terms.acceptance.eligibility.text')
       }
     ]
   },
   {
-    title: "Use of Services",
+    title: t('legal_documents.terms.use_of_services.title'),
     icon: "people-outline",
     content: [
       {
-        subtitle: "Permitted Use",
-        text: "You may use our services for personal, non-commercial language learning purposes. You agree to use the services in compliance with all applicable laws and regulations."
+        subtitle: t('legal_documents.terms.use_of_services.permitted_use.subtitle'),
+        text: t('legal_documents.terms.use_of_services.permitted_use.text')
       },
       {
-        subtitle: "Account Responsibility",
-        text: "You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account."
+        subtitle: t('legal_documents.terms.use_of_services.account_responsibility.subtitle'),
+        text: t('legal_documents.terms.use_of_services.account_responsibility.text')
       },
       {
-        subtitle: "Prohibited Activities",
-        text: "You may not use our services to engage in illegal activities, harass other users, distribute malware, or attempt to gain unauthorized access to our systems."
+        subtitle: t('legal_documents.terms.use_of_services.prohibited_activities.subtitle'),
+        text: t('legal_documents.terms.use_of_services.prohibited_activities.text')
       }
     ]
   },
   {
-    title: "Intellectual Property",
+    title: t('legal_documents.terms.intellectual_property.title'),
     icon: "shield-outline",
     content: [
       {
-        subtitle: "Our Content",
-        text: "All content, features, and functionality of our services, including but not limited to text, graphics, logos, and software, are owned by Language Tutor and are protected by copyright and other intellectual property laws."
+        subtitle: t('legal_documents.terms.intellectual_property.our_content.subtitle'),
+        text: t('legal_documents.terms.intellectual_property.our_content.text')
       },
       {
-        subtitle: "User Content",
-        text: "You retain ownership of any content you create or upload to our services. By using our services, you grant us a license to use, modify, and display your content for the purpose of providing our services."
+        subtitle: t('legal_documents.terms.intellectual_property.user_content.subtitle'),
+        text: t('legal_documents.terms.intellectual_property.user_content.text')
       }
     ]
   },
   {
-    title: "Privacy and Data",
+    title: t('legal_documents.terms.privacy_and_data.title'),
     icon: "lock-closed-outline",
     content: [
       {
-        subtitle: "Data Collection",
-        text: "Our collection and use of personal information is governed by our Privacy Policy. By using our services, you consent to the collection and use of information as outlined in our Privacy Policy."
+        subtitle: t('legal_documents.terms.privacy_and_data.data_collection.subtitle'),
+        text: t('legal_documents.terms.privacy_and_data.data_collection.text')
       },
       {
-        subtitle: "Learning Data",
-        text: "We may use aggregated and anonymized learning data to improve our services and develop new features. Individual user data is never shared without explicit consent."
+        subtitle: t('legal_documents.terms.privacy_and_data.learning_data.subtitle'),
+        text: t('legal_documents.terms.privacy_and_data.learning_data.text')
       }
     ]
   },
   {
-    title: "Limitation of Liability",
+    title: t('legal_documents.terms.limitation_of_liability.title'),
     icon: "alert-circle-outline",
     content: [
       {
-        subtitle: "Disclaimer",
-        text: "Our services are provided 'as is' without warranties of any kind. We disclaim all warranties, express or implied, including but not limited to merchantability and fitness for a particular purpose."
+        subtitle: t('legal_documents.terms.limitation_of_liability.disclaimer.subtitle'),
+        text: t('legal_documents.terms.limitation_of_liability.disclaimer.text')
       },
       {
-        subtitle: "Maximum Liability",
-        text: "Our total liability to you for any claims arising from your use of our services shall not exceed the amount you paid us in the twelve months preceding the claim."
+        subtitle: t('legal_documents.terms.limitation_of_liability.maximum_liability.subtitle'),
+        text: t('legal_documents.terms.limitation_of_liability.maximum_liability.text')
       }
     ]
   }
 ];
 
-const PRIVACY_DATA: DocumentSection[] = [
+const getPrivacyData = (t: any): DocumentSection[] => [
   {
-    title: "Information We Collect",
+    title: t('legal_documents.privacy.information_we_collect.title'),
     icon: "document-text-outline",
     content: [
       {
-        subtitle: "Personal Information",
-        text: "We collect information you provide directly to us, such as when you create an account, use our language learning services, or contact us for support. This includes your name, email address, and learning preferences."
+        subtitle: t('legal_documents.privacy.information_we_collect.personal_information.subtitle'),
+        text: t('legal_documents.privacy.information_we_collect.personal_information.text')
       },
       {
-        subtitle: "Learning Data",
-        text: "To provide personalized learning experiences, we collect data about your progress, conversation transcripts, assessment results, and usage patterns within our platform."
+        subtitle: t('legal_documents.privacy.information_we_collect.learning_data.subtitle'),
+        text: t('legal_documents.privacy.information_we_collect.learning_data.text')
       },
       {
-        subtitle: "Technical Information",
-        text: "We automatically collect certain technical information, including your device type, browser information, IP address, and how you interact with our services."
+        subtitle: t('legal_documents.privacy.information_we_collect.technical_information.subtitle'),
+        text: t('legal_documents.privacy.information_we_collect.technical_information.text')
       }
     ]
   },
   {
-    title: "How We Use Your Information",
+    title: t('legal_documents.privacy.how_we_use.title'),
     icon: "people-outline",
     content: [
       {
-        subtitle: "Service Provision",
-        text: "We use your information to provide, maintain, and improve our language learning services, including personalizing your learning experience and tracking your progress."
+        subtitle: t('legal_documents.privacy.how_we_use.service_provision.subtitle'),
+        text: t('legal_documents.privacy.how_we_use.service_provision.text')
       },
       {
-        subtitle: "Communication",
-        text: "We may use your contact information to send you important updates about our services, respond to your inquiries, and provide customer support."
+        subtitle: t('legal_documents.privacy.how_we_use.communication.subtitle'),
+        text: t('legal_documents.privacy.how_we_use.communication.text')
       },
       {
-        subtitle: "Analytics and Improvement",
-        text: "We analyze usage patterns and feedback to improve our platform, develop new features, and enhance the overall learning experience."
+        subtitle: t('legal_documents.privacy.how_we_use.analytics_improvement.subtitle'),
+        text: t('legal_documents.privacy.how_we_use.analytics_improvement.text')
       }
     ]
   },
   {
-    title: "Information Sharing",
+    title: t('legal_documents.privacy.information_sharing.title'),
     icon: "eye-outline",
     content: [
       {
-        subtitle: "No Sale of Data",
-        text: "We do not sell, trade, or otherwise transfer your personal information to third parties for commercial purposes."
+        subtitle: t('legal_documents.privacy.information_sharing.no_sale.subtitle'),
+        text: t('legal_documents.privacy.information_sharing.no_sale.text')
       },
       {
-        subtitle: "Service Providers",
-        text: "We may share information with trusted third-party service providers who assist us in operating our platform, conducting our business, or serving our users."
+        subtitle: t('legal_documents.privacy.information_sharing.service_providers.subtitle'),
+        text: t('legal_documents.privacy.information_sharing.service_providers.text')
       },
       {
-        subtitle: "Legal Requirements",
-        text: "We may disclose your information when required by law, court order, or other legal process, or when we believe disclosure is necessary to protect our rights or the safety of others."
+        subtitle: t('legal_documents.privacy.information_sharing.legal_requirements.subtitle'),
+        text: t('legal_documents.privacy.information_sharing.legal_requirements.text')
       }
     ]
   },
   {
-    title: "Data Security",
+    title: t('legal_documents.privacy.data_security.title'),
     icon: "lock-closed-outline",
     content: [
       {
-        subtitle: "Security Measures",
-        text: "We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction."
+        subtitle: t('legal_documents.privacy.data_security.security_measures.subtitle'),
+        text: t('legal_documents.privacy.data_security.security_measures.text')
       },
       {
-        subtitle: "Encryption",
-        text: "We use industry-standard encryption to protect sensitive data both in transit and at rest on our servers."
+        subtitle: t('legal_documents.privacy.data_security.encryption.subtitle'),
+        text: t('legal_documents.privacy.data_security.encryption.text')
       },
       {
-        subtitle: "Access Controls",
-        text: "We maintain strict access controls and regularly review our security practices to ensure your data remains protected."
+        subtitle: t('legal_documents.privacy.data_security.access_controls.subtitle'),
+        text: t('legal_documents.privacy.data_security.access_controls.text')
       }
     ]
   },
   {
-    title: "Your Rights",
+    title: t('legal_documents.privacy.your_rights.title'),
     icon: "hand-right-outline",
     content: [
       {
-        subtitle: "Access and Correction",
-        text: "You have the right to access and update your personal information at any time through your account settings."
+        subtitle: t('legal_documents.privacy.your_rights.access_correction.subtitle'),
+        text: t('legal_documents.privacy.your_rights.access_correction.text')
       },
       {
-        subtitle: "Data Deletion",
-        text: "You may request deletion of your account and associated data by contacting us. Note that some information may be retained as required by law or for legitimate business purposes."
+        subtitle: t('legal_documents.privacy.your_rights.data_deletion.subtitle'),
+        text: t('legal_documents.privacy.your_rights.data_deletion.text')
       },
       {
-        subtitle: "Opt-Out",
-        text: "You can opt-out of marketing communications at any time by using the unsubscribe link in our emails or adjusting your notification preferences."
+        subtitle: t('legal_documents.privacy.your_rights.opt_out.subtitle'),
+        text: t('legal_documents.privacy.your_rights.opt_out.text')
       }
     ]
   }
 ];
 
 const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, documentType }) => {
+  const { t } = useTranslation();
   const isTerms = documentType === 'terms';
-  const data = isTerms ? TERMS_DATA : PRIVACY_DATA;
-  const title = isTerms ? 'Terms of Use' : 'Privacy Policy';
+  const data = isTerms ? getTermsData(t) : getPrivacyData(t);
+  const title = isTerms ? t('legal_documents.terms_of_use') : t('legal_documents.privacy_policy');
   const url = isTerms ? 'https://mytacoai.com/terms' : 'https://mytacoai.com/privacy';
   const lastUpdated = "January 15, 2025";
 
@@ -250,15 +252,13 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
         {/* Last Updated */}
         <View style={styles.updateBanner}>
           <Ionicons name="time-outline" size={16} color="#6B7280" />
-          <Text style={styles.updateText}>Last updated: {lastUpdated}</Text>
+          <Text style={styles.updateText}>{t('legal_documents.last_updated', { date: lastUpdated })}</Text>
         </View>
 
         {/* Introduction */}
         <View style={styles.introCard}>
           <Text style={styles.introText}>
-            {isTerms
-              ? "These Terms of Service govern your use of Language Tutor's services. Please read carefully before using our platform."
-              : "We are committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information."}
+            {isTerms ? t('legal_documents.terms.intro') : t('legal_documents.privacy.intro')}
           </Text>
         </View>
 
@@ -287,14 +287,14 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
               <View style={[styles.sectionIconContainer, { backgroundColor: '#FEE2E2' }]}>
                 <Ionicons name="warning-outline" size={20} color="#EF4444" />
               </View>
-              <Text style={styles.sectionTitle}>Termination</Text>
+              <Text style={styles.sectionTitle}>{t('legal_documents.terms.termination.title')}</Text>
             </View>
             <View style={styles.contentItem}>
               <Text style={styles.text}>
-                We may terminate or suspend your account and access to our services immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
+                {t('legal_documents.terms.termination.text_part1')}
               </Text>
               <Text style={[styles.text, { marginTop: 12 }]}>
-                You may terminate your account at any time by contacting us or using the account deletion feature in your settings. Upon termination, your right to use the services will cease immediately.
+                {t('legal_documents.terms.termination.text_part2')}
               </Text>
             </View>
           </View>
@@ -302,9 +302,9 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
 
         {/* Contact Information */}
         <View style={styles.contactCard}>
-          <Text style={styles.contactTitle}>Contact Us</Text>
+          <Text style={styles.contactTitle}>{t('legal_documents.contact_us')}</Text>
           <Text style={styles.contactSubtitle}>
-            If you have any questions about {isTerms ? 'these Terms' : 'this Privacy Policy'}, please contact us:
+            {isTerms ? t('legal_documents.contact_subtitle_terms') : t('legal_documents.contact_subtitle_privacy')}
           </Text>
           <View style={styles.contactInfo}>
             <View style={styles.contactRow}>
@@ -325,7 +325,7 @@ const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({ onBack, doc
           activeOpacity={0.7}
         >
           <Ionicons name="globe-outline" size={20} color="#14B8A6" />
-          <Text style={styles.onlineButtonText}>View Online Version</Text>
+          <Text style={styles.onlineButtonText}>{t('legal_documents.view_online')}</Text>
           <Ionicons name="open-outline" size={18} color="#14B8A6" />
         </TouchableOpacity>
 

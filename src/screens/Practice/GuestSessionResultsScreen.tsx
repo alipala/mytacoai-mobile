@@ -8,6 +8,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { styles, SCREEN_WIDTH } from './styles/GuestSessionResultsScreen.styles';
 
 interface GuestSessionResultsScreenProps {
@@ -25,6 +26,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const { analysis } = route.params;
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [currentAnalysisIndex, setCurrentAnalysisIndex] = useState(0);
@@ -102,22 +104,22 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         <View style={styles.statCard}>
           <Ionicons name="chatbubbles-outline" size={20} color="#6366F1" />
           <Text style={styles.statValue}>{analysis.session_stats.total_messages}</Text>
-          <Text style={styles.statLabel}>Messages</Text>
+          <Text style={styles.statLabel}>{t('practice.results.stat_messages')}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="text-outline" size={20} color="#10B981" />
           <Text style={styles.statValue}>{analysis.session_stats.user_words}</Text>
-          <Text style={styles.statLabel}>Words Spoken</Text>
+          <Text style={styles.statLabel}>{t('practice.results.stat_words_spoken')}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="speedometer-outline" size={20} color="#F59E0B" />
           <Text style={styles.statValue}>{analysis.session_stats.speaking_speed_wpm}</Text>
-          <Text style={styles.statLabel}>WPM</Text>
+          <Text style={styles.statLabel}>{t('practice.results.stat_wpm')}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="time-outline" size={20} color="#8B5CF6" />
           <Text style={styles.statValue}>{Math.round(analysis.session_stats.duration_minutes * 10) / 10}</Text>
-          <Text style={styles.statLabel}>Minutes</Text>
+          <Text style={styles.statLabel}>{t('practice.results.stat_minutes')}</Text>
         </View>
       </View>
 
@@ -125,7 +127,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
           <Ionicons name="sparkles" size={20} color="#6366F1" />
-          <Text style={styles.summaryTitle}>MyTaco AI Summary</Text>
+          <Text style={styles.summaryTitle}>{t('practice.results.ai_summary_title')}</Text>
         </View>
         <Text style={styles.summaryText}>{analysis.session_summary}</Text>
       </View>
@@ -133,9 +135,9 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       {/* Call to Action */}
       <View style={styles.ctaCard}>
         <Ionicons name="star" size={32} color="#FFD63A" />
-        <Text style={styles.ctaTitle}>Love what you see?</Text>
+        <Text style={styles.ctaTitle}>{t('practice.results.cta_title')}</Text>
         <Text style={styles.ctaText}>
-          Sign up to save your progress, track your improvement, and unlock unlimited practice sessions!
+          {t('practice.results.cta_text')}
         </Text>
       </View>
     </ScrollView>
@@ -147,9 +149,9 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       return (
         <View style={styles.emptyState}>
           <Ionicons name="checkmark-circle-outline" size={64} color="#10B981" />
-          <Text style={styles.emptyStateTitle}>Great job!</Text>
+          <Text style={styles.emptyStateTitle}>{t('practice.results.empty_analysis_title')}</Text>
           <Text style={styles.emptyStateText}>
-            Your sentences were well-formed. Keep up the excellent work!
+            {t('practice.results.empty_analysis_text')}
           </Text>
         </View>
       );
@@ -186,7 +188,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
           <View style={styles.comparisonSection}>
             <View style={styles.comparisonHeader}>
               <Ionicons name="mic-outline" size={16} color="#6B7280" />
-              <Text style={styles.comparisonLabel}>What you said</Text>
+              <Text style={styles.comparisonLabel}>{t('practice.results.label_what_you_said')}</Text>
             </View>
             <Text style={styles.comparisonText}>{currentAnalysis.recognized_text}</Text>
           </View>
@@ -199,7 +201,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               <View style={[styles.comparisonSection, styles.correctedSection]}>
                 <View style={styles.comparisonHeader}>
                   <Ionicons name="checkmark-circle-outline" size={16} color="#10B981" />
-                  <Text style={[styles.comparisonLabel, { color: '#10B981' }]}>Corrected version</Text>
+                  <Text style={[styles.comparisonLabel, { color: '#10B981' }]}>{t('practice.results.label_corrected_version')}</Text>
                 </View>
                 <Text style={[styles.comparisonText, { color: '#166534' }]}>{currentAnalysis.corrected_text}</Text>
               </View>
@@ -211,25 +213,25 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         <View style={styles.compactScoreGrid}>
           <View style={styles.scoreGridItem}>
             <Text style={styles.scoreGridValue}>{currentAnalysis.overall_score}%</Text>
-            <Text style={styles.scoreGridLabel}>Overall</Text>
+            <Text style={styles.scoreGridLabel}>{t('practice.results.label_overall')}</Text>
             <View style={[styles.scoreGridBar, { backgroundColor: getScoreColor(currentAnalysis.overall_score) }]}
                   opacity={currentAnalysis.overall_score / 100} />
           </View>
           <View style={styles.scoreGridItem}>
             <Text style={styles.scoreGridValue}>{currentAnalysis.grammatical_score}%</Text>
-            <Text style={styles.scoreGridLabel}>Grammar</Text>
+            <Text style={styles.scoreGridLabel}>{t('practice.results.label_grammar')}</Text>
             <View style={[styles.scoreGridBar, { backgroundColor: '#6366F1' }]}
                   opacity={currentAnalysis.grammatical_score / 100} />
           </View>
           <View style={styles.scoreGridItem}>
             <Text style={styles.scoreGridValue}>{currentAnalysis.vocabulary_score}%</Text>
-            <Text style={styles.scoreGridLabel}>Vocabulary</Text>
+            <Text style={styles.scoreGridLabel}>{t('practice.results.label_vocabulary')}</Text>
             <View style={[styles.scoreGridBar, { backgroundColor: '#8B5CF6' }]}
                   opacity={currentAnalysis.vocabulary_score / 100} />
           </View>
           <View style={styles.scoreGridItem}>
             <Text style={styles.scoreGridValue}>{currentAnalysis.appropriateness_score}%</Text>
-            <Text style={styles.scoreGridLabel}>Natural</Text>
+            <Text style={styles.scoreGridLabel}>{t('practice.results.label_natural')}</Text>
             <View style={[styles.scoreGridBar, { backgroundColor: '#14B8A6' }]}
                   opacity={currentAnalysis.appropriateness_score / 100} />
           </View>
@@ -242,7 +244,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               <View style={styles.feedbackIconContainer}>
                 <Ionicons name="alert-circle" size={18} color="#EF4444" />
               </View>
-              <Text style={styles.feedbackTitle}>Grammar Issues</Text>
+              <Text style={styles.feedbackTitle}>{t('practice.results.section_grammar_issues')}</Text>
             </View>
             {validGrammarIssues.map((grammarIssue, idx) => (
               <View key={idx} style={styles.modernIssueItem}>
@@ -268,7 +270,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               <View style={styles.feedbackIconContainer}>
                 <Ionicons name="bulb" size={18} color="#F59E0B" />
               </View>
-              <Text style={styles.feedbackTitle}>How to Improve</Text>
+              <Text style={styles.feedbackTitle}>{t('practice.results.section_how_to_improve')}</Text>
             </View>
             {validSuggestions.map((suggestionItem, idx) => (
               <View key={idx} style={styles.modernSuggestionItem}>
@@ -287,7 +289,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               <View style={styles.feedbackIconContainer}>
                 <Ionicons name="repeat" size={18} color="#8B5CF6" />
               </View>
-              <Text style={styles.feedbackTitle}>Better Ways to Say This</Text>
+              <Text style={styles.feedbackTitle}>{t('practice.results.section_better_ways')}</Text>
             </View>
             {validAlternatives.map((altItem, idx) => (
               <View key={idx} style={styles.modernAlternativeItem}>
@@ -314,7 +316,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
               }
             >
               <Ionicons name="chevron-back" size={24} color="#6366F1" />
-              <Text style={styles.navButtonText}>Previous</Text>
+              <Text style={styles.navButtonText}>{t('practice.results.button_previous')}</Text>
             </TouchableOpacity>
 
             <View style={styles.paginationDots}>
@@ -339,7 +341,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
                 )
               }
             >
-              <Text style={styles.navButtonText}>Next</Text>
+              <Text style={styles.navButtonText}>{t('practice.results.button_next')}</Text>
               <Ionicons name="chevron-forward" size={24} color="#6366F1" />
             </TouchableOpacity>
           </View>
@@ -354,9 +356,9 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       return (
         <View style={styles.emptyState}>
           <Ionicons name="albums-outline" size={64} color="#8B5CF6" />
-          <Text style={styles.emptyStateTitle}>No flashcards yet</Text>
+          <Text style={styles.emptyStateTitle}>{t('practice.results.empty_flashcards_title')}</Text>
           <Text style={styles.emptyStateText}>
-            Complete more practice sessions to generate personalized flashcards!
+            {t('practice.results.empty_flashcards_text')}
           </Text>
         </View>
       );
@@ -369,7 +371,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         {/* Flashcard counter */}
         <View style={styles.flashcardHeader}>
           <Text style={styles.flashcardCounter}>
-            Card {currentFlashcardIndex + 1} of {analysis.flashcards.length}
+            {t('practice.results.flashcard_count', { current: currentFlashcardIndex + 1, total: analysis.flashcards.length })}
           </Text>
           <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(currentFlashcard.difficulty) }]}>
             <Text style={styles.difficultyText}>{currentFlashcard.difficulty}</Text>
@@ -384,16 +386,16 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         >
           <View style={styles.flashcard}>
             <Animated.View style={[styles.flashcardFront, frontAnimatedStyle]}>
-              <Text style={[styles.flashcardLabel, { color: '#000000', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Question</Text>
+              <Text style={[styles.flashcardLabel, { color: '#000000', textTransform: 'uppercase', letterSpacing: 1.5 }]}>{t('practice.results.flashcard_question')}</Text>
               <Text style={[styles.flashcardText, { color: '#000000' }]}>{currentFlashcard.front}</Text>
               <View style={styles.tapHint}>
                 <Ionicons name="hand-left-outline" size={16} color="#000000" />
-                <Text style={[styles.tapHintText, { color: '#000000' }]}>Tap to reveal answer</Text>
+                <Text style={[styles.tapHintText, { color: '#000000' }]}>{t('practice.results.flashcard_tap_hint')}</Text>
               </View>
             </Animated.View>
 
             <Animated.View style={[styles.flashcardBack, backAnimatedStyle]}>
-              <Text style={[styles.flashcardLabel, { color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Answer</Text>
+              <Text style={[styles.flashcardLabel, { color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 1.5 }]}>{t('practice.results.flashcard_answer')}</Text>
               <Text style={[styles.flashcardText, { color: '#FFFFFF' }]}>{currentFlashcard.back}</Text>
             </Animated.View>
           </View>
@@ -430,7 +432,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
 
         {/* Info Text */}
         <Text style={styles.flashcardInfo}>
-          Swipe through your personalized flashcards to reinforce learning
+          {t('practice.results.flashcard_info')}
         </Text>
       </View>
     );
@@ -443,7 +445,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       <View style={styles.confidenceCard}>
         <View style={styles.confidenceHeader}>
           <Ionicons name="analytics-outline" size={24} color="#6366F1" />
-          <Text style={styles.confidenceTitle}>Confidence Level</Text>
+          <Text style={styles.confidenceTitle}>{t('practice.results.insight_confidence')}</Text>
         </View>
         <Text style={styles.confidenceLevel}>{analysis.insights.confidence_level}</Text>
       </View>
@@ -453,7 +455,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         <View style={styles.insightCard}>
           <View style={styles.insightHeader}>
             <Ionicons name="trophy-outline" size={24} color="#10B981" />
-            <Text style={styles.insightTitle}>Breakthrough Moments</Text>
+            <Text style={styles.insightTitle}>{t('practice.results.insight_breakthrough')}</Text>
           </View>
           {analysis.insights.breakthrough_moments.map((moment, idx) => (
             <View key={idx} style={styles.insightItem}>
@@ -471,7 +473,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         <View style={styles.insightCard}>
           <View style={styles.insightHeader}>
             <Ionicons name="fitness-outline" size={24} color="#F59E0B" />
-            <Text style={styles.insightTitle}>Areas to Improve</Text>
+            <Text style={styles.insightTitle}>{t('practice.results.insight_struggle')}</Text>
           </View>
           {analysis.insights.struggle_points.map((point, idx) => (
             <View key={idx} style={styles.insightItem}>
@@ -489,7 +491,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
         <View style={styles.insightCard}>
           <View style={styles.insightHeader}>
             <Ionicons name="flash-outline" size={24} color="#6366F1" />
-            <Text style={styles.insightTitle}>Next Steps</Text>
+            <Text style={styles.insightTitle}>{t('practice.results.insight_next_steps')}</Text>
           </View>
           {analysis.insights.immediate_actions.map((action, idx) => (
             <View key={idx} style={styles.actionItem}>
@@ -506,7 +508,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       <View style={styles.encouragementCard}>
         <Ionicons name="heart" size={32} color="#EF4444" />
         <Text style={styles.encouragementText}>
-          Keep practicing to unlock your full potential!
+          {t('practice.results.encouragement')}
         </Text>
       </View>
     </ScrollView>
@@ -555,7 +557,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={{ width: 40 }} />
-        <Text style={styles.headerTitle}>Session Results</Text>
+        <Text style={styles.headerTitle}>{t('practice.results.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -571,7 +573,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             color={activeTab === 'summary' ? '#6366F1' : '#9CA3AF'}
           />
           <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
-            Summary
+            {t('practice.results.tab_summary')}
           </Text>
         </TouchableOpacity>
 
@@ -585,7 +587,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             color={activeTab === 'analysis' ? '#6366F1' : '#9CA3AF'}
           />
           <Text style={[styles.tabText, activeTab === 'analysis' && styles.activeTabText]}>
-            Analysis
+            {t('practice.results.tab_analysis')}
           </Text>
         </TouchableOpacity>
 
@@ -599,7 +601,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             color={activeTab === 'flashcards' ? '#6366F1' : '#9CA3AF'}
           />
           <Text style={[styles.tabText, activeTab === 'flashcards' && styles.activeTabText]}>
-            Flashcards
+            {t('practice.results.tab_flashcards')}
           </Text>
         </TouchableOpacity>
 
@@ -613,7 +615,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
             color={activeTab === 'insights' ? '#6366F1' : '#9CA3AF'}
           />
           <Text style={[styles.tabText, activeTab === 'insights' && styles.activeTabText]}>
-            Insights
+            {t('practice.results.tab_insights')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -630,7 +632,7 @@ const GuestSessionResultsScreen: React.FC<GuestSessionResultsScreenProps> = ({
       <View style={styles.ctaContainer}>
         <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
           <Ionicons name="person-add" size={20} color="#FFFFFF" />
-          <Text style={styles.signUpButtonText}>Sign Up to Save Progress</Text>
+          <Text style={styles.signUpButtonText}>{t('practice.results.button_signup')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

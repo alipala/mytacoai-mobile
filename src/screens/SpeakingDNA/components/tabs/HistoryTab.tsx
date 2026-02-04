@@ -7,7 +7,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { THEME_COLORS, DNA_COLORS, DNA_STRAND_LABELS, getStrandScore } from '../../constants.OLD';
+import { useTranslation } from 'react-i18next';
+import { THEME_COLORS, DNA_COLORS, getStrandScore } from '../../constants.OLD';
 import { SpeakingDNAProfile, DNAStrandKey } from '../../../../types/speakingDNA';
 
 interface HistoryTabProps {
@@ -15,7 +16,8 @@ interface HistoryTabProps {
 }
 
 export const HistoryTab: React.FC<HistoryTabProps> = ({ profile }) => {
-  const strands = Object.keys(DNA_STRAND_LABELS) as DNAStrandKey[];
+  const { t } = useTranslation();
+  const strands: DNAStrandKey[] = ['rhythm', 'confidence', 'vocabulary', 'accuracy', 'learning', 'emotional'];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -26,7 +28,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ profile }) => {
         const strandData = profile.dna_strands[strand];
         const value = getStrandScore(strandData);
         const color = DNA_COLORS[strand];
-        const label = DNA_STRAND_LABELS[strand];
+        const label = t(`profile.dna.strand_${strand}`);
 
         return (
           <View key={strand} style={styles.trendRow}>

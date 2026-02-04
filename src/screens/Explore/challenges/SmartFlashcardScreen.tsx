@@ -29,6 +29,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { SmartFlashcardChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { useAudio } from '../../../hooks/useAudio';
@@ -46,6 +47,7 @@ export default function SmartFlashcardScreen({
   onComplete,
   onClose,
 }: SmartFlashcardScreenProps) {
+  const { t } = useTranslation();
   const [isFlipped, setIsFlipped] = useState(false);
 
   const { play } = useAudio();
@@ -156,7 +158,7 @@ export default function SmartFlashcardScreen({
         {/* Flip Hint */}
         <View style={styles.flipHint}>
           <Text style={styles.flipHintText}>
-            👆 Tap card to {isFlipped ? 'flip back' : 'reveal'}
+            👆 {isFlipped ? t('explore.smart_flashcard.tap_to_flip') : t('explore.smart_flashcard.tap_to_reveal')}
           </Text>
         </View>
 
@@ -175,7 +177,7 @@ export default function SmartFlashcardScreen({
             ]}
           >
             <View style={styles.cardContent}>
-              <Text style={styles.wordLabel}>Word / Phrase:</Text>
+              <Text style={styles.wordLabel}>{t('explore.smart_flashcard.word_phrase')}</Text>
               <Text style={styles.word}>{challenge.word}</Text>
             </View>
           </Animated.View>
@@ -191,7 +193,7 @@ export default function SmartFlashcardScreen({
             <View style={styles.cardContent}>
               {/* Explanation */}
               <View style={styles.explanationSection}>
-                <Text style={styles.explanationLabel}>💡 Meaning:</Text>
+                <Text style={styles.explanationLabel}>💡 {t('explore.smart_flashcard.meaning')}</Text>
                 <Text style={styles.explanationText}>
                   {challenge.explanation}
                 </Text>
@@ -199,7 +201,7 @@ export default function SmartFlashcardScreen({
 
               {/* Example Sentence */}
               <View style={styles.exampleSection}>
-                <Text style={styles.exampleLabel}>Example:</Text>
+                <Text style={styles.exampleLabel}>{t('explore.smart_flashcard.example')}</Text>
                 <Text style={styles.exampleText}>
                   "{challenge.exampleSentence}"
                 </Text>
@@ -208,7 +210,7 @@ export default function SmartFlashcardScreen({
               {/* Highlight the word in example */}
               <View style={styles.highlightBox}>
                 <Text style={styles.highlightText}>
-                  The key phrase is highlighted in context above
+                  {t('explore.smart_flashcard.highlight_note')}
                 </Text>
               </View>
             </View>
@@ -223,7 +225,7 @@ export default function SmartFlashcardScreen({
               onPress={handleDone}
               activeOpacity={0.8}
             >
-              <Text style={styles.doneButtonText}>Got It! →</Text>
+              <Text style={styles.doneButtonText}>{t('explore.smart_flashcard.got_it')} →</Text>
             </TouchableOpacity>
           </Animated.View>
         )}

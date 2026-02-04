@@ -19,6 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { AuthenticationService } from '../../../api/generated';
 import { styles } from './styles/AccountPreferencesScreen.styles';
 
@@ -26,17 +27,19 @@ interface AccountPreferencesScreenProps {
   onBack: () => void;
 }
 
-// CEFR Levels with descriptions
-const CEFR_LEVELS = [
-  { value: 'A1', label: 'A1 - Beginner', description: 'Can understand and use basic phrases' },
-  { value: 'A2', label: 'A2 - Elementary', description: 'Can communicate in simple routine tasks' },
-  { value: 'B1', label: 'B1 - Intermediate', description: 'Can deal with most situations while traveling' },
-  { value: 'B2', label: 'B2 - Upper Intermediate', description: 'Can interact with native speakers fluently' },
-  { value: 'C1', label: 'C1 - Advanced', description: 'Can express ideas fluently and spontaneously' },
-  { value: 'C2', label: 'C2 - Proficient', description: 'Can understand virtually everything with ease' },
-];
-
 const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onBack }) => {
+  const { t } = useTranslation();
+
+  // CEFR Levels with descriptions
+  const CEFR_LEVELS = [
+    { value: 'A1', label: `A1 - ${t('profile.settings.account.level_beginner')}`, description: t('profile.settings.account.level_beginner_description') },
+    { value: 'A2', label: `A2 - ${t('profile.settings.account.level_elementary')}`, description: t('profile.settings.account.level_elementary_description') },
+    { value: 'B1', label: `B1 - ${t('profile.settings.account.level_intermediate')}`, description: t('profile.settings.account.level_intermediate_description') },
+    { value: 'B2', label: `B2 - ${t('profile.settings.account.level_upper_intermediate')}`, description: t('profile.settings.account.level_upper_intermediate_description') },
+    { value: 'C1', label: `C1 - ${t('profile.settings.account.level_advanced')}`, description: t('profile.settings.account.level_advanced_description') },
+    { value: 'C2', label: `C2 - ${t('profile.settings.account.level_proficient')}`, description: t('profile.settings.account.level_proficient_description') },
+  ];
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [authProvider, setAuthProvider] = useState<string>('email');
@@ -81,7 +84,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
       setAuthProvider(provider);
     } catch (error) {
       console.error('Error loading user data:', error);
-      Alert.alert('Error', 'Failed to load user data');
+      Alert.alert(t('modals.error.title'), t('profile.settings.account.error_load_user_data'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +92,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
 
   const handleSaveProfile = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Name cannot be empty');
+      Alert.alert(t('profile.settings.account.alert_validation_error'), t('profile.settings.account.alert_name_empty'));
       return;
     }
 
@@ -111,10 +114,10 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      Alert.alert('Success', 'Profile updated successfully');
+      Alert.alert(t('modals.success.title'), t('profile.settings.account.success_profile_updated'));
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      Alert.alert('Error', error.message || 'Failed to update profile');
+      Alert.alert(t('modals.error.title'), error.message || t('profile.settings.account.error_update_profile'));
     } finally {
       setSaving(false);
     }
@@ -151,10 +154,10 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
 
       console.log('✅ Proficiency level updated to:', level);
       console.log('🔄 Explore tab will refresh with new level on next focus');
-      Alert.alert('Success', `Proficiency level updated to ${level}`);
+      Alert.alert(t('modals.success.title'), t('profile.settings.account.success_level_updated', { level }));
     } catch (error: any) {
       console.error('Error updating level:', error);
-      Alert.alert('Error', error.message || 'Failed to update level');
+      Alert.alert(t('modals.error.title'), error.message || t('profile.settings.account.error_update_level'));
       // Revert on error
       await loadUserData();
     } finally {
@@ -164,17 +167,17 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
 
   const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Validation Error', 'Please fill in all password fields');
+      Alert.alert(t('profile.settings.account.alert_validation_error'), t('profile.settings.account.alert_password_fields_empty'));
       return;
     }
 
     if (newPassword.length < 6) {
-      Alert.alert('Validation Error', 'Password must be at least 6 characters long');
+      Alert.alert(t('profile.settings.account.alert_validation_error'), t('profile.settings.account.alert_password_too_short'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Validation Error', 'New passwords do not match');
+      Alert.alert(t('profile.settings.account.alert_validation_error'), t('profile.settings.account.alert_passwords_no_match'));
       return;
     }
 
@@ -194,10 +197,10 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
       setNewPassword('');
       setConfirmPassword('');
 
-      Alert.alert('Success', 'Password updated successfully');
+      Alert.alert(t('modals.success.title'), t('profile.settings.account.success_password_updated'));
     } catch (error: any) {
       console.error('Error updating password:', error);
-      Alert.alert('Error', error.message || 'Failed to update password. Please check your current password.');
+      Alert.alert(t('modals.error.title'), error.message || t('profile.settings.account.error_update_password'));
     } finally {
       setSaving(false);
     }
@@ -222,11 +225,11 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      Alert.alert('Account Deleted', 'Your account has been permanently deleted. We are sorry to see you go!');
+      Alert.alert(t('profile.settings.account.success_account_deleted'), t('profile.settings.account.success_account_deleted_message'));
       setShowDeleteModal(false);
     } catch (error: any) {
       console.error('Error deleting account:', error);
-      Alert.alert('Error', 'Failed to delete account. Please try again.');
+      Alert.alert(t('modals.error.title'), t('profile.settings.account.error_delete_account'));
       setDeleting(false);
     }
   };
@@ -245,7 +248,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#64748B" />
           </TouchableOpacity>
-          <Text style={styles.title}>Account Preferences</Text>
+          <Text style={styles.title}>{t('profile.settings.account.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
@@ -262,7 +265,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#64748B" />
         </TouchableOpacity>
-        <Text style={styles.title}>Account Preferences</Text>
+        <Text style={styles.title}>{t('profile.settings.account.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -272,29 +275,29 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="person" size={20} color="#4ECFBF" />
-            <Text style={styles.sectionTitle}>Personal Information</Text>
+            <Text style={styles.sectionTitle}>{t('profile.settings.account.section_personal_info')}</Text>
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={styles.label}>{t('profile.settings.account.label_full_name')}</Text>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Enter your name"
+              placeholder={t('profile.settings.account.placeholder_name')}
               placeholderTextColor="#9CA3AF"
             />
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={styles.label}>{t('profile.settings.account.label_email_address')}</Text>
             <TextInput
               style={[styles.input, styles.inputDisabled]}
               value={email}
               editable={false}
               placeholderTextColor="#9CA3AF"
             />
-            <Text style={styles.fieldNote}>Email cannot be changed</Text>
+            <Text style={styles.fieldNote}>{t('profile.settings.account.note_email_cannot_change')}</Text>
           </View>
 
           <TouchableOpacity
@@ -308,7 +311,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
             ) : (
               <>
                 <Ionicons name="save" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>Save Changes</Text>
+                <Text style={styles.saveButtonText}>{t('profile.settings.account.button_save_changes')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -318,11 +321,11 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="school" size={20} color="#4ECFBF" />
-            <Text style={styles.sectionTitle}>Proficiency Level</Text>
+            <Text style={styles.sectionTitle}>{t('profile.settings.account.section_proficiency_level')}</Text>
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>My Current Level</Text>
+            <Text style={styles.label}>{t('profile.settings.account.label_current_level')}</Text>
             <TouchableOpacity
               style={styles.levelSelector}
               onPress={() => {
@@ -345,7 +348,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
             <Text style={styles.fieldNote}>
-              Your defined level
+              {t('profile.settings.account.note_defined_level')}
             </Text>
           </View>
         </View>
@@ -355,7 +358,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
           <View style={[styles.section, styles.disabledSection]}>
             <View style={styles.sectionHeader}>
               <Ionicons name="lock-closed" size={20} color="#9CA3AF" />
-              <Text style={[styles.sectionTitle, styles.disabledSectionTitle]}>Password & Security</Text>
+              <Text style={[styles.sectionTitle, styles.disabledSectionTitle]}>{t('profile.settings.account.section_password_security')}</Text>
             </View>
 
             <View style={styles.googleAccountNotice}>
@@ -363,12 +366,12 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
                 <Ionicons name="logo-google" size={24} color="#DB4437" />
               </View>
               <View style={styles.googleAccountNoticeContent}>
-                <Text style={styles.googleAccountNoticeTitle}>Google Account</Text>
+                <Text style={styles.googleAccountNoticeTitle}>{t('profile.settings.account.google_account_title')}</Text>
                 <Text style={styles.googleAccountNoticeText}>
-                  Your account is linked to Google. Password management is handled by your Google account settings.
+                  {t('profile.settings.account.google_account_description')}
                 </Text>
                 <Text style={styles.googleAccountNoticeLink}>
-                  Manage your Google password at myaccount.google.com
+                  {t('profile.settings.account.google_account_link')}
                 </Text>
               </View>
             </View>
@@ -377,45 +380,45 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="lock-closed" size={20} color="#4ECFBF" />
-              <Text style={styles.sectionTitle}>Password & Security</Text>
+              <Text style={styles.sectionTitle}>{t('profile.settings.account.section_password_security')}</Text>
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Current Password</Text>
+              <Text style={styles.label}>{t('profile.settings.account.label_current_password')}</Text>
               <TextInput
                 style={styles.input}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                placeholder="Enter current password"
+                placeholder={t('profile.settings.account.placeholder_current_password')}
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry
               />
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>New Password</Text>
+              <Text style={styles.label}>{t('profile.settings.account.label_new_password')}</Text>
               <TextInput
                 style={styles.input}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Enter new password"
+                placeholder={t('profile.settings.account.placeholder_new_password')}
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry
               />
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Confirm New Password</Text>
+              <Text style={styles.label}>{t('profile.settings.account.label_confirm_new_password')}</Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={t('profile.settings.account.placeholder_confirm_password')}
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry
               />
               <Text style={styles.fieldNote}>
-                Password must be at least 6 characters long
+                {t('profile.settings.account.note_password_min_length')}
               </Text>
             </View>
 
@@ -430,7 +433,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
               ) : (
                 <>
                   <Ionicons name="key" size={20} color="#FFFFFF" />
-                  <Text style={styles.saveButtonText}>Update Password</Text>
+                  <Text style={styles.saveButtonText}>{t('profile.settings.account.button_update_password')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -442,14 +445,14 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
           <View style={styles.sectionHeader}>
             <Ionicons name="warning" size={20} color="#EF4444" />
             <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>
-              Dangerous Area
+              {t('profile.settings.account.section_dangerous_area')}
             </Text>
           </View>
 
           <View style={styles.dangerCard}>
-            <Text style={styles.dangerTitle}>Delete Account</Text>
+            <Text style={styles.dangerTitle}>{t('profile.settings.account.button_delete_account')}</Text>
             <Text style={styles.dangerDescription}>
-              Permanently delete your account and all associated data. This action cannot be undone.
+              {t('profile.settings.account.delete_description')}
             </Text>
             <TouchableOpacity
               style={styles.dangerButton}
@@ -457,7 +460,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
               activeOpacity={0.7}
             >
               <Ionicons name="trash" size={20} color="#FFFFFF" />
-              <Text style={styles.dangerButtonText}>Delete Account</Text>
+              <Text style={styles.dangerButtonText}>{t('profile.settings.account.button_delete_account')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -478,31 +481,31 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
               </View>
             </View>
 
-            <Text style={styles.deleteModalTitle}>Delete Account?</Text>
-            <Text style={styles.deleteModalSubtitle}>This action cannot be undone</Text>
+            <Text style={styles.deleteModalTitle}>{t('profile.settings.account.delete_title')}</Text>
+            <Text style={styles.deleteModalSubtitle}>{t('profile.settings.account.delete_subtitle')}</Text>
 
             <View style={styles.deleteModalWarningBox}>
-              <Text style={styles.deleteModalWarningTitle}>⚠️ You will permanently lose:</Text>
+              <Text style={styles.deleteModalWarningTitle}>⚠️ {t('profile.settings.account.delete_warning_title')}</Text>
               <View style={styles.deleteModalWarningList}>
                 <View style={styles.deleteModalWarningItem}>
                   <Ionicons name="close-circle" size={16} color="#DC2626" />
-                  <Text style={styles.deleteModalWarningText}>All your learning progress and history</Text>
+                  <Text style={styles.deleteModalWarningText}>{t('profile.settings.account.delete_warning_progress')}</Text>
                 </View>
                 <View style={styles.deleteModalWarningItem}>
                   <Ionicons name="close-circle" size={16} color="#DC2626" />
-                  <Text style={styles.deleteModalWarningText}>Your personalized learning plans</Text>
+                  <Text style={styles.deleteModalWarningText}>{t('profile.settings.account.delete_warning_plans')}</Text>
                 </View>
                 <View style={styles.deleteModalWarningItem}>
                   <Ionicons name="close-circle" size={16} color="#DC2626" />
-                  <Text style={styles.deleteModalWarningText}>All flashcards and study materials</Text>
+                  <Text style={styles.deleteModalWarningText}>{t('profile.settings.account.delete_warning_flashcards')}</Text>
                 </View>
                 <View style={styles.deleteModalWarningItem}>
                   <Ionicons name="close-circle" size={16} color="#DC2626" />
-                  <Text style={styles.deleteModalWarningText}>Your subscription and payment information</Text>
+                  <Text style={styles.deleteModalWarningText}>{t('profile.settings.account.delete_warning_subscription')}</Text>
                 </View>
                 <View style={styles.deleteModalWarningItem}>
                   <Ionicons name="close-circle" size={16} color="#DC2626" />
-                  <Text style={styles.deleteModalWarningText}>Access to your account forever</Text>
+                  <Text style={styles.deleteModalWarningText}>{t('profile.settings.account.delete_warning_access')}</Text>
                 </View>
               </View>
             </View>
@@ -514,7 +517,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
                 disabled={deleting}
                 activeOpacity={0.8}
               >
-                <Text style={styles.deleteCancelButtonText}>Keep My Account</Text>
+                <Text style={styles.deleteCancelButtonText}>{t('profile.settings.account.delete_cancel_button')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.deleteConfirmButton, deleting && styles.deleteConfirmButtonDisabled]}
@@ -527,7 +530,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
                 ) : (
                   <>
                     <Ionicons name="trash" size={18} color="#FFFFFF" />
-                    <Text style={styles.deleteConfirmButtonText}>Delete Forever</Text>
+                    <Text style={styles.deleteConfirmButtonText}>{t('profile.settings.account.delete_confirm_button')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -547,9 +550,9 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
           <Pressable style={styles.levelPickerContainer} onPress={(e) => e.stopPropagation()}>
             {/* Header */}
             <View style={styles.levelPickerHeader}>
-              <Text style={styles.levelPickerTitle}>Select Your Proficiency Level</Text>
+              <Text style={styles.levelPickerTitle}>{t('profile.settings.account.level_picker_title')}</Text>
               <Text style={styles.levelPickerSubtitle}>
-                Choose the CEFR level that best matches your ability
+                {t('profile.settings.account.level_picker_subtitle')}
               </Text>
             </View>
 
@@ -610,7 +613,7 @@ const AccountPreferencesScreen: React.FC<AccountPreferencesScreenProps> = ({ onB
               }}
               activeOpacity={0.8}
             >
-              <Text style={styles.levelPickerCancelText}>Cancel</Text>
+              <Text style={styles.levelPickerCancelText}>{t('buttons.cancel')}</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>

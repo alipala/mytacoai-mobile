@@ -9,7 +9,9 @@ import {
   ScrollView,
   Platform,
   Switch,
+  StyleSheet,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -30,120 +32,7 @@ interface ConversationHelpModalProps {
   variant?: 'modal' | 'inline'; // NEW: Support inline rendering
 }
 
-// UI text translations
-const getUIText = (language: string) => {
-  const texts: Record<string, any> = {
-    english: {
-      conversationHelp: 'Conversation Help',
-      whatAiSaid: 'What the AI said:',
-      suggestedResponses: 'Suggested responses:',
-      keyVocabulary: 'Key vocabulary:',
-      grammarTips: 'Grammar tips:',
-      culturalNote: 'Cultural note:',
-      generatingHelp: 'Generating Help',
-      analyzing: 'AI is analyzing the conversation...',
-      creating: 'Creating suggestions for you',
-      tapToSelect: 'Tap to use this response',
-      close: 'Close',
-      enableHelp: 'Enable Help',
-      tapMicToSpeak: 'Tap microphone to speak',
-      readyToRespond: 'Ready to respond?',
-    },
-    spanish: {
-      conversationHelp: 'Ayuda de Conversación',
-      whatAiSaid: 'Lo que dijo la IA:',
-      suggestedResponses: 'Respuestas sugeridas:',
-      keyVocabulary: 'Vocabulario clave:',
-      grammarTips: 'Consejos de gramática:',
-      culturalNote: 'Nota cultural:',
-      generatingHelp: 'Generando Ayuda',
-      analyzing: 'La IA está analizando...',
-      creating: 'Creando sugerencias',
-      tapToSelect: 'Toca para usar esta respuesta',
-      close: 'Cerrar',
-    },
-    french: {
-      conversationHelp: 'Aide à la Conversation',
-      whatAiSaid: "Ce que l'IA a dit:",
-      suggestedResponses: 'Réponses suggérées:',
-      keyVocabulary: 'Vocabulaire clé:',
-      grammarTips: 'Conseils grammaticaux:',
-      culturalNote: 'Note culturelle:',
-      generatingHelp: "Génération d'Aide",
-      analyzing: "L'IA analyse...",
-      creating: 'Création de suggestions',
-      tapToSelect: 'Appuyez pour utiliser',
-      close: 'Fermer',
-    },
-    german: {
-      conversationHelp: 'Gesprächshilfe',
-      whatAiSaid: 'Was die KI gesagt hat:',
-      suggestedResponses: 'Vorgeschlagene Antworten:',
-      keyVocabulary: 'Wichtige Vokabeln:',
-      grammarTips: 'Grammatik-Tipps:',
-      culturalNote: 'Kulturelle Notiz:',
-      generatingHelp: 'Hilfe generieren',
-      analyzing: 'KI analysiert...',
-      creating: 'Vorschläge erstellen',
-      tapToSelect: 'Tippen zum Verwenden',
-      close: 'Schließen',
-    },
-    italian: {
-      conversationHelp: 'Aiuto Conversazione',
-      whatAiSaid: "Quello che ha detto l'IA:",
-      suggestedResponses: 'Risposte suggerite:',
-      keyVocabulary: 'Vocabolario chiave:',
-      grammarTips: 'Suggerimenti grammaticali:',
-      culturalNote: 'Nota culturale:',
-      generatingHelp: 'Generazione Aiuto',
-      analyzing: "L'IA sta analizzando...",
-      creating: 'Creazione suggerimenti',
-      tapToSelect: 'Tocca per usare',
-      close: 'Chiudi',
-    },
-    portuguese: {
-      conversationHelp: 'Ajuda de Conversa',
-      whatAiSaid: 'O que a IA disse:',
-      suggestedResponses: 'Respostas sugeridas:',
-      keyVocabulary: 'Vocabulário chave:',
-      grammarTips: 'Dicas de gramática:',
-      culturalNote: 'Nota cultural:',
-      generatingHelp: 'Gerando Ajuda',
-      analyzing: 'IA está analisando...',
-      creating: 'Criando sugestões',
-      tapToSelect: 'Toque para usar',
-      close: 'Fechar',
-    },
-    dutch: {
-      conversationHelp: 'Gesprekshulp',
-      whatAiSaid: 'Wat de AI zei:',
-      suggestedResponses: 'Voorgestelde antwoorden:',
-      keyVocabulary: 'Belangrijke woordenschat:',
-      grammarTips: 'Grammatica tips:',
-      culturalNote: 'Culturele opmerking:',
-      generatingHelp: 'Hulp Genereren',
-      analyzing: 'AI analyseert...',
-      creating: 'Suggesties maken',
-      tapToSelect: 'Tik om te gebruiken',
-      close: 'Sluiten',
-    },
-    turkish: {
-      conversationHelp: 'Konuşma Yardımı',
-      whatAiSaid: "AI'nın söylediği:",
-      suggestedResponses: 'Önerilen yanıtlar:',
-      keyVocabulary: 'Anahtar kelimeler:',
-      grammarTips: 'Dilbilgisi ipuçları:',
-      culturalNote: 'Kültürel not:',
-      generatingHelp: 'Yardım Oluşturuluyor',
-      analyzing: 'AI analiz ediyor...',
-      creating: 'Öneriler oluşturuluyor',
-      tapToSelect: 'Kullanmak için dokun',
-      close: 'Kapat',
-    },
-  };
-
-  return texts[language] || texts.english;
-};
+// UI text translations are now handled by i18n system
 
 const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   visible,
@@ -157,6 +46,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   onToggleHelp,
   variant = 'modal', // Default to modal behavior
 }) => {
+  const { t } = useTranslation();
   const [scaleAnim] = useState(new Animated.Value(0));
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(20));
@@ -167,8 +57,6 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     new Animated.Value(0),
   ]).current;
   const micPulseAnim = useRef(new Animated.Value(1)).current;
-
-  const uiText = getUIText(helpLanguage);
 
   // Entrance and exit animations
   useEffect(() => {
@@ -324,7 +212,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
               <View style={styles.iconContainer}>
                 <Ionicons name="chatbubble-ellipses" size={16} color="#8B5CF6" />
               </View>
-              <Text style={styles.title}>{uiText.conversationHelp}</Text>
+              <Text style={styles.title}>{t('practice.conversation.help.conversation_help')}</Text>
             </View>
             <View style={styles.headerRight}>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -346,8 +234,8 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                 <View style={styles.loadingIconContainer}>
                   <Ionicons name="sparkles" size={32} color="#8B5CF6" />
                 </View>
-                <Text style={styles.loadingTitle}>{uiText.generatingHelp}</Text>
-                <Text style={styles.loadingSubtitle}>{uiText.analyzing}</Text>
+                <Text style={styles.loadingTitle}>{t('practice.conversation.help.generating_help')}</Text>
+                <Text style={styles.loadingSubtitle}>{t('practice.conversation.help.analyzing')}</Text>
                 <View style={styles.dotsContainer}>
                   {dotAnimations.map((anim, index) => (
                     <Animated.View
@@ -384,7 +272,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                       onPress={() => toggleSection('responses')}
                     >
                       <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-                      <Text style={styles.sectionTitle}>{uiText.suggestedResponses}</Text>
+                      <Text style={styles.sectionTitle}>{t('practice.conversation.help.suggested_responses')}</Text>
                       <Ionicons
                         name={expandedSections.has('responses') ? 'chevron-up' : 'chevron-down'}
                         size={18}
@@ -426,7 +314,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                       onPress={() => toggleSection('vocabulary')}
                     >
                       <Ionicons name="book-outline" size={18} color="#F59E0B" />
-                      <Text style={styles.sectionTitle}>{uiText.keyVocabulary}</Text>
+                      <Text style={styles.sectionTitle}>{t('practice.conversation.help.key_vocabulary')}</Text>
                       <Ionicons
                         name={expandedSections.has('vocabulary') ? 'chevron-up' : 'chevron-down'}
                         size={20}
@@ -466,7 +354,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                       onPress={() => toggleSection('grammar')}
                     >
                       <Ionicons name="school-outline" size={18} color="#8B5CF6" />
-                      <Text style={styles.sectionTitle}>{uiText.grammarTips}</Text>
+                      <Text style={styles.sectionTitle}>{t('practice.conversation.help.grammar_tips')}</Text>
                       <Ionicons
                         name={expandedSections.has('grammar') ? 'chevron-up' : 'chevron-down'}
                         size={20}
@@ -495,7 +383,7 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Ionicons name="globe-outline" size={18} color="#EC4899" />
-                      <Text style={styles.sectionTitle}>{uiText.culturalNote}</Text>
+                      <Text style={styles.sectionTitle}>{t('practice.conversation.help.cultural_note')}</Text>
                     </View>
                     <View style={styles.culturalCard}>
                       <Text style={styles.culturalText}>{helpData.cultural_context?.explanation}</Text>

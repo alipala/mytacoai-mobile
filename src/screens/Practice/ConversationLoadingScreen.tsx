@@ -9,6 +9,7 @@ import {
   Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 interface ConversationLoadingScreenProps {
   navigation: any;
@@ -19,16 +20,17 @@ const ConversationLoadingScreen: React.FC<ConversationLoadingScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const { mode, language, topic, level, customTopicText, researchData } = route.params;
   const [loadingStep, setLoadingStep] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
 
   const loadingSteps = [
-    { text: 'Connecting to AI tutor...', icon: 'cloud-upload' },
-    { text: 'Preparing conversation...', icon: 'chatbubbles' },
-    { text: 'Setting up voice recognition...', icon: 'mic' },
-    { text: 'Almost ready...', icon: 'checkmark-circle' },
+    { text: t('practice.loading_step_connecting', 'Connecting to AI tutor...'), icon: 'cloud-upload' },
+    { text: t('practice.loading_step_preparing', 'Preparing conversation...'), icon: 'chatbubbles' },
+    { text: t('practice.loading_step_voice', 'Setting up voice recognition...'), icon: 'mic' },
+    { text: t('practice.loading_step_ready', 'Almost ready...'), icon: 'checkmark-circle' },
   ];
 
   useEffect(() => {
@@ -95,9 +97,11 @@ const ConversationLoadingScreen: React.FC<ConversationLoadingScreenProps> = ({
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>Starting Your Conversation</Text>
+        <Text style={styles.title}>{t('practice.starting_conversation', 'Starting Your Conversation')}</Text>
         <Text style={styles.subtitle}>
-          Preparing your {language} practice session...
+          {t('practice.preparing_session', 'Preparing your {{language}} practice session...', {
+            language: t(`practice.languages.${language}`, language)
+          })}
         </Text>
 
         {/* Loading Spinner */}
@@ -152,25 +156,25 @@ const ConversationLoadingScreen: React.FC<ConversationLoadingScreenProps> = ({
         <View style={styles.detailsCard}>
           <View style={styles.detailRow}>
             <Ionicons name="language" size={18} color="#6B7280" />
-            <Text style={styles.detailLabel}>Language:</Text>
+            <Text style={styles.detailLabel}>{t('practice.conversation.label_language')}:</Text>
             <Text style={styles.detailValue}>
-              {language.charAt(0).toUpperCase() + language.slice(1)}
+              {t(`practice.languages.${language}`, language.charAt(0).toUpperCase() + language.slice(1))}
             </Text>
           </View>
           <View style={styles.detailRow}>
             <Ionicons name="chatbubbles" size={18} color="#6B7280" />
-            <Text style={styles.detailLabel}>Topic:</Text>
+            <Text style={styles.detailLabel}>{t('practice.conversation.label_topic')}:</Text>
             <Text style={styles.detailValue}>
               {topic === 'custom' && customTopicText
                 ? customTopicText.length > 30
                   ? customTopicText.substring(0, 30) + '...'
                   : customTopicText
-                : topic.charAt(0).toUpperCase() + topic.slice(1)}
+                : t(`practice.topics.${topic}`, topic.charAt(0).toUpperCase() + topic.slice(1))}
             </Text>
           </View>
           <View style={styles.detailRow}>
             <Ionicons name="bar-chart" size={18} color="#6B7280" />
-            <Text style={styles.detailLabel}>Level:</Text>
+            <Text style={styles.detailLabel}>{t('practice.conversation.label_level')}:</Text>
             <Text style={styles.detailValue}>{level}</Text>
           </View>
         </View>

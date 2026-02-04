@@ -13,6 +13,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NewsDetailModal from '../../components/NewsDetailModal';
@@ -77,46 +78,47 @@ const SkeletonCard = () => {
   );
 };
 
-// Helper function to get time ago string
-const getTimeAgo = (timestamp?: string): string => {
-  if (!timestamp) return 'Today';
-
-  const now = new Date();
-  const articleDate = new Date(timestamp);
-  const diffMs = now.getTime() - articleDate.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return articleDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
-
-// Get dynamic greeting based on time
-const getGreeting = (): string => {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 18) return 'Good Afternoon';
-  return 'Good Evening';
-};
-
-// Get greeting emoji
-const getGreetingEmoji = (): string => {
-  const hour = new Date().getHours();
-  if (hour < 12) return '🌅';
-  if (hour < 18) return '☀️';
-  return '🌙';
-};
-
 export default function NewsListScreen({ navigation }: any) {
+  const { t } = useTranslation();
+
+  // Helper function to get time ago string
+  const getTimeAgo = (timestamp?: string): string => {
+    if (!timestamp) return t('news.time.today');
+
+    const now = new Date();
+    const articleDate = new Date(timestamp);
+    const diffMs = now.getTime() - articleDate.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMinutes < 60) return t('news.time.minutes_ago', { count: diffMinutes });
+    if (diffHours < 24) return t('news.time.hours_ago', { count: diffHours });
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return t('news.time.yesterday');
+    if (diffDays < 7) return t('news.time.days_ago', { count: diffDays });
+    return articleDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  // Get dynamic greeting based on time
+  const getGreeting = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('news.greeting.morning');
+    if (hour < 18) return t('news.greeting.afternoon');
+    return t('news.greeting.evening');
+  };
+
+  // Get greeting emoji
+  const getGreetingEmoji = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('news.greeting_emoji.morning');
+    if (hour < 18) return t('news.greeting_emoji.afternoon');
+    return t('news.greeting_emoji.evening');
+  };
   const [newsData, setNewsData] = useState<NewsList | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all'); // Use key instead of translated string
   const [progressStats, setProgressStats] = useState<any>(null); // For streak data
 
   // Modal state
@@ -143,14 +145,14 @@ export default function NewsListScreen({ navigation }: any) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to load news');
+        throw new Error(errorData.detail || t('news.error.failed_to_load'));
       }
 
       const data = await response.json();
       setNewsData(data);
     } catch (err: any) {
       console.error('Error fetching news:', err);
-      setError(err.message || 'Failed to load news');
+      setError(err.message || t('news.error.failed_to_load'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -246,10 +248,12 @@ export default function NewsListScreen({ navigation }: any) {
   };
 
   // Get unique categories from articles
-  const categories = ['All', ...Array.from(new Set(newsData?.articles.map(a => a.category) || []))];
+  // Get unique categories from articles
+  const articleCategories = Array.from(new Set(newsData?.articles.map(a => a.category) || []));
+  const categories = ['all', ...articleCategories];
 
   // Filter articles by selected category
-  const filteredArticles = selectedCategory === 'All'
+  const filteredArticles = selectedCategory === 'all'
     ? newsData?.articles || []
     : newsData?.articles.filter(a => a.category === selectedCategory) || [];
 
@@ -312,7 +316,7 @@ export default function NewsListScreen({ navigation }: any) {
           <View style={styles.metadataRow}>
             <Text style={styles.metadataText}>{item.source}</Text>
             <View style={styles.metadataDot} />
-            <Text style={styles.metadataText}>{readTime} min</Text>
+            <Text style={styles.metadataText}>{t('news.reading_time_short', { minutes: readTime })}</Text>
             <View style={styles.metadataDot} />
             <Text style={styles.metadataText}>{timeAgo}</Text>
           </View>
@@ -331,7 +335,7 @@ export default function NewsListScreen({ navigation }: any) {
           >
             <Ionicons name="mic" size={20} color={categoryColor} />
             <Text style={[styles.ctaButtonText, { color: categoryColor }]}>
-              Speak Now
+              {t('news.button_speak_now')}
             </Text>
             <Ionicons name="arrow-forward" size={16} color={categoryColor} />
           </TouchableOpacity>
@@ -349,10 +353,10 @@ export default function NewsListScreen({ navigation }: any) {
         <SafeAreaView style={styles.container}>
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-            <Text style={styles.errorTitle}>Oops!</Text>
+            <Text style={styles.errorTitle}>{t('news.error.title')}</Text>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={fetchNews}>
-              <Text style={styles.retryButtonText}>Try Again</Text>
+              <Text style={styles.retryButtonText}>{t('news.button_try_again')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -370,7 +374,7 @@ export default function NewsListScreen({ navigation }: any) {
             </Text>
             {newsData?.fallback_used && (
               <View style={styles.fallbackBadge}>
-                <Text style={styles.fallbackText}>Yesterday</Text>
+                <Text style={styles.fallbackText}>{t('news.badges.yesterday')}</Text>
               </View>
             )}
           </View>
@@ -382,17 +386,17 @@ export default function NewsListScreen({ navigation }: any) {
           <View style={styles.statsCardsRow}>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>{progressStats?.current_streak || 0}</Text>
-              <Text style={styles.statLabel}>day streak</Text>
+              <Text style={styles.statLabel}>{t('news.stats.day_streak')}</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>{newsData?.articles.length || 0}</Text>
               <Text style={styles.statLabel}>
-                {newsData?.fallback_used ? "yesterday's" : 'today'}
+                {newsData?.fallback_used ? t('news.stats.yesterday') : t('news.stats.today')}
               </Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>{filteredArticles.length}</Text>
-              <Text style={styles.statLabel}>filtered</Text>
+              <Text style={styles.statLabel}>{t('news.stats.filtered')}</Text>
             </View>
           </View>
         </View>
@@ -409,9 +413,11 @@ export default function NewsListScreen({ navigation }: any) {
             const config = getCategoryConfig(category);
             const isSelected = selectedCategory === category;
             // Count articles in this category
-            const articleCount = category === 'All'
+            const articleCount = category === 'all'
               ? newsData?.articles.length || 0
               : newsData?.articles.filter(a => a.category === category).length || 0;
+            // Get translated category name
+            const categoryName = category === 'all' ? t('news.categories.all') : category;
 
             return (
               <TouchableOpacity
@@ -435,7 +441,7 @@ export default function NewsListScreen({ navigation }: any) {
                     },
                   ]}
                 >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                  {categoryName.charAt(0).toUpperCase() + categoryName.slice(1)}
                 </Text>
 
                 {/* Article Count Badge */}
@@ -494,15 +500,14 @@ export default function NewsListScreen({ navigation }: any) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>📰</Text>
-            <Text style={styles.emptyTitle}>Your Daily News Will Appear Here!</Text>
+            <Text style={styles.emptyEmoji}>{t('news.empty.emoji')}</Text>
+            <Text style={styles.emptyTitle}>{t('news.empty.title')}</Text>
             <Text style={styles.emptyMessage}>
-              Check back tomorrow for fresh articles{'\n'}
-              or pull down to refresh now
+              {t('news.empty.message')}
             </Text>
             <TouchableOpacity style={styles.emptyButton} onPress={fetchNews}>
               <Ionicons name="refresh" size={20} color="#14B8A6" />
-              <Text style={styles.emptyButtonText}>Refresh News</Text>
+              <Text style={styles.emptyButtonText}>{t('news.button_refresh')}</Text>
             </TouchableOpacity>
           </View>
         }

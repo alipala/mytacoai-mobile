@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 // Import SVG flags as components
 import EnglishFlag from '../../assets/flags/english.svg';
@@ -82,6 +83,7 @@ const LANGUAGES: Language[] = [
 const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScreenProps> = ({
   navigation,
 }) => {
+  const { t } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   const handleLanguageSelect = (languageId: string) => {
@@ -122,7 +124,7 @@ const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScr
         >
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Speaking Assessment</Text>
+        <Text style={styles.headerTitle}>{t('assessment.speaking.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -136,9 +138,9 @@ const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScr
           <View style={styles.iconContainer}>
             <Ionicons name="mic-outline" size={40} color="#14B8A6" />
           </View>
-          <Text style={styles.title}>Choose Your Language</Text>
+          <Text style={styles.title}>{t('assessment.language_selection.title')}</Text>
           <Text style={styles.subtitle}>
-            Select the language you want to be assessed in
+            {t('assessment.language_selection.subtitle')}
           </Text>
         </View>
 
@@ -190,7 +192,7 @@ const AssessmentLanguageSelectionScreen: React.FC<AssessmentLanguageSelectionScr
           disabled={!selectedLanguage}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>{t('buttons.continue')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>

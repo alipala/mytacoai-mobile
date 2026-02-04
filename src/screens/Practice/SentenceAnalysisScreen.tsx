@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { BackgroundAnalysisResponse } from '../../api/generated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -29,6 +30,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const { analyses, sessionSummary, duration, messageCount } = route.params;
   const [currentAnalysisIndex, setCurrentAnalysisIndex] = useState(0);
 
@@ -42,10 +44,10 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 90) return 'Excellent';
-    if (score >= 75) return 'Good';
-    if (score >= 60) return 'Fair';
-    return 'Needs Work';
+    if (score >= 90) return t('practice.analysis.label_excellent');
+    if (score >= 75) return t('practice.analysis.label_good');
+    if (score >= 60) return t('practice.analysis.label_fair');
+    return t('practice.analysis.label_needs_work');
   };
 
   const handlePrevious = () => {
@@ -80,9 +82,9 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Sentence Analysis</Text>
+          <Text style={styles.headerTitle}>{t('practice.analysis.title')}</Text>
           <Text style={styles.headerSubtitle}>
-            {currentAnalysisIndex + 1} of {analyses.length}
+            {t('practice.analysis.subtitle', { current: currentAnalysisIndex + 1, total: analyses.length })}
           </Text>
         </View>
 
@@ -103,7 +105,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
             <Ionicons name="document-text-outline" size={20} color="#14B8A6" />
-            <Text style={styles.summaryTitle}>Session Summary</Text>
+            <Text style={styles.summaryTitle}>{t('practice.analysis.section_summary')}</Text>
           </View>
           <Text style={styles.summaryText}>{sessionSummary}</Text>
           {(duration || messageCount) && (
@@ -117,7 +119,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
               {messageCount && (
                 <View style={styles.summaryStatItem}>
                   <Ionicons name="chatbubbles-outline" size={16} color="#6B7280" />
-                  <Text style={styles.summaryStatText}>{messageCount} messages</Text>
+                  <Text style={styles.summaryStatText}>{t('practice.analysis.stat_messages', { count: messageCount })}</Text>
                 </View>
               )}
             </View>
@@ -135,7 +137,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
           <>
             {/* Your Sentence */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Your Sentence</Text>
+              <Text style={styles.sectionTitle}>{t('practice.analysis.section_sentence')}</Text>
               <View style={styles.sentenceCard}>
                 <Text style={styles.sentenceText}>
                   {currentAnalysis.recognized_text}
@@ -145,25 +147,25 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
 
             {/* Scores Grid */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Scores</Text>
+              <Text style={styles.sectionTitle}>{t('practice.analysis.section_scores')}</Text>
               <View style={styles.scoresGrid}>
                 <ScoreCard
-                  label="Grammar"
+                  label={t('practice.analysis.label_grammar')}
                   score={currentAnalysis.grammatical_score}
                   color={getScoreColor(currentAnalysis.grammatical_score)}
                 />
                 <ScoreCard
-                  label="Vocabulary"
+                  label={t('practice.analysis.label_vocabulary')}
                   score={currentAnalysis.vocabulary_score}
                   color={getScoreColor(currentAnalysis.vocabulary_score)}
                 />
                 <ScoreCard
-                  label="Complexity"
+                  label={t('practice.analysis.label_complexity')}
                   score={currentAnalysis.complexity_score}
                   color={getScoreColor(currentAnalysis.complexity_score)}
                 />
                 <ScoreCard
-                  label="Overall"
+                  label={t('practice.analysis.label_overall')}
                   score={currentAnalysis.overall_score}
                   color={getScoreColor(currentAnalysis.overall_score)}
                 />
@@ -173,7 +175,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             {/* Grammar Issues */}
             {currentAnalysis.grammar_issues.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Grammar Issues</Text>
+                <Text style={styles.sectionTitle}>{t('practice.analysis.section_grammar_issues')}</Text>
                 {currentAnalysis.grammar_issues.map((issue: any, index: number) => (
                   <View key={index} style={styles.issueCard}>
                     <View style={styles.issueHeader}>
@@ -182,7 +184,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
                     </View>
                     {issue.correction && (
                       <Text style={styles.issueCorrection}>
-                        <Text style={styles.issueLabel}>Correction: </Text>
+                        <Text style={styles.issueLabel}>{t('practice.analysis.label_correction')}</Text>
                         {issue.correction}
                       </Text>
                     )}
@@ -197,7 +199,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             {/* Improvement Suggestions */}
             {currentAnalysis.improvement_suggestions.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Improvement Tips</Text>
+                <Text style={styles.sectionTitle}>{t('practice.analysis.section_improvement_tips')}</Text>
                 {currentAnalysis.improvement_suggestions.map((suggestion, index) => (
                   <View key={index} style={styles.suggestionCard}>
                     <Ionicons name="bulb-outline" size={20} color="#FFD63A" />
@@ -211,7 +213,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             {currentAnalysis.level_appropriate_alternatives &&
               currentAnalysis.level_appropriate_alternatives.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Alternative Ways to Say This</Text>
+                  <Text style={styles.sectionTitle}>{t('practice.analysis.section_alternatives')}</Text>
                   {currentAnalysis.level_appropriate_alternatives.map((alt, index) => (
                     <View key={index} style={styles.alternativeCard}>
                       <Text style={styles.alternativeText}>{alt}</Text>
@@ -232,7 +234,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             activeOpacity={0.7}
           >
             <Ionicons name="chevron-back" size={24} color="#14B8A6" />
-            <Text style={styles.navButtonText}>Previous</Text>
+            <Text style={styles.navButtonText}>{t('practice.analysis.button_previous')}</Text>
           </TouchableOpacity>
 
           <View style={styles.pagination}>
@@ -252,7 +254,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             onPress={handleNext}
             activeOpacity={0.7}
           >
-            <Text style={styles.navButtonText}>Next</Text>
+            <Text style={styles.navButtonText}>{t('practice.analysis.button_next')}</Text>
             <Ionicons name="chevron-forward" size={24} color="#14B8A6" />
           </TouchableOpacity>
         </View>

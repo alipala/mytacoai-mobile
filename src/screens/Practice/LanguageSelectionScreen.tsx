@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 // Import SVG flags as components
 import EnglishFlag from '../../assets/flags/english.svg';
@@ -84,6 +85,7 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const mode = route.params?.mode || 'practice';
 
@@ -113,7 +115,7 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Select Language</Text>
+        <Text style={styles.headerTitle}>{t('practice.conversation.label_language')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -131,7 +133,7 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Choose Your Language</Text>
+        <Text style={styles.title}>{t('practice.conversation.label_language')}</Text>
 
         {/* Language Grid */}
         <View style={styles.languageGrid}>
@@ -151,7 +153,7 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
               <View style={styles.languageCardContent}>
                 <language.FlagComponent width={48} height={48} style={styles.languageFlag} />
                 <View style={styles.languageInfo}>
-                  <Text style={styles.languageName}>{language.name}</Text>
+                  <Text style={styles.languageName}>{t(`practice.languages.${language.id}`)}</Text>
                   <Text style={styles.languageNativeName}>
                     {language.nativeName}
                   </Text>
@@ -178,7 +180,7 @@ const LanguageSelectionScreen: React.FC<LanguageSelectionScreenProps> = ({
           disabled={!selectedLanguage}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>{t('buttons.continue')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>

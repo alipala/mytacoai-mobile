@@ -20,6 +20,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifetimeProgress } from '../hooks/useStats';
@@ -31,6 +32,7 @@ interface LifetimeProgressCardProps {
 }
 
 export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCardProps) {
+  const { t } = useTranslation();
   const { lifetime, isLoading, error, refetchLifetime } = useLifetimeProgress(false, true);
 
   // Debug logging
@@ -337,8 +339,8 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
           <View style={styles.headerLeft}>
             <Ionicons name="trophy" size={24} color="#FBBF24" style={{ marginRight: 10 }} />
             <View>
-              <Text style={styles.headerTitle}>Lifetime Progress</Text>
-              <Text style={styles.headerSubtitle}>All-time achievements</Text>
+              <Text style={styles.headerTitle}>{t('explore.stats.lifetime_progress')}</Text>
+              <Text style={styles.headerSubtitle}>{t('explore.stats.all_time_achievements')}</Text>
             </View>
           </View>
           <View style={styles.levelBadge}>
@@ -353,7 +355,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
             {/* Challenges - Turquoise */}
             <View style={[styles.statBox, { backgroundColor: 'rgba(20, 184, 166, 0.12)', borderColor: 'rgba(20, 184, 166, 0.4)' }]}>
               <Text style={[styles.statValue, { color: '#14B8A6' }]}>{formatNumber(lifetime.summary.total_challenges)}</Text>
-              <Text style={[styles.statLabel, { color: '#B4E4DD' }]}>Challenges</Text>
+              <Text style={[styles.statLabel, { color: '#B4E4DD' }]}>{t('explore.stats.challenges')}</Text>
             </View>
 
             {/* Accuracy - Coral */}
@@ -361,7 +363,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
               <Text style={[styles.statValue, { color: '#F75A5A' }]}>
                 {Math.round(overallAccuracy)}%
               </Text>
-              <Text style={[styles.statLabel, { color: '#FFB4B4' }]}>Accuracy</Text>
+              <Text style={[styles.statLabel, { color: '#FFB4B4' }]}>{t('explore.stats.accuracy')}</Text>
             </View>
           </View>
 
@@ -369,13 +371,13 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
             {/* Total XP - Yellow */}
             <View style={[styles.statBox, { backgroundColor: 'rgba(139, 92, 246, 0.12)', borderColor: 'rgba(139, 92, 246, 0.4)' }]}>
               <Text style={[styles.statValue, { color: '#8B5CF6' }]}>{formatNumber(lifetime.summary.total_xp)}</Text>
-              <Text style={[styles.statLabel, { color: '#C4B5FD' }]}>Total XP</Text>
+              <Text style={[styles.statLabel, { color: '#C4B5FD' }]}>{t('explore.stats.total_xp')}</Text>
             </View>
 
             {/* Best Streak - Orange */}
             <View style={[styles.statBox, { backgroundColor: 'rgba(251, 191, 36, 0.12)', borderColor: 'rgba(251, 191, 36, 0.4)' }]}>
               <Text style={[styles.statValue, { color: '#FBBF24' }]}>{lifetime.summary.longest_streak}</Text>
-              <Text style={[styles.statLabel, { color: '#FDE68A' }]}>Best Streak</Text>
+              <Text style={[styles.statLabel, { color: '#FDE68A' }]}>{t('explore.stats.best_streak')}</Text>
             </View>
           </View>
         </View>
@@ -385,7 +387,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Ionicons name="language" size={16} color="#14B8A6" />
-              <Text style={styles.sectionTitle}>Top Languages</Text>
+              <Text style={styles.sectionTitle}>{t('explore.stats.top_languages')}</Text>
             </View>
             <View style={styles.languagesGridHorizontal}>
               {topLanguages.slice(0, 2).map(([lang, progress]) => {
@@ -425,7 +427,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Ionicons name="game-controller" size={16} color="#8B5CF6" />
-              <Text style={styles.sectionTitle}>Top Challenge Types</Text>
+              <Text style={styles.sectionTitle}>{t('explore.stats.top_challenge_types')}</Text>
             </View>
             <View style={styles.typesGrid}>
               {topTypes.slice(0, 2).map(([type, mastery]) => {

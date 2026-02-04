@@ -9,7 +9,8 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Circle, Line, Polygon, Text as SvgText } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedProps, withTiming, Easing } from 'react-native-reanimated';
-import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from '../constants.OLD';
+import { useTranslation } from 'react-i18next';
+import { DNA_COLORS, THEME_COLORS, getStrandScore } from '../constants.OLD';
 import { SpeakingDNAProfile, DNAStrandKey } from '../../../types/speakingDNA';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -24,10 +25,11 @@ interface DNARadarChartProps {
 }
 
 export const DNARadarChart: React.FC<DNARadarChartProps> = ({ profile }) => {
+  const { t } = useTranslation();
   const animationProgress = useSharedValue(0);
 
   // Get all strand keys and values
-  const strands = Object.keys(DNA_STRAND_LABELS) as DNAStrandKey[];
+  const strands: DNAStrandKey[] = ['rhythm', 'confidence', 'vocabulary', 'accuracy', 'learning', 'emotional'];
   const strandCount = strands.length;
   const angleStep = (2 * Math.PI) / strandCount;
 
@@ -141,7 +143,7 @@ export const DNARadarChart: React.FC<DNARadarChartProps> = ({ profile }) => {
           {strands.map((strand, index) => {
             const { x, y } = getLabelPosition(index);
             const value = strandScores[index];
-            const label = DNA_STRAND_LABELS[strand];
+            const label = t(`profile.dna.strand_${strand}`);
 
             return (
               <View

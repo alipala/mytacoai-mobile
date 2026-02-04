@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../constants/colors';
 
 interface WelcomeScreenProps {
@@ -23,6 +24,7 @@ interface WelcomeScreenProps {
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -158,32 +160,32 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             {/* Text Content */}
             <View style={styles.textContent}>
               {/* Tagline */}
-              <Text style={styles.tagline}>Practice Languages Naturally</Text>
+              <Text style={styles.tagline}>{t('onboarding.welcome.tagline')}</Text>
 
               {/* Title */}
-              <Text style={styles.title}>Start Speaking with Confidence</Text>
+              <Text style={styles.title}>{t('onboarding.welcome.title')}</Text>
 
               {/* Benefit Pills */}
               <View style={styles.benefitsContainer}>
                 <View style={styles.benefitPill}>
                   <Ionicons name="albums-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>Smart Flashcards</Text>
+                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_smart_flashcards')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
                   <Ionicons name="ribbon-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>Personalised Learning</Text>
+                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_personalised_learning')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
                   <Ionicons name="analytics-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>Adaptive AI</Text>
+                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_adaptive_ai')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
                   <Ionicons name="list-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>Custom Topics</Text>
+                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_custom_topics')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
                   <Ionicons name="trending-up-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>Progress Tracking</Text>
+                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_progress_tracking')}</Text>
                 </View>
               </View>
             </View>
@@ -196,7 +198,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
               {/* Try as Guest Button */}
               <TouchableOpacity style={styles.guestButton} onPress={handleTryAsGuest}>
                 <Ionicons name="play-circle" size={24} color={COLORS.white} style={styles.buttonIcon} />
-                <Text style={styles.guestButtonText}>START FREE PRACTICE</Text>
+                <Text style={styles.guestButtonText}>{t('onboarding.welcome.button_start_free_practice')}</Text>
               </TouchableOpacity>
 
               {/* Login Button */}
@@ -204,11 +206,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                 style={styles.createAccountButton}
                 onPress={handleCreateAccount}
               >
-                <Text style={styles.createAccountButtonText}>LOGIN</Text>
+                <Text style={styles.createAccountButtonText}>{t('onboarding.welcome.button_login')}</Text>
               </TouchableOpacity>
 
               {/* Reassurance Text */}
-              <Text style={styles.reassurance}>No credit card required</Text>
+              <Text style={styles.reassurance}>{t('onboarding.welcome.reassurance')}</Text>
             </View>
           </View>
         </Animated.View>

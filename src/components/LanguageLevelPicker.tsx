@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Language, CEFRLevel } from '../services/mockChallengeData';
 
 interface LanguageLevelPickerProps {
@@ -33,6 +34,8 @@ export const LanguageLevelPicker: React.FC<LanguageLevelPickerProps> = ({
   availableLanguages,
   showCounts = false,
 }) => {
+  const { t } = useTranslation();
+
   const getLanguageAvailability = (languageCode: Language): number | undefined => {
     if (!availableLanguages) return undefined;
     const lang = availableLanguages.find((l) => l.language === languageCode);
@@ -111,23 +114,16 @@ export const LanguageLevelPicker: React.FC<LanguageLevelPickerProps> = ({
           })}
         </View>
         <Text style={styles.levelDescription}>
-          {getLevelDescription(selectedLevel)}
+          {getLevelDescription(selectedLevel, t)}
         </Text>
       </View>
     </View>
   );
 };
 
-function getLevelDescription(level: CEFRLevel): string {
-  const descriptions: Record<CEFRLevel, string> = {
-    A1: 'Beginner - Basic phrases and simple interactions',
-    A2: 'Elementary - Everyday expressions and routine tasks',
-    B1: 'Intermediate - Main points on familiar topics',
-    B2: 'Upper Intermediate - Complex text and spontaneous conversation',
-    C1: 'Advanced - Wide range of demanding topics',
-    C2: 'Proficient - Master the language with ease',
-  };
-  return descriptions[level];
+function getLevelDescription(level: CEFRLevel, t: (key: string) => string): string {
+  const levelKey = level.toLowerCase();
+  return t(`levels.${levelKey}_picker_desc`);
 }
 
 const styles = StyleSheet.create({

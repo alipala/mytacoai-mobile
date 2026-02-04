@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { DefaultService } from '../../api/generated';
 import LoadingModal from '../../components/LoadingModal';
 import { styles } from './styles/TopicSelectionScreen.styles';
@@ -32,81 +33,81 @@ interface Topic {
   color: string;
 }
 
-const PREDEFINED_TOPICS: Topic[] = [
+const getPredefinedTopics = (t: (key: string) => string): Topic[] => [
   {
     id: 'travel',
-    name: 'Travel & Tourism',
-    description: 'Discuss destinations, booking trips, and travel experiences',
+    name: t('practice.topics.travel'),
+    description: t('practice.topics.travel_desc'),
     icon: 'airplane',
     color: '#3B82F6',
   },
   {
     id: 'food',
-    name: 'Food & Dining',
-    description: 'Talk about restaurants, recipes, and food preferences',
+    name: t('practice.topics.food'),
+    description: t('practice.topics.food_desc'),
     icon: 'restaurant',
     color: '#EF4444',
   },
   {
     id: 'work',
-    name: 'Work & Career',
-    description: 'Discuss jobs, career goals, and workplace situations',
+    name: t('practice.topics.work'),
+    description: t('practice.topics.work_desc'),
     icon: 'briefcase',
     color: '#8B5CF6',
   },
   {
     id: 'hobbies',
-    name: 'Hobbies & Interests',
-    description: 'Share your favorite activities and pastimes',
+    name: t('practice.topics.hobbies'),
+    description: t('practice.topics.hobbies_desc'),
     icon: 'football',
     color: '#F59E0B',
   },
   {
     id: 'shopping',
-    name: 'Shopping & Services',
-    description: 'Practice buying things and using services',
+    name: t('practice.topics.shopping'),
+    description: t('practice.topics.shopping_desc'),
     icon: 'cart',
     color: '#10B981',
   },
   {
     id: 'daily',
-    name: 'Daily Routines',
-    description: 'Talk about everyday activities and schedules',
+    name: t('practice.topics.daily'),
+    description: t('practice.topics.daily_desc'),
     icon: 'time',
     color: '#06B6D4',
   },
   {
     id: 'health',
-    name: 'Health & Fitness',
-    description: 'Discuss wellness, exercise, and medical topics',
+    name: t('practice.topics.health'),
+    description: t('practice.topics.health_desc'),
     icon: 'fitness',
     color: '#EC4899',
   },
   {
     id: 'technology',
-    name: 'Technology',
-    description: 'Talk about gadgets, apps, and digital life',
+    name: t('practice.topics.technology'),
+    description: t('practice.topics.technology_desc'),
     icon: 'phone-portrait',
     color: '#6366F1',
   },
   {
     id: 'education',
-    name: 'Education & Learning',
-    description: 'Discuss school, courses, and learning experiences',
+    name: t('practice.topics.education'),
+    description: t('practice.topics.education_desc'),
     icon: 'school',
     color: '#F97316',
   },
   {
     id: 'family',
-    name: 'Family & Relationships',
-    description: 'Talk about family members and personal relationships',
+    name: t('practice.topics.family'),
+    description: t('practice.topics.family_desc'),
     icon: 'people',
     color: '#14B8A6',
   },
   {
     id: 'custom',
-    name: '✨ Create Your Own',
-    description: 'Create a personalized topic for your conversation',
+    name: t('practice.topics.custom'),
+    description: t('practice.topics.custom_desc'),
     icon: 'sparkles',
     color: '#4ECFBF',
   },
@@ -116,11 +117,14 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [showCustomTopicModal, setShowCustomTopicModal] = useState(false);
   const [customTopicText, setCustomTopicText] = useState('');
   const [isResearching, setIsResearching] = useState(false);
   const { mode, language } = route.params;
+
+  const PREDEFINED_TOPICS = getPredefinedTopics(t);
 
   // Animation values
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -243,9 +247,9 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
     } catch (error) {
       console.error('❌ Topic research failed:', error);
       Alert.alert(
-        'Research Failed',
-        'Unable to research your topic. Please try again or select a predefined topic.',
-        [{ text: 'OK', onPress: () => setShowCustomTopicModal(true) }]
+        t('practice.research_failed_title', 'Research Failed'),
+        t('practice.research_failed_message', 'Unable to research your topic. Please try again or select a predefined topic.'),
+        [{ text: t('buttons.ok'), onPress: () => setShowCustomTopicModal(true) }]
       );
     } finally {
       setIsResearching(false);
@@ -285,7 +289,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Topic</Text>
+        <Text style={styles.headerTitle}>{t('practice.conversation.label_topic')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -303,7 +307,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Select a Topic</Text>
+        <Text style={styles.title}>{t('practice.conversation.label_topic')}</Text>
 
         {/* Custom Topic Card - Featured at Top */}
         <Animated.View
@@ -411,11 +415,11 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
             <View style={styles.customTopicContent}>
               <View style={styles.customTopicBadge}>
                 <Ionicons name="star" size={12} color="#FFFFFF" />
-                <Text style={styles.customTopicBadgeText}>POPULAR</Text>
+                <Text style={styles.customTopicBadgeText}>{t('practice.badge_popular', 'POPULAR')}</Text>
               </View>
-              <Text style={styles.customTopicTitle}>✨ Create Your Own Topic</Text>
+              <Text style={styles.customTopicTitle}>{t('practice.create_your_own_topic', '✨ Create Your Own Topic')}</Text>
               <Text style={styles.customTopicDescription}>
-                Design a personalized conversation about anything you want to learn
+                {t('practice.create_topic_description', 'Design a personalized conversation about anything you want to learn')}
               </Text>
             </View>
 
@@ -430,7 +434,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
         {/* Divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR CHOOSE A TOPIC</Text>
+          <Text style={styles.dividerText}>{t('practice.or_choose_topic', 'OR CHOOSE A TOPIC')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -483,7 +487,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
           disabled={!selectedTopic}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>{t('buttons.continue')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -510,16 +514,16 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
             >
               {/* Modal Header */}
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create Your Topic</Text>
+                <Text style={styles.modalTitle}>{t('practice.create_your_topic', 'Create Your Topic')}</Text>
                 <Text style={styles.modalSubtitle}>
-                  What would you like to talk about?
+                  {t('practice.what_would_you_like_to_talk_about', 'What would you like to talk about?')}
                 </Text>
               </View>
 
               {/* Text Input */}
               <TextInput
                 style={styles.textInput}
-                placeholder="Describe your topic here..."
+                placeholder={t('practice.describe_your_topic_placeholder', 'Describe your topic here...')}
                 placeholderTextColor="#9CA3AF"
                 value={customTopicText}
                 onChangeText={setCustomTopicText}
@@ -539,7 +543,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalCancelText}>Cancel</Text>
+                  <Text style={styles.modalCancelText}>{t('buttons.cancel')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -551,7 +555,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
                   disabled={!customTopicText.trim()}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalSubmitText}>Submit</Text>
+                  <Text style={styles.modalSubmitText}>{t('buttons.submit')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -562,7 +566,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
       {/* Loading Modal */}
       <LoadingModal
         isOpen={isResearching}
-        message="Your taalcoach knowledge is being extended. Hold on please!"
+        message={t('practice.researching_topic_message', 'Your taalcoach knowledge is being extended. Hold on please!')}
       />
     </SafeAreaView>
   );

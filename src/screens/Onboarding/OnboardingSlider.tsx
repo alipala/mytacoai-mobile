@@ -18,13 +18,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts, Montserrat_700Bold, Montserrat_500Medium } from '@expo-google-fonts/montserrat';
 import LottieView from 'lottie-react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../constants/colors';
 import { setOnboardingCompleted } from '../../utils/storage';
 
 interface OnboardingSlide {
   key: string;
-  title: string;
-  subtext: string;
+  titleKey: string;
+  subtextKey: string;
   backgroundColor: string;
 }
 
@@ -32,30 +33,30 @@ interface OnboardingSliderProps {
   navigation: any;
 }
 
-// Onboarding slide data - Defined outside component to prevent re-creation on every render
+// Onboarding slide data - Using translation keys
 const ONBOARDING_SLIDES: OnboardingSlide[] = [
   {
     key: '1',
-    title: "Real Conversations Shouldn't Cost a Fortune",
-    subtext: "Join 50,000+ learners speaking daily without breaking the bank.",
+    titleKey: 'onboarding.slides.slide1_title',
+    subtextKey: 'onboarding.slides.slide1_description',
     backgroundColor: '#79C3F4', // Light blue
   },
   {
     key: '2',
-    title: "Make Mistakes 100 Times!",
-    subtext: "Unlimited do-overs without the fear that stops most learners.",
+    titleKey: 'onboarding.slides.slide2_title',
+    subtextKey: 'onboarding.slides.slide2_description',
     backgroundColor: '#FFB3BA', // Light pink/salmon
   },
   {
     key: '3',
-    title: "Your Pace. Your Schedule",
-    subtext: "Speak when you can. Play challenges when you can't.",
+    titleKey: 'onboarding.slides.slide3_title',
+    subtextKey: 'onboarding.slides.slide3_description',
     backgroundColor: '#B8B5FF', // Light purple
   },
   {
     key: '4',
-    title: "Speak Confidently in Real Life",
-    subtext: "Go from practicing alone to speaking freely with real people.",
+    titleKey: 'onboarding.slides.slide4_title',
+    subtextKey: 'onboarding.slides.slide4_description',
     backgroundColor: '#FFD6A5', // Light orange
   },
 ];
@@ -240,6 +241,8 @@ const createDynamicStyles = (isIPad: boolean, screenHeight: number) => StyleShee
 export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
   navigation,
 }) => {
+  const { t } = useTranslation();
+
   // Load Montserrat fonts
   const [fontsLoaded] = useFonts({
     Montserrat_700Bold,
@@ -413,8 +416,8 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
         {/* Lower white rounded card with text content */}
         <View style={styles.contentCard}>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtext}>{item.subtext}</Text>
+            <Text style={styles.title}>{t(item.titleKey)}</Text>
+            <Text style={styles.subtext}>{t(item.subtextKey)}</Text>
           </View>
         </View>
       </View>
@@ -437,7 +440,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Text style={styles.backButtonText}>BACK</Text>
+            <Text style={styles.backButtonText}>{t('onboarding.welcome.button_back')}</Text>
           </TouchableOpacity>
         )}
 
@@ -460,7 +463,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
                 : styles.nextButtonText
             }
           >
-            {isLastSlide ? 'GET STARTED' : 'NEXT'}
+            {isLastSlide ? t('onboarding.welcome.button_get_started') : t('onboarding.welcome.button_next')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -489,7 +492,7 @@ export const OnboardingSlider: React.FC<OnboardingSliderProps> = ({
                 onPress={handleSkip}
                 activeOpacity={0.7}
               >
-                <Text style={styles.skipButtonText}>SKIP</Text>
+                <Text style={styles.skipButtonText}>{t('onboarding.welcome.button_skip')}</Text>
               </TouchableOpacity>
             )}
 

@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 import { setBadgeCount } from '../../services/notificationService';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
@@ -47,6 +48,7 @@ interface DashboardScreenProps {
 }
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -492,13 +494,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     let greeting = '';
 
     if (hour >= 5 && hour < 12) {
-      greeting = 'Good morning';
+      greeting = t('dashboard.greeting.morning');
     } else if (hour >= 12 && hour < 17) {
-      greeting = 'Good afternoon';
+      greeting = t('dashboard.greeting.afternoon');
     } else if (hour >= 17 && hour < 22) {
-      greeting = 'Good evening';
+      greeting = t('dashboard.greeting.evening');
     } else {
-      greeting = 'Good night';
+      greeting = t('dashboard.greeting.night');
     }
 
     return `${greeting}, ${firstName}`;
@@ -513,11 +515,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+          <Text style={styles.errorTitle}>{t('modals.error.title')}</Text>
           <Text style={styles.errorMessage}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
             <Ionicons name="refresh" size={20} color="#FFFFFF" />
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>{t('modals.error.button_retry')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -562,7 +564,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 activeOpacity={0.7}
               >
                 <Ionicons name="sparkles" size={22} color="#14B8A6" />
-                <Text style={styles.upgradeButtonText}>Upgrade</Text>
+                <Text style={styles.upgradeButtonText}>{t('subscription.title')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -598,9 +600,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         <Text style={styles.crownEmoji}>👑</Text>
                       </View>
                       <View style={styles.premiumStatusTextContainer}>
-                        <Text style={styles.premiumStatusTitle}>Premium Active</Text>
+                        <Text style={styles.premiumStatusTitle}>{t('dashboard.header.premium_badge')}</Text>
                         <Text style={styles.premiumStatusSubtitle}>
-                          {minutesRemaining} minutes remaining
+                          {t('dashboard.header.minutes_remaining', { minutes: minutesRemaining })}
                         </Text>
                       </View>
                     </LinearGradient>
@@ -620,8 +622,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         <Ionicons name="mic-circle" size={32} color={COLORS.turquoise} />
                       </View>
                       <View style={styles.secondaryCardText}>
-                        <Text style={styles.secondaryCardTitleNew}>Quick Practice</Text>
-                        <Text style={styles.secondaryCardSubtitle}>5-min conversation • Start now</Text>
+                        <Text style={styles.secondaryCardTitleNew}>{t('dashboard.quick_start.button_freestyle')}</Text>
+                        <Text style={styles.secondaryCardSubtitle}>{t('practice.conversation.subtitle')}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                     </TouchableOpacity>
@@ -644,23 +646,23 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           </View>
                         </View>
 
-                        <Text style={styles.primaryCardTitleNew}>Create Your Learning Plan</Text>
+                        <Text style={styles.primaryCardTitleNew}>{t('assessment.speaking.title')}</Text>
                         <Text style={styles.primaryCardDescriptionNew}>
-                          Get started with a personalized assessment and learning roadmap
+                          {t('assessment.speaking.subtitle')}
                         </Text>
 
                         <View style={styles.primaryFeaturesNew}>
                           <View style={styles.featurePill}>
                             <Ionicons name="person-outline" size={14} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.featurePillText}>Personalized</Text>
+                            <Text style={styles.featurePillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
                           </View>
                           <View style={styles.featurePill}>
                             <Ionicons name="list-outline" size={14} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.featurePillText}>Structured</Text>
+                            <Text style={styles.featurePillText}>{t('profile.dna.button_track_progress')}</Text>
                           </View>
                           <View style={styles.featurePill}>
                             <Ionicons name="trophy-outline" size={14} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.featurePillText}>Track progress</Text>
+                            <Text style={styles.featurePillText}>{t('profile.progress.title')}</Text>
                           </View>
                         </View>
                       </LinearGradient>
@@ -670,14 +672,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <View style={styles.usageLimitsBanner}>
                       <Ionicons name="time-outline" size={18} color="#FFA955" />
                       <Text style={styles.usageLimitsText}>
-                        You have{' '}
-                        <Text style={styles.usageLimitsHighlight}>
-                          {minutesRemaining > 0
-                            ? `${Math.round(minutesRemaining)} minutes`
-                            : `${sessionLimit} practice sessions`
-                          }
-                        </Text>
-                        {' '}left on Free plan
+                        {minutesRemaining > 0
+                          ? t('units.minutes_plural', { count: Math.round(minutesRemaining) })
+                          : t('units.sessions_plural', { count: sessionLimit })
+                        }
                       </Text>
                     </View>
 
@@ -690,7 +688,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       <View style={styles.upgradeIconCircle}>
                         <Ionicons name="sparkles" size={18} color="#FFD63A" />
                       </View>
-                      <Text style={styles.upgradeLinkText}>Unlock your full potential</Text>
+                      <Text style={styles.upgradeLinkText}>{t('subscription.title')}</Text>
                       <Ionicons name="arrow-forward" size={16} color="#4ECFBF" />
                     </TouchableOpacity>
                   </View>
@@ -715,27 +713,27 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           <Ionicons name="analytics" size={40} color="#FFFFFF" />
                         </View>
 
-                        <Text style={styles.premiumPrimaryTitle}>Create Your Personalized Learning Plan</Text>
+                        <Text style={styles.premiumPrimaryTitle}>{t('assessment.speaking.title')}</Text>
                         <Text style={styles.premiumPrimarySubtitle}>
-                          Start with a short speaking assessment
+                          {t('assessment.speaking.subtitle')}
                         </Text>
 
                         <View style={styles.premiumFeaturePills}>
                           <View style={styles.premiumPill}>
                             <Ionicons name="person-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>Custom</Text>
+                            <Text style={styles.premiumPillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
                           </View>
                           <View style={styles.premiumPill}>
                             <Ionicons name="list-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>Structured</Text>
+                            <Text style={styles.premiumPillText}>{t('profile.dna.button_track_progress')}</Text>
                           </View>
                           <View style={styles.premiumPill}>
                             <Ionicons name="trophy-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>Track progress</Text>
+                            <Text style={styles.premiumPillText}>{t('profile.progress.title')}</Text>
                           </View>
                           <View style={styles.premiumPill}>
                             <Ionicons name="fitness-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>DNA Analysis</Text>
+                            <Text style={styles.premiumPillText}>{t('profile.dna.title')}</Text>
                           </View>
                         </View>
                       </LinearGradient>
@@ -745,15 +743,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <View style={styles.reassuranceSection}>
                       <View style={styles.reassuranceItem}>
                         <Ionicons name="time-outline" size={16} color="#6B7280" />
-                        <Text style={styles.reassuranceText}>~5 min</Text>
+                        <Text style={styles.reassuranceText}>{t('units.minutes', { count: 5 })}</Text>
                       </View>
                       <View style={styles.reassuranceItem}>
                         <Ionicons name="chatbubble-ellipses-outline" size={16} color="#6B7280" />
-                        <Text style={styles.reassuranceText}>Casual talk</Text>
+                        <Text style={styles.reassuranceText}>{t('practice.conversation.title')}</Text>
                       </View>
                       <View style={styles.reassuranceItem}>
                         <Ionicons name="shield-checkmark-outline" size={16} color="#6B7280" />
-                        <Text style={styles.reassuranceText}>No stress</Text>
+                        <Text style={styles.reassuranceText}>{t('common.please_wait')}</Text>
                       </View>
                     </View>
 
@@ -764,7 +762,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       activeOpacity={0.8}
                     >
                       <Ionicons name="mic-circle-outline" size={24} color="#4ECFBF" />
-                      <Text style={styles.premiumSecondaryText}>Or start a quick conversation</Text>
+                      <Text style={styles.premiumSecondaryText}>{t('dashboard.quick_start.button_freestyle')}</Text>
                       <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
                     </TouchableOpacity>
                   </View>
@@ -775,7 +773,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   <View style={styles.tipContainer}>
                     <Ionicons name="bulb-outline" size={16} color="#F59E0B" />
                     <Text style={styles.tipText}>
-                      Tip: Learning plans help you reach fluency 3x faster!
+                      {t('toasts.info_coming_soon')}
                     </Text>
                   </View>
                 )}
@@ -836,9 +834,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               }} />
               <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
               <View>
-                <Text style={styles.premiumTextCompact}>Premium</Text>
+                <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
                 <Text style={styles.premiumMinutesCompact}>
-                  {subscriptionStatus?.limits?.minutes_remaining || 0} min
+                  {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -864,7 +862,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               <Ionicons name="flame-outline" size={18} color="#EF4444" />
               <View>
                 <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
-                <Text style={styles.streakLabelCompact}>day{progressStats.current_streak !== 1 ? 's' : ''}</Text>
+                <Text style={styles.streakLabelCompact}>{t('units.days_plural', { count: progressStats.current_streak || 0 })}</Text>
               </View>
             </TouchableOpacity>
           )}
@@ -1017,7 +1015,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {/* Divider - Compact */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
+          <Text style={styles.dividerText}>{t('common.or')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -1052,9 +1050,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
                 <View style={styles.newSessionTextContainer}>
-                  <Text style={styles.newSessionTitle}>Start New Session</Text>
+                  <Text style={styles.newSessionTitle}>{t('buttons.start')}</Text>
                   <Text style={styles.newSessionSubtitle}>
-                    Practice or Assessment
+                    {t('dashboard.quick_start.subtitle')}
                   </Text>
                 </View>
                 <View style={styles.arrowContainer}>
@@ -1100,7 +1098,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <View style={styles.premiumBenefitsHeader}>
               <View style={styles.premiumBenefitsTitleRow}>
                 <Ionicons name="diamond" size={32} color="#FBBF24" />
-                <Text style={styles.premiumBenefitsTitle}>Premium Benefits</Text>
+                <Text style={styles.premiumBenefitsTitle}>{t('dashboard.header.premium_badge')}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => setShowPremiumBenefitsModal(false)}
@@ -1117,10 +1115,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* Subscription Info */}
               <View style={styles.premiumSubscriptionCard}>
                 <Text style={styles.premiumSubscriptionPlan}>
-                  {subscriptionStatus?.plan === 'annual_premium' ? 'Annual Premium' : 'Monthly Premium'}
+                  {subscriptionStatus?.plan === 'annual_premium' ? t('subscription.plans.yearly') : t('subscription.plans.monthly')}
                 </Text>
                 <Text style={styles.premiumSubscriptionStatus}>
-                  {subscriptionStatus?.limits?.minutes_remaining || 0} minutes remaining
+                  {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
                 </Text>
               </View>
 
@@ -1131,9 +1129,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <Ionicons name="infinite" size={24} color="#14B8A6" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>Unlimited Practice</Text>
+                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.unlimited_practice')}</Text>
                     <Text style={styles.premiumBenefitDescription}>
-                      Practice as much as you want with no session limits
+                      {t('onboarding.benefits.pill_unlimited_practice')}
                     </Text>
                   </View>
                 </View>
@@ -1143,9 +1141,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <Ionicons name="mic" size={24} color="#8B5CF6" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>AI Voice Coach</Text>
+                    <Text style={styles.premiumBenefitTitle}>{t('onboarding.benefits.pill_ai_tutor')}</Text>
                     <Text style={styles.premiumBenefitDescription}>
-                      Get real-time feedback on your pronunciation and fluency
+                      {t('onboarding.benefits.pill_instant_feedback')}
                     </Text>
                   </View>
                 </View>
@@ -1155,9 +1153,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <Ionicons name="stats-chart" size={24} color="#EF4444" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>Speaking DNA Analysis</Text>
+                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.speaking_dna')}</Text>
                     <Text style={styles.premiumBenefitDescription}>
-                      Advanced analytics to track your speaking patterns and progress
+                      {t('subscription.features.advanced_feedback')}
                     </Text>
                   </View>
                 </View>
@@ -1167,9 +1165,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <Ionicons name="flash" size={24} color="#F59E0B" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>Priority Support</Text>
+                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.priority_support')}</Text>
                     <Text style={styles.premiumBenefitDescription}>
-                      Get help faster with dedicated premium support
+                      {t('subscription.features.priority_support')}
                     </Text>
                   </View>
                 </View>
@@ -1179,9 +1177,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <Ionicons name="sparkles" size={24} color="#EC4899" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>Exclusive Content</Text>
+                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.custom_topics')}</Text>
                     <Text style={styles.premiumBenefitDescription}>
-                      Access premium challenges and advanced learning materials
+                      {t('explore.title')}
                     </Text>
                   </View>
                 </View>
@@ -1191,9 +1189,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <Ionicons name="shield-checkmark" size={24} color="#10B981" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>Ad-Free Experience</Text>
+                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.no_ads')}</Text>
                     <Text style={styles.premiumBenefitDescription}>
-                      Focus on learning without any interruptions
+                      {t('subscription.features.no_ads')}
                     </Text>
                   </View>
                 </View>
@@ -1203,10 +1201,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               <View style={styles.premiumThankYouCard}>
                 <Ionicons name="heart" size={32} color="#EF4444" />
                 <Text style={styles.premiumThankYouText}>
-                  Thank you for being a Premium member!
+                  {t('dashboard.header.premium_badge')}
                 </Text>
                 <Text style={styles.premiumThankYouSubtext}>
-                  Your support helps us create better learning experiences
+                  {t('subscription.subtitle')}
                 </Text>
               </View>
             </ScrollView>
@@ -1239,7 +1237,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                         <Text style={{ fontSize: 24, fontWeight: 'bold', color: lastAttempt.passed ? '#10B981' : '#EF4444' }}>
-                          {lastAttempt.passed ? '🎉 Passed!' : '📚 Not Passed'}
+                          {lastAttempt.passed ? t('modals.success.title') : t('modals.error.title')}
                         </Text>
                         <TouchableOpacity onPress={() => setShowAssessmentModal(false)}>
                           <Ionicons name="close-circle" size={28} color="#9CA3AF" />
@@ -1247,7 +1245,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       </View>
 
                       <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 4, color: '#1F2937' }}>
-                        {selectedAssessmentPlan.language.charAt(0).toUpperCase() + selectedAssessmentPlan.language.slice(1)} {selectedAssessmentPlan.proficiency_level} Assessment
+                        {selectedAssessmentPlan.language.charAt(0).toUpperCase() + selectedAssessmentPlan.language.slice(1)} {selectedAssessmentPlan.proficiency_level} {t('assessment.speaking.title')}
                       </Text>
                       <Text style={{ fontSize: 14, color: '#6B7280', marginBottom: 16 }}>
                         {new Date(lastAttempt.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -1255,20 +1253,20 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                       <View style={{ backgroundColor: '#F3F4F6', padding: 16, borderRadius: 12, marginBottom: 16 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                          <Text style={{ fontSize: 14, color: '#6B7280' }}>Overall Score</Text>
+                          <Text style={{ fontSize: 14, color: '#6B7280' }}>{t('assessment.results.score_overall')}</Text>
                           <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1F2937' }}>{lastAttempt.overall_score}/100</Text>
                         </View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                          <Text style={{ fontSize: 14, color: '#6B7280' }}>{selectedAssessmentPlan.proficiency_level} Mastery</Text>
+                          <Text style={{ fontSize: 14, color: '#6B7280' }}>{selectedAssessmentPlan.proficiency_level}</Text>
                           <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{lastAttempt.current_level_mastery}/100</Text>
                         </View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                          <Text style={{ fontSize: 14, color: '#6B7280' }}>Next Level Readiness</Text>
+                          <Text style={{ fontSize: 14, color: '#6B7280' }}>{t('gamification.next_level')}</Text>
                           <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{lastAttempt.next_level_readiness}/100</Text>
                         </View>
                       </View>
 
-                      <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>Skill Scores</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>{t('assessment.results.title')}</Text>
                       <View style={{ marginBottom: 16 }}>
                         {Object.entries(lastAttempt.scores).map(([skill, score]) => (
                           <View key={skill} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -1280,7 +1278,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                       {lastAttempt.strengths && lastAttempt.strengths.length > 0 && (
                         <>
-                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#10B981' }}>✓ Strengths</Text>
+                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#10B981' }}>{t('assessment.results.label_excellent')}</Text>
                           <View style={{ marginBottom: 16 }}>
                             {lastAttempt.strengths.map((strength: string, idx: number) => (
                               <Text key={idx} style={{ fontSize: 14, color: '#4B5563', marginBottom: 4 }}>• {strength}</Text>
@@ -1291,7 +1289,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                       {lastAttempt.areas_for_improvement && lastAttempt.areas_for_improvement.length > 0 && (
                         <>
-                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#F59E0B' }}>→ Areas for Improvement</Text>
+                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#F59E0B' }}>{t('assessment.results.label_needs_work')}</Text>
                           <View style={{ marginBottom: 16 }}>
                             {lastAttempt.areas_for_improvement.map((area: string, idx: number) => (
                               <Text key={idx} style={{ fontSize: 14, color: '#4B5563', marginBottom: 4 }}>• {area}</Text>
@@ -1302,7 +1300,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                       {lastAttempt.feedback && (
                         <>
-                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>Feedback</Text>
+                          <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>{t('onboarding.benefits.pill_instant_feedback')}</Text>
                           <Text style={{ fontSize: 14, color: '#4B5563', marginBottom: 16, lineHeight: 20 }}>
                             {lastAttempt.feedback}
                           </Text>
@@ -1336,7 +1334,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* Header */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
                 <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#1F2937' }}>
-                  Create {(() => {
+                  {t('buttons.start')} {(() => {
                     const levelMap: Record<string, string> = {
                       'A1': 'A2',
                       'A2': 'B1',
@@ -1344,8 +1342,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       'B2': 'C1',
                       'C1': 'C2',
                     };
-                    return levelMap[selectedCreatePlan.proficiency_level.toUpperCase()] || 'Next Level';
-                  })()} Plan
+                    return levelMap[selectedCreatePlan.proficiency_level.toUpperCase()] || t('gamification.next_level');
+                  })()}
                 </Text>
                 <TouchableOpacity onPress={() => setShowCreateNextPlanModal(false)}>
                   <Ionicons name="close-circle" size={28} color="#9CA3AF" />
@@ -1370,7 +1368,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </View>
 
                 <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
-                  Choose Your Plan Duration
+                  {t('practice.conversation.subtitle')}
                 </Text>
 
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -1392,19 +1390,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         fontWeight: '600',
                         color: selectedDuration === months ? '#047857' : '#4B5563'
                       }}>
-                        {months} {months === 1 ? 'Month' : 'Months'}
+                        {months} {t('units.months_plural', { count: months })}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
 
                 <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
-                  Select Your Learning Goals
+                  {t('dashboard.quick_start.subtitle')}
                 </Text>
 
                 {/* Predefined Goals */}
                 <View style={{ gap: 8, marginBottom: 16 }}>
-                  {['Business Communication', 'Travel & Tourism', 'Academic Writing', 'Daily Conversations', 'Professional Presentations', 'Job Interviews'].map(goal => (
+                  {[t('practice.topics.business'), t('practice.topics.travel'), t('practice.topics.education'), t('practice.topics.family'), t('practice.topics.culture'), t('practice.topics.shopping')].map(goal => (
                     <TouchableOpacity
                       key={goal}
                       onPress={() => {
@@ -1451,7 +1449,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </View>
 
                 <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#6B7280' }}>
-                  Additional Goals (Optional)
+                  {t('practice.conversation.placeholder_type_message')}
                 </Text>
 
                 <TextInput
@@ -1467,7 +1465,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     minHeight: 60,
                     textAlignVertical: 'top'
                   }}
-                  placeholder="Any other specific goals..."
+                  placeholder={t('practice.conversation.placeholder_type_message')}
                   multiline
                   numberOfLines={2}
                 />
@@ -1479,7 +1477,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   onPress={async () => {
                     // Validation: Require at least duration selection (goals are optional)
                     if (!selectedDuration) {
-                      Alert.alert('Duration Required', 'Please select a plan duration before creating your learning plan.');
+                      Alert.alert(t('modals.error.title'), t('errors.validation'));
                       return;
                     }
 
@@ -1520,18 +1518,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         await loadDashboardData();
 
                         Alert.alert(
-                          'Success!',
-                          'Your next level learning plan has been created!',
-                          [{ text: 'OK' }]
+                          t('modals.success.title'),
+                          t('toasts.success_save'),
+                          [{ text: t('buttons.ok') }]
                         );
                       } else {
                         const errorData = await response.json();
                         console.error('[CREATE_PLAN] ❌ Failed to create plan:', errorData);
-                        Alert.alert('Error', 'Failed to create learning plan. Please try again.');
+                        Alert.alert(t('modals.error.title'), t('errors.validation'));
                       }
                     } catch (error) {
                       console.error('[CREATE_PLAN] Error:', error);
-                      Alert.alert('Error', 'An error occurred. Please try again.');
+                      Alert.alert(t('modals.error.title'), t('errors.unknown'));
                     } finally {
                       setCreatingPlan(false);
                     }
@@ -1550,7 +1548,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   }}
                 >
                   <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
-                    {creatingPlan ? 'Creating...' : !selectedDuration ? 'Select Duration First' : 'Create Learning Plan'}
+                    {creatingPlan ? t('common.processing') : !selectedDuration ? t('buttons.start') : t('assessment.speaking.title')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1580,7 +1578,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Ionicons name="notifications" size={24} color="#14B8A6" />
               <Text style={{ fontSize: 20, fontWeight: '700', color: '#FFFFFF' }}>
-                Notifications
+                {t('notifications.title')}
               </Text>
               {unreadCount > 0 && (
                 <View style={{
@@ -1666,12 +1664,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         }}
                         onPress={() => {
                           Alert.alert(
-                            'Delete Notification',
-                            'Are you sure you want to delete this notification?',
+                            t('notifications.delete'),
+                            t('modals.confirm.title'),
                             [
-                              { text: 'Cancel', style: 'cancel' },
+                              { text: t('buttons.cancel'), style: 'cancel' },
                               {
-                                text: 'Delete',
+                                text: t('buttons.delete'),
                                 style: 'destructive',
                                 onPress: () => deleteNotification(notificationId),
                               },
@@ -1681,7 +1679,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       >
                         <Ionicons name="trash" size={24} color="#FFFFFF" />
                         <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
-                          Delete
+                          {t('buttons.delete')}
                         </Text>
                       </TouchableOpacity>
                     </Animated.View>
@@ -1722,7 +1720,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       >
                         <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
                         <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
-                          Mark Read
+                          {t('notifications.mark_as_read')}
                         </Text>
                       </TouchableOpacity>
                     </Animated.View>
@@ -1809,7 +1807,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                               })}
                             </Text>
                             <Text style={{ fontSize: 11, color: '#6B8A84', fontStyle: 'italic' }}>
-                              {notification.is_read ? 'Swipe left to delete' : 'Swipe left: delete • Swipe right: mark read'}
+                              {notification.is_read ? t('notifications.swipe_instructions') : t('notifications.swipe_instructions')}
                             </Text>
                           </View>
                         </View>
@@ -1837,10 +1835,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   <Ionicons name="notifications-outline" size={40} color="#6B8A84" />
                 </View>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 }}>
-                  No Notifications
+                  {t('notifications.empty')}
                 </Text>
                 <Text style={{ fontSize: 14, color: '#8CA5A0', textAlign: 'center' }}>
-                  You're all caught up!
+                  {t('empty_states.no_data')}
                 </Text>
               </View>
             )}
@@ -1853,7 +1851,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   // Final render with smooth transition
   return (
-    <TransitionWrapper isLoading={loading} loadingMessage="Loading your learning journey...">
+    <TransitionWrapper isLoading={loading} loadingMessage={t('common.loading')}>
       {renderContent()}
     </TransitionWrapper>
   );

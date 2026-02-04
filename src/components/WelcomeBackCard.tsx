@@ -19,6 +19,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles/WelcomeBackCard.styles';
@@ -46,6 +47,7 @@ export default function WelcomeBackCard({
   daysSinceActive,
   onResumePractice,
 }: WelcomeBackCardProps) {
+  const { t } = useTranslation();
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -142,9 +144,9 @@ export default function WelcomeBackCard({
             <Ionicons name="hand-right" size={24} color="#14B8A6" />
           </View>
           <View style={styles.headerTextContainer}>
-            <Text style={styles.welcomeText}>Welcome Back{userName ? `, ${userName}` : ''}!</Text>
+            <Text style={styles.welcomeText}>{t('explore.stats.welcome_back')}{userName ? `, ${userName}` : ''}!</Text>
             <Text style={styles.lastActiveText}>
-              Last active: {lastActiveDate} ({daysSinceActive} day{daysSinceActive !== 1 ? 's' : ''} ago)
+              {t('explore.stats.last_active')} {lastActiveDate} ({daysSinceActive} {daysSinceActive !== 1 ? t('explore.stats.days_ago') : t('explore.stats.day_ago')})
             </Text>
           </View>
         </View>
@@ -164,7 +166,7 @@ export default function WelcomeBackCard({
             >
               <Ionicons name="trophy" size={20} color="#14B8A6" />
               <Text style={styles.statValue}>{formatNumber(totalChallenges)}</Text>
-              <Text style={styles.statLabel}>Challenges</Text>
+              <Text style={styles.statLabel}>{t('explore.stats.challenges')}</Text>
             </LinearGradient>
           </View>
 
@@ -176,7 +178,7 @@ export default function WelcomeBackCard({
             >
               <Ionicons name="flash" size={20} color="#8B5CF6" />
               <Text style={styles.statValue}>{formatNumber(totalXP)}</Text>
-              <Text style={styles.statLabel}>Total XP</Text>
+              <Text style={styles.statLabel}>{t('explore.stats.total_xp')}</Text>
             </LinearGradient>
           </View>
 
@@ -188,7 +190,7 @@ export default function WelcomeBackCard({
             >
               <Ionicons name="flame" size={20} color="#FBBF24" />
               <Text style={styles.statValue}>{longestStreak}</Text>
-              <Text style={styles.statLabel}>Best Streak</Text>
+              <Text style={styles.statLabel}>{t('explore.stats.best_streak')}</Text>
             </LinearGradient>
           </View>
         </Animated.View>
@@ -196,13 +198,13 @@ export default function WelcomeBackCard({
         {/* Call to Action Text (instead of button) */}
         <View style={styles.ctaTextContainer}>
           <Ionicons name="arrow-down-circle" size={18} color="#14B8A6" />
-          <Text style={styles.ctaText}>Choose your quest below to continue!</Text>
+          <Text style={styles.ctaText}>{t('explore.stats.choose_quest_continue')}</Text>
         </View>
 
         {/* Bottom hint */}
         <View style={styles.bottomHint}>
           <Ionicons name="arrow-forward" size={12} color="#6B8A84" />
-          <Text style={styles.hintText}>Swipe for detailed stats</Text>
+          <Text style={styles.hintText}>{t('explore.stats.swipe_detailed_stats')}</Text>
         </View>
       </LinearGradient>
     </Animated.View>

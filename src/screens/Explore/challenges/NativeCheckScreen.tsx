@@ -40,6 +40,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { NativeCheckChallenge } from '../../../services/mockChallengeData';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
 import { useCharacterState } from '../../../hooks/useCharacterState';
@@ -69,6 +70,7 @@ export default function NativeCheckScreen({
   onClose,
   onAdvance,
 }: NativeCheckScreenProps) {
+  const { t } = useTranslation();
   const [isAnswered, setIsAnswered] = useState(false);
   const [showXPAnimation, setShowXPAnimation] = useState(false);
   const [xpValue, setXPValue] = useState(0);
@@ -266,7 +268,7 @@ export default function NativeCheckScreen({
     // After undo, user can swipe again but we don't record it twice
     if (!challengeRecordedRef.current) {
       onComplete(challenge.id, isCorrect, {
-        correctAnswer: challenge.isNatural ? 'Natural' : 'Not Natural',
+        correctAnswer: challenge.isNatural ? t('explore.native_check.natural') : t('explore.native_check.not_natural'),
         explanation: challenge.explanation,
       });
       challengeRecordedRef.current = true;
@@ -502,7 +504,7 @@ export default function NativeCheckScreen({
                 <Animated.View style={[styles.overlayLeft, leftOverlayStyle]}>
                   <Animated.View style={[styles.overlayContent, leftLabelOpacity]}>
                     <Text style={styles.overlayIcon}>✗</Text>
-                    <Text style={styles.overlayText}>Not Correct</Text>
+                    <Text style={styles.overlayText}>{t('explore.native_check.not_correct')}</Text>
                   </Animated.View>
                 </Animated.View>
 
@@ -510,7 +512,7 @@ export default function NativeCheckScreen({
                 <Animated.View style={[styles.overlayRight, rightOverlayStyle]}>
                   <Animated.View style={[styles.overlayContent, rightLabelOpacity]}>
                     <Text style={styles.overlayIcon}>✓</Text>
-                    <Text style={styles.overlayText}>Correct!</Text>
+                    <Text style={styles.overlayText}>{t('explore.native_check.correct')}</Text>
                   </Animated.View>
                 </Animated.View>
 
@@ -519,7 +521,7 @@ export default function NativeCheckScreen({
                   {/* Question at top - clear instruction */}
                   <View style={styles.questionContainerTop}>
                     <View style={styles.questionBadge}>
-                      <Text style={styles.questionText}>Would a native say this?</Text>
+                      <Text style={styles.questionText}>{t('explore.native_check.question')}</Text>
                     </View>
                   </View>
 
@@ -544,7 +546,7 @@ export default function NativeCheckScreen({
                       >
                         ←
                       </RNAnimated.Text>
-                      <Text style={styles.swipeHint}> Swipe to answer </Text>
+                      <Text style={styles.swipeHint}> {t('explore.native_check.swipe_to_answer')} </Text>
                       <RNAnimated.Text
                         style={[
                           styles.swipeHint,
@@ -608,7 +610,7 @@ export default function NativeCheckScreen({
                 end={{ x: 1, y: 1 }}
               >
                 <Ionicons name="arrow-undo" size={20} color="#FFF" />
-                <Text style={styles.undoText}>Undo</Text>
+                <Text style={styles.undoText}>{t('explore.native_check.undo')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </RNAnimated.View>

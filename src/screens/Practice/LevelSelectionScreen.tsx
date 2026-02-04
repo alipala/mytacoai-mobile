@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 interface LevelSelectionScreenProps {
   navigation: any;
@@ -24,70 +25,70 @@ interface Level {
   color: string;
 }
 
-const CEFR_LEVELS: Level[] = [
+const getCEFRLevels = (t: (key: string) => string): Level[] => [
   {
     id: 'A1',
-    name: 'A1 - Beginner',
-    description: 'Just starting out',
+    name: t('levels.a1_name'),
+    description: t('levels.a1_description'),
     skills: [
-      'Basic greetings and introductions',
-      'Simple everyday phrases',
-      'Very basic conversations',
+      t('levels.a1_skill_1'),
+      t('levels.a1_skill_2'),
+      t('levels.a1_skill_3'),
     ],
     color: '#10B981',
   },
   {
     id: 'A2',
-    name: 'A2 - Elementary',
-    description: 'Building foundations',
+    name: t('levels.a2_name'),
+    description: t('levels.a2_description'),
     skills: [
-      'Routine tasks and exchanges',
-      'Immediate needs and familiar topics',
-      'Simple descriptions',
+      t('levels.a2_skill_1'),
+      t('levels.a2_skill_2'),
+      t('levels.a2_skill_3'),
     ],
     color: '#3B82F6',
   },
   {
     id: 'B1',
-    name: 'B1 - Intermediate',
-    description: 'Gaining confidence',
+    name: t('levels.b1_name'),
+    description: t('levels.b1_description'),
     skills: [
-      'Main points on familiar matters',
-      'Travel situations',
-      'Personal interests and experiences',
+      t('levels.b1_skill_1'),
+      t('levels.b1_skill_2'),
+      t('levels.b1_skill_3'),
     ],
     color: '#8B5CF6',
   },
   {
     id: 'B2',
-    name: 'B2 - Upper Intermediate',
-    description: 'Working proficiency',
+    name: t('levels.b2_name'),
+    description: t('levels.b2_description'),
     skills: [
-      'Complex text comprehension',
-      'Fluent interaction with natives',
-      'Detailed texts on various subjects',
+      t('levels.b2_skill_1'),
+      t('levels.b2_skill_2'),
+      t('levels.b2_skill_3'),
     ],
     color: '#F59E0B',
   },
   {
     id: 'C1',
-    name: 'C1 - Advanced',
-    description: 'Professional fluency',
+    name: t('levels.c1_name'),
+    description: t('levels.c1_description'),
     skills: [
-      'Demanding texts and implicit meaning',
-      'Flexible language use',
-      'Complex social, academic, or professional topics',
+      t('levels.c1_skill_1'),
+      t('levels.c1_skill_2'),
+      t('levels.c1_skill_3'),
     ],
     color: '#EF4444',
   },
   {
     id: 'C2',
-    name: 'C2 - Mastery',
-    description: 'Near-native proficiency',
+    name: t('levels.c2_name'),
+    description: t('levels.c2_description'),
     skills: [
-      'Understand virtually everything',
-      'Summarize from various sources',
-      'Spontaneous, precise expression',
+      t('levels.c2_skill_1'),
+      t('levels.c2_skill_2'),
+      t('levels.c2_skill_3'),
     ],
     color: '#DC2626',
   },
@@ -97,9 +98,12 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   const { mode, language, topic, customTopicText, researchData } = route.params;
+
+  const CEFR_LEVELS = getCEFRLevels(t);
 
   const handleLevelSelect = (levelId: string) => {
     if (Platform.OS === 'ios') {
@@ -145,7 +149,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         >
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Level</Text>
+        <Text style={styles.headerTitle}>{t('practice.conversation.label_level')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -163,7 +167,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Select Your Level</Text>
+        <Text style={styles.title}>{t('practice.conversation.label_level')}</Text>
 
         {/* Levels List */}
         <View style={styles.levelsContainer}>
@@ -220,7 +224,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
               {/* Expanded Skills */}
               {expandedLevel === level.id && (
                 <View style={styles.skillsContainer}>
-                  <Text style={styles.skillsTitle}>What you can do:</Text>
+                  <Text style={styles.skillsTitle}>{t('common.what_you_can_do', 'What you can do:')}</Text>
                   {level.skills.map((skill, index) => (
                     <View key={index} style={styles.skillItem}>
                       <View style={styles.skillBullet} />
@@ -237,7 +241,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         <View style={styles.helpContainer}>
           <Ionicons name="help-circle" size={20} color="#B4E4DD" />
           <Text style={styles.helpText}>
-            Not sure about your level? Don't worry! You can always adjust it later.
+            {t('practice.level_help_text', "Not sure about your level? Don't worry! You can always adjust it later.")}
           </Text>
         </View>
       </ScrollView>
@@ -253,7 +257,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
           disabled={!selectedLevel}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Start Practice</Text>
+          <Text style={styles.continueButtonText}>{t('practice.conversation.button_start')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>

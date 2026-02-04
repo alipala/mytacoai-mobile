@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { AuthenticationService, DefaultService } from '../../../api/generated';
 import { styles } from './styles/VoiceSelectionScreen.styles';
 
@@ -39,55 +40,57 @@ const VOICE_AVATARS: Record<string, any> = {
   verse: require('../../../assets/tutor/verse.png'),
 };
 
-// Fallback voice data (same as web app)
-const DEFAULT_VOICES: Record<string, VoiceCharacter> = {
-  alloy: {
-    name: 'Alloy',
-    description: 'Balanced and clear voice, great for general learning',
-    personality: 'Professional and encouraging',
-  },
-  ash: {
-    name: 'Ash',
-    description: 'Warm and friendly voice, perfect for conversational practice',
-    personality: 'Warm and approachable',
-  },
-  ballad: {
-    name: 'Ballad',
-    description: 'Melodic and expressive voice, ideal for pronunciation work',
-    personality: 'Expressive and articulate',
-  },
-  coral: {
-    name: 'Coral',
-    description: 'Bright and energetic voice, motivating for active learning',
-    personality: 'Energetic and motivating',
-  },
-  echo: {
-    name: 'Echo',
-    description: 'Calm and patient voice, excellent for beginners',
-    personality: 'Patient and supportive',
-  },
-  sage: {
-    name: 'Sage',
-    description: 'Storytelling voice, engaging for immersive conversations',
-    personality: 'Engaging storyteller',
-  },
-  shimmer: {
-    name: 'Shimmer',
-    description: 'Deep and confident voice, great for advanced learners',
-    personality: 'Confident and authoritative',
-  },
-  verse: {
-    name: 'Verse',
-    description: 'Modern and dynamic voice, perfect for contemporary topics',
-    personality: 'Dynamic and modern',
-  },
-};
-
 interface VoiceSelectionScreenProps {
   onBack: () => void;
 }
 
 const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) => {
+  const { t } = useTranslation();
+
+  // Fallback voice data (same as web app) - using translations
+  const DEFAULT_VOICES: Record<string, VoiceCharacter> = {
+    alloy: {
+      name: t('profile.settings.voice.voice_alloy'),
+      description: t('profile.settings.voice.voice_alloy_desc'),
+      personality: t('profile.settings.voice.voice_alloy_personality'),
+    },
+    ash: {
+      name: t('profile.settings.voice.voice_ash'),
+      description: t('profile.settings.voice.voice_ash_desc'),
+      personality: t('profile.settings.voice.voice_ash_personality'),
+    },
+    ballad: {
+      name: t('profile.settings.voice.voice_ballad'),
+      description: t('profile.settings.voice.voice_ballad_desc'),
+      personality: t('profile.settings.voice.voice_ballad_personality'),
+    },
+    coral: {
+      name: t('profile.settings.voice.voice_coral'),
+      description: t('profile.settings.voice.voice_coral_desc'),
+      personality: t('profile.settings.voice.voice_coral_personality'),
+    },
+    echo: {
+      name: t('profile.settings.voice.voice_echo'),
+      description: t('profile.settings.voice.voice_echo_desc'),
+      personality: t('profile.settings.voice.voice_echo_personality'),
+    },
+    sage: {
+      name: t('profile.settings.voice.voice_sage'),
+      description: t('profile.settings.voice.voice_sage_desc'),
+      personality: t('profile.settings.voice.voice_sage_personality'),
+    },
+    shimmer: {
+      name: t('profile.settings.voice.voice_shimmer'),
+      description: t('profile.settings.voice.voice_shimmer_desc'),
+      personality: t('profile.settings.voice.voice_shimmer_personality'),
+    },
+    verse: {
+      name: t('profile.settings.voice.voice_verse'),
+      description: t('profile.settings.voice.voice_verse_desc'),
+      personality: t('profile.settings.voice.voice_verse_personality'),
+    },
+  };
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentVoice, setCurrentVoice] = useState<string>('');
@@ -168,7 +171,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       }
-      Alert.alert('No Changes', 'Voice preference is already set to ' + selectedVoice);
+      Alert.alert(t('profile.settings.account.alert_no_changes'), t('profile.settings.account.alert_voice_already_set', { voice: selectedVoice }));
       return;
     }
 
@@ -198,14 +201,14 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
 
-        Alert.alert('Success', response.message || `Voice changed to ${selectedVoice}`);
+        Alert.alert(t('modals.success.title'), response.message || t('profile.settings.voice.success_voice_changed', { voice: selectedVoice }));
       } else {
         console.warn('⚠️ Voice change response success=false');
-        Alert.alert('Warning', 'Voice change may not have been saved');
+        Alert.alert(t('modals.error.title'), t('profile.settings.voice.warning_no_save'));
       }
     } catch (error: any) {
       console.error('❌ Error saving voice:', error);
-      Alert.alert('Error', error.message || 'Failed to save voice preference');
+      Alert.alert(t('modals.error.title'), error.message || t('profile.settings.voice.error_save_voice'));
     } finally {
       setSaving(false);
     }
@@ -225,7 +228,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
-          <Text style={styles.title}>Choose Your AI Tutor</Text>
+          <Text style={styles.title}>{t('profile.settings.voice.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
@@ -242,7 +245,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#14B8A6" />
         </TouchableOpacity>
-        <Text style={styles.title}>Choose Your AI Tutor</Text>
+        <Text style={styles.title}>{t('profile.settings.voice.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -250,8 +253,8 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
       <View style={styles.infoBanner}>
         <Ionicons name="information-circle" size={20} color="#3B82F6" />
         <Text style={styles.infoBannerText}>
-          <Text style={styles.infoBannerBold}>Personalize Your Learning Experience: </Text>
-          Select the AI tutor voice that feels most comfortable for your practice sessions. Your choice will be used for all voice conversations across the platform.
+          <Text style={styles.infoBannerBold}>{t('profile.settings.voice.info_banner_title')} </Text>
+          {t('profile.settings.voice.info_banner_text')}
         </Text>
       </View>
 
@@ -277,7 +280,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
                 <View style={styles.badgesContainer}>
                   {isCurrent && (
                     <View style={styles.currentBadge}>
-                      <Text style={styles.currentBadgeText}>ACTIVE</Text>
+                      <Text style={styles.currentBadgeText}>{t('profile.settings.voice.badge_active')}</Text>
                     </View>
                   )}
                   {isSelected && !isCurrent && (
@@ -330,31 +333,31 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
         <View style={styles.howItWorksSection}>
           <View style={styles.howItWorksHeader}>
             <Ionicons name="help-circle" size={20} color="#14B8A6" />
-            <Text style={styles.howItWorksTitle}>How It Works</Text>
+            <Text style={styles.howItWorksTitle}>{t('profile.settings.voice.section_how_it_works')}</Text>
           </View>
           <View style={styles.howItWorksList}>
             <View style={styles.howItWorksItem}>
               <View style={styles.bullet} />
               <Text style={styles.howItWorksText}>
-                Your selected voice will be used for all AI tutor conversations
+                {t('profile.settings.voice.how_it_works_1')}
               </Text>
             </View>
             <View style={styles.howItWorksItem}>
               <View style={styles.bullet} />
               <Text style={styles.howItWorksText}>
-                Voice changes apply immediately to new practice sessions
+                {t('profile.settings.voice.how_it_works_2')}
               </Text>
             </View>
             <View style={styles.howItWorksItem}>
               <View style={styles.bullet} />
               <Text style={styles.howItWorksText}>
-                Each voice has a unique personality and speaking style
+                {t('profile.settings.voice.how_it_works_3')}
               </Text>
             </View>
             <View style={styles.howItWorksItem}>
               <View style={styles.bullet} />
               <Text style={styles.howItWorksText}>
-                You can change your voice preference anytime from this page
+                {t('profile.settings.voice.how_it_works_4')}
               </Text>
             </View>
           </View>
@@ -376,7 +379,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
               <>
                 <Ionicons name="save" size={20} color="#FFFFFF" />
                 <Text style={styles.saveButtonText}>
-                  Save Voice Preference
+                  {t('profile.settings.voice.button_save_preference')}
                 </Text>
               </>
             )}
@@ -396,7 +399,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <Ionicons name="volume-medium" size={24} color="#4ECFBF" />
-              <Text style={styles.modalTitle}>Confirm Voice Change</Text>
+              <Text style={styles.modalTitle}>{t('profile.settings.voice.modal_confirm_title')}</Text>
             </View>
 
             {/* Voice Info */}
@@ -438,8 +441,8 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
                 <View style={styles.modalInfoBanner}>
                   <Ionicons name="pencil" size={16} color="#0D9488" />
                   <Text style={styles.modalInfoText}>
-                    <Text style={styles.modalInfoBold}>Voice Update: </Text>
-                    This voice will be used for all your future AI tutor conversations. You can change it again anytime from your profile settings.
+                    <Text style={styles.modalInfoBold}>{t('profile.settings.voice.modal_info_title')} </Text>
+                    {t('profile.settings.voice.modal_info_text')}
                   </Text>
                 </View>
               </View>
@@ -452,7 +455,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
                 onPress={handleCancelConfirmation}
                 activeOpacity={0.7}
               >
-                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                <Text style={styles.modalCancelButtonText}>{t('buttons.cancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -461,7 +464,7 @@ const VoiceSelectionScreen: React.FC<VoiceSelectionScreenProps> = ({ onBack }) =
                 activeOpacity={0.7}
               >
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.modalConfirmButtonText}>Confirm Change</Text>
+                <Text style={styles.modalConfirmButtonText}>{t('profile.settings.voice.button_confirm_change')}</Text>
               </TouchableOpacity>
             </View>
           </View>

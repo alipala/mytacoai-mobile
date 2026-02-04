@@ -32,6 +32,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import type { LearningPlan } from '../api/generated';
 import { MiniLearningPlanCard } from './MiniLearningPlanCard';
 
@@ -218,6 +219,7 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
   isExpanded,
   onToggleExpand,
 }) => {
+  const { t } = useTranslation();
   const name = getLanguageName(language);
   const FlagComponent = getLanguageFlagComponent(language);
   const stats = calculateAggregateStats(plans);
@@ -293,7 +295,7 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
             color={isPremium ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.dnaButtonText, !isPremium && styles.dnaButtonTextLocked]}>
-            DNA Analysis
+            {t('learning_plan.dna_analysis')}
           </Text>
         </TouchableOpacity>
       )}
@@ -361,7 +363,7 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
               color="#14B8A6"
             />
             <Text style={styles.expandHintText}>
-              {isExpanded ? 'Tap to collapse' : 'Tap to expand'}
+              {isExpanded ? t('learning_plan.tap_to_collapse') : t('learning_plan.tap_to_expand')}
             </Text>
             <Ionicons
               name={isExpanded ? "chevron-up" : "chevron-down"}

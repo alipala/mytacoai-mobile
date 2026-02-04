@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useDailyStats } from '../hooks/useStats';
@@ -29,6 +30,7 @@ interface EnhancedTodaysProgressCardProps {
 }
 
 export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodaysProgressCardProps) {
+  const { t } = useTranslation();
   const { daily, isLoading, error, refetchDaily } = useDailyStats(true);
 
   // Expandable sections state
@@ -279,13 +281,13 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
             </View>
 
             <Text style={[styles.bannerTitle, { color: hasStreak ? "#991B1B" : "#115E59" }]}>
-              {hasStreak ? `${daily.streak.current}-Day Streak Active!` : "Start Your Journey!"}
+              {hasStreak ? t('explore.stats.day_streak_active', { count: daily.streak.current }) : t('explore.stats.start_your_journey')}
             </Text>
 
             <Text style={[styles.bannerSubtitle, { color: hasStreak ? "#7F1D1D" : "#134E4A" }]}>
               {hasStreak
-                ? "Complete a quest below to keep your streak alive"
-                : "Choose a quest below to begin earning rewards"
+                ? t('explore.stats.complete_quest_keep_streak')
+                : t('explore.stats.choose_quest_earn_rewards')
               }
             </Text>
 
@@ -297,7 +299,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
                   color={hasStreak ? "#991B1B" : "#0F766E"}
                 />
                 <Text style={[styles.perkText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
-                  {hasStreak ? "Save Streak" : "+50 XP"}
+                  {hasStreak ? t('explore.stats.save_streak') : '+50 XP'}
                 </Text>
               </View>
               <View style={styles.perkDivider} />
@@ -308,7 +310,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
                   color={hasStreak ? "#991B1B" : "#0F766E"}
                 />
                 <Text style={[styles.perkText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
-                  Boost Stats
+                  {t('explore.stats.boost_stats')}
                 </Text>
               </View>
               <View style={styles.perkDivider} />
@@ -319,7 +321,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
                   color={hasStreak ? "#991B1B" : "#0F766E"}
                 />
                 <Text style={[styles.perkText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
-                  Earn Badges
+                  {t('explore.stats.earn_badges')}
                 </Text>
               </View>
             </View>
@@ -340,7 +342,7 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
                 <Ionicons name="chevron-down" size={24} color={hasStreak ? "#DC2626" : "#14B8A6"} />
               </Animated.View>
               <Text style={[styles.scrollText, { color: hasStreak ? "#991B1B" : "#0F766E" }]}>
-                Choose quest below
+                {t('explore.stats.choose_quest_below')}
               </Text>
             </View>
           </View>
