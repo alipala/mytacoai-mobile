@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/colors';
 import { styles } from './styles/SessionTypeModal.styles';
 
@@ -29,6 +30,8 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
   onSelectQuickPractice,
   onSelectAssessment,
 }) => {
+  const { t } = useTranslation();
+
   // Main animations
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -184,9 +187,9 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                       </LinearGradient>
                     </View>
                     <View style={styles.headerTextContainer}>
-                      <Text style={styles.headerTitle}>Choose Your Session</Text>
+                      <Text style={styles.headerTitle}>{t('practice.session_modal.title')}</Text>
                       <Text style={styles.headerSubtitle}>
-                        Select the perfect way to practice
+                        {t('practice.session_modal.subtitle')}
                       </Text>
                     </View>
                   </View>
@@ -233,27 +236,27 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                             </View>
                             <View style={styles.recommendedBadge}>
                               <Ionicons name="star" size={10} color="#FFD63A" />
-                              <Text style={styles.recommendedText}>POPULAR</Text>
+                              <Text style={styles.recommendedText}>{t('practice.session_modal.badge_popular')}</Text>
                             </View>
                           </View>
 
-                          <Text style={styles.optionTitle}>Quick Practice</Text>
+                          <Text style={styles.optionTitle}>{t('practice.session_modal.quick_practice_title')}</Text>
                           <Text style={styles.optionDescription}>
-                            Start a real conversation to improve your skills
+                            {t('practice.session_modal.quick_practice_description')}
                           </Text>
 
                           <View style={styles.optionFeatures}>
                             <View style={styles.featureItem}>
                               <Ionicons name="time" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.featureText}>Flexible</Text>
+                              <Text style={styles.featureText}>{t('practice.session_modal.quick_practice_feature_flexible')}</Text>
                             </View>
                             <View style={styles.featureItem}>
                               <Ionicons name="chatbox-ellipses" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.featureText}>Real-time</Text>
+                              <Text style={styles.featureText}>{t('practice.session_modal.quick_practice_feature_realtime')}</Text>
                             </View>
                             <View style={styles.featureItem}>
                               <Ionicons name="rocket" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.featureText}>Instant start</Text>
+                              <Text style={styles.featureText}>{t('practice.session_modal.quick_practice_feature_instant')}</Text>
                             </View>
                           </View>
                         </View>
@@ -291,23 +294,23 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                             </View>
                           </View>
 
-                          <Text style={styles.optionTitle}>Speaking Assessment</Text>
+                          <Text style={styles.optionTitle}>{t('practice.session_modal.assessment_title')}</Text>
                           <Text style={styles.optionDescription}>
-                            Get detailed feedback on your speaking proficiency
+                            {t('practice.session_modal.assessment_description')}
                           </Text>
 
                           <View style={styles.optionFeatures}>
                             <View style={styles.featureItem}>
                               <Ionicons name="analytics" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.featureText}>Analysis</Text>
+                              <Text style={styles.featureText}>{t('practice.session_modal.assessment_feature_analysis')}</Text>
                             </View>
                             <View style={styles.featureItem}>
                               <Ionicons name="ribbon" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.featureText}>CEFR rated</Text>
+                              <Text style={styles.featureText}>{t('practice.session_modal.assessment_feature_cefr')}</Text>
                             </View>
                             <View style={styles.featureItem}>
                               <Ionicons name="trophy" size={14} color="rgba(255,255,255,0.9)" />
-                              <Text style={styles.featureText}>Progress</Text>
+                              <Text style={styles.featureText}>{t('practice.session_modal.assessment_feature_progress')}</Text>
                             </View>
                           </View>
                         </View>

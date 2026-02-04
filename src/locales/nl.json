@@ -269,6 +269,21 @@
       "countdown_seconds": "SECONDEN",
       "countdown_session_ending": "Sessie Eindigt..."
     },
+    "session_modal": {
+      "title": "Kies Je Sessie",
+      "subtitle": "Selecteer de perfecte manier om te oefenen",
+      "badge_popular": "POPULAIR",
+      "quick_practice_title": "Snelle Oefening",
+      "quick_practice_description": "Start een echt gesprek om je vaardigheden te verbeteren",
+      "quick_practice_feature_flexible": "Flexibel",
+      "quick_practice_feature_realtime": "Realtime",
+      "quick_practice_feature_instant": "Direct starten",
+      "assessment_title": "Spreekvaardigheid Beoordeling",
+      "assessment_description": "Ontvang gedetailleerde feedback over je spreekvaardigheid",
+      "assessment_feature_analysis": "Analyse",
+      "assessment_feature_cefr": "ERK-geclassificeerd",
+      "assessment_feature_progress": "Voortgang"
+    },
     "level_help_text": "Niet zeker over je niveau? Geen zorgen! Je kunt het later altijd aanpassen.",
     "research_failed_title": "Onderzoek Mislukt",
     "research_failed_message": "Kan je onderwerp niet onderzoeken. Probeer het opnieuw of selecteer een voorgedefinieerd onderwerp.",

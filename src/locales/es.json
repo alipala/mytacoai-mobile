@@ -269,6 +269,21 @@
       "countdown_seconds": "SEGUNDOS",
       "countdown_session_ending": "Finalizando Sesión..."
     },
+    "session_modal": {
+      "title": "Elige Tu Sesión",
+      "subtitle": "Selecciona la forma perfecta de practicar",
+      "badge_popular": "POPULAR",
+      "quick_practice_title": "Práctica Rápida",
+      "quick_practice_description": "Inicia una conversación real para mejorar tus habilidades",
+      "quick_practice_feature_flexible": "Flexible",
+      "quick_practice_feature_realtime": "Tiempo real",
+      "quick_practice_feature_instant": "Inicio instantáneo",
+      "assessment_title": "Evaluación de Habla",
+      "assessment_description": "Obtén comentarios detallados sobre tu dominio del habla",
+      "assessment_feature_analysis": "Análisis",
+      "assessment_feature_cefr": "Calificación CEFR",
+      "assessment_feature_progress": "Progreso"
+    },
     "level_help_text": "¿No estás seguro de tu nivel? ¡No te preocupes! Siempre puedes ajustarlo más tarde.",
     "research_failed_title": "Error en la Investigación",
     "research_failed_message": "No se pudo investigar tu tema. Por favor intenta de nuevo o selecciona un tema predefinido.",

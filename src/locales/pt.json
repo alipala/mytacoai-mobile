@@ -269,6 +269,21 @@
       "countdown_seconds": "SEGUNDOS",
       "countdown_session_ending": "Encerrando Sessão..."
     },
+    "session_modal": {
+      "title": "Escolha Sua Sessão",
+      "subtitle": "Selecione a maneira perfeita de praticar",
+      "badge_popular": "POPULAR",
+      "quick_practice_title": "Prática Rápida",
+      "quick_practice_description": "Inicie uma conversa real para melhorar suas habilidades",
+      "quick_practice_feature_flexible": "Flexível",
+      "quick_practice_feature_realtime": "Tempo real",
+      "quick_practice_feature_instant": "Início instantâneo",
+      "assessment_title": "Avaliação de Fala",
+      "assessment_description": "Receba feedback detalhado sobre sua proficiência oral",
+      "assessment_feature_analysis": "Análise",
+      "assessment_feature_cefr": "Classificado QECR",
+      "assessment_feature_progress": "Progresso"
+    },
     "level_help_text": "Não tem certeza sobre seu nível? Não se preocupe! Você sempre pode ajustá-lo depois.",
     "research_failed_title": "Pesquisa Falhou",
     "research_failed_message": "Não foi possível pesquisar seu tópico. Por favor, tente novamente ou selecione um tópico predefinido.",

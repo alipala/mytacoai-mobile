@@ -269,6 +269,21 @@
       "countdown_seconds": "SANİYE",
       "countdown_session_ending": "Oturum Bitiyor..."
     },
+    "session_modal": {
+      "title": "Oturumunuzu Seçin",
+      "subtitle": "Pratik yapmanın mükemmel yolunu seçin",
+      "badge_popular": "POPÜLER",
+      "quick_practice_title": "Hızlı Pratik",
+      "quick_practice_description": "Becerilerinizi geliştirmek için gerçek bir konuşma başlatın",
+      "quick_practice_feature_flexible": "Esnek",
+      "quick_practice_feature_realtime": "Gerçek zamanlı",
+      "quick_practice_feature_instant": "Anında başlat",
+      "assessment_title": "Konuşma Değerlendirmesi",
+      "assessment_description": "Konuşma yeterliliğiniz hakkında detaylı geri bildirim alın",
+      "assessment_feature_analysis": "Analiz",
+      "assessment_feature_cefr": "CEFR puanlı",
+      "assessment_feature_progress": "İlerleme"
+    },
     "level_help_text": "Seviyenizden emin değil misiniz? Endişelenmeyin! İstediğiniz zaman değiştirebilirsiniz.",
     "research_failed_title": "Araştırma Başarısız",
     "research_failed_message": "Konunuz araştırılamadı. Lütfen tekrar deneyin veya önceden tanımlanmış bir konu seçin.",

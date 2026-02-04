@@ -269,6 +269,21 @@
       "countdown_seconds": "SECONDS",
       "countdown_session_ending": "Session Ending..."
     },
+    "session_modal": {
+      "title": "Choose Your Session",
+      "subtitle": "Select the perfect way to practice",
+      "badge_popular": "POPULAR",
+      "quick_practice_title": "Quick Practice",
+      "quick_practice_description": "Start a real conversation to improve your skills",
+      "quick_practice_feature_flexible": "Flexible",
+      "quick_practice_feature_realtime": "Real-time",
+      "quick_practice_feature_instant": "Instant start",
+      "assessment_title": "Speaking Assessment",
+      "assessment_description": "Get detailed feedback on your speaking proficiency",
+      "assessment_feature_analysis": "Analysis",
+      "assessment_feature_cefr": "CEFR rated",
+      "assessment_feature_progress": "Progress"
+    },
     "level_help_text": "Not sure about your level? Don't worry! You can always adjust it later.",
     "research_failed_title": "Research Failed",
     "research_failed_message": "Unable to research your topic. Please try again or select a predefined topic.",

@@ -269,6 +269,21 @@
       "countdown_seconds": "SECONDES",
       "countdown_session_ending": "Fin de la session..."
     },
+    "session_modal": {
+      "title": "Choisissez Votre Session",
+      "subtitle": "Sélectionnez la meilleure façon de pratiquer",
+      "badge_popular": "POPULAIRE",
+      "quick_practice_title": "Pratique Rapide",
+      "quick_practice_description": "Commencez une vraie conversation pour améliorer vos compétences",
+      "quick_practice_feature_flexible": "Flexible",
+      "quick_practice_feature_realtime": "Temps réel",
+      "quick_practice_feature_instant": "Démarrage instantané",
+      "assessment_title": "Évaluation de la Parole",
+      "assessment_description": "Obtenez des commentaires détaillés sur vos compétences orales",
+      "assessment_feature_analysis": "Analyse",
+      "assessment_feature_cefr": "Certifié CECRL",
+      "assessment_feature_progress": "Progrès"
+    },
     "level_help_text": "Vous n'êtes pas sûr de votre niveau ? Ne vous inquiétez pas ! Vous pourrez toujours l'ajuster plus tard.",
     "research_failed_title": "Échec de la recherche",
     "research_failed_message": "Impossible de rechercher votre sujet. Veuillez réessayer ou sélectionner un sujet prédéfini.",

@@ -269,6 +269,21 @@
       "countdown_seconds": "SEKUNDEN",
       "countdown_session_ending": "Sitzung endet..."
     },
+    "session_modal": {
+      "title": "Wählen Sie Ihre Sitzung",
+      "subtitle": "Wählen Sie die perfekte Art zu üben",
+      "badge_popular": "BELIEBT",
+      "quick_practice_title": "Schnellübung",
+      "quick_practice_description": "Beginnen Sie ein echtes Gespräch, um Ihre Fähigkeiten zu verbessern",
+      "quick_practice_feature_flexible": "Flexibel",
+      "quick_practice_feature_realtime": "Echtzeit",
+      "quick_practice_feature_instant": "Sofortiger Start",
+      "assessment_title": "Sprechbewertung",
+      "assessment_description": "Erhalten Sie detailliertes Feedback zu Ihrer Sprechfähigkeit",
+      "assessment_feature_analysis": "Analyse",
+      "assessment_feature_cefr": "GER-bewertet",
+      "assessment_feature_progress": "Fortschritt"
+    },
     "level_help_text": "Nicht sicher über Ihr Niveau? Keine Sorge! Sie können es später jederzeit anpassen.",
     "research_failed_title": "Recherche fehlgeschlagen",
     "research_failed_message": "Ihr Thema konnte nicht recherchiert werden. Bitte versuchen Sie es erneut oder wählen Sie ein vordefiniertes Thema.",
