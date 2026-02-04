@@ -23,6 +23,10 @@ export const styles = StyleSheet.create({
     width: SCREEN_WIDTH < 400 ? 140 : 180, // Optimized size for transparent logo
     height: SCREEN_WIDTH < 400 ? 45 : 58, // Maintain aspect ratio
   },
+  logoMinimal: {
+    width: 75, // Compact bear face logo (50% larger)
+    height: 75,
+  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -108,6 +112,41 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FCA5A5', // Lighter red
     lineHeight: 10,
+  },
+  // Notification Bell Badge - Dark Theme with Turquoise Glow
+  notificationBell: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)', // Turquoise tinted
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#0B1A1F',
+  },
+  notificationCount: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   scrollView: {
     flex: 1,

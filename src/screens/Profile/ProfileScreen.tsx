@@ -24,11 +24,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import { styles } from './styles/ProfileScreen.styles';
+import { speakingDNAService } from '../../services/SpeakingDNAService';
 
 // Flag imports
 import EnglishFlag from '../../assets/flags/english.svg';
@@ -168,14 +170,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'flashcards' | 'notifications'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'flashcards' | 'dna'>('overview');
   const scrollViewRef = React.useRef<ScrollView>(null);
 
   // Handle navigation from push notification tap
   useEffect(() => {
+    // Notifications tab removed - redirect to overview
     if (route?.params?.tab === 'notifications') {
-      console.log('📬 Navigating to notifications tab from push notification');
-      setActiveTab('notifications');
+      console.log('📬 Notifications tab removed - staying on overview');
+      setActiveTab('overview');
 
       // Auto-expand the notification if ID is provided
       const notificationId = route?.params?.notificationId;
@@ -228,7 +231,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   };
 
   // Tab Navigation Helpers
-  const tabs = ['overview', 'progress', 'flashcards', 'notifications'] as const;
+  const tabs = ['overview', 'progress', 'flashcards', 'dna'] as const;
 
   const handleTabPress = (tab: typeof activeTab) => {
     if (Platform.OS === 'ios') {
@@ -742,148 +745,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           <Text style={styles.statValue}>{flashcardSets.length}</Text>
           <Text style={styles.statLabel}>Sets</Text>
         </View>
-      </View>
-
-      {/* Speaking DNA Section - Dark Theme Enhanced */}
-      <View style={styles.section}>
-        <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 12}}>
-          <Ionicons name="analytics" size={20} color="#14B8A6" style={{marginRight: 8}} />
-          <Text style={styles.sectionTitle}>Your Speaking DNA</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => {
-            // Use most recent learning plan's language, fallback to preferred language, then dutch
-            const recentLanguage = learningPlans.length > 0
-              ? learningPlans[0].language
-              : (user?.preferred_language || 'dutch');
-            if (Platform.OS === 'ios') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            }
-            navigation.navigate('SpeakingDNA', { language: recentLanguage });
-          }}
-          activeOpacity={0.9}
-          style={{
-            borderRadius: 16,
-            overflow: 'hidden',
-            shadowColor: '#14B8A6',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 12,
-            elevation: 5,
-          }}
-        >
-          {/* Dark Theme DNA Card */}
-          <View style={{
-            backgroundColor: 'rgba(11, 26, 31, 0.8)',
-            borderWidth: 1,
-            borderColor: 'rgba(20, 184, 166, 0.3)',
-          }}>
-            {/* Header Row */}
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: 'rgba(20, 184, 166, 0.15)',
-            }}>
-              <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-                <View style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 1,
-                  borderColor: 'rgba(20, 184, 166, 0.3)',
-                }}>
-                  <Ionicons name="pulse" size={20} color="#14B8A6" />
-                </View>
-                <View>
-                  <Text style={{fontSize: 16, fontWeight: '700', color: '#FFFFFF'}}>
-                    Track Your Progress
-                  </Text>
-                  <Text style={{fontSize: 12, color: '#B4E4DD', marginTop: 2}}>
-                    6 DNA Strands Analyzed
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="arrow-forward-circle" size={28} color="#14B8A6" />
-            </View>
-
-            {/* Content Row */}
-            <View style={{
-              flexDirection: 'row',
-              padding: 16,
-              gap: 12,
-            }}>
-              {/* Left: DNA Icon Grid with Glow */}
-              <View style={{
-                width: 80,
-                height: 80,
-                backgroundColor: 'rgba(20, 184, 166, 0.08)',
-                borderRadius: 12,
-                padding: 8,
-                gap: 4,
-                borderWidth: 1,
-                borderColor: 'rgba(20, 184, 166, 0.2)',
-              }}>
-                <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#6366F1', shadowColor: '#6366F1', shadowOpacity: 0.5, shadowRadius: 4}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#8B5CF6', shadowColor: '#8B5CF6', shadowOpacity: 0.5, shadowRadius: 4}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#EC4899', shadowColor: '#EC4899', shadowOpacity: 0.5, shadowRadius: 4}} />
-                </View>
-                <View style={{flexDirection: 'row', gap: 4, justifyContent: 'space-around'}}>
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#F59E0B', shadowColor: '#F59E0B', shadowOpacity: 0.5, shadowRadius: 4}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#10B981', shadowColor: '#10B981', shadowOpacity: 0.5, shadowRadius: 4}} />
-                  <View style={{width: 12, height: 12, borderRadius: 6, backgroundColor: '#14B8A6', shadowColor: '#14B8A6', shadowOpacity: 0.5, shadowRadius: 4}} />
-                </View>
-                <View style={{alignItems: 'center', marginTop: 4}}>
-                  <Ionicons name="trending-up" size={16} color="#14B8A6" />
-                </View>
-              </View>
-
-              {/* Right: Description */}
-              <View style={{flex: 1, justifyContent: 'center'}}>
-                <Text style={{
-                  fontSize: 14,
-                  color: '#B4E4DD',
-                  lineHeight: 20,
-                  marginBottom: 8,
-                }}>
-                  Discover your unique speaking patterns across confidence, vocabulary, rhythm, and more
-                </Text>
-                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
-                  <View style={{
-                    backgroundColor: 'rgba(251, 191, 36, 0.15)',
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: 'rgba(251, 191, 36, 0.3)',
-                  }}>
-                    <Text style={{fontSize: 11, fontWeight: '600', color: '#FBBF24'}}>
-                      Visual Analytics
-                    </Text>
-                  </View>
-                  <View style={{
-                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: 'rgba(59, 130, 246, 0.3)',
-                  }}>
-                    <Text style={{fontSize: 11, fontWeight: '600', color: '#3B82F6'}}>
-                      Insights
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -1413,6 +1274,347 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     </View>
   );
 
+  // DNA Tab - Show DNA analysis with language selector and inline visualization
+  const renderDNATab = () => {
+    // Get ALL languages from learning plans (no filtering)
+    const allLanguages = Array.from(new Set(
+      learningPlans
+        .map(plan => plan.language)
+        .filter((lang): lang is string => lang !== null && lang !== undefined)
+    ));
+
+    // Default to first language or user's preferred language
+    const [selectedDNALanguage, setSelectedDNALanguage] = React.useState(
+      allLanguages.length > 0
+        ? allLanguages[0]
+        : user?.preferred_language || 'dutch'
+    );
+
+    // State for DNA profile data
+    const [dnaProfile, setDnaProfile] = React.useState<any>(null);
+    const [loadingDNA, setLoadingDNA] = React.useState(false);
+
+    // Fetch DNA profile when language changes
+    React.useEffect(() => {
+      const fetchDNAProfile = async () => {
+        try {
+          setLoadingDNA(true);
+          const profile = await speakingDNAService.getProfile(selectedDNALanguage);
+          setDnaProfile(profile);
+        } catch (error) {
+          console.error('Error fetching DNA profile:', error);
+          setDnaProfile(null);
+        } finally {
+          setLoadingDNA(false);
+        }
+      };
+
+      if (selectedDNALanguage) {
+        fetchDNAProfile();
+      }
+    }, [selectedDNALanguage]);
+
+    if (allLanguages.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <Ionicons name="analytics-outline" size={64} color="#D1D5DB" />
+          <Text style={styles.emptyStateText}>No Learning Plans Yet</Text>
+          <Text style={styles.emptyStateSubtext}>
+            Create a learning plan to start tracking your DNA
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0B1A1F' }}>
+        {/* Flag Selector with Animated Glow - Very Top */}
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: 14,
+          paddingHorizontal: 20,
+          gap: 10,
+          backgroundColor: '#0B1A1F',
+        }}>
+          {allLanguages.map((language) => {
+            const FlagComponent = getFlagComponent(language);
+            const isSelected = selectedDNALanguage === language;
+
+            // Define glow color for each flag based on its primary color
+            const getGlowColor = (lang: string) => {
+              switch(lang.toLowerCase()) {
+                case 'english': return '#C8102E'; // Red
+                case 'spanish': return '#F1BF00'; // Yellow/Gold
+                case 'french': return '#0055A4'; // Blue
+                case 'german': return '#FFCE00'; // Gold
+                case 'dutch': return '#FF6C00'; // Orange
+                case 'portuguese': return '#006600'; // Green
+                default: return '#14B8A6';
+              }
+            };
+
+            const glowColor = getGlowColor(language);
+
+            return (
+              <View key={language} style={{ position: 'relative' }}>
+                {/* Animated Glow Layer - Only for Selected */}
+                {isSelected && (
+                  <>
+                    <View style={{
+                      position: 'absolute',
+                      top: -4,
+                      left: -4,
+                      right: -4,
+                      bottom: -4,
+                      borderRadius: 10,
+                      backgroundColor: '#14B8A6',
+                      opacity: 0.3,
+                      shadowColor: '#14B8A6',
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowOpacity: 1,
+                      shadowRadius: 16,
+                    }} />
+                    <View style={{
+                      position: 'absolute',
+                      top: -2,
+                      left: -2,
+                      right: -2,
+                      bottom: -2,
+                      borderRadius: 9,
+                      backgroundColor: '#14B8A6',
+                      opacity: 0.4,
+                      shadowColor: '#14B8A6',
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowOpacity: 1,
+                      shadowRadius: 12,
+                    }} />
+                  </>
+                )}
+
+                <TouchableOpacity
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                    setSelectedDNALanguage(language);
+                  }}
+                  style={{
+                    width: 56,
+                    height: 40,
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    borderWidth: isSelected ? 3 : 1.5,
+                    borderColor: isSelected ? '#14B8A6' : 'rgba(255, 255, 255, 0.15)',
+                    backgroundColor: '#FFFFFF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: isSelected ? '#14B8A6' : glowColor,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: isSelected ? 0.8 : 0.3,
+                    shadowRadius: isSelected ? 16 : 6,
+                    elevation: isSelected ? 10 : 3,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  {FlagComponent ? (
+                    <FlagComponent width={52} height={36} />
+                  ) : (
+                    <Ionicons name="flag" size={24} color="#6B8A84" />
+                  )}
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* DNA Content Area */}
+        <View style={{ flex: 1 }}>
+          {loadingDNA ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+              <ActivityIndicator size="large" color="#14B8A6" />
+              <Text style={{ fontSize: 14, color: '#8CA5A0', marginTop: 16, textAlign: 'center' }}>
+                Loading DNA profile for {selectedDNALanguage}...
+              </Text>
+            </View>
+          ) : dnaProfile ? (
+            // Show DNA visualization inline
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingTop: 8, paddingHorizontal: 20, paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Compact Header */}
+              <View style={{ marginBottom: 16 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#6B8A84', letterSpacing: 0.5, marginBottom: 4 }}>
+                      SPEAKING DNA ANALYSIS
+                    </Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#14B8A6', textTransform: 'capitalize' }}>
+                      {selectedDNALanguage}
+                    </Text>
+                  </View>
+                  <View style={{
+                    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: 'rgba(20, 184, 166, 0.3)',
+                  }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#14B8A6' }}>
+                      6 STRANDS
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* DNA Strands - Inline Visualization */}
+              <View style={{ gap: 10 }}>
+                {[
+                  { name: 'Confidence', key: 'confidence', icon: 'shield-checkmark', color: '#6366F1', accessor: (p: any) => (p.dna_strands?.confidence?.score || 0) * 100 },
+                  { name: 'Vocabulary', key: 'vocabulary', icon: 'book', color: '#8B5CF6', accessor: (p: any) => (p.dna_strands?.vocabulary?.new_word_attempt_rate || 0) * 100 },
+                  { name: 'Accuracy', key: 'accuracy', icon: 'checkmark-circle', color: '#EC4899', accessor: (p: any) => (p.dna_strands?.accuracy?.grammar_accuracy || 0) * 100 },
+                  { name: 'Rhythm', key: 'rhythm', icon: 'pulse', color: '#F59E0B', accessor: (p: any) => (p.dna_strands?.rhythm?.consistency_score || 0) * 100 },
+                  { name: 'Learning', key: 'learning', icon: 'school', color: '#10B981', accessor: (p: any) => (p.dna_strands?.learning?.challenge_acceptance || 0) * 100 },
+                  { name: 'Emotional', key: 'emotional', icon: 'heart', color: '#14B8A6', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
+                ].map((strand) => {
+                  const value = strand.accessor(dnaProfile);
+                  const normalizedValue = Math.min(Math.max(value, 0), 100);
+
+                  return (
+                    <View key={strand.key} style={{
+                      backgroundColor: 'rgba(26, 47, 58, 0.4)',
+                      borderRadius: 12,
+                      padding: 16,
+                      borderWidth: 1,
+                      borderColor: `${strand.color}30`,
+                      borderLeftWidth: 4,
+                      borderLeftColor: strand.color,
+                    }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                          <View style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 8,
+                            backgroundColor: `${strand.color}25`,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <Ionicons name={strand.icon as any} size={18} color={strand.color} />
+                          </View>
+                          <View>
+                            <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
+                              {strand.name}
+                            </Text>
+                            <Text style={{
+                              fontSize: 10,
+                              color: normalizedValue >= 80 ? '#10B981' :
+                                     normalizedValue >= 60 ? '#14B8A6' :
+                                     normalizedValue >= 40 ? '#F59E0B' : '#EF4444',
+                              fontWeight: '700',
+                              letterSpacing: 0.3,
+                              marginTop: 2,
+                            }}>
+                              {normalizedValue >= 80 ? 'EXCELLENT' :
+                               normalizedValue >= 60 ? 'GOOD' :
+                               normalizedValue >= 40 ? 'DEVELOPING' :
+                               'NEEDS PRACTICE'}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={{ fontSize: 24, fontWeight: '800', color: strand.color }}>
+                          {Math.round(normalizedValue)}
+                        </Text>
+                      </View>
+
+                      {/* Progress Bar */}
+                      <View style={{
+                        height: 6,
+                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                      }}>
+                        <View style={{
+                          width: `${normalizedValue}%`,
+                          height: '100%',
+                          backgroundColor: strand.color,
+                          borderRadius: 3,
+                        }} />
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* View Full Analysis Button */}
+              <TouchableOpacity
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  }
+                  navigation.navigate('SpeakingDNA', { language: selectedDNALanguage });
+                }}
+                style={{
+                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                  borderWidth: 2,
+                  borderColor: 'rgba(20, 184, 166, 0.4)',
+                  borderRadius: 14,
+                  padding: 18,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  marginTop: 24,
+                  shadowColor: '#14B8A6',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="expand" size={22} color="#14B8A6" />
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#14B8A6' }}>
+                  View Full Analysis & Insights
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          ) : (
+            // No DNA data for selected language
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+              <View style={{
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+                borderWidth: 2,
+                borderColor: 'rgba(20, 184, 166, 0.2)',
+              }}>
+                <Ionicons name="analytics-outline" size={50} color="#6B8A84" />
+              </View>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 8, textAlign: 'center' }}>
+                No DNA Data Yet
+              </Text>
+              <Text style={{ fontSize: 14, color: '#8CA5A0', textAlign: 'center', lineHeight: 20 }}>
+                Complete speaking assessments for{'\n'}
+                <Text style={{ fontWeight: '700', color: '#14B8A6', textTransform: 'capitalize' }}>
+                  {selectedDNALanguage}
+                </Text>
+                {' '}to build your DNA profile
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   return (
     <TransitionWrapper isLoading={loading} loadingMessage="Loading your profile...">
       <SafeAreaView style={styles.safeArea}>
@@ -1484,23 +1686,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'notifications' && styles.tabActive]}
-              onPress={() => handleTabPress('notifications')}
+              style={[styles.tab, activeTab === 'dna' && styles.tabActive]}
+              onPress={() => handleTabPress('dna')}
               activeOpacity={0.7}
             >
-              <View style={styles.tabContent}>
-                <Ionicons
-                  name={activeTab === 'notifications' ? 'notifications' : 'notifications-outline'}
-                  size={24}
-                  color={activeTab === 'notifications' ? '#14B8A6' : '#6B8A84'}
-                />
-                <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>Alerts</Text>
-                {unreadCount > 0 && (
-                  <View style={styles.tabBadge}>
-                    <Text style={styles.tabBadgeText}>{unreadCount}</Text>
-                  </View>
-                )}
-              </View>
+              <Ionicons
+                name={activeTab === 'dna' ? 'analytics' : 'analytics-outline'}
+                size={24}
+                color={activeTab === 'dna' ? '#14B8A6' : '#6B8A84'}
+              />
+              <Text style={[styles.tabText, activeTab === 'dna' && styles.tabTextActive]}>DNA</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1546,7 +1741,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             {renderFlashcardsTab()}
           </View>
 
-          {/* Notifications Page */}
+          {/* DNA Page */}
           <View style={styles.page}>
             <ScrollView
               style={styles.pageContent}
@@ -1555,7 +1750,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#14B8A6" colors={['#14B8A6']} />
               }
             >
-              {renderNotificationsTab()}
+              {renderDNATab()}
             </ScrollView>
           </View>
         </ScrollView>

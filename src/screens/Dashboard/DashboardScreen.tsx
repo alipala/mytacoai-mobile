@@ -669,11 +669,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
-      {/* Header with Logo + Premium Badge + Streak Badge */}
+      {/* Header with Logo + Premium Badge + Streak Badge + Notifications */}
       <View style={styles.header}>
         <Image
-          source={require('../../assets/logo-transparent.png')}
-          style={styles.logo}
+          source={require('../../assets/logo-minimal-transparent.png')}
+          style={styles.logoMinimal}
           resizeMode="contain"
         />
 
@@ -730,6 +730,36 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               </View>
             </TouchableOpacity>
           )}
+
+          {/* Notifications Bell */}
+          <TouchableOpacity
+            style={styles.notificationBell}
+            activeOpacity={0.8}
+            onPress={() => {
+              // TODO: Open notifications modal
+              console.log('Notifications clicked');
+            }}
+          >
+            {/* Outer glow for notification */}
+            <View style={{
+              position: 'absolute',
+              top: -2,
+              left: -2,
+              right: -2,
+              bottom: -2,
+              borderRadius: 20,
+              backgroundColor: 'rgba(20, 184, 166, 0.2)',
+              opacity: 0.5,
+            }} />
+            <Ionicons name="notifications-outline" size={22} color="#14B8A6" />
+            {/* Notification count badge */}
+            {/* TODO: Replace with actual unread count */}
+            {false && (
+              <View style={styles.notificationDot}>
+                <Text style={styles.notificationCount}>3</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
 

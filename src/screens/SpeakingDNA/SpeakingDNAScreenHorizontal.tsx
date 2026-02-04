@@ -7,7 +7,7 @@
  * - Page 2: Key Insights, Strengths, Focus Areas, Breakthroughs
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -598,6 +598,39 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     setCurrentPage(event.nativeEvent.position);
   };
 
+  // Build pages array to avoid conditional rendering issues in PagerView
+  // MUST be before early returns to satisfy React Hooks rules
+  const pages = useMemo(() => {
+    if (!profile) return [];
+
+    const pagesArray = [];
+
+    // Page 1: Radar Chart
+    pagesArray.push(
+      <View key="radar" style={styles.pageWrapper}>
+        <RadarPage profile={profile} onStrandTapForModal={handleStrandTapForModal} />
+      </View>
+    );
+
+    // Page 2: Voice Signature (only if acoustic metrics exist)
+    if (profile?.baseline_assessment?.acoustic_metrics) {
+      pagesArray.push(
+        <View key="voice" style={styles.pageWrapper}>
+          <VoiceSignaturePage profile={profile} />
+        </View>
+      );
+    }
+
+    // Last Page: Insights
+    pagesArray.push(
+      <View key="insights" style={styles.pageWrapper}>
+        <InsightsPage profile={profile} breakthroughs={breakthroughs} />
+      </View>
+    );
+
+    return pagesArray;
+  }, [profile, breakthroughs]);
+
   // ============================================================================
   // RENDER LOADING STATE
   // ============================================================================
@@ -736,28 +769,13 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
         initialPage={0}
         onPageSelected={handlePageSelected}
       >
-        {/* Page 1: Radar Chart with Modal */}
-        <View key="radar" style={styles.pageWrapper}>
-          <RadarPage profile={profile} onStrandTapForModal={handleStrandTapForModal} />
-        </View>
-
-        {/* Page 2: Voice Signature (only if acoustic metrics exist) */}
-        {profile?.baseline_assessment?.acoustic_metrics && (
-          <View key="voice" style={styles.pageWrapper}>
-            <VoiceSignaturePage profile={profile} />
-          </View>
-        )}
-
-        {/* Page 3 (or 2): Insights */}
-        <View key="insights" style={styles.pageWrapper}>
-          <InsightsPage profile={profile} breakthroughs={breakthroughs} />
-        </View>
+        {pages}
       </PagerView>
 
       {/* Page Indicator */}
       <PageIndicator
         currentPage={currentPage}
-        totalPages={profile?.baseline_assessment?.acoustic_metrics ? 3 : 2}
+        totalPages={pages.length}
       />
 
       {/* Strand Detail Modal */}
