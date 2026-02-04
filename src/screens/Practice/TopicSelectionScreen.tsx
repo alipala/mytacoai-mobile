@@ -33,81 +33,81 @@ interface Topic {
   color: string;
 }
 
-const PREDEFINED_TOPICS: Topic[] = [
+const getPredefinedTopics = (t: (key: string) => string): Topic[] => [
   {
     id: 'travel',
-    name: 'Travel & Tourism',
-    description: 'Discuss destinations, booking trips, and travel experiences',
+    name: t('practice.topics.travel'),
+    description: t('practice.topics.travel_desc'),
     icon: 'airplane',
     color: '#3B82F6',
   },
   {
     id: 'food',
-    name: 'Food & Dining',
-    description: 'Talk about restaurants, recipes, and food preferences',
+    name: t('practice.topics.food'),
+    description: t('practice.topics.food_desc'),
     icon: 'restaurant',
     color: '#EF4444',
   },
   {
     id: 'work',
-    name: 'Work & Career',
-    description: 'Discuss jobs, career goals, and workplace situations',
+    name: t('practice.topics.work'),
+    description: t('practice.topics.work_desc'),
     icon: 'briefcase',
     color: '#8B5CF6',
   },
   {
     id: 'hobbies',
-    name: 'Hobbies & Interests',
-    description: 'Share your favorite activities and pastimes',
+    name: t('practice.topics.hobbies'),
+    description: t('practice.topics.hobbies_desc'),
     icon: 'football',
     color: '#F59E0B',
   },
   {
     id: 'shopping',
-    name: 'Shopping & Services',
-    description: 'Practice buying things and using services',
+    name: t('practice.topics.shopping'),
+    description: t('practice.topics.shopping_desc'),
     icon: 'cart',
     color: '#10B981',
   },
   {
     id: 'daily',
-    name: 'Daily Routines',
-    description: 'Talk about everyday activities and schedules',
+    name: t('practice.topics.daily'),
+    description: t('practice.topics.daily_desc'),
     icon: 'time',
     color: '#06B6D4',
   },
   {
     id: 'health',
-    name: 'Health & Fitness',
-    description: 'Discuss wellness, exercise, and medical topics',
+    name: t('practice.topics.health'),
+    description: t('practice.topics.health_desc'),
     icon: 'fitness',
     color: '#EC4899',
   },
   {
     id: 'technology',
-    name: 'Technology',
-    description: 'Talk about gadgets, apps, and digital life',
+    name: t('practice.topics.technology'),
+    description: t('practice.topics.technology_desc'),
     icon: 'phone-portrait',
     color: '#6366F1',
   },
   {
     id: 'education',
-    name: 'Education & Learning',
-    description: 'Discuss school, courses, and learning experiences',
+    name: t('practice.topics.education'),
+    description: t('practice.topics.education_desc'),
     icon: 'school',
     color: '#F97316',
   },
   {
     id: 'family',
-    name: 'Family & Relationships',
-    description: 'Talk about family members and personal relationships',
+    name: t('practice.topics.family'),
+    description: t('practice.topics.family_desc'),
     icon: 'people',
     color: '#14B8A6',
   },
   {
     id: 'custom',
-    name: '✨ Create Your Own',
-    description: 'Create a personalized topic for your conversation',
+    name: t('practice.topics.custom'),
+    description: t('practice.topics.custom_desc'),
     icon: 'sparkles',
     color: '#4ECFBF',
   },
@@ -123,6 +123,8 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
   const [customTopicText, setCustomTopicText] = useState('');
   const [isResearching, setIsResearching] = useState(false);
   const { mode, language } = route.params;
+
+  const PREDEFINED_TOPICS = getPredefinedTopics(t);
 
   // Animation values
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -460,7 +462,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
                 <Ionicons name={topic.icon} size={28} color={topic.color} />
               </View>
               <View style={styles.topicInfo}>
-                <Text style={styles.topicName}>{t(`practice.topics.${topic.id}`)}</Text>
+                <Text style={styles.topicName}>{topic.name}</Text>
                 <Text style={styles.topicDescription}>{topic.description}</Text>
               </View>
               {selectedTopic === topic.id && (
