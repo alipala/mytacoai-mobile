@@ -303,11 +303,23 @@ const getWeeklyFocus = (growthAreas: string[], strands: any): WeeklyFocus | null
 // ============================================================================
 
 interface InsightsPageProps {
-  profile: SpeakingDNAProfile;
+  profile: SpeakingDNAProfile | null;
   breakthroughs: SpeakingBreakthrough[];
 }
 
 const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) => {
+  // Safety check - should never happen but adds protection
+  if (!profile || !profile.overall_profile || !profile.dna_strands) {
+    return (
+      <View style={styles.page}>
+        <LinearGradient colors={['#0B1A1F', '#0D2832']} style={styles.radarBackground} />
+        <View style={styles.centerContent}>
+          <Text style={styles.emptyText}>Loading insights...</Text>
+        </View>
+      </View>
+    );
+  }
+
   const { strengths, growth_areas } = profile.overall_profile;
   const strands = profile.dna_strands;
 
@@ -717,7 +729,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
         </View>
       </View>
 
-      {/* Pager View - 3 Pages */}
+      {/* Pager View - Dynamic Pages */}
       <PagerView
         ref={pagerRef}
         style={styles.pagerView}
@@ -736,7 +748,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
           </View>
         )}
 
-        {/* Page 3: Insights */}
+        {/* Page 3 (or 2): Insights */}
         <View key="insights" style={styles.pageWrapper}>
           <InsightsPage profile={profile} breakthroughs={breakthroughs} />
         </View>
