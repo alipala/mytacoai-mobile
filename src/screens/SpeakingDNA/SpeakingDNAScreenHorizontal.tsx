@@ -379,19 +379,19 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
         )}
 
         {/* Recent Breakthrough - Show only 1 */}
-        {breakthroughs.length > 0 && (
+        {breakthroughs.length > 0 && breakthroughs[0] && (
           <View style={styles.insightSection}>
             <View style={styles.insightHeader}>
               <Ionicons name="trophy" size={20} color="#8B5CF6" />
               <Text style={styles.insightSectionTitle}>Recent Win</Text>
             </View>
             <LinearGradient
-              colors={getCategoryColors(breakthroughs[0].category)}
+              colors={getCategoryColors(breakthroughs[0]?.category || 'confidence')}
               style={styles.breakthroughCard}
             >
-              <Text style={styles.breakthroughEmoji}>{breakthroughs[0].emoji}</Text>
-              <Text style={styles.breakthroughTitle}>{breakthroughs[0].title}</Text>
-              <Text style={styles.breakthroughDesc}>{breakthroughs[0].description}</Text>
+              <Text style={styles.breakthroughEmoji}>{breakthroughs[0]?.emoji || '🎉'}</Text>
+              <Text style={styles.breakthroughTitle}>{breakthroughs[0]?.title || 'Breakthrough'}</Text>
+              <Text style={styles.breakthroughDesc}>{breakthroughs[0]?.description || 'You made progress!'}</Text>
             </LinearGradient>
           </View>
         )}
