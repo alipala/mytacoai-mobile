@@ -22,6 +22,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Swipeable } from 'react-native-gesture-handler';
+import { setBadgeCount } from '../../services/notificationService';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
 import { LearningPlanCard } from '../../components/LearningPlanCard';
@@ -68,6 +70,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
+
+  // Notifications state
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
 
   // Create next plan modal state
   const [showCreateNextPlanModal, setShowCreateNextPlanModal] = useState(false);
@@ -128,6 +136,135 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
+  const fetchNotifications = async () => {
+    try {
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return { notifications: [], unread_count: 0 };
+
+      const response = await fetch(`${API_BASE_URL}/api/`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch notifications');
+      }
+
+      const data = await response.json();
+
+      // Filter valid notifications
+      const validNotifications = (data.notifications || []).filter((notif: any) => {
+        return notif && (notif.id || notif.notification_id) && notif.notification;
+      });
+
+      setNotifications(validNotifications);
+      const newUnreadCount = data.unread_count || 0;
+      setUnreadCount(newUnreadCount);
+
+      // Update iOS badge count
+      await setBadgeCount(newUnreadCount);
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return { notifications: [], unread_count: 0 };
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      const notification = notifications.find(n => n.notification_id === notificationId);
+      if (notification?.is_read) {
+        const swipeableRef = swipeableRefs.current[notificationId];
+        if (swipeableRef) swipeableRef.close();
+        return;
+      }
+
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return;
+
+      try {
+        await fetch(`${API_BASE_URL}/api/mark-read`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ notification_id: notificationId }),
+        });
+      } catch (backendError: any) {
+        if (!backendError.message?.includes('already read') && !backendError.message?.includes('not found')) {
+          throw backendError;
+        }
+      }
+
+      // Update local state
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.notification_id === notificationId
+            ? { ...notif, is_read: true, read_at: new Date().toISOString() }
+            : notif
+        )
+      );
+
+      // Update unread count
+      if (!notification?.is_read) {
+        const newUnreadCount = Math.max(0, unreadCount - 1);
+        setUnreadCount(newUnreadCount);
+        await setBadgeCount(newUnreadCount);
+      }
+
+      const swipeableRef = swipeableRefs.current[notificationId];
+      if (swipeableRef) swipeableRef.close();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      const notification = notifications.find(n => n.notification_id === notificationId);
+      const wasUnread = notification && !notification.is_read;
+
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (authToken) {
+        try {
+          await fetch(`${API_BASE_URL}/api/notifications/delete`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notification_id: notificationId }),
+          });
+        } catch (backendError: any) {
+          console.error('Backend deletion failed:', backendError);
+        }
+      }
+
+      // Remove from local state
+      setNotifications(prev => prev.filter(notif => notif.notification_id !== notificationId));
+
+      // Update unread count
+      if (wasUnread) {
+        const newUnreadCount = Math.max(0, unreadCount - 1);
+        setUnreadCount(newUnreadCount);
+        await setBadgeCount(newUnreadCount);
+      }
+
+      const swipeableRef = swipeableRefs.current[notificationId];
+      if (swipeableRef) swipeableRef.close();
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -166,11 +303,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
       }
 
-      // Load learning plans, progress stats, subscription status, and DNA profiles in parallel
-      const [plansResponse, statsResponse, subscriptionResponse] = await Promise.all([
+      // Load learning plans, progress stats, subscription status, notifications, and DNA profiles in parallel
+      const [plansResponse, statsResponse, subscriptionResponse, notificationsResponse] = await Promise.all([
         LearningService.getUserLearningPlansApiLearningPlansGet(),
         ProgressService.getProgressStatsApiProgressStatsGet(),
         StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet(),
+        fetchNotifications(),
       ]);
 
       // Sort learning plans by most recently interacted (updated_at) first
@@ -736,8 +874,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             style={styles.notificationBell}
             activeOpacity={0.8}
             onPress={() => {
-              // TODO: Open notifications modal
-              console.log('Notifications clicked');
+              if (Platform.OS === 'ios') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              setShowNotificationsModal(true);
             }}
           >
             {/* Outer glow for notification */}
@@ -751,13 +891,53 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               backgroundColor: 'rgba(20, 184, 166, 0.2)',
               opacity: 0.5,
             }} />
-            <Ionicons name="notifications-outline" size={22} color="#14B8A6" />
-            {/* Notification count badge */}
-            {/* TODO: Replace with actual unread count */}
-            {false && (
-              <View style={styles.notificationDot}>
-                <Text style={styles.notificationCount}>3</Text>
-              </View>
+            <Ionicons
+              name={unreadCount > 0 ? "notifications" : "notifications-outline"}
+              size={22}
+              color="#14B8A6"
+            />
+            {/* Red Pulsing Badge for Unread */}
+            {unreadCount > 0 && (
+              <>
+                {/* Animated pulsing glow */}
+                <View style={{
+                  position: 'absolute',
+                  top: 2,
+                  right: 2,
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  backgroundColor: '#EF4444',
+                  opacity: 0.3,
+                }} />
+                <View style={{
+                  position: 'absolute',
+                  top: 4,
+                  right: 4,
+                  backgroundColor: '#EF4444',
+                  borderRadius: 10,
+                  minWidth: 18,
+                  height: 18,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingHorizontal: 4,
+                  borderWidth: 2,
+                  borderColor: '#0B1A1F',
+                  shadowColor: '#EF4444',
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.8,
+                  shadowRadius: 6,
+                  elevation: 8,
+                }}>
+                  <Text style={{
+                    fontSize: 10,
+                    fontWeight: '700',
+                    color: '#FFFFFF',
+                  }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              </>
             )}
           </TouchableOpacity>
         </View>
@@ -1378,6 +1558,295 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </View>
         </Modal>
       )}
+
+      {/* Notifications Modal */}
+      <Modal
+        visible={showNotificationsModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowNotificationsModal(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1A1F' }}>
+          {/* Header */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(20, 184, 166, 0.2)',
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Ionicons name="notifications" size={24} color="#14B8A6" />
+              <Text style={{ fontSize: 20, fontWeight: '700', color: '#FFFFFF' }}>
+                Notifications
+              </Text>
+              {unreadCount > 0 && (
+                <View style={{
+                  backgroundColor: '#EF4444',
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                  borderRadius: 10,
+                }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
+                    {unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity
+              onPress={() => setShowNotificationsModal(false)}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: 'rgba(107, 138, 132, 0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="close" size={24} color="#8CA5A0" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Notifications List with Swipe Actions */}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: 20 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {notifications.length > 0 ? (
+              notifications.map((notification, index) => {
+                const getNotificationIcon = (type: string) => {
+                  switch (type) {
+                    case 'Maintenance': return 'construct-outline';
+                    case 'Special Offer': return 'gift-outline';
+                    case 'Information': return 'information-circle-outline';
+                    default: return 'notifications-outline';
+                  }
+                };
+
+                const getNotificationColor = (type: string) => {
+                  switch (type) {
+                    case 'Maintenance': return '#F59E0B';
+                    case 'Special Offer': return '#10B981';
+                    case 'Information': return '#3B82F6';
+                    default: return '#6B7280';
+                  }
+                };
+
+                const notifColor = getNotificationColor(notification.notification.notification_type);
+                const notificationId = notification.notification_id;
+
+                const renderLeftActions = (dragX: Animated.AnimatedInterpolation<number>) => {
+                  const trans = dragX.interpolate({
+                    inputRange: [0, 100],
+                    outputRange: [-100, 0],
+                    extrapolate: 'clamp',
+                  });
+
+                  return (
+                    <Animated.View
+                      style={{
+                        transform: [{ translateX: trans }],
+                        flexDirection: 'row',
+                        alignItems: 'stretch',
+                        marginBottom: 12,
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: '#EF4444',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          width: 80,
+                          borderRadius: 12,
+                          marginRight: 8,
+                        }}
+                        onPress={() => {
+                          Alert.alert(
+                            'Delete Notification',
+                            'Are you sure you want to delete this notification?',
+                            [
+                              { text: 'Cancel', style: 'cancel' },
+                              {
+                                text: 'Delete',
+                                style: 'destructive',
+                                onPress: () => deleteNotification(notificationId),
+                              },
+                            ]
+                          );
+                        }}
+                      >
+                        <Ionicons name="trash" size={24} color="#FFFFFF" />
+                        <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
+                          Delete
+                        </Text>
+                      </TouchableOpacity>
+                    </Animated.View>
+                  );
+                };
+
+                const renderRightActions = (dragX: Animated.AnimatedInterpolation<number>) => {
+                  const trans = dragX.interpolate({
+                    inputRange: [-100, 0],
+                    outputRange: [0, 100],
+                    extrapolate: 'clamp',
+                  });
+
+                  return (
+                    <Animated.View
+                      style={{
+                        transform: [{ translateX: trans }],
+                        flexDirection: 'row',
+                        alignItems: 'stretch',
+                        marginBottom: 12,
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: '#10B981',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          width: 80,
+                          borderRadius: 12,
+                          marginLeft: 8,
+                        }}
+                        onPress={() => {
+                          if (Platform.OS === 'ios') {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          }
+                          markNotificationAsRead(notificationId);
+                        }}
+                      >
+                        <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+                        <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
+                          Mark Read
+                        </Text>
+                      </TouchableOpacity>
+                    </Animated.View>
+                  );
+                };
+
+                return (
+                  <Swipeable
+                    key={notification.id || `notification-${notificationId || index}`}
+                    ref={(ref) => {
+                      if (ref) {
+                        swipeableRefs.current[notificationId] = ref;
+                      }
+                    }}
+                    renderLeftActions={(_, dragX) => renderLeftActions(dragX)}
+                    renderRightActions={(_, dragX) => renderRightActions(dragX)}
+                    overshootLeft={false}
+                    overshootRight={false}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: notification.is_read ? 'rgba(26, 47, 58, 0.3)' : 'rgba(26, 47, 58, 0.6)',
+                        borderRadius: 12,
+                        padding: 16,
+                        marginBottom: 12,
+                        borderWidth: 1,
+                        borderColor: notification.is_read ? 'rgba(107, 138, 132, 0.2)' : 'rgba(20, 184, 166, 0.3)',
+                        borderLeftWidth: 4,
+                        borderLeftColor: notifColor,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <View style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 20,
+                          backgroundColor: `${notifColor}20`,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          <Ionicons
+                            name={getNotificationIcon(notification.notification.notification_type) as any}
+                            size={22}
+                            color={notifColor}
+                          />
+                        </View>
+
+                        <View style={{ flex: 1 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF', flex: 1 }}>
+                              {notification.notification.title}
+                            </Text>
+                            {!notification.is_read && (
+                              <View style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 4,
+                                backgroundColor: '#EF4444',
+                                shadowColor: '#EF4444',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.8,
+                                shadowRadius: 4,
+                              }} />
+                            )}
+                          </View>
+
+                          <Text style={{
+                            fontSize: 14,
+                            color: '#B4E4DD',
+                            lineHeight: 20,
+                            marginBottom: 8,
+                          }}>
+                            {notification.notification.content}
+                          </Text>
+
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Text style={{ fontSize: 12, color: '#6B8A84' }}>
+                              {new Date(notification.notification.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </Text>
+                            <Text style={{ fontSize: 11, color: '#6B8A84', fontStyle: 'italic' }}>
+                              {notification.is_read ? 'Swipe left to delete' : 'Swipe left: delete • Swipe right: mark read'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </Swipeable>
+                );
+              })
+            ) : (
+              <View style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 60,
+              }}>
+                <View style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 16,
+                }}>
+                  <Ionicons name="notifications-outline" size={40} color="#6B8A84" />
+                </View>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 }}>
+                  No Notifications
+                </Text>
+                <Text style={{ fontSize: 14, color: '#8CA5A0', textAlign: 'center' }}>
+                  You're all caught up!
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
     );
   };
