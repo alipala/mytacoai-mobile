@@ -1432,7 +1432,13 @@
     "c2_description": "Bijna moedertaalniveau",
     "c2_skill_1": "Vrijwel alles begrijpen",
     "c2_skill_2": "Samenvatten uit verschillende bronnen",
-    "c2_skill_3": "Spontane, precieze uitdrukking"
+    "c2_skill_3": "Spontane, precieze uitdrukking",
+    "a1_picker_desc": "Beginner - Basiszinnen en eenvoudige interacties",
+    "a2_picker_desc": "Elementair - Dagelijkse uitdrukkingen en routinetaken",
+    "b1_picker_desc": "Gemiddeld - Hoofdpunten over vertrouwde onderwerpen",
+    "b2_picker_desc": "Gevorderd Gemiddeld - Complexe teksten en spontane conversatie",
+    "c1_picker_desc": "Gevorderd - Breed scala aan veeleisende onderwerpen",
+    "c2_picker_desc": "Vaardig - De taal met gemak beheersen"
   },
   "common": {
     "loading": "Laden...",

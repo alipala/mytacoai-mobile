@@ -1432,7 +1432,13 @@
     "c2_description": "Near-native proficiency",
     "c2_skill_1": "Understand virtually everything",
     "c2_skill_2": "Summarize from various sources",
-    "c2_skill_3": "Spontaneous, precise expression"
+    "c2_skill_3": "Spontaneous, precise expression",
+    "a1_picker_desc": "Beginner - Basic phrases and simple interactions",
+    "a2_picker_desc": "Elementary - Everyday expressions and routine tasks",
+    "b1_picker_desc": "Intermediate - Main points on familiar topics",
+    "b2_picker_desc": "Upper Intermediate - Complex text and spontaneous conversation",
+    "c1_picker_desc": "Advanced - Wide range of demanding topics",
+    "c2_picker_desc": "Proficient - Master the language with ease"
   },
   "common": {
     "loading": "Loading...",

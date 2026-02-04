@@ -1432,7 +1432,13 @@
     "c2_description": "Proficiência quase nativa",
     "c2_skill_1": "Compreender praticamente tudo",
     "c2_skill_2": "Resumir de várias fontes",
-    "c2_skill_3": "Expressão espontânea e precisa"
+    "c2_skill_3": "Expressão espontânea e precisa",
+    "a1_picker_desc": "Iniciante - Frases básicas e interações simples",
+    "a2_picker_desc": "Elementar - Expressões cotidianas e tarefas rotineiras",
+    "b1_picker_desc": "Intermediário - Pontos principais sobre tópicos familiares",
+    "b2_picker_desc": "Intermediário Superior - Textos complexos e conversação espontânea",
+    "c1_picker_desc": "Avançado - Ampla gama de tópicos exigentes",
+    "c2_picker_desc": "Proficiente - Dominar o idioma com facilidade"
   },
   "common": {
     "loading": "Carregando...",

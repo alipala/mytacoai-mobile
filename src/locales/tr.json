@@ -1432,7 +1432,13 @@
     "c2_description": "Ana dile yakın yeterlilik",
     "c2_skill_1": "Neredeyse her şeyi anlama",
     "c2_skill_2": "Çeşitli kaynaklardan özetleme",
-    "c2_skill_3": "Spontane, kesin ifade"
+    "c2_skill_3": "Spontane, kesin ifade",
+    "a1_picker_desc": "Başlangıç - Temel ifadeler ve basit etkileşimler",
+    "a2_picker_desc": "Temel - Günlük ifadeler ve rutin görevler",
+    "b1_picker_desc": "Orta - Tanıdık konularda ana noktalar",
+    "b2_picker_desc": "Orta Üstü - Karmaşık metin ve spontane konuşma",
+    "c1_picker_desc": "İleri - Geniş yelpazede zorlu konular",
+    "c2_picker_desc": "Yetkin - Dili kolaylıkla ustalaşmak"
   },
   "common": {
     "loading": "Yükleniyor...",

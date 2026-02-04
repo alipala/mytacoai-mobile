@@ -1432,7 +1432,13 @@
     "c2_description": "Compétence quasi-native",
     "c2_skill_1": "Comprendre pratiquement tout",
     "c2_skill_2": "Résumer à partir de diverses sources",
-    "c2_skill_3": "Expression spontanée et précise"
+    "c2_skill_3": "Expression spontanée et précise",
+    "a1_picker_desc": "Débutant - Phrases de base et interactions simples",
+    "a2_picker_desc": "Élémentaire - Expressions quotidiennes et tâches routinières",
+    "b1_picker_desc": "Intermédiaire - Points principaux sur des sujets familiers",
+    "b2_picker_desc": "Intermédiaire Supérieur - Textes complexes et conversation spontanée",
+    "c1_picker_desc": "Avancé - Large gamme de sujets exigeants",
+    "c2_picker_desc": "Compétent - Maîtriser la langue avec aisance"
   },
   "common": {
     "loading": "Chargement...",

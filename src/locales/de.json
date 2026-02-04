@@ -1432,7 +1432,13 @@
     "c2_description": "Fast muttersprachliche Kompetenz",
     "c2_skill_1": "Praktisch alles verstehen",
     "c2_skill_2": "Aus verschiedenen Quellen zusammenfassen",
-    "c2_skill_3": "Spontaner, präziser Ausdruck"
+    "c2_skill_3": "Spontaner, präziser Ausdruck",
+    "a1_picker_desc": "Anfänger - Grundlegende Phrasen und einfache Interaktionen",
+    "a2_picker_desc": "Grundkenntnisse - Alltagsausdrücke und Routineaufgaben",
+    "b1_picker_desc": "Mittelstufe - Hauptpunkte zu vertrauten Themen",
+    "b2_picker_desc": "Obere Mittelstufe - Komplexe Texte und spontane Konversation",
+    "c1_picker_desc": "Fortgeschritten - Breites Spektrum anspruchsvoller Themen",
+    "c2_picker_desc": "Kompetent - Sprache mit Leichtigkeit meistern"
   },
   "common": {
     "loading": "Lädt...",
