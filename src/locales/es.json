@@ -908,7 +908,24 @@
       "button_try_again": "Intentar de Nuevo",
       "empty_title": "Construye tu Perfil de ADN",
       "empty_subtitle": "Completa una sesión oral para crear tu perfil único de ADN del Habla.",
-      "button_go_to_dashboard": "Ir al Panel"
+      "button_go_to_dashboard": "Ir al Panel",
+      "voice_fingerprint": {
+        "title": "Tu Huella de Voz",
+        "subtitle": "Desliza para explorar tu perfil acústico",
+        "card_vocal_pitch": "Tono Vocal",
+        "card_voice_quality": "Calidad de Voz",
+        "card_speaking_rate": "Velocidad de Habla",
+        "card_vocal_energy": "Energía Vocal",
+        "card_speech_fluency": "Fluidez del Habla",
+        "card_voice_stability": "Estabilidad de Voz",
+        "label_variation": "Variación:",
+        "label_jitter": "Jitter:",
+        "label_pauses": "Pausas:",
+        "label_amplitude": "Nivel de amplitud",
+        "label_shimmer": "Nivel de shimmer",
+        "label_smooth": "Fluido",
+        "label_low": "Bajo"
+      }
     }
   },
   "explore": {

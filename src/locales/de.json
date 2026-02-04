@@ -908,7 +908,24 @@
       "button_try_again": "Erneut versuchen",
       "empty_title": "Bauen Sie Ihr DNA-Profil auf",
       "empty_subtitle": "Absolvieren Sie eine Sprechsitzung, um Ihr einzigartiges Sprech-DNA-Profil zu erstellen.",
-      "button_go_to_dashboard": "Zum Dashboard"
+      "button_go_to_dashboard": "Zum Dashboard",
+      "voice_fingerprint": {
+        "title": "Ihr Stimmabdruck",
+        "subtitle": "Wischen Sie, um Ihr akustisches Profil zu erkunden",
+        "card_vocal_pitch": "Stimmtonhöhe",
+        "card_voice_quality": "Stimmqualität",
+        "card_speaking_rate": "Sprechgeschwindigkeit",
+        "card_vocal_energy": "Stimmenergie",
+        "card_speech_fluency": "Sprechflüssigkeit",
+        "card_voice_stability": "Stimmstabilität",
+        "label_variation": "Variation:",
+        "label_jitter": "Jitter:",
+        "label_pauses": "Pausen:",
+        "label_amplitude": "Amplitudenniveau",
+        "label_shimmer": "Shimmer-Niveau",
+        "label_smooth": "Glatt",
+        "label_low": "Niedrig"
+      }
     }
   },
   "explore": {

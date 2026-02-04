@@ -908,7 +908,24 @@
       "button_try_again": "Réessayer",
       "empty_title": "Construisez votre profil ADN",
       "empty_subtitle": "Terminez une session de parole pour créer votre profil ADN de parole unique.",
-      "button_go_to_dashboard": "Aller au tableau de bord"
+      "button_go_to_dashboard": "Aller au tableau de bord",
+      "voice_fingerprint": {
+        "title": "Votre Empreinte Vocale",
+        "subtitle": "Glissez pour explorer votre profil acoustique",
+        "card_vocal_pitch": "Tonalité Vocale",
+        "card_voice_quality": "Qualité Vocale",
+        "card_speaking_rate": "Débit de Parole",
+        "card_vocal_energy": "Énergie Vocale",
+        "card_speech_fluency": "Fluidité de Parole",
+        "card_voice_stability": "Stabilité Vocale",
+        "label_variation": "Variation :",
+        "label_jitter": "Gigue :",
+        "label_pauses": "Pauses :",
+        "label_amplitude": "Niveau d'amplitude",
+        "label_shimmer": "Niveau de scintillement",
+        "label_smooth": "Fluide",
+        "label_low": "Faible"
+      }
     }
   },
   "explore": {

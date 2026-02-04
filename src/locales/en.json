@@ -908,7 +908,24 @@
       "button_try_again": "Try Again",
       "empty_title": "Build Your DNA Profile",
       "empty_subtitle": "Complete a speaking session to create your unique Speaking DNA profile.",
-      "button_go_to_dashboard": "Go to Dashboard"
+      "button_go_to_dashboard": "Go to Dashboard",
+      "voice_fingerprint": {
+        "title": "Your Voice Fingerprint",
+        "subtitle": "Swipe to explore your acoustic profile",
+        "card_vocal_pitch": "Vocal Pitch",
+        "card_voice_quality": "Voice Quality",
+        "card_speaking_rate": "Speaking Rate",
+        "card_vocal_energy": "Vocal Energy",
+        "card_speech_fluency": "Speech Fluency",
+        "card_voice_stability": "Voice Stability",
+        "label_variation": "Variation:",
+        "label_jitter": "Jitter:",
+        "label_pauses": "Pauses:",
+        "label_amplitude": "Amplitude level",
+        "label_shimmer": "Shimmer level",
+        "label_smooth": "Smooth",
+        "label_low": "Low"
+      }
     }
   },
   "explore": {

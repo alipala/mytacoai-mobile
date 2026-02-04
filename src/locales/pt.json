@@ -908,7 +908,24 @@
       "button_try_again": "Tentar Novamente",
       "empty_title": "Construir Seu Perfil de DNA",
       "empty_subtitle": "Complete uma sessão de fala para criar seu perfil único de DNA de Fala.",
-      "button_go_to_dashboard": "Ir para o Painel"
+      "button_go_to_dashboard": "Ir para o Painel",
+      "voice_fingerprint": {
+        "title": "Sua Impressão Vocal",
+        "subtitle": "Deslize para explorar seu perfil acústico",
+        "card_vocal_pitch": "Tom Vocal",
+        "card_voice_quality": "Qualidade Vocal",
+        "card_speaking_rate": "Velocidade de Fala",
+        "card_vocal_energy": "Energia Vocal",
+        "card_speech_fluency": "Fluência de Fala",
+        "card_voice_stability": "Estabilidade Vocal",
+        "label_variation": "Variação:",
+        "label_jitter": "Jitter:",
+        "label_pauses": "Pausas:",
+        "label_amplitude": "Nível de amplitude",
+        "label_shimmer": "Nível de cintilação",
+        "label_smooth": "Suave",
+        "label_low": "Baixo"
+      }
     }
   },
   "explore": {

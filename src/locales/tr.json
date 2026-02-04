@@ -908,7 +908,24 @@
       "button_try_again": "Tekrar Dene",
       "empty_title": "DNA Profilinizi Oluşturun",
       "empty_subtitle": "Benzersiz Konuşma DNA profilinizi oluşturmak için bir konuşma oturumu tamamlayın.",
-      "button_go_to_dashboard": "Kontrol Paneline Git"
+      "button_go_to_dashboard": "Kontrol Paneline Git",
+      "voice_fingerprint": {
+        "title": "Ses İziniz",
+        "subtitle": "Akustik profilinizi keşfetmek için kaydırın",
+        "card_vocal_pitch": "Ses Perdesi",
+        "card_voice_quality": "Ses Kalitesi",
+        "card_speaking_rate": "Konuşma Hızı",
+        "card_vocal_energy": "Ses Enerjisi",
+        "card_speech_fluency": "Konuşma Akıcılığı",
+        "card_voice_stability": "Ses Kararlılığı",
+        "label_variation": "Varyasyon:",
+        "label_jitter": "Titreşim:",
+        "label_pauses": "Duraklamalar:",
+        "label_amplitude": "Genlik seviyesi",
+        "label_shimmer": "Parlaklık seviyesi",
+        "label_smooth": "Akıcı",
+        "label_low": "Düşük"
+      }
     }
   },
   "explore": {

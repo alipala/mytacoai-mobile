@@ -908,7 +908,24 @@
       "button_try_again": "Probeer Opnieuw",
       "empty_title": "Bouw Je DNA Profiel",
       "empty_subtitle": "Voltooi een spreeksessie om je unieke Spreek-DNA profiel aan te maken.",
-      "button_go_to_dashboard": "Ga naar Dashboard"
+      "button_go_to_dashboard": "Ga naar Dashboard",
+      "voice_fingerprint": {
+        "title": "Jouw Stemafdruk",
+        "subtitle": "Veeg om je akoestisch profiel te verkennen",
+        "card_vocal_pitch": "Stemtoonhoogte",
+        "card_voice_quality": "Stemkwaliteit",
+        "card_speaking_rate": "Spreeksnelheid",
+        "card_vocal_energy": "Stemenergie",
+        "card_speech_fluency": "Spreekvloeiendheid",
+        "card_voice_stability": "Stemstabiliteit",
+        "label_variation": "Variatie:",
+        "label_jitter": "Jitter:",
+        "label_pauses": "Pauzes:",
+        "label_amplitude": "Amplitudeniveau",
+        "label_shimmer": "Shimmer-niveau",
+        "label_smooth": "Soepel",
+        "label_low": "Laag"
+      }
     }
   },
   "explore": {
