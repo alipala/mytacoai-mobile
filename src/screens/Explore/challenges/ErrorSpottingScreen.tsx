@@ -28,6 +28,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { ErrorSpottingChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
@@ -53,6 +54,7 @@ export default function ErrorSpottingScreen({
   onWrongAnswerSelected,
   onClose,
 }: ErrorSpottingScreenProps) {
+  const { t } = useTranslation();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [tapPosition, setTapPosition] = useState({ x: 0, y: 0 });
@@ -80,7 +82,7 @@ export default function ErrorSpottingScreen({
       <View style={styles.container}>
         <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
           <Text style={{ fontSize: 18, color: '#FFFFFF', textAlign: 'center' }}>
-            Challenge data error. Skipping...
+            {t('explore.story_builder.data_error')}
           </Text>
         </View>
       </View>
@@ -246,15 +248,15 @@ export default function ErrorSpottingScreen({
             {isCorrectAnswer() ? (
               <>
                 <Text style={[styles.feedbackTitle, { color: '#059669' }]}>
-                  Excellent!
+                  {t('explore.error_spotting.excellent')}
                 </Text>
                 <Text style={styles.feedbackSubtitle}>
-                  You spotted it!
+                  {t('explore.error_spotting.spotted_it')}
                 </Text>
               </>
             ) : (
               <Text style={[styles.feedbackTitle, { color: '#D97706', marginBottom: 16 }]}>
-                Not quite!
+                {t('explore.error_spotting.not_quite')}
               </Text>
             )}
           </>
@@ -286,7 +288,7 @@ export default function ErrorSpottingScreen({
         {/* Explanation - shown inline for wrong answers */}
         {showFeedback && !isCorrectAnswer() && (
           <View style={styles.explanationBox}>
-            <Text style={styles.explanationLabel}>EXPLANATION</Text>
+            <Text style={styles.explanationLabel}>{t('explore.error_spotting.explanation')}</Text>
             <Text style={styles.explanationText}>{challenge.explanation}</Text>
           </View>
         )}
@@ -320,7 +322,7 @@ export default function ErrorSpottingScreen({
               activeOpacity={1}
             >
               <Animated.View style={[styles.continueButton, continueButtonAnimatedStyle]}>
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>{t('explore.button_continue')}</Text>
               </Animated.View>
             </TouchableOpacity>
           </View>

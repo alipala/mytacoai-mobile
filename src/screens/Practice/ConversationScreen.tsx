@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import { useTranslation } from 'react-i18next';
 import { LearningService, ProgressService, LearningPlan, BackgroundAnalysisResponse, AuthenticationService, DefaultService, StripeService } from '../../api/generated';
 import { SentenceForAnalysis } from '../../api/generated/models/SaveConversationRequest';
 import { RealtimeService } from '../../services/RealtimeService';
@@ -66,6 +67,7 @@ interface AnimatedMessageProps {
 }
 
 const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message, voiceName = 'Alloy' }) => {
+  const { t } = useTranslation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -130,7 +132,7 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message, voiceName = 
         <View style={styles.userMessageContainer}>
           <View style={[styles.roleBadge, styles.roleBadgeUser]}>
             <Ionicons name="person" size={12} color="#14B8A6" />
-            <Text style={[styles.roleText, styles.roleTextUser]}>You</Text>
+            <Text style={[styles.roleText, styles.roleTextUser]}>{t('practice.conversation.role_you')}</Text>
           </View>
           <Animated.View
             style={[styles.messageBubble, styles.messageBubbleUser]}
@@ -178,6 +180,7 @@ const AnimatedHelpButton: React.FC<{
   onPress: () => void;
   disabled: boolean;
 }> = ({ isLoading, isReady, onPress, disabled }) => {
+  const { t } = useTranslation();
   const rotation = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -246,7 +249,7 @@ const AnimatedHelpButton: React.FC<{
           color={color}
         />
       </Animated.View>
-      <Text style={[styles.footerButtonText, { color }]}>Help</Text>
+      <Text style={[styles.footerButtonText, { color }]}>{t('practice.conversation.role_help')}</Text>
     </TouchableOpacity>
   );
 };
@@ -255,6 +258,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const { mode, language, topic, level, planId, customTopicText, researchData, newsContext, sessionType, newsTitle } = route.params;
 
   // Add state for the fetched learning plan
@@ -512,8 +516,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           console.error('[CONVERSATION] ❌ Error fetching learning plan:', error);
           setConnectionError('Failed to load learning plan details.');
           setIsConnecting(false);
-          Alert.alert('Error', 'Could not load the learning plan. Please try again.', [
-            { text: 'OK', onPress: () => navigation.goBack() },
+          Alert.alert(t('practice.conversation.alert_plan_error_title'), t('practice.conversation.alert_load_plan_error'), [
+            { text: t('buttons.ok'), onPress: () => navigation.goBack() },
           ]);
         }
       };
@@ -778,7 +782,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       if (!learningPlan) {
         console.log('[CONVERSATION] ❌ No learning plan loaded');
-        Alert.alert('Error', 'Learning plan not loaded. Please try again.');
+        Alert.alert(t('practice.conversation.alert_plan_error_title'), t('practice.conversation.alert_plan_not_loaded'));
         return;
       }
 
@@ -887,11 +891,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
           // Show user-friendly error alert
           Alert.alert(
-            'Connection Error',
-            'Unable to connect to the AI tutor. This might be due to temporary server issues.',
+            t('practice.conversation.alert_connection_error_title'),
+            t('practice.conversation.alert_connection_error_message'),
             [
               {
-                text: 'Retry',
+                text: t('practice.conversation.button_retry'),
                 onPress: () => {
                   setConnectionError(null);
                   if (planId && learningPlan) {
@@ -902,7 +906,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 },
               },
               {
-                text: 'Go Back',
+                text: t('practice.conversation.button_go_back'),
                 style: 'cancel',
                 onPress: () => navigation.goBack(),
               },
@@ -980,15 +984,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setIsConnecting(false);
 
       Alert.alert(
-        'Connection Error',
-        'Failed to start a conversation. Please try again.',
+        t('practice.conversation.alert_connection_error_title'),
+        t('practice.conversation.alert_start_conversation_error'),
         [
           {
-            text: 'Retry',
+            text: t('practice.conversation.button_retry'),
             onPress: () => initializeConversation(plan),
           },
           {
-            text: 'Cancel',
+            text: t('buttons.cancel'),
             style: 'cancel',
             onPress: () => navigation.goBack(),
           },
@@ -1118,7 +1122,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     console.log('[DNA] Share breakthrough:', breakthrough.title);
     // TODO: Implement share functionality in future
     // For now, just log it
-    Alert.alert('Share Feature', 'Sharing breakthroughs coming soon!', [{ text: 'OK' }]);
+    Alert.alert(t('practice.conversation.alert_share_feature'), t('practice.conversation.alert_share_coming_soon'), [{ text: t('buttons.ok') }]);
   };
 
   // 🎙️ Voice Check handlers
@@ -1193,13 +1197,13 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       // Show success message (after navigation starts)
       Alert.alert(
-        '🧬 DNA Updated!',
-        'Your acoustic voice profile has been updated with new data.',
-        [{ text: 'Great!', onPress: () => {} }]
+        t('practice.conversation.alert_dna_updated_title'),
+        t('practice.conversation.alert_dna_updated_message'),
+        [{ text: t('practice.conversation.button_great'), onPress: () => {} }]
       );
     } catch (error: any) {
       console.error('[VOICE_CHECK] ❌ Error completing voice check:', error);
-      Alert.alert('Error', 'Failed to process voice check. Please try again.');
+      Alert.alert(t('practice.conversation.alert_plan_error_title'), t('practice.conversation.alert_voice_check_error'));
     }
   };
 
@@ -1462,15 +1466,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       }
 
       Alert.alert(
-        'Analysis Error',
-        'Failed to analyze your session. You can still sign up to save your progress!',
+        t('practice.conversation.alert_analysis_error_title'),
+        t('practice.conversation.alert_analysis_error_message'),
         [
           {
-            text: 'Sign Up',
+            text: t('practice.conversation.button_sign_up'),
             onPress: () => navigation.navigate('Welcome'),
           },
           {
-            text: 'Try Again',
+            text: t('practice.conversation.button_try_again'),
             onPress: () => handleGuestSessionEnd(),
           },
         ]
@@ -1777,15 +1781,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       }
 
       Alert.alert(
-        'Save Error',
-        'Failed to save your session. Do you want to try again or exit anyway?',
+        t('practice.conversation.alert_save_error_title'),
+        t('practice.conversation.alert_save_error_message'),
         [
           {
-            text: 'Try Again',
+            text: t('practice.conversation.button_try_again'),
             onPress: () => handleAutomaticSessionEnd(),
           },
           {
-            text: 'Exit Anyway',
+            text: t('practice.conversation.button_exit_anyway'),
             style: 'destructive',
             onPress: () => {
               navigation.reset({
@@ -1823,11 +1827,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     } else {
       // If no analyses available, show alert and go to dashboard
       Alert.alert(
-        'No Analysis Available',
-        'No sentences were analyzed during this session. This can happen if the conversation was too short or no quality sentences were detected.',
+        t('practice.conversation.alert_no_analysis_title'),
+        t('practice.conversation.alert_no_analysis_message'),
         [
           {
-            text: 'OK',
+            text: t('buttons.ok'),
             onPress: () => {
               navigation.reset({
                 index: 0,
@@ -1982,6 +1986,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             colorAnim={timerColorAnim}
             scaleAnim={timerScaleAnim}
             formatDuration={formatDuration}
+            t={t}
           />
         )}
 
@@ -2001,7 +2006,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           <View style={styles.connectingContainer}>
             <ActivityIndicator size="large" color="#14B8A6" />
             <Text style={styles.connectingText}>
-              Connecting to AI tutor...
+              {t('practice.conversation.connecting')}
             </Text>
           </View>
         ) : (
@@ -2050,7 +2055,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         ) : (
           <View style={[styles.footerSideButton, { opacity: 0 }]}>
             <Ionicons name="help-circle" size={24} color="transparent" />
-            <Text style={styles.footerButtonText}>Help</Text>
+            <Text style={styles.footerButtonText}>{t('practice.conversation.role_help')}</Text>
           </View>
         )}
 
@@ -2072,7 +2077,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         >
           <Ionicons name="exit-outline" size={24} color="#EF4444" />
           <Text style={[styles.footerButtonText, { color: '#EF4444' }]}>
-            Leave
+            {t('practice.conversation.role_leave')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -2088,16 +2093,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Ionicons name="information-circle" size={32} color="#14B8A6" />
-              <Text style={styles.modalTitle}>💡 Important Information</Text>
+              <Text style={styles.modalTitle}>{t('practice.conversation.modal_info_title')}</Text>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <View style={styles.infoCard}>
                 <Ionicons name="volume-high" size={24} color="#3B82F6" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoTitle}>Use Headphones</Text>
+                  <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_headphones_title')}</Text>
                   <Text style={styles.infoText}>
-                    For best experience, use headphones to prevent audio feedback
+                    {t('practice.conversation.modal_info_headphones_text')}
                   </Text>
                 </View>
               </View>
@@ -2105,9 +2110,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               <View style={styles.infoCard}>
                 <Ionicons name="mic" size={24} color="#10B981" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoTitle}>Speak Clearly</Text>
+                  <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_speak_title')}</Text>
                   <Text style={styles.infoText}>
-                    Speak at a normal pace and volume for accurate recognition
+                    {t('practice.conversation.modal_info_speak_text')}
                   </Text>
                 </View>
               </View>
@@ -2115,9 +2120,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               <View style={styles.infoCard}>
                 <Ionicons name="time" size={24} color="#F59E0B" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoTitle}>Practice Time</Text>
+                  <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_time_title')}</Text>
                   <Text style={styles.infoText}>
-                    Take your time and enjoy the conversation. There's no rush!
+                    {t('practice.conversation.modal_info_time_text')}
                   </Text>
                 </View>
               </View>
@@ -2125,9 +2130,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               <View style={styles.infoCard}>
                 <Ionicons name="chatbubbles" size={24} color="#8B5CF6" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoTitle}>Natural Conversation</Text>
+                  <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_conversation_title')}</Text>
                   <Text style={styles.infoText}>
-                    Engage in natural dialogue. The AI will help you improve as you speak
+                    {t('practice.conversation.modal_info_conversation_text')}
                   </Text>
                 </View>
               </View>
@@ -2136,9 +2141,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               <View style={[styles.infoCard, styles.helpToggleCard]}>
                 <Ionicons name="help-circle" size={24} color="#10B981" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoTitle}>Conversation Help</Text>
+                  <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_help_title')}</Text>
                   <Text style={styles.infoText}>
-                    Get AI-powered suggestions and tips during your conversation
+                    {t('practice.conversation.modal_info_help_text')}
                   </Text>
                 </View>
                 <Switch
@@ -2168,7 +2173,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.modalButtonSecondaryText}>Go Back</Text>
+                <Text style={styles.modalButtonSecondaryText}>{t('practice.conversation.button_go_back')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -2183,7 +2188,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 {planId && isConnecting ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.modalButtonText}>Got it! Let's start</Text>
+                  <Text style={styles.modalButtonText}>{t('practice.conversation.button_got_it')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -2201,20 +2206,20 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.endModalContent}>
             <Ionicons name="warning-outline" size={48} color="#F59E0B" style={{ marginBottom: 16, textAlign: 'center' }} />
-            <Text style={styles.endModalTitle}>End Early?</Text>
+            <Text style={styles.endModalTitle}>{t('practice.conversation.modal_end_title')}</Text>
             <Text style={styles.endModalText}>
-              You haven't completed the full {Math.round(maxDuration / 60)}-minute session yet. If you end now, your progress won't be saved and you won't receive analysis or flashcards.
+              {t('practice.conversation.modal_end_message', { minutes: Math.round(maxDuration / 60) })}
             </Text>
 
             <View style={styles.endModalStats}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{formatDuration(sessionDuration)}</Text>
-                <Text style={styles.statLabel}>Time Spent</Text>
+                <Text style={styles.statLabel}>{t('practice.conversation.modal_end_time_spent')}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{formatDuration(maxDuration - sessionDuration)}</Text>
-                <Text style={styles.statLabel}>Remaining</Text>
+                <Text style={styles.statLabel}>{t('practice.conversation.modal_end_remaining')}</Text>
               </View>
             </View>
 
@@ -2224,7 +2229,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 onPress={() => setShowEndSessionModal(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.cancelButtonText}>Keep Practicing</Text>
+                <Text style={styles.cancelButtonText}>{t('practice.conversation.button_keep_practicing')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -2232,7 +2237,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 onPress={handleConfirmEndSession}
                 activeOpacity={0.8}
               >
-                <Text style={styles.confirmEndButtonText}>End Anyway</Text>
+                <Text style={styles.confirmEndButtonText}>{t('practice.conversation.button_end_anyway')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -2298,29 +2303,29 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             <View style={{ width: '100%', maxWidth: 500, maxHeight: '90%', backgroundColor: 'white', borderRadius: 20, overflow: 'hidden' }}>
               <ScrollView contentContainerStyle={{ padding: 24 }}>
                 <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 16, color: assessmentResult.passed ? '#10B981' : '#EF4444' }}>
-                  {assessmentResult.passed ? '🎉 Assessment Passed!' : '📚 Keep Practicing'}
+                  {assessmentResult.passed ? t('practice.conversation.assessment_passed') : t('practice.conversation.assessment_keep_practicing')}
                 </Text>
 
                 <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
-                  {assessmentResult.current_level} Final Assessment
+                  {t('practice.conversation.assessment_final', { level: assessmentResult.current_level })}
                 </Text>
 
                 <View style={{ backgroundColor: '#F3F4F6', padding: 16, borderRadius: 12, marginBottom: 16 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <Text style={{ fontSize: 14, color: '#6B7280' }}>Overall Score</Text>
+                    <Text style={{ fontSize: 14, color: '#6B7280' }}>{t('practice.conversation.assessment_overall_score')}</Text>
                     <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1F2937' }}>{assessmentResult.overall_score}/100</Text>
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <Text style={{ fontSize: 14, color: '#6B7280' }}>{assessmentResult.current_level} Mastery</Text>
+                    <Text style={{ fontSize: 14, color: '#6B7280' }}>{t('practice.conversation.assessment_mastery', { level: assessmentResult.current_level })}</Text>
                     <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{assessmentResult.current_level_mastery}/100</Text>
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 14, color: '#6B7280' }}>{assessmentResult.next_level} Readiness</Text>
+                    <Text style={{ fontSize: 14, color: '#6B7280' }}>{t('practice.conversation.assessment_readiness', { level: assessmentResult.next_level })}</Text>
                     <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937' }}>{assessmentResult.next_level_readiness}/100</Text>
                   </View>
                 </View>
 
-                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>Skill Scores</Text>
+                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#1F2937' }}>{t('practice.conversation.assessment_skill_scores')}</Text>
                 <View style={{ marginBottom: 16 }}>
                   {Object.entries(assessmentResult.scores).map(([skill, score]) => (
                     <View key={skill} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -2338,10 +2343,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 {assessmentResult.passed && (
                   <View style={{ backgroundColor: '#ECFDF5', padding: 16, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: '#10B981' }}>
                     <Text style={{ fontSize: 16, fontWeight: '600', color: '#065F46', marginBottom: 8 }}>
-                      🎓 Ready for {assessmentResult.next_level}?
+                      {t('practice.conversation.assessment_ready_next', { level: assessmentResult.next_level })}
                     </Text>
                     <Text style={{ fontSize: 14, color: '#047857', marginBottom: 12 }}>
-                      You've mastered {assessmentResult.current_level}! Continue your journey with a {assessmentResult.next_level} learning plan.
+                      {t('practice.conversation.assessment_mastered_message', { currentLevel: assessmentResult.current_level, nextLevel: assessmentResult.next_level })}
                     </Text>
                     <TouchableOpacity
                       onPress={() => {
@@ -2351,7 +2356,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                       }}
                       style={{ backgroundColor: '#10B981', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 8 }}
                     >
-                      <Text style={{ color: 'white', fontSize: 15, fontWeight: '600' }}>Create {assessmentResult.next_level} Plan</Text>
+                      <Text style={{ color: 'white', fontSize: 15, fontWeight: '600' }}>{t('practice.conversation.button_create_plan', { level: assessmentResult.next_level })}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
@@ -2360,7 +2365,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                       }}
                       style={{ backgroundColor: 'transparent', padding: 12, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#10B981' }}
                     >
-                      <Text style={{ color: '#047857', fontSize: 15, fontWeight: '600' }}>Maybe Later</Text>
+                      <Text style={{ color: '#047857', fontSize: 15, fontWeight: '600' }}>{t('practice.conversation.button_maybe_later')}</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -2374,7 +2379,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                     }}
                     style={{ backgroundColor: '#4F46E5', padding: 16, borderRadius: 12, alignItems: 'center' }}
                   >
-                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Go to Dashboard</Text>
+                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>{t('practice.conversation.button_go_dashboard')}</Text>
                   </TouchableOpacity>
                 )}
               </ScrollView>
@@ -2396,7 +2401,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               {/* Header */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
                 <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#1F2937' }}>
-                  Create {assessmentResult.next_level} Plan
+                  {t('practice.conversation.modal_create_plan_title', { level: assessmentResult.next_level })}
                 </Text>
                 <TouchableOpacity onPress={() => setShowCreateNextPlanModal(false)}>
                   <Ionicons name="close-circle" size={28} color="#9CA3AF" />
@@ -2407,12 +2412,15 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
                 <View style={{ backgroundColor: '#ECFDF5', padding: 12, borderRadius: 8, marginBottom: 20, borderLeftWidth: 4, borderLeftColor: '#10B981' }}>
                   <Text style={{ fontSize: 14, color: '#047857' }}>
-                    📚 {learningPlan.language.charAt(0).toUpperCase() + learningPlan.language.slice(1)} • {assessmentResult.next_level} Level
+                    {t('practice.conversation.plan_language_level', {
+                      language: learningPlan.language.charAt(0).toUpperCase() + learningPlan.language.slice(1),
+                      level: assessmentResult.next_level
+                    })}
                   </Text>
                 </View>
 
                 <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
-                  Choose Your Plan Duration
+                  {t('practice.conversation.plan_choose_duration')}
                 </Text>
 
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -2434,26 +2442,33 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                         fontWeight: '600',
                         color: selectedDuration === months ? '#047857' : '#4B5563'
                       }}>
-                        {months} {months === 1 ? 'Month' : 'Months'}
+                        {months} {months === 1 ? t('practice.conversation.plan_month') : t('practice.conversation.plan_months')}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
 
                 <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#1F2937' }}>
-                  Select Your Learning Goals
+                  {t('practice.conversation.plan_select_goals')}
                 </Text>
 
                 {/* Predefined Goals */}
                 <View style={{ gap: 8, marginBottom: 16 }}>
-                  {['Business Communication', 'Travel & Tourism', 'Academic Writing', 'Daily Conversations', 'Professional Presentations', 'Job Interviews'].map(goal => (
+                  {[
+                    { key: 'business', label: t('practice.conversation.plan_goal_business') },
+                    { key: 'travel', label: t('practice.conversation.plan_goal_travel') },
+                    { key: 'academic', label: t('practice.conversation.plan_goal_academic') },
+                    { key: 'daily', label: t('practice.conversation.plan_goal_daily') },
+                    { key: 'presentations', label: t('practice.conversation.plan_goal_presentations') },
+                    { key: 'interviews', label: t('practice.conversation.plan_goal_interviews') }
+                  ].map(({ key, label }) => (
                     <TouchableOpacity
-                      key={goal}
+                      key={key}
                       onPress={() => {
                         setSelectedGoals(prev =>
-                          prev.includes(goal)
-                            ? prev.filter(g => g !== goal)
-                            : [...prev, goal]
+                          prev.includes(label)
+                            ? prev.filter(g => g !== label)
+                            : [...prev, label]
                         );
                       }}
                       style={{
@@ -2462,8 +2477,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                         padding: 12,
                         borderRadius: 8,
                         borderWidth: 2,
-                        borderColor: selectedGoals.includes(goal) ? '#10B981' : '#E5E7EB',
-                        backgroundColor: selectedGoals.includes(goal) ? '#ECFDF5' : 'white'
+                        borderColor: selectedGoals.includes(label) ? '#10B981' : '#E5E7EB',
+                        backgroundColor: selectedGoals.includes(label) ? '#ECFDF5' : 'white'
                       }}
                     >
                       <View style={{
@@ -2471,29 +2486,29 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                         height: 20,
                         borderRadius: 4,
                         borderWidth: 2,
-                        borderColor: selectedGoals.includes(goal) ? '#10B981' : '#D1D5DB',
-                        backgroundColor: selectedGoals.includes(goal) ? '#10B981' : 'white',
+                        borderColor: selectedGoals.includes(label) ? '#10B981' : '#D1D5DB',
+                        backgroundColor: selectedGoals.includes(label) ? '#10B981' : 'white',
                         marginRight: 12,
                         alignItems: 'center',
                         justifyContent: 'center'
                       }}>
-                        {selectedGoals.includes(goal) && (
+                        {selectedGoals.includes(label) && (
                           <Ionicons name="checkmark" size={14} color="white" />
                         )}
                       </View>
                       <Text style={{
                         fontSize: 15,
                         fontWeight: '500',
-                        color: selectedGoals.includes(goal) ? '#047857' : '#4B5563'
+                        color: selectedGoals.includes(label) ? '#047857' : '#4B5563'
                       }}>
-                        {goal}
+                        {label}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
 
                 <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#6B7280' }}>
-                  Additional Goals (Optional)
+                  {t('practice.conversation.plan_additional_goals')}
                 </Text>
 
                 <TextInput
@@ -2509,7 +2524,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                     minHeight: 60,
                     textAlignVertical: 'top'
                   }}
-                  placeholder="Any other specific goals..."
+                  placeholder={t('practice.conversation.plan_placeholder_goals')}
                   multiline
                   numberOfLines={2}
                 />
@@ -2521,7 +2536,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                   onPress={async () => {
                     // Validation: Require at least duration selection (goals are optional)
                     if (!selectedDuration) {
-                      Alert.alert('Duration Required', 'Please select a plan duration before creating your learning plan.');
+                      Alert.alert(t('practice.conversation.alert_duration_required_title'), t('practice.conversation.alert_duration_required_message'));
                       return;
                     }
 
@@ -2561,11 +2576,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                       } else {
                         const errorData = await response.json();
                         console.error('[CREATE_PLAN] ❌ Failed to create plan:', errorData);
-                        Alert.alert('Error', 'Failed to create learning plan. Please try again.');
+                        Alert.alert(t('practice.conversation.alert_plan_error_title'), t('practice.conversation.alert_plan_error_message'));
                       }
                     } catch (error) {
                       console.error('[CREATE_PLAN] Error:', error);
-                      Alert.alert('Error', 'An error occurred. Please try again.');
+                      Alert.alert(t('practice.conversation.alert_plan_error_title'), t('practice.conversation.alert_error_occurred'));
                     } finally {
                       setCreatingPlan(false);
                     }
@@ -2584,7 +2599,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                   }}
                 >
                   <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
-                    {creatingPlan ? 'Creating...' : !selectedDuration ? 'Select Duration First' : 'Create Learning Plan'}
+                    {creatingPlan ? t('practice.conversation.button_creating') : !selectedDuration ? t('practice.conversation.button_select_duration') : t('practice.conversation.button_create_learning_plan')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -2608,6 +2623,7 @@ interface AnimatedCountdownTimerProps {
   colorAnim: Animated.Value;
   scaleAnim: Animated.Value;
   formatDuration: (seconds: number) => string;
+  t: any;
 }
 
 const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
@@ -2617,6 +2633,7 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
   colorAnim,
   scaleAnim,
   formatDuration,
+  t,
 }) => {
   const secondsRemaining = maxDuration - duration;
   const isCountingDown = secondsRemaining <= 10 && secondsRemaining >= 0;
@@ -2661,12 +2678,12 @@ const AnimatedCountdownTimer: React.FC<AnimatedCountdownTimerProps> = ({
           <View style={styles.countdownContent}>
             {/* Large Countdown Number */}
             <Text style={styles.countdownNumber}>{secondsRemaining}</Text>
-            <Text style={styles.countdownLabel}>SECONDS</Text>
+            <Text style={styles.countdownLabel}>{t('practice.conversation.countdown_seconds')}</Text>
           </View>
         </Animated.View>
 
         {/* Session Ending Message */}
-        <Text style={styles.sessionEndingText}>Session Ending...</Text>
+        <Text style={styles.sessionEndingText}>{t('practice.conversation.countdown_session_ending')}</Text>
       </Animated.View>
     </Animated.View>
   );

@@ -3,9 +3,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, Alert, InteractionManager } from 'react-native';
+import { View, Text, StyleSheet, Alert, InteractionManager } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
+
+// Initialize i18n (multi-language support)
+import './src/i18n/config';
 
 // Prevent auto-hide of splash screen
 SplashScreen.preventAutoHideAsync();
@@ -127,7 +130,10 @@ function MainTabs() {
         name="Dashboard"
         component={DashboardScreen}
         options={{
-          tabBarLabel: 'Learn',
+          tabBarLabel: ({ focused, color }) => {
+            const i18n = require('./src/i18n/config').default;
+            return <Text style={{ fontSize: 13, fontWeight: '600', color }}>{i18n.t('dashboard.tabs.learn')}</Text>;
+          },
           headerShown: false,
         }}
       />
@@ -137,7 +143,10 @@ function MainTabs() {
         name="News"
         component={NewsListScreen}
         options={{
-          tabBarLabel: 'Today',
+          tabBarLabel: ({ focused, color }) => {
+            const i18n = require('./src/i18n/config').default;
+            return <Text style={{ fontSize: 13, fontWeight: '600', color }}>{i18n.t('news.tab_today') || 'Today'}</Text>;
+          },
           headerShown: false,
         }}
       />
@@ -147,7 +156,10 @@ function MainTabs() {
         name="Explore"
         component={ExploreScreen}
         options={{
-          tabBarLabel: 'Challenges',
+          tabBarLabel: ({ focused, color }) => {
+            const i18n = require('./src/i18n/config').default;
+            return <Text style={{ fontSize: 13, fontWeight: '600', color }}>{i18n.t('explore.tab_challenges') || 'Challenges'}</Text>;
+          },
           headerShown: false,
         }}
         listeners={({ navigation }) => ({
@@ -170,7 +182,10 @@ function MainTabs() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: ({ focused, color }) => {
+            const i18n = require('./src/i18n/config').default;
+            return <Text style={{ fontSize: 13, fontWeight: '600', color }}>{i18n.t('dashboard.tabs.profile')}</Text>;
+          },
           headerShown: false,
         }}
       />

@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 interface LegalDocumentsScreenProps {
   onBack: () => void;
@@ -23,6 +24,8 @@ interface LegalDocumentsScreenProps {
 }
 
 const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onNavigateToDocument }) => {
+  const { t } = useTranslation();
+
   const handleViewDocument = (documentType: 'terms' | 'privacy') => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -64,7 +67,7 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Ionicons name="document-text" size={24} color="#14B8A6" />
-          <Text style={styles.title}>Legal & Privacy</Text>
+          <Text style={styles.title}>{t('profile.settings.legal.title')}</Text>
         </View>
         <View style={styles.headerRight} />
       </View>
@@ -75,7 +78,7 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
         <View style={styles.infoBanner}>
           <Ionicons name="shield-checkmark" size={24} color="#10B981" />
           <Text style={styles.infoBannerText}>
-            Your privacy and trust are important to us. Review our policies to understand how we protect your data.
+            {t('profile.settings.legal.info_banner')}
           </Text>
         </View>
 
@@ -89,13 +92,13 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
             <Ionicons name="document-text-outline" size={28} color="#3B82F6" />
           </View>
           <View style={styles.documentInfo}>
-            <Text style={styles.documentTitle}>Terms of Use</Text>
+            <Text style={styles.documentTitle}>{t('profile.settings.legal.terms_title')}</Text>
             <Text style={styles.documentDescription}>
-              Read our terms and conditions for using MyTaco AI
+              {t('profile.settings.legal.terms_description')}
             </Text>
             <View style={styles.linkContainer}>
               <Ionicons name="document" size={14} color="#14B8A6" />
-              <Text style={styles.linkText}>View in App</Text>
+              <Text style={styles.linkText}>{t('profile.settings.legal.link_view_in_app')}</Text>
             </View>
           </View>
           <Ionicons name="chevron-forward" size={24} color="#14B8A6" />
@@ -111,13 +114,13 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
             <Ionicons name="lock-closed-outline" size={28} color="#10B981" />
           </View>
           <View style={styles.documentInfo}>
-            <Text style={styles.documentTitle}>Privacy Policy</Text>
+            <Text style={styles.documentTitle}>{t('profile.settings.legal.privacy_title')}</Text>
             <Text style={styles.documentDescription}>
-              Learn how we collect, use, and protect your personal information
+              {t('profile.settings.legal.privacy_description')}
             </Text>
             <View style={styles.linkContainer}>
               <Ionicons name="document" size={14} color="#14B8A6" />
-              <Text style={styles.linkText}>View in App</Text>
+              <Text style={styles.linkText}>{t('profile.settings.legal.link_view_in_app')}</Text>
             </View>
           </View>
           <Ionicons name="chevron-forward" size={24} color="#14B8A6" />
@@ -127,31 +130,31 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
         <View style={styles.infoSection}>
           <View style={styles.infoSectionHeader}>
             <Ionicons name="card" size={20} color="#F59E0B" />
-            <Text style={styles.infoSectionTitle}>Subscription Information</Text>
+            <Text style={styles.infoSectionTitle}>{t('profile.settings.legal.section_subscription_info')}</Text>
           </View>
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Ionicons name="checkmark-circle" size={18} color="#10B981" />
               <Text style={styles.infoText}>
-                All subscriptions include a 7-day free trial
+                {t('profile.settings.legal.subscription_info_trial')}
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Ionicons name="checkmark-circle" size={18} color="#10B981" />
               <Text style={styles.infoText}>
-                Cancel anytime during the free trial period
+                {t('profile.settings.legal.subscription_info_cancel')}
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Ionicons name="checkmark-circle" size={18} color="#10B981" />
               <Text style={styles.infoText}>
-                Auto-renewal can be disabled in your account settings
+                {t('profile.settings.legal.subscription_info_auto_renew')}
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Ionicons name="checkmark-circle" size={18} color="#10B981" />
               <Text style={styles.infoText}>
-                Payment charged to your account at confirmation
+                {t('profile.settings.legal.subscription_info_payment')}
               </Text>
             </View>
           </View>
@@ -159,9 +162,9 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
 
         {/* Support Section */}
         <View style={styles.supportSection}>
-          <Text style={styles.supportTitle}>Need Help?</Text>
+          <Text style={styles.supportTitle}>{t('profile.settings.legal.support_title')}</Text>
           <Text style={styles.supportText}>
-            If you have questions about our terms, privacy practices, or subscriptions, please contact our support team.
+            {t('profile.settings.legal.support_description')}
           </Text>
           <View style={styles.supportButtons}>
             <TouchableOpacity
@@ -170,7 +173,7 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
               activeOpacity={0.7}
             >
               <Ionicons name="call-outline" size={20} color="#14B8A6" />
-              <Text style={styles.supportButtonText}>Call Support</Text>
+              <Text style={styles.supportButtonText}>{t('profile.settings.legal.button_call_support')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.supportButton}
@@ -178,7 +181,7 @@ const LegalDocumentsScreen: React.FC<LegalDocumentsScreenProps> = ({ onBack, onN
               activeOpacity={0.7}
             >
               <Ionicons name="mail-outline" size={20} color="#14B8A6" />
-              <Text style={styles.supportButtonText}>Email Us</Text>
+              <Text style={styles.supportButtonText}>{t('profile.settings.legal.button_email_us')}</Text>
             </TouchableOpacity>
           </View>
         </View>

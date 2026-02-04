@@ -22,6 +22,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
@@ -57,6 +58,7 @@ export default function ChallengeSessionScreen({
   navigation,
   route,
 }: ChallengeSessionScreenProps) {
+  const { t } = useTranslation();
   const {
     session,
     startSession,
@@ -511,7 +513,7 @@ export default function ChallengeSessionScreen({
             loop
             style={styles.calculatingAnimation}
           />
-          <Text style={styles.loadingText}>Calculating results...</Text>
+          <Text style={styles.loadingText}>{t('explore.session.calculating')}</Text>
         </View>
       )}
 
@@ -606,7 +608,7 @@ export default function ChallengeSessionScreen({
             </View>
 
             {/* Title */}
-            <Text style={styles.quitModalTitle}>Quit Session?</Text>
+            <Text style={styles.quitModalTitle}>{t('explore.session.quit_title')}</Text>
 
             {/* Message */}
             {session && (
@@ -614,25 +616,28 @@ export default function ChallengeSessionScreen({
                 {session.completedChallenges > 0 ? (
                   <>
                     <Text style={styles.quitModalText}>
-                      You've completed <Text style={styles.quitModalTextBold}>{session.completedChallenges}/{session.challenges.length}</Text> challenges.
+                      {t('explore.session.quit_completed', {
+                        completed: session.completedChallenges,
+                        total: session.challenges.length
+                      })}
                     </Text>
                     <View style={styles.quitModalInfoRow}>
                       <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                      <Text style={styles.quitModalInfoText}>Your progress will be saved</Text>
+                      <Text style={styles.quitModalInfoText}>{t('explore.session.progress_saved')}</Text>
                     </View>
                     <View style={styles.quitModalInfoRow}>
                       <Ionicons name="warning" size={20} color="#F59E0B" />
-                      <Text style={styles.quitModalInfoText}>Hearts used will NOT be refunded</Text>
+                      <Text style={styles.quitModalInfoText}>{t('explore.session.hearts_not_refunded')}</Text>
                     </View>
                   </>
                 ) : (
                   <>
                     <Text style={styles.quitModalText}>
-                      You haven't completed any challenges yet.
+                      {t('explore.session.quit_no_completed')}
                     </Text>
                     <View style={styles.quitModalInfoRow}>
                       <Ionicons name="warning" size={20} color="#F59E0B" />
-                      <Text style={styles.quitModalInfoText}>Hearts used will NOT be refunded</Text>
+                      <Text style={styles.quitModalInfoText}>{t('explore.session.hearts_not_refunded')}</Text>
                     </View>
                   </>
                 )}
@@ -647,7 +652,7 @@ export default function ChallengeSessionScreen({
                 activeOpacity={0.8}
                 disabled={isQuitting}
               >
-                <Text style={styles.quitModalButtonTextCancel}>Keep Playing</Text>
+                <Text style={styles.quitModalButtonTextCancel}>{t('explore.session.keep_playing')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -662,7 +667,7 @@ export default function ChallengeSessionScreen({
                 {isQuitting ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.quitModalButtonTextQuit}>Quit</Text>
+                  <Text style={styles.quitModalButtonTextQuit}>{t('explore.session.quit_button')}</Text>
                 )}
               </TouchableOpacity>
             </View>

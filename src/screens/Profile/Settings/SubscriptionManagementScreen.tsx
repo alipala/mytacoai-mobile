@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../../api/config';
 
 interface SubscriptionManagementScreenProps {
@@ -41,6 +42,8 @@ interface SubscriptionStatus {
 }
 
 const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> = ({ onBack }) => {
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
@@ -90,7 +93,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
       setSubscription(data);
     } catch (error: any) {
       console.error('Error fetching subscription status:', error);
-      setError('Failed to load subscription information. Please try again later.');
+      setError(t('profile.settings.subscription.error_load'));
     } finally {
       setLoading(false);
     }
@@ -102,13 +105,13 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
     }
 
     Alert.alert(
-      subscription?.is_in_trial ? 'Cancel Trial' : 'Cancel Subscription',
+      subscription?.is_in_trial ? t('profile.settings.subscription.alert_cancel_trial_title') : t('profile.settings.subscription.alert_cancel_title'),
       subscription?.is_in_trial
-        ? 'Are you sure you want to cancel your free trial? You will immediately lose access to premium features and no charges will be applied.'
-        : 'Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your current billing period.',
+        ? t('profile.settings.subscription.alert_cancel_trial_message')
+        : t('profile.settings.subscription.alert_cancel_message'),
       [
         {
-          text: 'Keep ' + (subscription?.is_in_trial ? 'Trial' : 'Subscription'),
+          text: subscription?.is_in_trial ? t('profile.settings.subscription.alert_keep_trial') : t('profile.settings.subscription.alert_keep_subscription'),
           style: 'cancel',
           onPress: () => {
             if (Platform.OS === 'ios') {
@@ -117,7 +120,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
           }
         },
         {
-          text: 'Yes, Cancel',
+          text: t('profile.settings.subscription.alert_yes_cancel'),
           style: 'destructive',
           onPress: confirmCancelSubscription
         }
@@ -140,8 +143,8 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
 
       // Show success message
       const message = responseData.period_end_date
-        ? `Cancellation scheduled. Your subscription will remain active until ${responseData.period_end_date}. You can reactivate anytime before then.`
-        : 'Your subscription has been canceled successfully. You will retain access until the end of your current billing period.';
+        ? t('profile.settings.subscription.success_cancellation_scheduled', { date: responseData.period_end_date })
+        : t('profile.settings.subscription.success_cancellation_generic');
 
       setSuccessMessage(message);
 
@@ -153,7 +156,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
       setTimeout(() => setSuccessMessage(null), 8000);
     } catch (error: any) {
       console.error('Error canceling subscription:', error);
-      setError(error.message || 'Failed to cancel subscription. Please try again later.');
+      setError(error.message || t('profile.settings.subscription.error_cancel'));
 
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -178,8 +181,8 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
 
       // Show success message
       const message = responseData.period_end_date
-        ? `Subscription reactivated! Your subscription will continue and auto-renew on ${responseData.period_end_date}.`
-        : 'Your subscription has been reactivated successfully!';
+        ? t('profile.settings.subscription.success_reactivation', { date: responseData.period_end_date })
+        : t('profile.settings.subscription.success_reactivation_generic');
 
       setSuccessMessage(message);
 
@@ -191,7 +194,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
       setTimeout(() => setSuccessMessage(null), 8000);
     } catch (error: any) {
       console.error('Error reactivating subscription:', error);
-      setError(error.message || 'Failed to reactivate subscription. Please try again later.');
+      setError(error.message || t('profile.settings.subscription.error_reactivate'));
 
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -236,15 +239,15 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
   const getStatusDisplayText = (status: string | null) => {
     switch (status) {
       case 'trialing':
-        return 'Free Trial';
+        return t('profile.settings.subscription.status_trialing');
       case 'active':
-        return 'Active';
+        return t('profile.settings.subscription.status_active');
       case 'canceling':
-        return 'Canceling';
+        return t('profile.settings.subscription.status_canceling');
       case 'canceled':
-        return 'Canceled';
+        return t('profile.settings.subscription.status_canceled');
       case 'past_due':
-        return 'Past Due';
+        return t('profile.settings.subscription.status_past_due');
       default:
         return status || 'Unknown';
     }
@@ -294,12 +297,12 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
           >
             <Ionicons name="chevron-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
-          <Text style={styles.title}>Subscription</Text>
+          <Text style={styles.title}>{t('profile.settings.subscription.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#14B8A6" />
-          <Text style={styles.loadingText}>Loading subscription...</Text>
+          <Text style={styles.loadingText}>{t('profile.settings.subscription.loading')}</Text>
         </View>
       </View>
     );
@@ -320,7 +323,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
           >
             <Ionicons name="chevron-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
-          <Text style={styles.title}>Subscription</Text>
+          <Text style={styles.title}>{t('profile.settings.subscription.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.errorContainer}>
@@ -331,7 +334,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
             onPress={fetchSubscriptionStatus}
             activeOpacity={0.7}
           >
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t('profile.settings.subscription.button_retry')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -389,19 +392,19 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
                   <Ionicons name="information-circle" size={24} color="#3B82F6" />
                 </View>
                 <View style={styles.trialBannerContent}>
-                  <Text style={styles.trialBannerTitle}>🎉 Free Trial Active</Text>
+                  <Text style={styles.trialBannerTitle}>🎉 {t('profile.settings.subscription.section_trial_banner')}</Text>
                   <Text style={styles.trialBannerText}>
                     <Text style={styles.trialBannerBold}>
-                      {subscription.trial_days_remaining} days remaining
+                      {t('profile.settings.subscription.trial_days_remaining', { count: subscription.trial_days_remaining })}
                     </Text> in your free trial.
                   </Text>
                   {subscription.trial_end_date && (
                     <Text style={styles.trialBannerSubtext}>
-                      Trial ends on {formatDate(subscription.trial_end_date)}
+                      {t('profile.settings.subscription.trial_ends_on', { date: formatDate(subscription.trial_end_date) })}
                     </Text>
                   )}
                   <Text style={styles.trialBannerNote}>
-                    Cancel anytime during trial - no charges will be applied.
+                    {t('profile.settings.subscription.trial_cancel_note')}
                   </Text>
                 </View>
               </View>
@@ -410,17 +413,17 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
             {/* Subscription Details Card */}
             <View style={styles.detailsCard}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Current Plan</Text>
+                <Text style={styles.detailLabel}>{t('profile.settings.subscription.label_current_plan')}</Text>
                 <Text style={styles.detailValue}>
                   {formatPlanName(subscription.plan)} {formatPeriod(subscription.period)}
                   {subscription.is_in_trial && (
-                    <Text style={styles.trialBadge}> (Free Trial)</Text>
+                    <Text style={styles.trialBadge}> {t('profile.settings.subscription.badge_trial')}</Text>
                   )}
                 </Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Status</Text>
+                <Text style={styles.detailLabel}>{t('profile.settings.subscription.label_status')}</Text>
                 <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
                   <Text style={[styles.statusBadgeText, { color: statusColors.text }]}>
                     {getStatusDisplayText(subscription.status)}
@@ -444,7 +447,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
                     <>
                       <Ionicons name="close-circle-outline" size={20} color="#FFFFFF" />
                       <Text style={styles.actionButtonText}>
-                        {subscription.is_in_trial ? 'Cancel Trial' : 'Cancel Subscription'}
+                        {subscription.is_in_trial ? t('profile.settings.subscription.button_cancel_trial') : t('profile.settings.subscription.button_cancel_subscription')}
                       </Text>
                     </>
                   )}
@@ -463,7 +466,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
                   ) : (
                     <>
                       <Ionicons name="refresh-circle-outline" size={20} color="#FFFFFF" />
-                      <Text style={styles.actionButtonText}>Reactivate Subscription</Text>
+                      <Text style={styles.actionButtonText}>{t('profile.settings.subscription.button_reactivate_subscription')}</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -475,44 +478,38 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
               <View style={styles.warningBox}>
                 <View style={styles.warningHeader}>
                   <Ionicons name="warning" size={28} color="#F59E0B" />
-                  <Text style={styles.warningTitle}>⚠️ Cancellation Scheduled</Text>
+                  <Text style={styles.warningTitle}>⚠️ {t('profile.settings.subscription.warning_cancellation_scheduled')}</Text>
                 </View>
                 <Text style={styles.warningText}>
-                  Your subscription will remain active until{' '}
-                  <Text style={styles.warningTextBold}>
-                    {formatDate(subscription.limits.period_end)}
-                  </Text>
-                  .
+                  {t('profile.settings.subscription.warning_remains_active_until', { date: formatDate(subscription.limits.period_end) })}
                 </Text>
 
                 <View style={styles.remainingBox}>
-                  <Text style={styles.remainingTitle}>You still have:</Text>
+                  <Text style={styles.remainingTitle}>{t('profile.settings.subscription.warning_you_still_have')}</Text>
                   <View style={styles.remainingList}>
                     <View style={styles.remainingItem}>
                       <Text style={styles.remainingBullet}>•</Text>
                       <Text style={styles.remainingText}>
                         {subscription.limits.is_unlimited
-                          ? 'Unlimited'
-                          : Math.round(subscription.limits.minutes_remaining || 0)}{' '}
-                        minutes available
+                          ? t('profile.settings.subscription.warning_unlimited_minutes')
+                          : t('profile.settings.subscription.warning_minutes_available', { minutes: Math.round(subscription.limits.minutes_remaining || 0) })}
                       </Text>
                     </View>
                     <View style={styles.remainingItem}>
                       <Text style={styles.remainingBullet}>•</Text>
-                      <Text style={styles.remainingText}>Full access to all features</Text>
+                      <Text style={styles.remainingText}>{t('profile.settings.subscription.warning_full_access')}</Text>
                     </View>
                     <View style={styles.remainingItem}>
                       <Text style={styles.remainingBullet}>•</Text>
                       <Text style={styles.remainingText}>
-                        {daysRemaining} days of learning time
+                        {t('profile.settings.subscription.warning_days_learning', { days: daysRemaining })}
                       </Text>
                     </View>
                   </View>
                 </View>
 
                 <Text style={styles.warningFooter}>
-                  After {formatDate(subscription.limits.period_end)}, your subscription will not
-                  renew. You can reactivate anytime before then.
+                  {t('profile.settings.subscription.warning_no_renew', { date: formatDate(subscription.limits.period_end) })}
                 </Text>
               </View>
             )}
@@ -521,7 +518,7 @@ const SubscriptionManagementScreen: React.FC<SubscriptionManagementScreenProps> 
           <View style={styles.noSubscriptionContainer}>
             <Ionicons name="card-outline" size={64} color="#6B8A84" />
             <Text style={styles.noSubscriptionText}>
-              You don't have an active subscription. Upgrade to a premium plan to access all features.
+              {t('profile.settings.subscription.no_subscription')}
             </Text>
           </View>
         )}

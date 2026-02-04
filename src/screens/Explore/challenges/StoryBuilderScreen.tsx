@@ -32,6 +32,7 @@ import {
   Gesture,
 } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
 import { XPFlyingNumber } from '../../../components/XPFlyingNumber';
@@ -74,6 +75,7 @@ export default function StoryBuilderScreen({
   onClose,
   onWrongAnswerSelected,
 }: StoryBuilderScreenProps) {
+  const { t } = useTranslation();
   const [gapStates, setGapStates] = useState<GapState[]>([]);
   const [availableWords, setAvailableWords] = useState<string[]>([...challenge.wordBank]);
   const [selectedGapId, setSelectedGapId] = useState<string | null>(null);
@@ -373,7 +375,7 @@ export default function StoryBuilderScreen({
             {!showFeedback ? (
               <>
                 <Text style={styles.instructionsText}>
-                  Fill in the blanks
+                  {t('explore.story_builder.fill_blanks')}
                 </Text>
 
                 <Animated.View style={[styles.storyContainer, storyAnimatedStyle]}>
@@ -417,25 +419,25 @@ export default function StoryBuilderScreen({
                 }) ? (
                   <>
                     <Text style={[styles.feedbackTitle, { color: '#059669' }]}>
-                      Perfect!
+                      {t('explore.story_builder.perfect')}
                     </Text>
                     <Text style={styles.feedbackSubtitle}>
-                      You completed it correctly
+                      {t('explore.story_builder.completed_correctly')}
                     </Text>
                   </>
                 ) : (
                   <>
                     <Text style={[styles.feedbackTitle, { color: '#DC2626' }]}>
-                      Not quite
+                      {t('explore.story_builder.not_quite')}
                     </Text>
                     <Text style={styles.feedbackSubtitle}>
-                      Check the correct answer
+                      {t('explore.story_builder.check_answer')}
                     </Text>
                   </>
                 )}
 
                 <View style={styles.completedStoryBox}>
-                  <Text style={styles.completedStoryLabel}>CORRECT ANSWER</Text>
+                  <Text style={styles.completedStoryLabel}>{t('explore.story_builder.correct_answer')}</Text>
                   <Text style={styles.completedStoryText}>
                     {challenge.storyText.split('___').reduce((acc, part, index) => {
                       if (index === 0) return part;
@@ -446,7 +448,7 @@ export default function StoryBuilderScreen({
                 </View>
 
                 <View style={styles.explanationBox}>
-                  <Text style={styles.explanationLabel}>💡 EXPLANATION</Text>
+                  <Text style={styles.explanationLabel}>💡 {t('explore.story_builder.explanation')}</Text>
                   <Text style={styles.explanationText}>{challenge.explanation}</Text>
                 </View>
 
@@ -465,7 +467,7 @@ export default function StoryBuilderScreen({
                     onPress={handleContinue}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.continueButtonText}>CONTINUE</Text>
+                    <Text style={styles.continueButtonText}>{t('explore.story_builder.continue')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -488,7 +490,7 @@ export default function StoryBuilderScreen({
                   styles.checkButtonText,
                   !allGapsFilled && styles.checkButtonTextDisabled
                 ]}>
-                  CHECK
+                  {t('explore.story_builder.check')}
                 </Text>
               </TouchableOpacity>
             </Animated.View>

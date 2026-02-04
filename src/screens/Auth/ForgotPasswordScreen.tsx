@@ -21,6 +21,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AuthenticationService } from '../../api/generated';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './ForgotPasswordScreen.styles';
@@ -30,6 +31,7 @@ interface ForgotPasswordScreenProps {
 }
 
 const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -37,12 +39,12 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
   const handleSendResetLink = async () => {
     // Validation
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
+      Alert.alert(t('auth.forgot_password.error_title'), t('auth.forgot_password.error_email_required'));
       return;
     }
 
     if (!email.includes('@')) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert(t('auth.forgot_password.error_title'), t('auth.forgot_password.error_email_invalid'));
       return;
     }
 
@@ -61,8 +63,8 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
       
       // Show generic message for security (don't reveal if email exists)
       Alert.alert(
-        'Request Submitted',
-        'If an account exists with this email, you will receive a password reset link shortly.'
+        t('auth.forgot_password.alert_submitted_title'),
+        t('auth.forgot_password.alert_submitted_message')
       );
       
       setEmailSent(true); // Still show success screen for security
@@ -89,11 +91,11 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             </View>
 
             {/* Title */}
-            <Text style={styles.successTitle}>Check Your Email</Text>
+            <Text style={styles.successTitle}>{t('auth.forgot_password.success_title')}</Text>
 
             {/* Message */}
             <Text style={styles.successMessage}>
-              We've sent a password reset link to:
+              {t('auth.forgot_password.success_message')}
             </Text>
 
             {/* Email */}
@@ -101,7 +103,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
             {/* Instructions */}
             <Text style={styles.instructionsText}>
-              Click the link in the email to reset your password. The link will expire in 1 hour.
+              {t('auth.forgot_password.success_instructions')}
             </Text>
 
             {/* Back to Login Button */}
@@ -109,7 +111,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
               style={styles.primaryButton}
               onPress={handleBackToLogin}
             >
-              <Text style={styles.primaryButtonText}>Back to Login</Text>
+              <Text style={styles.primaryButtonText}>{t('auth.forgot_password.button_back')}</Text>
             </TouchableOpacity>
 
             {/* Resend Link */}
@@ -120,7 +122,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
                 setEmail('');
               }}
             >
-              <Text style={styles.resendButtonText}>Didn't receive email? Try again</Text>
+              <Text style={styles.resendButtonText}>{t('auth.forgot_password.button_resend')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -140,7 +142,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
           onPress={handleBackToLogin}
         >
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          <Text style={styles.backButtonText}>Back to Login</Text>
+          <Text style={styles.backButtonText}>{t('auth.forgot_password.button_back')}</Text>
         </TouchableOpacity>
 
         <View style={styles.content}>
@@ -150,19 +152,19 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
           </View>
 
           {/* Title */}
-          <Text style={styles.title}>Forgot Password?</Text>
+          <Text style={styles.title}>{t('auth.forgot_password.title')}</Text>
           <Text style={styles.subtitle}>
-            No worries, we'll send you reset instructions.
+            {t('auth.forgot_password.subtitle')}
           </Text>
 
           {/* White Card Container */}
           <View style={styles.card}>
             {/* Email Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Address</Text>
+              <Text style={styles.label}>{t('auth.forgot_password.label_email')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter your email"
+                placeholder={t('auth.forgot_password.placeholder_email')}
                 placeholderTextColor="#A0AEC0"
                 value={email}
                 onChangeText={setEmail}
@@ -183,7 +185,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.primaryButtonText}>Send Reset Link</Text>
+                <Text style={styles.primaryButtonText}>{t('auth.forgot_password.button_send')}</Text>
               )}
             </TouchableOpacity>
 
@@ -191,9 +193,9 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             <View style={styles.helpContainer}>
               <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
               <Text style={styles.helpText}>
-                Remember your password?{' '}
+                {t('auth.forgot_password.help_text')}{' '}
                 <Text style={styles.loginLink} onPress={handleBackToLogin}>
-                  Sign in
+                  {t('auth.forgot_password.link_signin')}
                 </Text>
               </Text>
             </View>

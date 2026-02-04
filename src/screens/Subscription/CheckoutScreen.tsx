@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { OpenAPI } from '../../api/generated/core/OpenAPI';
 
 interface CheckoutScreenProps {
@@ -42,6 +43,7 @@ const PRICE_IDS = {
 };
 
 const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
+  const { t } = useTranslation();
   const { planId, period } = route.params;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,13 +61,13 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) =>
       const priceId = PRICE_IDS[planId as keyof typeof PRICE_IDS]?.[period];
 
       if (!priceId) {
-        throw new Error('Invalid plan or period selected');
+        throw new Error(t('subscription.checkout.error_invalid_plan'));
       }
 
       // Get auth token
       const token = await AsyncStorage.getItem('auth_token');
       if (!token) {
-        throw new Error('Not authenticated');
+        throw new Error(t('subscription.checkout.error_not_authenticated'));
       }
 
       // Create checkout session
@@ -88,7 +90,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) =>
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to create checkout session');
+        throw new Error(errorData.detail || t('subscription.checkout.error_create_session'));
       }
 
       const data = await response.json();
@@ -104,27 +106,27 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) =>
             navigation.navigate('Main', { screen: 'Dashboard' });
           }, 1000);
         } else {
-          throw new Error('Cannot open checkout URL');
+          throw new Error(t('subscription.checkout.error_cannot_open_url'));
         }
       } else {
-        throw new Error('No checkout URL received');
+        throw new Error(t('subscription.checkout.error_no_url'));
       }
 
     } catch (error: any) {
       console.error('Checkout error:', error);
-      setError(error.message || 'Failed to start checkout');
+      setError(error.message || t('subscription.checkout.error_default'));
       setLoading(false);
 
       Alert.alert(
-        'Checkout Error',
-        error.message || 'Failed to start checkout. Please try again.',
+        t('subscription.checkout.error_title'),
+        error.message || t('subscription.checkout.error_default'),
         [
           {
-            text: 'Try Again',
+            text: t('subscription.checkout.button_try_again'),
             onPress: () => createCheckoutSession(),
           },
           {
-            text: 'Cancel',
+            text: t('buttons.cancel'),
             style: 'cancel',
             onPress: () => navigation.goBack(),
           },
@@ -142,9 +144,9 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) =>
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4ECFBF" />
-          <Text style={styles.loadingText}>Preparing checkout...</Text>
+          <Text style={styles.loadingText}>{t('subscription.checkout.loading_title')}</Text>
           <Text style={styles.loadingSubtext}>
-            You'll be redirected to Stripe to complete your purchase
+            {t('subscription.checkout.loading_subtitle')}
           </Text>
         </View>
       </SafeAreaView>
@@ -156,7 +158,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) =>
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorTitle}>Checkout Error</Text>
+          <Text style={styles.errorTitle}>{t('subscription.checkout.error_title')}</Text>
           <Text style={styles.errorMessage}>{error}</Text>
 
           <View style={styles.buttonContainer}>
@@ -165,14 +167,14 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) =>
               onPress={createCheckoutSession}
             >
               <Ionicons name="refresh" size={20} color="#FFFFFF" />
-              <Text style={styles.retryButtonText}>Try Again</Text>
+              <Text style={styles.retryButtonText}>{t('subscription.checkout.button_try_again')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.backButton}
               onPress={handleGoBack}
             >
-              <Text style={styles.backButtonText}>Go Back</Text>
+              <Text style={styles.backButtonText}>{t('subscription.checkout.button_go_back')}</Text>
             </TouchableOpacity>
           </View>
         </View>

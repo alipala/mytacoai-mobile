@@ -30,6 +30,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { MicroQuizChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
@@ -55,6 +56,7 @@ export default function MicroQuizScreen({
   onWrongAnswerSelected,
   onClose,
 }: MicroQuizScreenProps) {
+  const { t } = useTranslation();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [tapPosition, setTapPosition] = useState({ x: 0, y: 0 });
@@ -231,15 +233,15 @@ export default function MicroQuizScreen({
             {isCorrectAnswer() ? (
               <>
                 <Text style={[styles.feedbackTitle, { color: '#6EE7B7' }]}>
-                  Perfect!
+                  {t('explore.micro_quiz.perfect')}
                 </Text>
                 <Text style={styles.feedbackSubtitle}>
-                  You nailed it!
+                  {t('explore.micro_quiz.nailed_it')}
                 </Text>
               </>
             ) : (
               <Text style={[styles.feedbackTitle, { color: '#FCA5A5', marginBottom: 12 }]}>
-                Almost there!
+                {t('explore.micro_quiz.almost_there')}
               </Text>
             )}
           </>
@@ -271,7 +273,7 @@ export default function MicroQuizScreen({
         {/* Explanation - shown inline for wrong answers */}
         {showFeedback && !isCorrectAnswer() && (
           <View style={styles.explanationBox}>
-            <Text style={styles.explanationLabel}>EXPLANATION</Text>
+            <Text style={styles.explanationLabel}>{t('explore.micro_quiz.explanation')}</Text>
             <Text style={styles.explanationText}>{challenge.explanation}</Text>
           </View>
         )}
@@ -305,7 +307,7 @@ export default function MicroQuizScreen({
             >
               <Animated.View style={[styles.continueButton, continueButtonAnimatedStyle]}>
                 <View style={styles.continueButtonContent}>
-                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <Text style={styles.continueButtonText}>{t('explore.button_continue')}</Text>
                   <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
                 </View>
               </Animated.View>

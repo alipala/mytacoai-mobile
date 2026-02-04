@@ -12,6 +12,7 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -40,19 +41,8 @@ interface NewsContent {
   word_count: number;
 }
 
-const LANGUAGE_NAMES: { [key: string]: string } = {
-  en: 'English',
-  es: 'Spanish',
-  nl: 'Dutch',
-};
-
-const LEVEL_NAMES: { [key: string]: string } = {
-  A2: 'A2 - Elementary',
-  B1: 'B1 - Intermediate',
-  B2: 'B2 - Upper Intermediate',
-};
-
 export default function NewsDetailScreen({ route, navigation }: any) {
+  const { t } = useTranslation();
   const { newsId, title, recommendedLevel, availableLanguages } = route.params;
 
   const [selectedLanguage, setSelectedLanguage] = useState('en');
@@ -89,14 +79,14 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to load content');
+        throw new Error(errorData.detail || t('news.error.failed_to_load_content'));
       }
 
       const data = await response.json();
       setNewsContent(data);
     } catch (err: any) {
       console.error('Error fetching news content:', err);
-      Alert.alert('Error', err.message || 'Failed to load content');
+      Alert.alert(t('news.error.could_not_open_title'), err.message || t('news.error.failed_to_load_content'));
     } finally {
       setLoading(false);
       setSwitchingVariation(false);
@@ -127,7 +117,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to start conversation');
+        throw new Error(errorData.detail || t('news.error.failed_to_start'));
       }
 
       const data = await response.json();
@@ -151,13 +141,13 @@ export default function NewsDetailScreen({ route, navigation }: any) {
       console.log('[NEWS_DETAIL] 📱 Navigated to ConversationScreen with sessionType=news');
     } catch (err: any) {
       console.error('[NEWS_DETAIL] ❌ Error starting conversation:', err);
-      Alert.alert('Error', err.message || 'Failed to start conversation');
+      Alert.alert(t('news.error.could_not_open_title'), err.message || t('news.error.failed_to_start'));
     }
   };
 
   const renderLanguageSelector = () => (
     <View style={styles.selectorContainer}>
-      <Text style={styles.selectorLabel}>Language</Text>
+      <Text style={styles.selectorLabel}>{t('news.detail.label_language')}</Text>
       <View style={styles.optionsContainer}>
         {availableLanguages.map((lang: string) => (
           <TouchableOpacity
@@ -174,7 +164,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
                 selectedLanguage === lang && styles.optionTextActive,
               ]}
             >
-              {LANGUAGE_NAMES[lang] || lang}
+              {t(`news.languages.${lang}`) || lang}
             </Text>
           </TouchableOpacity>
         ))}
@@ -185,9 +175,9 @@ export default function NewsDetailScreen({ route, navigation }: any) {
   const renderLevelSelector = () => (
     <View style={styles.selectorContainer}>
       <Text style={styles.selectorLabel}>
-        Proficiency Level
+        {t('news.detail.label_level')}
         {selectedLevel === recommendedLevel && (
-          <Text style={styles.recommendedBadge}> • Recommended</Text>
+          <Text style={styles.recommendedBadge}> • {t('news.badges.recommended')}</Text>
         )}
       </Text>
       <View style={styles.optionsContainer}>
@@ -222,7 +212,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
         activeOpacity={0.7}
       >
         <Text style={styles.sectionTitle}>
-          Key Vocabulary ({newsContent?.vocabulary.length || 0} words)
+          {t('news.detail.section_vocabulary', { count: newsContent?.vocabulary.length || 0 })}
         </Text>
         <Ionicons
           name={vocabularyExpanded ? 'chevron-up' : 'chevron-down'}
@@ -256,7 +246,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 
   const renderDiscussionQuestions = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>We'll Discuss:</Text>
+      <Text style={styles.sectionTitle}>{t('news.detail.section_discussion')}</Text>
       {newsContent?.discussion_questions.map((question, index) => (
         <View key={index} style={styles.questionItem}>
           <Ionicons name="chatbubble-outline" size={20} color="#14B8A6" />
@@ -271,7 +261,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#14B8A6" />
-          <Text style={styles.loadingText}>Loading content...</Text>
+          <Text style={styles.loadingText}>{t('news.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -348,12 +338,12 @@ export default function NewsDetailScreen({ route, navigation }: any) {
           <View style={styles.statsBar}>
             <View style={styles.statItem}>
               <Ionicons name="time-outline" size={16} color={categoryColor} />
-              <Text style={styles.statText}>~3 min read</Text>
+              <Text style={styles.statText}>{t('news.detail.stats_read_time')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Ionicons name="library-outline" size={16} color={categoryColor} />
-              <Text style={styles.statText}>{newsContent.vocabulary.length} words</Text>
+              <Text style={styles.statText}>{t('news.vocabulary_count', { count: newsContent.vocabulary.length })}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
@@ -362,7 +352,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
             </View>
           </View>
 
-          <Text style={styles.source}>By {newsContent.original.source}</Text>
+          <Text style={styles.source}>{t('news.source_by', { source: newsContent.original.source })}</Text>
         </View>
 
         {/* Language Selector */}
@@ -373,9 +363,9 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 
         {/* Adapted Summary */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Summary</Text>
+          <Text style={styles.sectionTitle}>{t('news.detail.section_summary')}</Text>
           <Text style={styles.summaryText}>{newsContent.summary}</Text>
-          <Text style={styles.wordCount}>{newsContent.word_count} words</Text>
+          <Text style={styles.wordCount}>{t('news.word_count', { count: newsContent.word_count })}</Text>
         </View>
 
         {/* Vocabulary */}
@@ -389,7 +379,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
           style={styles.originalLinkButton}
           onPress={async () => {
             if (!newsContent.original.url) {
-              Alert.alert('Error', 'Article link not available');
+              Alert.alert(t('news.error.could_not_open_title'), t('news.error.article_link_unavailable'));
               return;
             }
 
@@ -399,26 +389,26 @@ export default function NewsDetailScreen({ route, navigation }: any) {
 
               if (!canOpen) {
                 Alert.alert(
-                  'Link Unavailable',
-                  'This article link is not accessible. You can still practice with the summary above!',
-                  [{ text: 'OK' }]
+                  t('news.error.link_unavailable_title'),
+                  t('news.error.link_unavailable_message'),
+                  [{ text: t('news.detail.alert_ok') }]
                 );
                 return;
               }
 
               // Show confirmation and open
-              Alert.alert('Original Article', 'Open in browser?', [
-                { text: 'Cancel', style: 'cancel' },
+              Alert.alert(t('news.detail.alert_open_browser_title'), t('news.detail.alert_open_browser_message'), [
+                { text: t('news.detail.alert_cancel'), style: 'cancel' },
                 {
-                  text: 'Open',
+                  text: t('news.detail.alert_open'),
                   onPress: async () => {
                     try {
                       await Linking.openURL(newsContent.original.url);
                     } catch (err) {
                       Alert.alert(
-                        'Error',
-                        'Could not open article. The link may be broken or restricted.',
-                        [{ text: 'OK' }]
+                        t('news.error.could_not_open_title'),
+                        t('news.error.could_not_open_message'),
+                        [{ text: t('news.detail.alert_ok') }]
                       );
                     }
                   },
@@ -426,14 +416,14 @@ export default function NewsDetailScreen({ route, navigation }: any) {
               ]);
             } catch (err) {
               Alert.alert(
-                'Error',
-                'Could not validate article link',
-                [{ text: 'OK' }]
+                t('news.error.could_not_open_title'),
+                t('news.error.could_not_validate'),
+                [{ text: t('news.detail.alert_ok') }]
               );
             }
           }}
         >
-          <Text style={styles.originalLinkText}>Read Original Article</Text>
+          <Text style={styles.originalLinkText}>{t('news.button_read_original')}</Text>
           <Ionicons name="open-outline" size={20} color="#14B8A6" />
         </TouchableOpacity>
       </ScrollView>
@@ -442,7 +432,7 @@ export default function NewsDetailScreen({ route, navigation }: any) {
       <View style={styles.footer}>
         <TouchableOpacity style={styles.startButton} onPress={handleStartConversation}>
           <Ionicons name="mic" size={24} color="#FFFFFF" />
-          <Text style={styles.startButtonText}>Start 5-Minute Conversation</Text>
+          <Text style={styles.startButtonText}>{t('news.button_start_conversation')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

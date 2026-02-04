@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 interface LevelSelectionScreenProps {
   navigation: any;
@@ -97,6 +98,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   const { mode, language, topic, customTopicText, researchData } = route.params;
@@ -145,7 +147,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         >
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Level</Text>
+        <Text style={styles.headerTitle}>{t('practice.conversation.label_level')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -163,7 +165,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Select Your Level</Text>
+        <Text style={styles.title}>{t('practice.conversation.label_level')}</Text>
 
         {/* Levels List */}
         <View style={styles.levelsContainer}>
@@ -220,7 +222,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
               {/* Expanded Skills */}
               {expandedLevel === level.id && (
                 <View style={styles.skillsContainer}>
-                  <Text style={styles.skillsTitle}>What you can do:</Text>
+                  <Text style={styles.skillsTitle}>{t('common.what_you_can_do', 'What you can do:')}</Text>
                   {level.skills.map((skill, index) => (
                     <View key={index} style={styles.skillItem}>
                       <View style={styles.skillBullet} />
@@ -237,7 +239,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
         <View style={styles.helpContainer}>
           <Ionicons name="help-circle" size={20} color="#B4E4DD" />
           <Text style={styles.helpText}>
-            Not sure about your level? Don't worry! You can always adjust it later.
+            {t('practice.level_help_text', "Not sure about your level? Don't worry! You can always adjust it later.")}
           </Text>
         </View>
       </ScrollView>
@@ -253,7 +255,7 @@ const LevelSelectionScreen: React.FC<LevelSelectionScreenProps> = ({
           disabled={!selectedLevel}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Start Practice</Text>
+          <Text style={styles.continueButtonText}>{t('practice.conversation.button_start')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>

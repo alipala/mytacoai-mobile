@@ -28,6 +28,7 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { StripeService } from '../../api/generated';
@@ -116,9 +117,10 @@ const PageIndicator: React.FC<PageIndicatorProps> = ({ currentPage, totalPages }
 interface RadarPageProps {
   profile: SpeakingDNAProfile;
   onStrandTapForModal: (strand: DNAStrandKey, label: string, score: number, color: string) => void;
+  t: (key: string) => string;
 }
 
-const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) => {
+const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal, t }) => {
   const [selectedStrand, setSelectedStrand] = useState<DNAStrandKey | null>(null);
 
   // Prepare radar data
@@ -160,11 +162,11 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal }) =
       <View style={styles.swipeHint}>
         <View style={styles.swipeHintBadge}>
           <Ionicons name="hand-left-outline" size={14} color="#14B8A6" />
-          <Text style={styles.swipeHintText}>Tap strands for details</Text>
+          <Text style={styles.swipeHintText}>{t('profile.dna.hint_tap_strands')}</Text>
         </View>
         <View style={styles.swipeHintBadge}>
           <Ionicons name="chevron-forward" size={14} color="#14B8A6" />
-          <Text style={styles.swipeHintText}>Swipe for voice analysis</Text>
+          <Text style={styles.swipeHintText}>{t('profile.dna.hint_swipe_voice')}</Text>
         </View>
       </View>
     </View>
@@ -191,36 +193,36 @@ interface WeeklyFocus {
   tip: string;
 }
 
-const getGrowthAreaInsights = (growthAreas: string[], strands: any): GrowthInsight[] => {
+const getGrowthAreaInsights = (growthAreas: string[], strands: any, t: (key: string) => string): GrowthInsight[] => {
   const insights: Record<string, GrowthInsight> = {
     speaking_confidence: {
-      title: 'Build Speaking Confidence',
-      action: 'Start responses quickly, even if imperfect. Practice saying "I think..." to buy thinking time.',
+      title: t('profile.dna.insight_build_confidence_title'),
+      action: t('profile.dna.insight_build_confidence_action'),
       icon: 'trending-up',
     },
     grammar_accuracy: {
-      title: 'Improve Grammar Accuracy',
-      action: 'Focus on your common error patterns. Repeat corrected sentences out loud 3 times.',
+      title: t('profile.dna.insight_improve_grammar_title'),
+      action: t('profile.dna.insight_improve_grammar_action'),
       icon: 'checkmark-done',
     },
     vocabulary_variety: {
-      title: 'Expand Vocabulary',
-      action: 'Use one new word per session. Write it down and use it in 3 different sentences.',
+      title: t('profile.dna.insight_expand_vocabulary_title'),
+      action: t('profile.dna.insight_expand_vocabulary_action'),
       icon: 'book',
     },
     taking_challenges: {
-      title: 'Accept More Challenges',
-      action: 'Say YES to the next challenge offered. Growth happens outside comfort zones!',
+      title: t('profile.dna.insight_accept_challenges_title'),
+      action: t('profile.dna.insight_accept_challenges_action'),
       icon: 'flame',
     },
     accuracy_focus: {
-      title: 'Balance Speed & Accuracy',
-      action: 'It\'s OK to make mistakes! Focus on communicating your ideas first.',
+      title: t('profile.dna.insight_balance_speed_title'),
+      action: t('profile.dna.insight_balance_speed_action'),
       icon: 'speedometer',
     },
     vocabulary_exploration: {
-      title: 'Use Varied Vocabulary',
-      action: 'Try synonyms for common words. Replace "good" with "excellent", "great", "wonderful".',
+      title: t('profile.dna.insight_varied_vocabulary_title'),
+      action: t('profile.dna.insight_varied_vocabulary_action'),
       icon: 'bulb',
     },
   };
@@ -228,73 +230,73 @@ const getGrowthAreaInsights = (growthAreas: string[], strands: any): GrowthInsig
   return growthAreas.slice(0, 3).map(area =>
     insights[area] || {
       title: formatText(area),
-      action: 'Keep practicing regularly to see improvement in this area.',
+      action: t('profile.dna.insight_default_action'),
       icon: 'arrow-up',
     }
   );
 };
 
-const getStrengthInsights = (strengths: string[]): StrengthInsight[] => {
+const getStrengthInsights = (strengths: string[], t: (key: string) => string): StrengthInsight[] => {
   const insights: Record<string, StrengthInsight> = {
     speaking_confidence: {
-      title: 'Confident Speaker',
-      description: 'You respond quickly and naturally in conversations',
+      title: t('profile.dna.strength_confident_speaker_title'),
+      description: t('profile.dna.strength_confident_speaker_desc'),
     },
     accuracy_focus: {
-      title: 'Accuracy Master',
-      description: 'Your grammar and pronunciation are consistently strong',
+      title: t('profile.dna.strength_accuracy_master_title'),
+      description: t('profile.dna.strength_accuracy_master_desc'),
     },
     vocabulary_exploration: {
-      title: 'Word Explorer',
-      description: 'You experiment with diverse vocabulary and expressions',
+      title: t('profile.dna.strength_word_explorer_title'),
+      description: t('profile.dna.strength_word_explorer_desc'),
     },
     challenge_acceptance: {
-      title: 'Challenge Seeker',
-      description: 'You embrace difficult topics and learning opportunities',
+      title: t('profile.dna.strength_challenge_seeker_title'),
+      description: t('profile.dna.strength_challenge_seeker_desc'),
     },
     consistency: {
-      title: 'Steady Learner',
-      description: 'You maintain consistent practice and steady progress',
+      title: t('profile.dna.strength_steady_learner_title'),
+      description: t('profile.dna.strength_steady_learner_desc'),
     },
   };
 
   return strengths.slice(0, 3).map(strength =>
     insights[strength] || {
       title: formatText(strength),
-      description: 'Keep leveraging this strength in your practice',
+      description: t('profile.dna.strength_default_desc'),
     }
   );
 };
 
-const getWeeklyFocus = (growthAreas: string[], strands: any): WeeklyFocus | null => {
+const getWeeklyFocus = (growthAreas: string[], strands: any, t: (key: string) => string): WeeklyFocus | null => {
   if (growthAreas.length === 0) return null;
 
   const topArea = growthAreas[0];
 
   const focuses: Record<string, WeeklyFocus> = {
     speaking_confidence: {
-      goal: 'Reduce hesitation time',
-      tip: 'Start speaking within 2 seconds of each question this week',
+      goal: t('profile.dna.focus_reduce_hesitation_goal'),
+      tip: t('profile.dna.focus_reduce_hesitation_tip'),
     },
     grammar_accuracy: {
-      goal: 'Master your top error pattern',
+      goal: t('profile.dna.focus_master_errors_goal'),
       tip: strands?.accuracy?.common_errors?.[0]
-        ? `Focus on fixing: ${formatText(strands.accuracy.common_errors[0])}`
-        : 'Pay attention to corrections and repeat them',
+        ? `${t('profile.dna.focus_master_errors_tip_prefix')}: ${formatText(strands.accuracy.common_errors[0])}`
+        : t('profile.dna.focus_master_errors_tip_default'),
     },
     vocabulary_variety: {
-      goal: 'Learn 5 new words',
-      tip: 'Pick words from your sessions and use them daily',
+      goal: t('profile.dna.focus_learn_words_goal'),
+      tip: t('profile.dna.focus_learn_words_tip'),
     },
     taking_challenges: {
-      goal: 'Accept 2 challenges',
-      tip: 'Say YES when the AI offers harder topics or exercises',
+      goal: t('profile.dna.focus_accept_challenges_goal'),
+      tip: t('profile.dna.focus_accept_challenges_tip'),
     },
   };
 
   return focuses[topArea] || {
-    goal: `Improve ${formatText(topArea)}`,
-    tip: 'Focus on this area during your practice sessions this week',
+    goal: `${t('profile.dna.focus_default_goal_prefix')} ${formatText(topArea)}`,
+    tip: t('profile.dna.focus_default_tip'),
   };
 };
 
@@ -305,16 +307,17 @@ const getWeeklyFocus = (growthAreas: string[], strands: any): WeeklyFocus | null
 interface InsightsPageProps {
   profile: SpeakingDNAProfile | null;
   breakthroughs: SpeakingBreakthrough[];
+  t: (key: string) => string;
 }
 
-const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) => {
+const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs, t }) => {
   // Safety check - should never happen but adds protection
   if (!profile || !profile.overall_profile || !profile.dna_strands) {
     return (
       <View style={styles.page}>
         <LinearGradient colors={['#0B1A1F', '#0D2832']} style={styles.radarBackground} />
         <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>Loading insights...</Text>
+          <Text style={styles.emptyText}>{t('profile.dna.loading_insights')}</Text>
         </View>
       </View>
     );
@@ -324,9 +327,9 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
   const strands = profile.dna_strands;
 
   // Get actionable insights
-  const growthInsights = getGrowthAreaInsights(growth_areas, strands);
-  const strengthInsights = getStrengthInsights(strengths);
-  const weeklyFocus = getWeeklyFocus(growth_areas, strands);
+  const growthInsights = getGrowthAreaInsights(growth_areas, strands, t);
+  const strengthInsights = getStrengthInsights(strengths, t);
+  const weeklyFocus = getWeeklyFocus(growth_areas, strands, t);
 
   return (
     <View style={styles.page}>
@@ -341,7 +344,7 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
           <View style={styles.focusBanner}>
             <View style={styles.focusBannerHeader}>
               <Ionicons name="rocket" size={20} color="#FFFFFF" />
-              <Text style={styles.focusBannerTitle}>This Week's Focus</Text>
+              <Text style={styles.focusBannerTitle}>{t('profile.dna.section_weekly_focus')}</Text>
             </View>
             <Text style={styles.focusBannerGoal}>{weeklyFocus.goal}</Text>
             <Text style={styles.focusBannerTip}>{weeklyFocus.tip}</Text>
@@ -353,7 +356,7 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
           <View style={styles.insightSection}>
             <View style={styles.insightHeader}>
               <Ionicons name="trending-up" size={20} color="#3B82F6" />
-              <Text style={styles.insightSectionTitle}>Areas to Improve</Text>
+              <Text style={styles.insightSectionTitle}>{t('profile.dna.section_areas_to_improve')}</Text>
             </View>
             {growthInsights.slice(0, 2).map((insight, index) => (
               <View key={index} style={styles.growthCard}>
@@ -374,7 +377,7 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
           <View style={styles.insightSection}>
             <View style={styles.insightHeader}>
               <Ionicons name="star" size={20} color="#F59E0B" />
-              <Text style={styles.insightSectionTitle}>Your Strengths</Text>
+              <Text style={styles.insightSectionTitle}>{t('profile.dna.section_strengths')}</Text>
             </View>
             {strengthInsights.slice(0, 2).map((insight, index) => (
               <View key={index} style={styles.strengthCard}>
@@ -395,15 +398,15 @@ const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs }) =
           <View style={styles.insightSection}>
             <View style={styles.insightHeader}>
               <Ionicons name="trophy" size={20} color="#8B5CF6" />
-              <Text style={styles.insightSectionTitle}>Recent Win</Text>
+              <Text style={styles.insightSectionTitle}>{t('profile.dna.section_recent_win')}</Text>
             </View>
             <LinearGradient
               colors={getCategoryColors(breakthroughs[0]?.category || 'confidence')}
               style={styles.breakthroughCard}
             >
               <Text style={styles.breakthroughEmoji}>{breakthroughs[0]?.emoji || '🎉'}</Text>
-              <Text style={styles.breakthroughTitle}>{breakthroughs[0]?.title || 'Breakthrough'}</Text>
-              <Text style={styles.breakthroughDesc}>{breakthroughs[0]?.description || 'You made progress!'}</Text>
+              <Text style={styles.breakthroughTitle}>{breakthroughs[0]?.title || t('profile.dna.breakthrough_default_title')}</Text>
+              <Text style={styles.breakthroughDesc}>{breakthroughs[0]?.description || t('profile.dna.breakthrough_default_desc')}</Text>
             </LinearGradient>
           </View>
         )}
@@ -451,9 +454,10 @@ const getCategoryColors = (category: string): string[] => {
 
 interface VoiceSignaturePageProps {
   profile: SpeakingDNAProfile;
+  t: (key: string) => string;
 }
 
-const VoiceSignaturePage: React.FC<VoiceSignaturePageProps> = ({ profile }) => {
+const VoiceSignaturePage: React.FC<VoiceSignaturePageProps> = ({ profile, t }) => {
   const acousticMetrics = profile.baseline_assessment?.acoustic_metrics;
 
   if (!acousticMetrics) {
@@ -465,9 +469,9 @@ const VoiceSignaturePage: React.FC<VoiceSignaturePageProps> = ({ profile }) => {
         />
         <View style={styles.emptyPageContainer}>
           <Ionicons name="mic-off-outline" size={64} color="#9CA3AF" />
-          <Text style={styles.emptyPageTitle}>Voice Signature Unavailable</Text>
+          <Text style={styles.emptyPageTitle}>{t('profile.dna.voice_unavailable_title')}</Text>
           <Text style={styles.emptyPageSubtitle}>
-            Complete a speaking assessment to capture your unique acoustic fingerprint
+            {t('profile.dna.voice_unavailable_subtitle')}
           </Text>
         </View>
       </View>
@@ -495,6 +499,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
   navigation,
   route
 }) => {
+  const { t } = useTranslation();
   const language = route.params?.language || 'english';
 
   // State
@@ -560,7 +565,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
       const hasPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
 
       if (!hasPremium) {
-        setError('Speaking DNA is a premium feature. Please upgrade your subscription.');
+        setError(t('profile.dna.error_premium_required'));
         setLoading(false);
         return;
       }
@@ -581,10 +586,10 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
       setLoading(false);
     } catch (err: any) {
       console.error('[SpeakingDNAScreenHorizontal] Error loading data:', err);
-      setError(err.message || 'Failed to load DNA profile');
+      setError(err.message || t('profile.dna.error_failed_to_load'));
       setLoading(false);
     }
-  }, [language]);
+  }, [language, t]);
 
   // Initial load
   useEffect(() => {
@@ -608,7 +613,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     // Page 1: Radar Chart
     pagesArray.push(
       <View key="radar" style={styles.pageWrapper}>
-        <RadarPage profile={profile} onStrandTapForModal={handleStrandTapForModal} />
+        <RadarPage profile={profile} onStrandTapForModal={handleStrandTapForModal} t={t} />
       </View>
     );
 
@@ -616,7 +621,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     if (profile?.baseline_assessment?.acoustic_metrics) {
       pagesArray.push(
         <View key="voice" style={styles.pageWrapper}>
-          <VoiceSignaturePage profile={profile} />
+          <VoiceSignaturePage profile={profile} t={t} />
         </View>
       );
     }
@@ -624,12 +629,12 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     // Last Page: Insights
     pagesArray.push(
       <View key="insights" style={styles.pageWrapper}>
-        <InsightsPage profile={profile} breakthroughs={breakthroughs} />
+        <InsightsPage profile={profile} breakthroughs={breakthroughs} t={t} />
       </View>
     );
 
     return pagesArray;
-  }, [profile, breakthroughs]);
+  }, [profile, breakthroughs, t]);
 
   // ============================================================================
   // RENDER LOADING STATE
@@ -646,12 +651,12 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Ionicons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Your Speaking DNA</Text>
+            <Text style={styles.headerTitle}>{t('profile.dna.title')}</Text>
             <View style={styles.headerRight} />
           </View>
           <View style={styles.centerContent}>
             <ActivityIndicator size="large" color="#14B8A6" />
-            <Text style={styles.loadingText}>Analyzing your speaking patterns...</Text>
+            <Text style={styles.loadingText}>{t('profile.dna.loading_analyzing')}</Text>
           </View>
         </LinearGradient>
       </SafeAreaView>
@@ -673,15 +678,15 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Ionicons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Your Speaking DNA</Text>
+            <Text style={styles.headerTitle}>{t('profile.dna.title')}</Text>
             <View style={styles.headerRight} />
           </View>
           <View style={styles.centerContent}>
             <Ionicons name="alert-circle" size={80} color="#EF4444" />
-            <Text style={styles.errorTitle}>Oops!</Text>
+            <Text style={styles.errorTitle}>{t('profile.dna.error_oops')}</Text>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={() => loadData(true)}>
-              <Text style={styles.retryButtonText}>Try Again</Text>
+              <Text style={styles.retryButtonText}>{t('profile.dna.button_try_again')}</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -704,17 +709,17 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Ionicons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Your Speaking DNA</Text>
+            <Text style={styles.headerTitle}>{t('profile.dna.title')}</Text>
             <View style={styles.headerRight} />
           </View>
           <View style={styles.centerContent}>
             <Ionicons name="flask" size={80} color="#14B8A6" />
-            <Text style={styles.emptyTitle}>Build Your DNA Profile</Text>
+            <Text style={styles.emptyTitle}>{t('profile.dna.empty_title')}</Text>
             <Text style={styles.emptyText}>
-              Complete a speaking session to create your unique Speaking DNA profile.
+              {t('profile.dna.empty_subtitle')}
             </Text>
             <TouchableOpacity style={styles.startButton} onPress={() => navigation.goBack()}>
-              <Text style={styles.startButtonText}>Go to Dashboard</Text>
+              <Text style={styles.startButtonText}>{t('profile.dna.button_go_to_dashboard')}</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -737,7 +742,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
             <Ionicons name="close" size={26} color="#FFFFFF" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>Your Speaking DNA</Text>
+            <Text style={styles.headerTitle}>{t('profile.dna.title')}</Text>
             <View style={styles.languageBadge}>
               {(() => {
                 const FlagComponent = getLanguageFlagComponent(language);

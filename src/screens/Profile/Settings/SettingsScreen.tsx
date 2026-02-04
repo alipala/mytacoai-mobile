@@ -18,12 +18,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 import AccountPreferencesScreen from './AccountPreferencesScreen';
 import VoiceSelectionScreen from './VoiceSelectionScreen';
 import NotificationSettingsScreen from './NotificationSettingsScreen';
 import SubscriptionManagementScreen from './SubscriptionManagementScreen';
 import LegalDocumentsScreen from './LegalDocumentsScreen';
 import DocumentViewerScreen from './DocumentViewerScreen';
+import { LanguageSelector } from '../../../components/LanguageSelector';
 
 type SettingsView = 'main' | 'account' | 'voice' | 'notifications' | 'subscription' | 'legal' | 'document';
 type DocumentType = 'terms' | 'privacy' | null;
@@ -34,9 +36,11 @@ interface SettingsScreenProps {
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) => {
+  const { t, i18n } = useTranslation();
   const [currentView, setCurrentView] = useState<SettingsView>('main');
   const [currentDocument, setCurrentDocument] = useState<DocumentType>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   const handleNavigate = (view: SettingsView) => {
     if (Platform.OS === 'ios') {
@@ -134,7 +138,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Ionicons name="settings" size={24} color="#14B8A6" />
-          <Text style={styles.title}>App Settings</Text>
+          <Text style={styles.title}>{t('profile.settings.title')}</Text>
         </View>
         <TouchableOpacity
           onPress={() => {
@@ -161,9 +165,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="person-outline" size={24} color="#3B82F6" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>Account Preferences</Text>
+            <Text style={styles.menuLabel}>{t('profile.settings.label_account') || 'Account Preferences'}</Text>
             <Text style={styles.menuDescription}>
-              Manage your profile and account settings
+              {t('profile.settings.desc_account') || 'Manage your profile and account settings'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
@@ -179,9 +183,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="mic-outline" size={24} color="#10B981" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>AI Tutor Voice</Text>
+            <Text style={styles.menuLabel}>{t('profile.settings.label_voice') || 'AI Tutor Voice'}</Text>
             <Text style={styles.menuDescription}>
-              Choose your preferred tutor voice
+              {t('profile.settings.desc_voice') || 'Choose your preferred tutor voice'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
@@ -197,9 +201,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="notifications-outline" size={24} color="#EC4899" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>Notification Settings</Text>
+            <Text style={styles.menuLabel}>{t('profile.settings.label_notifications_enabled')}</Text>
             <Text style={styles.menuDescription}>
-              Customize reminders and notification preferences
+              {t('profile.settings.desc_notifications') || 'Customize reminders and notification preferences'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
@@ -215,9 +219,32 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="card-outline" size={24} color="#F59E0B" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>Subscription</Text>
+            <Text style={styles.menuLabel}>{t('profile.settings.label_subscription') || 'Subscription'}</Text>
             <Text style={styles.menuDescription}>
-              Manage your subscription and billing
+              {t('profile.settings.desc_subscription') || 'Manage your subscription and billing'}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
+        </TouchableOpacity>
+
+        {/* App Language */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => {
+            if (Platform.OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+            setShowLanguageSelector(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.menuIcon, { backgroundColor: '#14B8A620' }]}>
+            <Ionicons name="language-outline" size={24} color="#14B8A6" />
+          </View>
+          <View style={styles.menuInfo}>
+            <Text style={styles.menuLabel}>{t('profile.settings.label_app_language')}</Text>
+            <Text style={styles.menuDescription}>
+              {i18n.language.toUpperCase()} • {t('profile.settings.desc_app_language') || 'Change app display language'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
@@ -233,9 +260,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="document-text-outline" size={24} color="#6366F1" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>Legal & Privacy</Text>
+            <Text style={styles.menuLabel}>{t('profile.settings.label_legal') || 'Legal & Privacy'}</Text>
             <Text style={styles.menuDescription}>
-              Terms of Use and Privacy Policy
+              {t('profile.settings.desc_legal') || 'Terms of Use and Privacy Policy'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
@@ -247,7 +274,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="information-circle-outline" size={24} color="#8B5CF6" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.menuLabel}>Version</Text>
+            <Text style={styles.menuLabel}>{t('profile.settings.label_version') || 'Version'}</Text>
             <Text style={styles.menuDescription}>
               {Constants.expoConfig?.version || '1.0.0'} ({Constants.expoConfig?.ios?.buildNumber || '1'})
             </Text>
@@ -258,7 +285,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
         <View style={styles.helpNote}>
           <Ionicons name="bulb" size={20} color="#FBB040" />
           <Text style={styles.helpNoteText}>
-            <Text style={styles.helpNoteBold}>Conversation Help</Text> settings can be accessed directly during your practice sessions by tapping the lightbulb icon.
+            <Text style={styles.helpNoteBold}>{t('profile.settings.help_note_title') || 'Conversation Help'}</Text> {t('profile.settings.help_note_text') || 'settings can be accessed directly during your practice sessions by tapping the lightbulb icon.'}
           </Text>
         </View>
 
@@ -272,9 +299,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
             <Ionicons name="log-out-outline" size={24} color="#EF4444" />
           </View>
           <View style={styles.menuInfo}>
-            <Text style={styles.logoutLabel}>Logout</Text>
+            <Text style={styles.logoutLabel}>{t('profile.overview.button_logout')}</Text>
             <Text style={styles.menuDescription}>
-              Sign out and clear your session
+              {t('profile.settings.desc_logout') || 'Sign out and clear your session'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B8A84" />
@@ -295,9 +322,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
                 <Ionicons name="log-out" size={32} color="#EF4444" />
               </View>
             </View>
-            <Text style={styles.logoutModalTitle}>Sign Out?</Text>
+            <Text style={styles.logoutModalTitle}>{t('modals.logout.title')}</Text>
             <Text style={styles.logoutModalMessage}>
-              Are you sure you want to sign out? You'll need to log in again to access your learning progress.
+              {t('modals.logout.message')}
             </Text>
             <View style={styles.logoutModalButtons}>
               <TouchableOpacity
@@ -305,19 +332,25 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
                 onPress={handleCancelLogout}
                 activeOpacity={0.8}
               >
-                <Text style={styles.logoutCancelButtonText}>Cancel</Text>
+                <Text style={styles.logoutCancelButtonText}>{t('modals.logout.button_cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.logoutConfirmButton}
                 onPress={handleConfirmLogout}
                 activeOpacity={0.8}
               >
-                <Text style={styles.logoutConfirmButtonText}>Sign Out</Text>
+                <Text style={styles.logoutConfirmButtonText}>{t('modals.logout.button_logout')}</Text>
               </TouchableOpacity>
             </View>
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Language Selector Modal */}
+      <LanguageSelector
+        visible={showLanguageSelector}
+        onClose={() => setShowLanguageSelector(false)}
+      />
     </View>
   );
 };

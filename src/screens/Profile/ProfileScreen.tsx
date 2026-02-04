@@ -25,6 +25,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../api/config';
 import FlashcardViewerMobile from '../../components/FlashcardViewerMobile';
 import SettingsScreen from './Settings/SettingsScreen';
@@ -159,6 +160,7 @@ interface ProfileScreenProps {
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -520,13 +522,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         // Check if endpoint doesn't exist (404) - inform user
         if (backendError.message?.includes('404') || backendError.message?.includes('not found')) {
           Alert.alert(
-            'Feature Not Available',
-            'Notification deletion is not yet supported by the server. The notification will be hidden locally but may reappear after refresh.',
-            [{ text: 'OK' }]
+            t('errors.not_found'),
+            t('notifications.error_delete_not_supported'),
+            [{ text: t('buttons.ok') }]
           );
         } else {
           // Other errors - inform and continue
-          Alert.alert('Warning', 'Failed to delete from server, but will remove locally.');
+          Alert.alert(t('errors.unknown'), t('notifications.error_delete_warning'));
         }
       }
 
@@ -550,7 +552,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       console.log('✅ Notification deleted successfully');
     } catch (error) {
       console.error('❌ Error deleting notification:', error);
-      Alert.alert('Error', 'Failed to delete notification. Please try again.');
+      Alert.alert(t('modals.error.title'), t('notifications.error_delete'));
     }
   };
 
@@ -590,12 +592,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           }}
           onPress={() => {
             Alert.alert(
-              'Delete Notification',
-              'Are you sure you want to delete this notification?',
+              t('notifications.confirm_delete_title'),
+              t('notifications.confirm_delete_message'),
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('buttons.cancel'), style: 'cancel' },
                 {
-                  text: 'Delete',
+                  text: t('buttons.delete'),
                   style: 'destructive',
                   onPress: () => deleteNotification(notification.notification_id),
                 },
@@ -605,7 +607,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         >
           <Ionicons name="trash" size={24} color="#FFFFFF" />
           <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
-            Delete
+            {t('notifications.delete')}
           </Text>
         </TouchableOpacity>
       </Animated.View>
@@ -645,7 +647,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         >
           <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
           <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
-            Mark Read
+            {t('notifications.mark_as_read')}
           </Text>
         </TouchableOpacity>
       </Animated.View>
@@ -668,7 +670,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       await fetchFlashcardData();
     } catch (error) {
       console.error('Error reviewing flashcard:', error);
-      Alert.alert('Error', 'Failed to record flashcard review');
+      Alert.alert(t('modals.error.title'), t('flashcards.error_review'));
     }
   };
 
@@ -724,7 +726,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.learningInfoBadge}>
           <Ionicons name="school" size={16} color="#14B8A6" />
           <Text style={styles.learningInfoText}>
-            Learning {user.preferred_language} • {user.preferred_level || 'Beginner'}
+            {t('profile.overview.learning_info', {
+              language: user.preferred_language,
+              level: user.preferred_level || t('practice.levels.beginner')
+            })}
           </Text>
         </View>
       )}
@@ -733,22 +738,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.statCard}>
           <Ionicons name="chatbubbles" size={24} color="#14B8A6" />
           <Text style={styles.statValue}>{conversationHistory.length}</Text>
-          <Text style={styles.statLabel}>Conversations</Text>
+          <Text style={styles.statLabel}>{t('profile.overview.stat_conversations')}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="trending-up" size={24} color="#3B82F6" />
           <Text style={styles.statValue}>{learningPlans.length}</Text>
-          <Text style={styles.statLabel}>Plans</Text>
+          <Text style={styles.statLabel}>{t('profile.overview.stat_plans')}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="school" size={24} color="#F59E0B" />
           <Text style={styles.statValue}>{flashcardSets.length}</Text>
-          <Text style={styles.statLabel}>Sets</Text>
+          <Text style={styles.statLabel}>{t('profile.overview.stat_sets')}</Text>
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
+        <Text style={styles.sectionTitle}>{t('profile.overview.recent_activity')}</Text>
         {conversationHistory.length > 0 ? (
           <View style={styles.activityList}>
             {conversationHistory.slice(0, 3).map((session) => (
@@ -766,11 +771,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                       {session.topic
                         ? session.topic.charAt(0).toUpperCase() + session.topic.slice(1)
                         : session.conversation_type === 'news'
-                          ? 'Daily News'
-                          : 'Practice Session'}
+                          ? t('news.title')
+                          : t('profile.overview.practice_session')}
                     </Text>
                     <Text style={styles.activitySubtitle}>
-                      {session.language?.charAt(0).toUpperCase() + session.language?.slice(1) || 'English'} • {session.level}
+                      {session.language?.charAt(0).toUpperCase() + session.language?.slice(1) || t('practice.languages.english')} • {session.level}
                     </Text>
                   </View>
                   <Text style={styles.activityDate}>{formatDate(session.created_at)}</Text>
@@ -786,7 +791,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         ) : (
           <View style={styles.emptyState}>
             <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyStateText}>No conversations yet</Text>
+            <Text style={styles.emptyStateText}>{t('empty_states.no_sessions')}</Text>
           </View>
         )}
       </View>
@@ -799,7 +804,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       return (
         <View style={styles.emptyState}>
           <Ionicons name="book-outline" size={64} color="#6B8A84" />
-          <Text style={styles.emptyStateText}>No Learning Plans Yet</Text>
+          <Text style={styles.emptyStateText}>{t('profile.progress.no_plans')}</Text>
         </View>
       );
     }
@@ -845,10 +850,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   <Text style={styles.progressPlanTitle} numberOfLines={2}>
                     {plan.goals && plan.goals.length > 0
                       ? plan.goals.slice(0, 2).join(', ').toUpperCase() + (plan.goals.length > 2 ? '...' : '')
-                      : 'LEARNING'}
+                      : t('profile.progress.default_plan_title')}
                   </Text>
                   <Text style={styles.progressPlanSubtitle}>
-                    {plan.proficiency_level} • {plan.duration_months} months • Created {formatDate(plan.created_at)}
+                    {plan.proficiency_level} • {t('profile.progress.duration_months', { count: plan.duration_months })} • {t('profile.progress.created')} {formatDate(plan.created_at)}
                   </Text>
                   <View style={styles.progressBarContainer}>
                     <View style={styles.progressBarTrack}>
@@ -872,13 +877,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   {/* Skills Grid - TRUE HORIZONTAL 2 COLUMNS */}
                   {plan.assessment_data && (
                     <View style={styles.skillsSection}>
-                      <Text style={styles.skillsSectionTitle}>Skills Assessment</Text>
+                      <Text style={styles.skillsSectionTitle}>{t('profile.progress.skills_assessment')}</Text>
                       <View style={styles.skillsGridHorizontal}>
                         <View style={styles.skillColumn}>
                           {[
-                            { key: 'pronunciation', label: 'Pronunciation', icon: 'mic', score: plan.assessment_data.pronunciation.score },
-                            { key: 'grammar', label: 'Grammar', icon: 'book', score: plan.assessment_data.grammar.score },
-                            { key: 'vocabulary', label: 'Vocabulary', icon: 'text', score: plan.assessment_data.vocabulary.score },
+                            { key: 'pronunciation', label: t('profile.progress.skill_pronunciation'), icon: 'mic', score: plan.assessment_data.pronunciation.score },
+                            { key: 'grammar', label: t('profile.progress.skill_grammar'), icon: 'book', score: plan.assessment_data.grammar.score },
+                            { key: 'vocabulary', label: t('profile.progress.skill_vocabulary'), icon: 'text', score: plan.assessment_data.vocabulary.score },
                           ].map((skill) => (
                             <View key={skill.key} style={styles.skillCardHorizontal}>
                               <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
@@ -895,8 +900,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                         </View>
                         <View style={styles.skillColumn}>
                           {[
-                            { key: 'fluency', label: 'Fluency', icon: 'chatbubbles', score: plan.assessment_data.fluency.score },
-                            { key: 'coherence', label: 'Coherence', icon: 'git-merge', score: plan.assessment_data.coherence.score },
+                            { key: 'fluency', label: t('profile.progress.skill_fluency'), icon: 'chatbubbles', score: plan.assessment_data.fluency.score },
+                            { key: 'coherence', label: t('profile.progress.skill_coherence'), icon: 'git-merge', score: plan.assessment_data.coherence.score },
                           ].map((skill) => (
                             <View key={skill.key} style={styles.skillCardHorizontal}>
                               <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
@@ -919,7 +924,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   {plan.plan_content.weekly_schedule && plan.plan_content.weekly_schedule[currentWeek - 1] && (
                     <View style={styles.currentWeekSection}>
                       <View style={styles.currentWeekHeader}>
-                        <Text style={styles.currentWeekLabel}>Current Focus • Week {currentWeek}</Text>
+                        <Text style={styles.currentWeekLabel}>{t('profile.progress.current_focus')} • {t('profile.progress.week', { week: currentWeek })}</Text>
                       </View>
                       <Text style={styles.currentWeekFocus}>
                         {plan.plan_content.weekly_schedule[currentWeek - 1].focus}
@@ -938,7 +943,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   {/* Weekly Schedule Preview */}
                   {plan.plan_content.weekly_schedule && (
                     <View style={styles.weeklyScheduleSection}>
-                      <Text style={styles.weeklyScheduleTitle}>Schedule</Text>
+                      <Text style={styles.weeklyScheduleTitle}>{t('profile.progress.schedule')}</Text>
                       <View style={styles.weeksList}>
                         {plan.plan_content.weekly_schedule.slice(0, 4).map((week) => {
                           const isCurrentWeek = week.week === currentWeek;
@@ -959,11 +964,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                                   isCurrentWeek && styles.weekItemNumberCurrent,
                                   isCompleted && styles.weekItemNumberCompleted,
                                 ]}>
-                                  Week {week.week}
+                                  {t('profile.progress.week', { week: week.week })}
                                 </Text>
                                 {isCurrentWeek && (
                                   <View style={styles.currentBadge}>
-                                    <Text style={styles.currentBadgeText}>NOW</Text>
+                                    <Text style={styles.currentBadgeText}>{t('profile.progress.now')}</Text>
                                   </View>
                                 )}
                                 {isCompleted && (
@@ -1005,7 +1010,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={[styles.flashcardCategoryBadge, { borderColor: iconColor }]}>
           <Ionicons name={iconName} size={11} color={iconColor} />
           <Text style={[styles.flashcardCategoryText, { color: iconColor }]}>
-            {isLearningPlan ? 'LEARNING PLAN' : 'PRACTICE'}
+            {isLearningPlan ? t('profile.flashcards.category_learning_plan') : t('profile.flashcards.category_practice')}
           </Text>
         </View>
 
@@ -1023,7 +1028,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           <View style={styles.flashcardCardInfo}>
             <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
             <Text style={styles.flashcardCardMeta}>
-              {item.total_cards} cards
+              {t('profile.flashcards.cards_count', { count: item.total_cards })}
             </Text>
           </View>
         </View>
@@ -1038,7 +1043,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           onPress={() => openFlashcardViewer(item)}
         >
           <Ionicons name="play-circle" size={20} color="#FFFFFF" />
-          <Text style={styles.flashcardStudyButtonText}>Study</Text>
+          <Text style={styles.flashcardStudyButtonText}>{t('flashcards.button_study')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -1087,7 +1092,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 ]}
                 numberOfLines={1}
               >
-                All
+                {t('profile.flashcards.filter_all')}
               </Text>
               {flashcardFilter === 'all' && (
                 <View
@@ -1119,7 +1124,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 ]}
                 numberOfLines={1}
               >
-                Practice
+                {t('profile.flashcards.filter_practice')}
               </Text>
               {flashcardFilter === 'practice' && (
                 <View
@@ -1153,7 +1158,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
               >
-                Learning Plan
+                {t('profile.flashcards.filter_learning_plan')}
               </Text>
               {flashcardFilter === 'learning_plan' && (
                 <View
@@ -1181,7 +1186,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           <View style={styles.emptyState}>
             <Ionicons name="albums-outline" size={64} color="#6B8A84" />
             <Text style={styles.emptyStateText}>
-              {flashcardFilter === 'all' ? 'No Flashcards Yet' : `No ${flashcardFilter === 'practice' ? 'Practice' : 'Learning Plan'} Flashcards`}
+              {flashcardFilter === 'all'
+                ? t('empty_states.no_flashcards')
+                : t('profile.flashcards.no_filtered_flashcards', {
+                    filter: flashcardFilter === 'practice'
+                      ? t('profile.flashcards.filter_practice')
+                      : t('profile.flashcards.filter_learning_plan')
+                  })
+              }
             </Text>
           </View>
         )}
@@ -1194,7 +1206,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     <View>
       {unreadCount > 0 && (
         <View style={styles.unreadBadge}>
-          <Text style={styles.unreadBadgeText}>{unreadCount} unread</Text>
+          <Text style={styles.unreadBadgeText}>{t('notifications.unread_count', { count: unreadCount })}</Text>
         </View>
       )}
 
@@ -1257,8 +1269,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   </Text>
                   <Text style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8, fontStyle: 'italic' }}>
                     {notification.is_read
-                      ? 'Swipe right to delete'
-                      : 'Swipe left: mark read • Swipe right: delete'}
+                      ? t('notifications.swipe_delete_only')
+                      : t('notifications.swipe_instructions')}
                   </Text>
                 </TouchableOpacity>
               </Swipeable>
@@ -1268,7 +1280,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       ) : (
         <View style={styles.emptyState}>
           <Ionicons name="notifications-outline" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyStateText}>No Notifications</Text>
+          <Text style={styles.emptyStateText}>{t('notifications.empty')}</Text>
         </View>
       )}
     </View>
@@ -1318,9 +1330,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       return (
         <View style={styles.emptyState}>
           <Ionicons name="analytics-outline" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyStateText}>No Learning Plans Yet</Text>
+          <Text style={styles.emptyStateText}>{t('profile.progress.no_plans')}</Text>
           <Text style={styles.emptyStateSubtext}>
-            Create a learning plan to start tracking your DNA
+            {t('profile.dna.create_plan_prompt')}
           </Text>
         </View>
       );
@@ -1435,7 +1447,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
               <ActivityIndicator size="large" color="#14B8A6" />
               <Text style={{ fontSize: 14, color: '#8CA5A0', marginTop: 16, textAlign: 'center' }}>
-                Loading DNA profile for {selectedDNALanguage}...
+                {t('profile.dna.loading', { language: selectedDNALanguage })}
               </Text>
             </View>
           ) : dnaProfile ? (
@@ -1450,7 +1462,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View>
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#6B8A84', letterSpacing: 0.5, marginBottom: 4 }}>
-                      SPEAKING DNA ANALYSIS
+                      {t('profile.dna.analysis_title')}
                     </Text>
                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#14B8A6', textTransform: 'capitalize' }}>
                       {selectedDNALanguage}
@@ -1465,7 +1477,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                     borderColor: 'rgba(20, 184, 166, 0.3)',
                   }}>
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#14B8A6' }}>
-                      6 STRANDS
+                      {t('profile.dna.strands_count')}
                     </Text>
                   </View>
                 </View>
@@ -1474,12 +1486,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               {/* DNA Strands - Inline Visualization */}
               <View style={{ gap: 10 }}>
                 {[
-                  { name: 'Confidence', key: 'confidence', icon: 'shield-checkmark', color: '#6366F1', accessor: (p: any) => (p.dna_strands?.confidence?.score || 0) * 100 },
-                  { name: 'Vocabulary', key: 'vocabulary', icon: 'book', color: '#8B5CF6', accessor: (p: any) => (p.dna_strands?.vocabulary?.new_word_attempt_rate || 0) * 100 },
-                  { name: 'Accuracy', key: 'accuracy', icon: 'checkmark-circle', color: '#EC4899', accessor: (p: any) => (p.dna_strands?.accuracy?.grammar_accuracy || 0) * 100 },
-                  { name: 'Rhythm', key: 'rhythm', icon: 'pulse', color: '#F59E0B', accessor: (p: any) => (p.dna_strands?.rhythm?.consistency_score || 0) * 100 },
-                  { name: 'Learning', key: 'learning', icon: 'school', color: '#10B981', accessor: (p: any) => (p.dna_strands?.learning?.challenge_acceptance || 0) * 100 },
-                  { name: 'Emotional', key: 'emotional', icon: 'heart', color: '#14B8A6', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
+                  { name: t('profile.dna.strand_confidence'), key: 'confidence', icon: 'shield-checkmark', color: '#6366F1', accessor: (p: any) => (p.dna_strands?.confidence?.score || 0) * 100 },
+                  { name: t('profile.dna.strand_vocabulary'), key: 'vocabulary', icon: 'book', color: '#8B5CF6', accessor: (p: any) => (p.dna_strands?.vocabulary?.new_word_attempt_rate || 0) * 100 },
+                  { name: t('profile.dna.strand_accuracy'), key: 'accuracy', icon: 'checkmark-circle', color: '#EC4899', accessor: (p: any) => (p.dna_strands?.accuracy?.grammar_accuracy || 0) * 100 },
+                  { name: t('profile.dna.strand_rhythm'), key: 'rhythm', icon: 'pulse', color: '#F59E0B', accessor: (p: any) => (p.dna_strands?.rhythm?.consistency_score || 0) * 100 },
+                  { name: t('profile.dna.strand_learning'), key: 'learning', icon: 'school', color: '#10B981', accessor: (p: any) => (p.dna_strands?.learning?.challenge_acceptance || 0) * 100 },
+                  { name: t('profile.dna.strand_emotional'), key: 'emotional', icon: 'heart', color: '#14B8A6', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
                 ].map((strand) => {
                   const value = strand.accessor(dnaProfile);
                   const normalizedValue = Math.min(Math.max(value, 0), 100);
@@ -1519,10 +1531,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                               letterSpacing: 0.3,
                               marginTop: 2,
                             }}>
-                              {normalizedValue >= 80 ? 'EXCELLENT' :
-                               normalizedValue >= 60 ? 'GOOD' :
-                               normalizedValue >= 40 ? 'DEVELOPING' :
-                               'NEEDS PRACTICE'}
+                              {normalizedValue >= 80 ? t('profile.dna.level_excellent') :
+                               normalizedValue >= 60 ? t('profile.dna.level_good') :
+                               normalizedValue >= 40 ? t('profile.dna.level_developing') :
+                               t('profile.dna.level_needs_practice')}
                             </Text>
                           </View>
                         </View>
@@ -1578,7 +1590,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               >
                 <Ionicons name="expand" size={22} color="#14B8A6" />
                 <Text style={{ fontSize: 15, fontWeight: '700', color: '#14B8A6' }}>
-                  View Full Analysis & Insights
+                  {t('profile.dna.view_full_analysis')}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -1599,14 +1611,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <Ionicons name="analytics-outline" size={50} color="#6B8A84" />
               </View>
               <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 8, textAlign: 'center' }}>
-                No DNA Data Yet
+                {t('profile.dna.no_data')}
               </Text>
               <Text style={{ fontSize: 14, color: '#8CA5A0', textAlign: 'center', lineHeight: 20 }}>
-                Complete speaking assessments for{'\n'}
-                <Text style={{ fontWeight: '700', color: '#14B8A6', textTransform: 'capitalize' }}>
-                  {selectedDNALanguage}
-                </Text>
-                {' '}to build your DNA profile
+                {t('profile.dna.complete_assessment_prompt', { language: selectedDNALanguage })}
               </Text>
             </View>
           )}
@@ -1616,7 +1624,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   };
 
   return (
-    <TransitionWrapper isLoading={loading} loadingMessage="Loading your profile...">
+    <TransitionWrapper isLoading={loading} loadingMessage={t('profile.loading_message')}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
         {/* Header with Welcome Section */}
@@ -1626,8 +1634,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Text style={styles.headerAvatarText}>{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
             </View>
             <View style={styles.headerTextContainer}>
-              <Text style={styles.headerWelcome}>Welcome back</Text>
-              <Text style={styles.headerName}>{user?.name || 'User'}</Text>
+              <Text style={styles.headerWelcome}>{t('profile.header.welcome_back')}</Text>
+              <Text style={styles.headerName}>{user?.name || t('profile.header.default_user')}</Text>
             </View>
           </View>
           <TouchableOpacity
@@ -1656,7 +1664,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 size={24}
                 color={activeTab === 'overview' ? '#14B8A6' : '#6B8A84'}
               />
-              <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>Overview</Text>
+              <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>{t('profile.tabs.overview')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1669,7 +1677,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 size={24}
                 color={activeTab === 'progress' ? '#14B8A6' : '#6B8A84'}
               />
-              <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>Progress</Text>
+              <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>{t('profile.tabs.progress')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1682,7 +1690,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 size={24}
                 color={activeTab === 'flashcards' ? '#14B8A6' : '#6B8A84'}
               />
-              <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>Cards</Text>
+              <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>{t('profile.tabs.cards')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1695,7 +1703,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 size={24}
                 color={activeTab === 'dna' ? '#14B8A6' : '#6B8A84'}
               />
-              <Text style={[styles.tabText, activeTab === 'dna' && styles.tabTextActive]}>DNA</Text>
+              <Text style={[styles.tabText, activeTab === 'dna' && styles.tabTextActive]}>{t('profile.tabs.dna')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1764,7 +1772,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         >
           <View style={styles.flashcardModalContainer}>
             <View style={styles.flashcardModalHeader}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={closeFlashcardViewer}
                 hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                 style={styles.closeButton}
@@ -1773,7 +1781,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               </TouchableOpacity>
               <View style={styles.flashcardModalTitleContainer}>
                 <Text style={styles.flashcardModalTitle} numberOfLines={1}>
-                  {selectedFlashcardSet?.title || 'Flashcards'}
+                  {selectedFlashcardSet?.title || t('flashcards.title')}
                 </Text>
                 <Text style={styles.flashcardModalSubtitle}>
                   {selectedFlashcardSet?.language} • {selectedFlashcardSet?.level}
@@ -1781,7 +1789,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               </View>
               <View style={styles.headerSpacer} />
             </View>
-            
+
             {selectedFlashcardSet && (
               <FlashcardViewerMobile
                 flashcards={selectedFlashcardSet.flashcards}

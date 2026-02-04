@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 interface AssessmentTopicSelectionScreenProps {
   navigation: any;
@@ -25,79 +26,37 @@ interface Topic {
   prompt: string;
 }
 
-const ASSESSMENT_TOPICS: Topic[] = [
-  {
-    id: 'introduce_yourself',
-    name: 'Introduce Yourself',
-    description: 'Talk about who you are, your background, and interests',
-    icon: 'person',
-    color: '#3B82F6',
-    prompt: 'Please introduce yourself. Talk about your name, where you are from, what you do, and your interests.',
-  },
-  {
-    id: 'daily_routine',
-    name: 'Daily Routine',
-    description: 'Describe your typical day and daily activities',
-    icon: 'time',
-    color: '#06B6D4',
-    prompt: 'Describe your daily routine. What do you typically do from morning to evening?',
-  },
-  {
-    id: 'favorite_place',
-    name: 'Favorite Place',
-    description: 'Describe a place that is special to you',
-    icon: 'location',
-    color: '#10B981',
-    prompt: 'Tell me about your favorite place. Where is it and why is it special to you?',
-  },
-  {
-    id: 'travel_experience',
-    name: 'Travel Experience',
-    description: 'Share a memorable travel story or experience',
-    icon: 'airplane',
-    color: '#8B5CF6',
-    prompt: 'Share a memorable travel experience. Where did you go and what made it special?',
-  },
-  {
-    id: 'hobbies',
-    name: 'Hobbies & Interests',
-    description: 'Talk about activities you enjoy in your free time',
-    icon: 'football',
-    color: '#F59E0B',
-    prompt: 'What are your hobbies and interests? Tell me about what you like to do in your free time.',
-  },
-  {
-    id: 'career_goals',
-    name: 'Career & Goals',
-    description: 'Discuss your professional aspirations',
-    icon: 'briefcase',
-    color: '#EF4444',
-    prompt: 'Talk about your career goals and professional aspirations. What do you hope to achieve?',
-  },
-  {
-    id: 'favorite_book_movie',
-    name: 'Favorite Book or Movie',
-    description: 'Discuss a book or movie that impacted you',
-    icon: 'film',
-    color: '#EC4899',
-    prompt: 'Tell me about your favorite book or movie. What is it about and why do you like it?',
-  },
-  {
-    id: 'technology',
-    name: 'Technology Impact',
-    description: 'Share your thoughts on technology in daily life',
-    icon: 'phone-portrait',
-    color: '#6366F1',
-    prompt: 'How has technology impacted your daily life? Share your thoughts on this topic.',
-  },
+const ASSESSMENT_TOPICS_CONFIG = [
+  { id: 'introduce_yourself', icon: 'person', color: '#3B82F6' },
+  { id: 'daily_routine', icon: 'time', color: '#06B6D4' },
+  { id: 'favorite_place', icon: 'location', color: '#10B981' },
+  { id: 'travel_experience', icon: 'airplane', color: '#8B5CF6' },
+  { id: 'hobbies', icon: 'football', color: '#F59E0B' },
+  { id: 'career_goals', icon: 'briefcase', color: '#EF4444' },
+  { id: 'favorite_book_movie', icon: 'film', color: '#EC4899' },
+  { id: 'technology', icon: 'phone-portrait', color: '#6366F1' },
 ];
 
 const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const { language } = route.params;
+
+  const getTopics = (): Topic[] => {
+    return ASSESSMENT_TOPICS_CONFIG.map(config => ({
+      id: config.id,
+      name: t(`assessment.topics.${config.id}`),
+      description: t(`assessment.topics.${config.id}_desc`),
+      icon: config.icon,
+      color: config.color,
+      prompt: t(`assessment.topics.${config.id}_prompt`),
+    }));
+  };
+
+  const ASSESSMENT_TOPICS = getTopics();
 
   const handleTopicSelect = (topicId: string) => {
     if (Platform.OS === 'ios') {
@@ -142,7 +101,7 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
         >
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Topic</Text>
+        <Text style={styles.headerTitle}>{t('assessment.topic_selection.header_title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -153,9 +112,9 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
       >
         {/* Title Section */}
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Choose a Speaking Topic</Text>
+          <Text style={styles.title}>{t('assessment.topic_selection.title')}</Text>
           <Text style={styles.subtitle}>
-            Pick a topic for your 1-minute speaking assessment
+            {t('assessment.topic_selection.subtitle')}
           </Text>
         </View>
 
@@ -208,7 +167,7 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
           disabled={!selectedTopic}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>{t('buttons.continue')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>

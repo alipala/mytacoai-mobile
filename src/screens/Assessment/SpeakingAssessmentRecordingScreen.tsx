@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
+import { useTranslation } from 'react-i18next';
 import { DefaultService } from '../../api/generated';
 import type { SpeakingAssessmentResponse } from '../../api/generated';
 import { styles } from './styles/SpeakingAssessmentRecordingScreen.styles';
@@ -31,6 +32,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const { language, topic, topicName, prompt } = route.params;
 
   const [isRecording, setIsRecording] = useState(false);
@@ -195,11 +197,11 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
 
         if (status !== 'granted') {
           Alert.alert(
-            'Permission Required',
-            'Microphone access is required for speaking assessment. Please enable it in Settings.',
+            t('assessment.recording.error_permission_title'),
+            t('assessment.recording.error_permission_message'),
             [
               {
-                text: 'Go Back',
+                text: t('assessment.recording.button_go_back'),
                 onPress: () => navigation.goBack(),
               },
             ]
@@ -214,9 +216,9 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       } catch (error) {
         console.error('Error setting up audio:', error);
         Alert.alert(
-          'Setup Error',
-          'Failed to set up audio recording. Please try again.',
-          [{ text: 'Go Back', onPress: () => navigation.goBack() }]
+          t('assessment.recording.error_setup_title'),
+          t('assessment.recording.error_setup_message'),
+          [{ text: t('assessment.recording.button_go_back'), onPress: () => navigation.goBack() }]
         );
       }
     };
@@ -295,7 +297,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       console.log('Recording started');
     } catch (error) {
       console.error('Failed to start recording:', error);
-      Alert.alert('Error', 'Failed to start recording. Please try again.');
+      Alert.alert(t('modals.error.title'), t('assessment.recording.error_start'));
     }
   };
 
@@ -319,7 +321,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       }
     } catch (error) {
       console.error('Failed to stop recording:', error);
-      Alert.alert('Error', 'Failed to process recording. Please try again.');
+      Alert.alert(t('modals.error.title'), t('assessment.recording.error_stop'));
       setIsAnalyzing(false);
     }
   };
@@ -363,18 +365,18 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       setIsAnalyzing(false);
 
       Alert.alert(
-        'Error',
-        error.message || 'Failed to analyze your speaking. Please try again.',
+        t('modals.error.title'),
+        error.message || t('assessment.recording.error_analyze'),
         [
           {
-            text: 'Try Again',
+            text: t('assessment.recording.button_try_again'),
             onPress: () => {
               setTimeRemaining(RECORDING_DURATION);
               setRecordingObject(null);
             },
           },
           {
-            text: 'Cancel',
+            text: t('buttons.cancel'),
             onPress: () => navigation.goBack(),
             style: 'cancel',
           },
@@ -437,9 +439,9 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           <View style={styles.analyzingIconContainer}>
             <ActivityIndicator size="large" color="#14B8A6" />
           </View>
-          <Text style={styles.analyzingTitle}>Analyzing Your Speech</Text>
+          <Text style={styles.analyzingTitle}>{t('assessment.recording.analyzing_title')}</Text>
           <Text style={styles.analyzingSubtitle}>
-            Please wait while we evaluate your speaking skills...
+            {t('assessment.recording.analyzing_subtitle')}
           </Text>
         </View>
       </SafeAreaView>
@@ -457,7 +459,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
         >
           <Ionicons name="close" size={28} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Speaking Assessment</Text>
+        <Text style={styles.headerTitle}>{t('assessment.recording.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -474,7 +476,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                 {formatTime(timeRemaining)}
               </Text>
               <Text style={styles.timerSubtext}>
-                {isRecording ? 'remaining' : 'duration'}
+                {isRecording ? t('assessment.recording.remaining') : t('assessment.recording.duration')}
               </Text>
             </View>
           </View>
@@ -483,7 +485,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
           <View style={styles.topicCard}>
             <View style={styles.topicHeader}>
               <Ionicons name="chatbubble-ellipses" size={24} color="#14B8A6" />
-              <Text style={styles.topicLabel}>Your Topic</Text>
+              <Text style={styles.topicLabel}>{t('assessment.recording.your_topic')}</Text>
             </View>
             <Text style={styles.topicName}>{topicName}</Text>
             <View style={styles.promptBox}>
@@ -501,8 +503,8 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                 <Ionicons name="time-outline" size={22} color="#EF4444" />
               </View>
               <View style={styles.tipContent}>
-                <Text style={styles.tipTitle}>1 minute</Text>
-                <Text style={styles.tipText}>to speak</Text>
+                <Text style={styles.tipTitle}>{t('assessment.recording.tip_time_title')}</Text>
+                <Text style={styles.tipText}>{t('assessment.recording.tip_time_text')}</Text>
               </View>
             </View>
 
@@ -511,8 +513,8 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                 <Ionicons name="mic-outline" size={22} color="#3B82F6" />
               </View>
               <View style={styles.tipContent}>
-                <Text style={styles.tipTitle}>Speak clearly</Text>
-                <Text style={styles.tipText}>natural pace</Text>
+                <Text style={styles.tipTitle}>{t('assessment.recording.tip_mic_title')}</Text>
+                <Text style={styles.tipText}>{t('assessment.recording.tip_mic_text')}</Text>
               </View>
             </View>
 
@@ -521,8 +523,8 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                 <Ionicons name="star-outline" size={22} color="#10B981" />
               </View>
               <View style={styles.tipContent}>
-                <Text style={styles.tipTitle}>Be yourself</Text>
-                <Text style={styles.tipText}>relax & enjoy</Text>
+                <Text style={styles.tipTitle}>{t('assessment.recording.tip_star_title')}</Text>
+                <Text style={styles.tipText}>{t('assessment.recording.tip_star_text')}</Text>
               </View>
             </View>
           </View>
@@ -541,8 +543,8 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
             >
               <View style={styles.recordingDot} />
             </Animated.View>
-            <Text style={styles.recordingText}>Recording...</Text>
-            <Text style={styles.recordingSubtext}>Speak naturally about the topic</Text>
+            <Text style={styles.recordingText}>{t('assessment.recording.recording')}</Text>
+            <Text style={styles.recordingSubtext}>{t('assessment.recording.recording_subtext')}</Text>
           </View>
         )}
       </View>
@@ -557,7 +559,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
             disabled={countdown !== null}
           >
             <Ionicons name="mic" size={32} color="#FFFFFF" />
-            <Text style={styles.recordButtonText}>Start Recording</Text>
+            <Text style={styles.recordButtonText}>{t('assessment.recording.button_start')}</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.stopButtonContainer}>
@@ -566,7 +568,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
               <View style={styles.progressMessage}>
                 <Ionicons name="timer-outline" size={20} color="#B4E4DD" />
                 <Text style={styles.progressText}>
-                  Keep speaking... {MINIMUM_SPEAKING_TIME - (RECORDING_DURATION - timeRemaining)}s more needed
+                  {t('assessment.recording.progress_keep_speaking', { seconds: MINIMUM_SPEAKING_TIME - (RECORDING_DURATION - timeRemaining) })}
                 </Text>
               </View>
             )}
@@ -574,7 +576,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
               <View style={styles.progressMessage}>
                 <Ionicons name="checkmark-circle" size={20} color="#10B981" />
                 <Text style={[styles.progressText, styles.progressTextSuccess]}>
-                  Perfect! You can finish now
+                  {t('assessment.recording.progress_perfect')}
                 </Text>
               </View>
             )}
@@ -602,7 +604,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                   styles.stopButtonText,
                   !canStopRecording && styles.stopButtonTextDisabled
                 ]}>
-                  {canStopRecording ? 'Finish & Analyze' : 'Recording...'}
+                  {canStopRecording ? t('assessment.recording.button_finish') : t('assessment.recording.button_recording')}
                 </Text>
               </Animated.View>
             </TouchableOpacity>
@@ -625,7 +627,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
             >
               <Text style={styles.countdownNumber}>{countdown}</Text>
             </Animated.View>
-            <Text style={styles.countdownLabel}>Get ready to speak...</Text>
+            <Text style={styles.countdownLabel}>{t('assessment.recording.countdown_label')}</Text>
 
             {/* Skip Button */}
             <TouchableOpacity
@@ -633,7 +635,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
               onPress={skipCountdown}
               activeOpacity={0.7}
             >
-              <Text style={styles.skipButtonText}>Skip</Text>
+              <Text style={styles.skipButtonText}>{t('assessment.recording.skip')}</Text>
               <Ionicons name="play-skip-forward" size={18} color="#14B8A6" />
             </TouchableOpacity>
           </View>
@@ -655,13 +657,13 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
             </View>
 
             {/* Title */}
-            <Text style={styles.exitModalTitle}>Exit Assessment?</Text>
+            <Text style={styles.exitModalTitle}>{t('assessment.recording.exit_modal_title')}</Text>
 
             {/* Message */}
             <Text style={styles.exitModalMessage}>
               {isRecording
-                ? 'Your recording will be discarded and this assessment will not be saved. Are you sure you want to exit?'
-                : 'Are you sure you want to exit without completing the speaking assessment?'}
+                ? t('assessment.recording.exit_modal_recording')
+                : t('assessment.recording.exit_modal_not_recording')}
             </Text>
 
             {/* Buttons */}
@@ -673,7 +675,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                 activeOpacity={0.8}
               >
                 <Text style={styles.exitModalCancelText}>
-                  {isRecording ? 'Continue Recording' : 'Cancel'}
+                  {isRecording ? t('assessment.recording.exit_modal_continue') : t('assessment.recording.exit_modal_cancel')}
                 </Text>
               </TouchableOpacity>
 
@@ -690,7 +692,7 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
                   end={{ x: 1, y: 0 }}
                 >
                   <Ionicons name="exit-outline" size={20} color="#FFFFFF" />
-                  <Text style={styles.exitModalExitText}>Exit</Text>
+                  <Text style={styles.exitModalExitText}>{t('assessment.recording.exit_modal_exit')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>

@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import { useTranslation } from 'react-i18next';
 import type { SpeakingAssessmentResponse } from '../../api/generated';
 import { CreateLearningPlanModal } from '../../components/CreateLearningPlanModal';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,6 +31,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const { language, topicName, assessmentResult, audioUri, recordingDuration } = route.params;
   const result: SpeakingAssessmentResponse = assessmentResult;
 
@@ -147,9 +149,9 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   };
 
   const getScoreLabel = (score: number): string => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    return 'Needs Improvement';
+    if (score >= 80) return t('assessment.results.label_excellent');
+    if (score >= 60) return t('assessment.results.label_good');
+    return t('assessment.results.label_needs_improvement');
   };
 
   const getGradientColors = (score: number): string[] => {
@@ -159,11 +161,11 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   };
 
   const skills = [
-    { label: 'Pronunciation', score: result.pronunciation.score, icon: 'mic-outline', feedback: result.pronunciation.feedback },
-    { label: 'Grammar', score: result.grammar.score, icon: 'create-outline', feedback: result.grammar.feedback },
-    { label: 'Vocabulary', score: result.vocabulary.score, icon: 'book-outline', feedback: result.vocabulary.feedback },
-    { label: 'Fluency', score: result.fluency.score, icon: 'speedometer-outline', feedback: result.fluency.feedback },
-    { label: 'Coherence', score: result.coherence.score, icon: 'git-network-outline', feedback: result.coherence.feedback },
+    { label: t('assessment.results.score_pronunciation'), score: result.pronunciation.score, icon: 'mic-outline', feedback: result.pronunciation.feedback },
+    { label: t('assessment.results.score_grammar'), score: result.grammar.score, icon: 'create-outline', feedback: result.grammar.feedback },
+    { label: t('assessment.results.score_vocabulary'), score: result.vocabulary.score, icon: 'book-outline', feedback: result.vocabulary.feedback },
+    { label: t('assessment.results.score_fluency'), score: result.fluency.score, icon: 'speedometer-outline', feedback: result.fluency.feedback },
+    { label: t('assessment.results.score_coherence'), score: result.coherence.score, icon: 'git-network-outline', feedback: result.coherence.feedback },
   ];
 
   const handleTabPress = (index: number) => {
@@ -244,7 +246,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
             {/* Score Info */}
             <View style={styles.scoreInfo}>
               <Text style={styles.recommendedLevel}>
-                Recommended Level: <Text style={styles.levelText}>{result.recommended_level}</Text>
+                {t('assessment.results.recommended_level')} <Text style={styles.levelText}>{result.recommended_level}</Text>
               </Text>
             </View>
           </View>
@@ -254,7 +256,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
             <View style={styles.audioPlayerCard}>
               <View style={styles.audioPlayerHeader}>
                 <Ionicons name="musical-notes-outline" size={20} color="#14B8A6" />
-                <Text style={styles.audioPlayerTitle}>Your Recording</Text>
+                <Text style={styles.audioPlayerTitle}>{t('assessment.results.your_recording')}</Text>
                 <Text style={styles.audioPlayerDuration}>
                   {Math.floor(playbackPosition)}s / {Math.floor(playbackDuration)}s
                 </Text>
@@ -292,7 +294,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
               </View>
 
               <Text style={styles.audioPlayerHint}>
-                <Ionicons name="headset-outline" size={14} color="#9CA3AF" /> Tap to listen to your assessment recording
+                <Ionicons name="headset-outline" size={14} color="#9CA3AF" /> {t('assessment.results.tap_to_listen')}
               </Text>
             </View>
           )}
@@ -301,7 +303,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           <View style={styles.transcriptCard}>
             <View style={styles.transcriptHeader}>
               <Ionicons name="chatbubble-outline" size={20} color="#14B8A6" />
-              <Text style={styles.transcriptTitle}>What You Said</Text>
+              <Text style={styles.transcriptTitle}>{t('assessment.results.what_you_said')}</Text>
             </View>
             <Text style={styles.transcriptText}>{result.recognized_text}</Text>
           </View>
@@ -314,7 +316,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
   const renderSkillsDetail = () => (
     <View style={styles.tabContent}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.tabScrollContent}>
-        <Text style={styles.tabTitle}>Skills Breakdown</Text>
+        <Text style={styles.tabTitle}>{t('assessment.results.skills_breakdown')}</Text>
         {skills.map((skill, index) => (
           <View key={index} style={styles.skillDetailCard}>
             <View style={styles.skillDetailHeader}>
@@ -366,7 +368,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
         <View style={styles.actionSection}>
           <View style={styles.actionSectionHeader}>
             <Ionicons name="star" size={24} color="#F59E0B" />
-            <Text style={styles.actionSectionTitle}>Your Strengths</Text>
+            <Text style={styles.actionSectionTitle}>{t('assessment.results.strengths')}</Text>
           </View>
           {result.strengths.map((strength, index) => (
             <View key={index} style={styles.actionItem}>
@@ -380,7 +382,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
         <View style={styles.actionSection}>
           <View style={styles.actionSectionHeader}>
             <Ionicons name="trending-up" size={24} color="#3B82F6" />
-            <Text style={styles.actionSectionTitle}>Areas to Improve</Text>
+            <Text style={styles.actionSectionTitle}>{t('assessment.results.areas_to_improve')}</Text>
           </View>
           {result.areas_for_improvement.map((area, index) => (
             <View key={index} style={styles.actionItem}>
@@ -394,7 +396,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
         <View style={styles.actionSection}>
           <View style={styles.actionSectionHeader}>
             <Ionicons name="footsteps" size={24} color="#10B981" />
-            <Text style={styles.actionSectionTitle}>Next Steps</Text>
+            <Text style={styles.actionSectionTitle}>{t('assessment.results.next_steps')}</Text>
           </View>
           {result.next_steps.map((step, index) => (
             <View key={index} style={styles.actionItem}>
@@ -418,9 +420,9 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
         <View style={styles.tabContent}>
           <View style={styles.dnaPlaceholder}>
             <Ionicons name="flask-outline" size={64} color="#6B7280" />
-            <Text style={styles.dnaPlaceholderTitle}>DNA Analysis Coming Soon</Text>
+            <Text style={styles.dnaPlaceholderTitle}>{t('assessment.results.dna_coming_soon')}</Text>
             <Text style={styles.dnaPlaceholderText}>
-              Complete a few more practice sessions to unlock your Speaking DNA profile
+              {t('assessment.results.dna_placeholder')}
             </Text>
           </View>
         </View>
@@ -434,7 +436,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
     const dnaData = [
       {
         key: 'rhythm',
-        label: 'Rhythm',
+        label: t('assessment.results.dna_rhythm'),
         data: strands.rhythm,
         color: '#8B5CF6',
         icon: 'pulse-outline',
@@ -443,7 +445,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
       },
       {
         key: 'confidence',
-        label: 'Confidence',
+        label: t('assessment.results.dna_confidence'),
         data: strands.confidence,
         color: '#F59E0B',
         icon: 'flash-outline',
@@ -452,7 +454,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
       },
       {
         key: 'vocabulary',
-        label: 'Vocabulary',
+        label: t('assessment.results.dna_vocabulary'),
         data: strands.vocabulary,
         color: '#10B981',
         icon: 'book-outline',
@@ -461,7 +463,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
       },
       {
         key: 'accuracy',
-        label: 'Accuracy',
+        label: t('assessment.results.dna_accuracy'),
         data: strands.accuracy,
         color: '#EF4444',
         icon: 'checkmark-circle-outline',
@@ -470,7 +472,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
       },
       {
         key: 'learning',
-        label: 'Learning',
+        label: t('assessment.results.dna_learning'),
         data: strands.learning,
         color: '#3B82F6',
         icon: 'trending-up-outline',
@@ -479,7 +481,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
       },
       {
         key: 'emotional',
-        label: 'Emotional',
+        label: t('assessment.results.dna_emotional'),
         data: strands.emotional,
         color: '#EC4899',
         icon: 'heart-outline',
@@ -494,7 +496,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           {/* DNA Header */}
           <View style={styles.dnaHeader}>
             <Text style={styles.dnaHeaderEmoji}>🧬</Text>
-            <Text style={styles.dnaHeaderTitle}>Your Speaking DNA</Text>
+            <Text style={styles.dnaHeaderTitle}>{t('assessment.results.your_speaking_dna')}</Text>
             <Text style={styles.dnaHeaderSubtitle}>
               {dnaProfile.overall_profile?.speaker_archetype || 'Unique Speaker Profile'}
             </Text>
@@ -502,7 +504,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
 
           {/* DNA Strands */}
           <View style={styles.dnaStrandsSection}>
-            <Text style={styles.dnaSectionTitle}>DNA Strands</Text>
+            <Text style={styles.dnaSectionTitle}>{t('assessment.results.dna_strands')}</Text>
             {dnaData.map((strand, index) => (
               <View key={strand.key} style={styles.dnaStrandCard}>
                 <View style={styles.dnaStrandHeader}>
@@ -529,35 +531,35 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
           {/* Acoustic Metrics - Voice Signature */}
           {Object.keys(acousticMetrics).length > 0 && (
             <View style={styles.acousticSection}>
-              <Text style={styles.dnaSectionTitle}>🎤 Voice Signature</Text>
+              <Text style={styles.dnaSectionTitle}>🎤 {t('assessment.results.voice_signature')}</Text>
 
               {/* Pitch Analysis */}
               <View style={styles.acousticCard}>
                 <View style={styles.acousticHeader}>
                   <Ionicons name="musical-note-outline" size={20} color="#8B5CF6" />
-                  <Text style={styles.acousticTitle}>Pitch Profile</Text>
+                  <Text style={styles.acousticTitle}>{t('assessment.results.pitch_profile')}</Text>
                 </View>
                 <View style={styles.acousticMetricsGrid}>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Average</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.pitch_average')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {Math.round(acousticMetrics.pitch_mean || 0)} Hz
                     </Text>
                   </View>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Range</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.pitch_range')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {Math.round(acousticMetrics.pitch_std || 0)} Hz
                     </Text>
                   </View>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Min</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.pitch_min')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {Math.round(acousticMetrics.pitch_min || 0)} Hz
                     </Text>
                   </View>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Max</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.pitch_max')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {Math.round(acousticMetrics.pitch_max || 0)} Hz
                     </Text>
@@ -569,22 +571,22 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
               <View style={styles.acousticCard}>
                 <View style={styles.acousticHeader}>
                   <Ionicons name="radio-outline" size={20} color="#10B981" />
-                  <Text style={styles.acousticTitle}>Voice Quality</Text>
+                  <Text style={styles.acousticTitle}>{t('assessment.results.voice_quality')}</Text>
                 </View>
                 <View style={styles.acousticMetricsGrid}>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Jitter</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.jitter')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {((acousticMetrics.jitter || 0) * 100).toFixed(2)}%
                     </Text>
-                    <Text style={styles.acousticMetricHint}>Voice stability</Text>
+                    <Text style={styles.acousticMetricHint}>{t('assessment.results.jitter_hint')}</Text>
                   </View>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Shimmer</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.shimmer')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {((acousticMetrics.shimmer || 0) * 100).toFixed(2)}%
                     </Text>
-                    <Text style={styles.acousticMetricHint}>Volume control</Text>
+                    <Text style={styles.acousticMetricHint}>{t('assessment.results.shimmer_hint')}</Text>
                   </View>
                 </View>
               </View>
@@ -593,29 +595,29 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
               <View style={styles.acousticCard}>
                 <View style={styles.acousticHeader}>
                   <Ionicons name="time-outline" size={20} color="#F59E0B" />
-                  <Text style={styles.acousticTitle}>Speaking Patterns</Text>
+                  <Text style={styles.acousticTitle}>{t('assessment.results.speaking_patterns')}</Text>
                 </View>
                 <View style={styles.acousticMetricsGrid}>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Speaking Time</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.speaking_time')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {((acousticMetrics.speaking_ratio || 0) * 100).toFixed(0)}%
                     </Text>
                   </View>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Pauses</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.pauses')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {acousticMetrics.pause_count || 0}
                     </Text>
                   </View>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Avg Pause</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.avg_pause')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {((acousticMetrics.avg_pause_duration_ms || 0) / 1000).toFixed(1)}s
                     </Text>
                   </View>
                   <View style={styles.acousticMetricItem}>
-                    <Text style={styles.acousticMetricLabel}>Energy</Text>
+                    <Text style={styles.acousticMetricLabel}>{t('assessment.results.energy')}</Text>
                     <Text style={styles.acousticMetricValue}>
                       {((acousticMetrics.energy_mean || 0) * 100).toFixed(0)}%
                     </Text>
@@ -634,7 +636,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Assessment Results</Text>
+        <Text style={styles.headerTitle}>{t('assessment.results.title')}</Text>
         <TouchableOpacity
           onPress={handleGoToDashboard}
           style={styles.closeButton}
@@ -656,7 +658,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
             color={activeTab === 0 ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.tabButtonText, activeTab === 0 && styles.tabButtonTextActive]}>
-            Overview
+            {t('assessment.results.tab_overview')}
           </Text>
           {activeTab === 0 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
@@ -671,7 +673,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
             color={activeTab === 1 ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.tabButtonText, activeTab === 1 && styles.tabButtonTextActive]}>
-            Skills
+            {t('assessment.results.tab_skills')}
           </Text>
           {activeTab === 1 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
@@ -686,7 +688,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
             color={activeTab === 2 ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.tabButtonText, activeTab === 2 && styles.tabButtonTextActive]}>
-            Plan
+            {t('assessment.results.tab_plan')}
           </Text>
           {activeTab === 2 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
@@ -701,7 +703,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
             color={activeTab === 3 ? '#14B8A6' : '#9CA3AF'}
           />
           <Text style={[styles.tabButtonText, activeTab === 3 && styles.tabButtonTextActive]}>
-            DNA
+            {t('assessment.results.tab_dna')}
           </Text>
           {activeTab === 3 && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
@@ -739,7 +741,7 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.proceedButtonText}>Create Learning Plan</Text>
+            <Text style={styles.proceedButtonText}>{t('assessment.results.button_create_plan')}</Text>
             <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
           </LinearGradient>
         </TouchableOpacity>

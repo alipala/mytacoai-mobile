@@ -19,6 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../../config/api';
 
 interface NotificationSettingsScreenProps {
@@ -26,6 +27,8 @@ interface NotificationSettingsScreenProps {
 }
 
 const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({ onBack }) => {
+  const { t } = useTranslation();
+
   // Local notification preferences
   const [practiceReminders, setPracticeReminders] = useState(false);  // Default OFF
   const [achievementAlerts, setAchievementAlerts] = useState(true);   // Default ON
@@ -129,9 +132,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         // Revert state on error
         setValue(currentValue);
         Alert.alert(
-          'Error',
-          'Failed to save notification preference. Please try again.',
-          [{ text: 'OK' }]
+          t('modals.error.title'),
+          t('profile.settings.notifications.error_save_preference'),
+          [{ text: t('buttons.ok') }]
         );
       }
     } catch (error) {
@@ -139,9 +142,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       // Revert state on error
       setValue(currentValue);
       Alert.alert(
-        'Connection Error',
-        'Could not connect to server. Your preference has been saved locally.',
-        [{ text: 'OK' }]
+        t('profile.settings.notifications.error_connection'),
+        t('profile.settings.notifications.error_connection_message'),
+        [{ text: t('buttons.ok') }]
       );
     } finally {
       setIsSaving(false);
@@ -150,12 +153,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
 
   const handleOpenSystemSettings = async () => {
     Alert.alert(
-      'System Notification Settings',
-      'To manage app notifications, you need to open your device settings.',
+      t('profile.settings.notifications.alert_system_settings_title'),
+      t('profile.settings.notifications.alert_system_settings_message'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('buttons.cancel'), style: 'cancel' },
         {
-          text: 'Open Settings',
+          text: t('profile.settings.notifications.alert_open_settings'),
           onPress: async () => {
             try {
               if (Platform.OS === 'ios') {
@@ -165,7 +168,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               }
             } catch (error) {
               console.error('Error opening settings:', error);
-              Alert.alert('Error', 'Could not open settings');
+              Alert.alert(t('modals.error.title'), t('modals.error.default_message'));
             }
           },
         },
@@ -182,13 +185,13 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
-          <Text style={styles.title}>Notification Settings</Text>
+          <Text style={styles.title}>{t('profile.settings.notifications.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
 
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4ECFBF" />
-          <Text style={styles.loadingText}>Loading preferences...</Text>
+          <Text style={styles.loadingText}>{t('profile.settings.notifications.loading_preferences')}</Text>
         </View>
       </View>
     );
@@ -201,7 +204,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#14B8A6" />
         </TouchableOpacity>
-        <Text style={styles.title}>Notification Settings</Text>
+        <Text style={styles.title}>{t('profile.settings.notifications.title')}</Text>
         {isSaving && (
           <View style={styles.savingIndicator}>
             <ActivityIndicator size="small" color="#14B8A6" />
@@ -214,7 +217,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       <View style={styles.infoBanner}>
         <Ionicons name="information-circle" size={20} color="#3B82F6" />
         <Text style={styles.infoBannerText}>
-          Customize your notification preferences to stay updated on your learning progress and important updates.
+          {t('profile.settings.notifications.info_banner')}
         </Text>
       </View>
 
@@ -224,7 +227,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="settings" size={20} color="#14B8A6" />
-            <Text style={styles.sectionTitle}>System Settings</Text>
+            <Text style={styles.sectionTitle}>{t('profile.settings.notifications.section_system')}</Text>
           </View>
 
           <TouchableOpacity
@@ -236,9 +239,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               <Ionicons name="phone-portrait" size={24} color="#3B82F6" />
             </View>
             <View style={styles.systemSettingsInfo}>
-              <Text style={styles.systemSettingsTitle}>Device Notification Settings</Text>
+              <Text style={styles.systemSettingsTitle}>{t('profile.settings.notifications.system_settings_title')}</Text>
               <Text style={styles.systemSettingsDescription}>
-                Manage app notifications from your device settings
+                {t('profile.settings.notifications.system_settings_description')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -249,14 +252,14 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="school" size={20} color="#14B8A6" />
-            <Text style={styles.sectionTitle}>Practice & Learning</Text>
+            <Text style={styles.sectionTitle}>{t('profile.settings.notifications.section_practice_learning')}</Text>
           </View>
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Practice Reminders</Text>
+              <Text style={styles.settingLabel}>{t('profile.settings.notifications.label_practice_reminders')}</Text>
               <Text style={styles.settingDescription}>
-                Get daily reminders to practice your language skills
+                {t('profile.settings.notifications.desc_practice_reminders')}
               </Text>
             </View>
             <Switch
@@ -272,9 +275,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Achievement Alerts</Text>
+              <Text style={styles.settingLabel}>{t('profile.settings.notifications.label_achievement_alerts')}</Text>
               <Text style={styles.settingDescription}>
-                Celebrate your milestones and achievements
+                {t('profile.settings.notifications.desc_achievement_alerts')}
               </Text>
             </View>
             <Switch
@@ -290,9 +293,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Learning Plan Updates</Text>
+              <Text style={styles.settingLabel}>{t('profile.settings.notifications.label_learning_plan_updates')}</Text>
               <Text style={styles.settingDescription}>
-                Stay informed about your learning plan progress
+                {t('profile.settings.notifications.desc_learning_plan_updates')}
               </Text>
             </View>
             <Switch
@@ -311,14 +314,14 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="megaphone" size={20} color="#4ECFBF" />
-            <Text style={styles.sectionTitle}>Updates & Announcements</Text>
+            <Text style={styles.sectionTitle}>{t('profile.settings.notifications.section_updates_announcements')}</Text>
           </View>
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Product Updates</Text>
+              <Text style={styles.settingLabel}>{t('profile.settings.notifications.label_product_updates')}</Text>
               <Text style={styles.settingDescription}>
-                Receive notifications about new features and improvements
+                {t('profile.settings.notifications.desc_product_updates')}
               </Text>
             </View>
             <Switch
@@ -337,7 +340,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         <View style={styles.infoSection}>
           <View style={styles.infoSectionHeader}>
             <Ionicons name="help-circle" size={20} color="#6B7280" />
-            <Text style={styles.infoSectionTitle}>Notification Types</Text>
+            <Text style={styles.infoSectionTitle}>{t('profile.settings.notifications.section_notification_types')}</Text>
           </View>
 
           <View style={styles.infoList}>
@@ -346,9 +349,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 <Ionicons name="information" size={16} color="#3B82F6" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Information</Text>
+                <Text style={styles.infoLabel}>{t('profile.settings.notifications.type_information_title')}</Text>
                 <Text style={styles.infoText}>
-                  General updates and helpful tips for your learning journey
+                  {t('profile.settings.notifications.type_information_desc')}
                 </Text>
               </View>
             </View>
@@ -358,9 +361,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 <Ionicons name="construct" size={16} color="#F59E0B" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Maintenance</Text>
+                <Text style={styles.infoLabel}>{t('profile.settings.notifications.type_maintenance_title')}</Text>
                 <Text style={styles.infoText}>
-                  Important system maintenance and downtime notifications
+                  {t('profile.settings.notifications.type_maintenance_desc')}
                 </Text>
               </View>
             </View>
@@ -370,9 +373,9 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 <Ionicons name="gift" size={16} color="#10B981" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Special Offers</Text>
+                <Text style={styles.infoLabel}>{t('profile.settings.notifications.type_special_offers_title')}</Text>
                 <Text style={styles.infoText}>
-                  Exclusive deals and promotions for premium features
+                  {t('profile.settings.notifications.type_special_offers_desc')}
                 </Text>
               </View>
             </View>
@@ -383,8 +386,8 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         <View style={styles.noteCard}>
           <Ionicons name="cloud-done" size={20} color="#10B981" />
           <Text style={styles.noteText}>
-            <Text style={styles.noteBold}>Synced: </Text>
-            Your notification preferences are saved to your account and will be available on all your devices. Make sure to enable notifications in your device settings.
+            <Text style={styles.noteBold}>{t('profile.settings.notifications.note_synced_title')} </Text>
+            {t('profile.settings.notifications.note_synced_text')}
           </Text>
         </View>
       </ScrollView>

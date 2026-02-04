@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthenticationService } from '../../api/generated';
 import { styles } from './VerifyEmailScreen.styles';
@@ -28,6 +29,7 @@ interface VerifyEmailScreenProps {
 }
 
 export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps) => {
+  const { t } = useTranslation();
   const { email } = route.params;
   const [loading, setLoading] = useState(false);
 
@@ -43,22 +45,22 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
       });
 
       Alert.alert(
-        'Email Sent',
-        'Verification email has been resent. Please check your inbox.',
-        [{ text: 'OK' }]
+        t('auth.verification.alert_sent_title'),
+        t('auth.verification.alert_sent_message'),
+        [{ text: t('auth.verification.alert_ok') }]
       );
     } catch (error: any) {
       console.error('Resend verification error:', error);
 
-      let errorMessage = 'Failed to resend verification email. Please try again.';
+      let errorMessage = t('auth.verification.error_resend_failed');
 
       if (error.status === 429) {
-        errorMessage = 'Too many requests. Please wait a few minutes before trying again.';
+        errorMessage = t('auth.verification.error_rate_limit');
       } else if (error.message) {
         errorMessage = error.message;
       }
 
-      Alert.alert('Error', errorMessage);
+      Alert.alert(t('auth.verification.alert_error_title'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -86,12 +88,11 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
 
         {/* Main Content Card */}
         <View style={styles.card}>
-          <Text style={styles.title}>Check Your Email</Text>
+          <Text style={styles.title}>{t('auth.verification.title')}</Text>
 
           <Text style={styles.message}>
-            We've sent a verification link to{' '}
-            <Text style={styles.emailText}>{email}</Text>. Please check your
-            email and click the link to verify your account.
+            {t('auth.verification.message_part1')}{' '}
+            <Text style={styles.emailText}>{email}</Text>. {t('auth.verification.message_part2')}
           </Text>
 
           {/* Resend Verification Button */}
@@ -103,7 +104,7 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text style={styles.buttonText}>Resend Verification Email</Text>
+              <Text style={styles.buttonText}>{t('auth.verification.button_resend')}</Text>
             )}
           </TouchableOpacity>
 
@@ -113,14 +114,14 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
             onPress={handleBackToLogin}
             disabled={loading}
           >
-            <Text style={styles.linkText}>Back to Login</Text>
+            <Text style={styles.linkText}>{t('auth.verification.button_back')}</Text>
           </TouchableOpacity>
 
           {/* Tip Box */}
           <View style={styles.tipContainer}>
-            <Text style={styles.tipLabel}>Tip: </Text>
+            <Text style={styles.tipLabel}>{t('auth.verification.tip_label')} </Text>
             <Text style={styles.tipText}>
-              Check your spam folder if you don't see the email within a few minutes.
+              {t('auth.verification.tip_text')}
             </Text>
           </View>
         </View>

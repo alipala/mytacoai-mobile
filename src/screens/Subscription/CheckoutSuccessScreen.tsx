@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
+import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../api/config';
 
@@ -18,6 +19,8 @@ interface CheckoutSuccessScreenProps {
 }
 
 const CheckoutSuccessScreen: React.FC<CheckoutSuccessScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -95,9 +98,9 @@ const CheckoutSuccessScreen: React.FC<CheckoutSuccessScreenProps> = ({ navigatio
         </View>
 
         {/* Success Message */}
-        <Text style={styles.title}>Welcome to Premium!</Text>
+        <Text style={styles.title}>{t('subscription.success.title')}</Text>
         <Text style={styles.subtitle}>
-          Your subscription has been activated successfully
+          {t('subscription.success.subtitle')}
         </Text>
 
         {/* Benefits */}
@@ -105,19 +108,19 @@ const CheckoutSuccessScreen: React.FC<CheckoutSuccessScreenProps> = ({ navigatio
           <View style={styles.benefitRow}>
             <Ionicons name="flash" size={24} color="#4ECFBF" />
             <Text style={styles.benefitText}>
-              7-day free trial started
+              {t('subscription.success.trial_started')}
             </Text>
           </View>
           <View style={styles.benefitRow}>
             <Ionicons name="infinite" size={24} color="#4ECFBF" />
             <Text style={styles.benefitText}>
-              Unlimited practice sessions
+              {t('subscription.success.unlimited_sessions')}
             </Text>
           </View>
           <View style={styles.benefitRow}>
             <Ionicons name="trending-up" size={24} color="#4ECFBF" />
             <Text style={styles.benefitText}>
-              Advanced progress tracking
+              {t('subscription.success.advanced_tracking')}
             </Text>
           </View>
         </View>
@@ -128,13 +131,13 @@ const CheckoutSuccessScreen: React.FC<CheckoutSuccessScreenProps> = ({ navigatio
           onPress={handleContinue}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Start Learning</Text>
+          <Text style={styles.continueButtonText}>{t('subscription.success.button_start_learning')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
 
         {/* Info Text */}
         <Text style={styles.infoText}>
-          You won't be charged until after your 7-day free trial ends
+          {t('subscription.success.trial_info')}
         </Text>
       </View>
     </SafeAreaView>

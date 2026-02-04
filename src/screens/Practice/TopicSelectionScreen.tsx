@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { DefaultService } from '../../api/generated';
 import LoadingModal from '../../components/LoadingModal';
 import { styles } from './styles/TopicSelectionScreen.styles';
@@ -116,6 +117,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [showCustomTopicModal, setShowCustomTopicModal] = useState(false);
   const [customTopicText, setCustomTopicText] = useState('');
@@ -243,9 +245,9 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
     } catch (error) {
       console.error('❌ Topic research failed:', error);
       Alert.alert(
-        'Research Failed',
-        'Unable to research your topic. Please try again or select a predefined topic.',
-        [{ text: 'OK', onPress: () => setShowCustomTopicModal(true) }]
+        t('practice.research_failed_title', 'Research Failed'),
+        t('practice.research_failed_message', 'Unable to research your topic. Please try again or select a predefined topic.'),
+        [{ text: t('buttons.ok'), onPress: () => setShowCustomTopicModal(true) }]
       );
     } finally {
       setIsResearching(false);
@@ -285,7 +287,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Topic</Text>
+        <Text style={styles.headerTitle}>{t('practice.conversation.label_topic')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -303,7 +305,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Select a Topic</Text>
+        <Text style={styles.title}>{t('practice.conversation.label_topic')}</Text>
 
         {/* Custom Topic Card - Featured at Top */}
         <Animated.View
@@ -411,11 +413,11 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
             <View style={styles.customTopicContent}>
               <View style={styles.customTopicBadge}>
                 <Ionicons name="star" size={12} color="#FFFFFF" />
-                <Text style={styles.customTopicBadgeText}>POPULAR</Text>
+                <Text style={styles.customTopicBadgeText}>{t('practice.badge_popular', 'POPULAR')}</Text>
               </View>
-              <Text style={styles.customTopicTitle}>✨ Create Your Own Topic</Text>
+              <Text style={styles.customTopicTitle}>{t('practice.create_your_own_topic', '✨ Create Your Own Topic')}</Text>
               <Text style={styles.customTopicDescription}>
-                Design a personalized conversation about anything you want to learn
+                {t('practice.create_topic_description', 'Design a personalized conversation about anything you want to learn')}
               </Text>
             </View>
 
@@ -430,7 +432,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
         {/* Divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR CHOOSE A TOPIC</Text>
+          <Text style={styles.dividerText}>{t('practice.or_choose_topic', 'OR CHOOSE A TOPIC')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -458,7 +460,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
                 <Ionicons name={topic.icon} size={28} color={topic.color} />
               </View>
               <View style={styles.topicInfo}>
-                <Text style={styles.topicName}>{topic.name}</Text>
+                <Text style={styles.topicName}>{t(`practice.topics.${topic.id}`)}</Text>
                 <Text style={styles.topicDescription}>{topic.description}</Text>
               </View>
               {selectedTopic === topic.id && (
@@ -483,7 +485,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
           disabled={!selectedTopic}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>{t('buttons.continue')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -510,16 +512,16 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
             >
               {/* Modal Header */}
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create Your Topic</Text>
+                <Text style={styles.modalTitle}>{t('practice.create_your_topic', 'Create Your Topic')}</Text>
                 <Text style={styles.modalSubtitle}>
-                  What would you like to talk about?
+                  {t('practice.what_would_you_like_to_talk_about', 'What would you like to talk about?')}
                 </Text>
               </View>
 
               {/* Text Input */}
               <TextInput
                 style={styles.textInput}
-                placeholder="Describe your topic here..."
+                placeholder={t('practice.describe_your_topic_placeholder', 'Describe your topic here...')}
                 placeholderTextColor="#9CA3AF"
                 value={customTopicText}
                 onChangeText={setCustomTopicText}
@@ -539,7 +541,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalCancelText}>Cancel</Text>
+                  <Text style={styles.modalCancelText}>{t('buttons.cancel')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -551,7 +553,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
                   disabled={!customTopicText.trim()}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalSubmitText}>Submit</Text>
+                  <Text style={styles.modalSubmitText}>{t('buttons.submit')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -562,7 +564,7 @@ const TopicSelectionScreen: React.FC<TopicSelectionScreenProps> = ({
       {/* Loading Modal */}
       <LoadingModal
         isOpen={isResearching}
-        message="Your taalcoach knowledge is being extended. Hold on please!"
+        message={t('practice.researching_topic_message', 'Your taalcoach knowledge is being extended. Hold on please!')}
       />
     </SafeAreaView>
   );

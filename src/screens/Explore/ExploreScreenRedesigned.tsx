@@ -13,6 +13,7 @@ import {
   FlatList,
   Modal,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import ReanimatedAnimated, {
   useSharedValue,
   useAnimatedStyle,
@@ -129,6 +130,7 @@ const getChallengeIcon = (type: string): keyof typeof Ionicons.glyphMap => {
 };
 
 export default function ExploreScreenRedesigned({ navigation, route }: ExploreScreenProps) {
+  const { t } = useTranslation();
   const isFocused = useIsFocused();
   const { startSession } = useChallengeSession();
   const { daily } = useDailyStats(true);
@@ -795,7 +797,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
             fontWeight: '700',
             color: '#FFFFFF',
           }}>
-            Choose Your Quest
+            {t('explore.quest.choose_title')}
           </Text>
         </View>
 
@@ -869,7 +871,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                     textShadowOffset: { width: 0, height: 1 },
                     textShadowRadius: 3,
                   }}>
-                    Master Your Plans
+                    {t('explore.quest.master_plans')}
                   </Text>
                 </View>
 
@@ -890,8 +892,8 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                     letterSpacing: 0.5,
                   }}>
                     {completedPlans.length > 0
-                      ? `${completedPlans.length} plan${completedPlans.length > 1 ? 's' : ''} →`
-                      : 'No plans yet'}
+                      ? t('explore.quest.plans_count', { count: completedPlans.length })
+                      : t('explore.quest.no_plans')}
                   </Text>
                 </View>
               </View>
@@ -963,7 +965,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                     textShadowOffset: { width: 0, height: 1 },
                     textShadowRadius: 3,
                   }}>
-                    Freestyle Practice
+                    {t('explore.quest.freestyle_practice')}
                   </Text>
                 </View>
 
@@ -983,7 +985,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                     textAlign: 'center',
                     letterSpacing: 0.5,
                   }}>
-                    All levels →
+                    {t('explore.quest.all_levels')}
                   </Text>
                 </View>
               </View>
@@ -1017,7 +1019,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           <Text style={{ fontSize: 28, color: '#A855F7' }}>←</Text>
         </TouchableOpacity>
         <Text style={{ fontSize: 22, fontWeight: '800', color: '#1F2937' }}>
-          Completed Plans
+          {t('explore.completed_plans.title')}
         </Text>
       </View>
 
@@ -1076,7 +1078,10 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                   </Text>
                 </View>
                 <Text style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.8)' }}>
-                  {plan.total_sessions || 0} sessions · {plan.completed_sessions || 0} completed
+                  {t('explore.completed_plans.sessions_info', {
+                    total: plan.total_sessions || 0,
+                    completed: plan.completed_sessions || 0
+                  })}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -1127,7 +1132,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
             <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
           <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
-            Choose Language & Level
+            {t('explore.freestyle.choose_language_level')}
           </Text>
         </View>
 
@@ -1160,10 +1165,13 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 color: '#FFFFFF',
                 marginBottom: 6,
               }}>
-                Selected: {LANGUAGES.find(l => l.code === selectedLanguage)?.name} · {selectedLevel}
+                {t('explore.freestyle.selected', {
+                  language: LANGUAGES.find(l => l.code === selectedLanguage)?.name,
+                  level: selectedLevel
+                })}
               </Text>
               <Text style={{ fontSize: 14, color: '#B4E4DD', fontWeight: '600' }}>
-                Tap Continue to see challenges
+                {t('explore.freestyle.tap_continue')}
               </Text>
             </LinearGradient>
 
@@ -1186,7 +1194,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                   fontWeight: '600',
                   color: '#FBBF24',
                 }}>
-                  Loading challenge counts...
+                  {t('explore.freestyle.loading_counts')}
                 </Text>
               </View>
             )}
@@ -1201,7 +1209,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 textTransform: 'uppercase',
                 letterSpacing: 1,
               }}>
-                LANGUAGE
+                {t('explore.freestyle.language_label')}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
@@ -1256,7 +1264,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 textTransform: 'uppercase',
                 letterSpacing: 1,
               }}>
-                CEFR LEVEL
+                {t('explore.freestyle.level_label')}
               </Text>
             </View>
             <View style={{ gap: 12, marginBottom: 32 }}>
@@ -1391,7 +1399,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                   fontWeight: '800',
                   color: '#FFFFFF',
                 }}>
-                  Continue to Challenges
+                  {t('explore.freestyle.continue_button')}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -1458,7 +1466,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               </Text>
             </View>
             <Text style={{ fontSize: 14, color: '#B4E4DD', marginTop: 4 }}>
-              Pick how you want to play
+              {t('explore.categories.pick_how_to_play')}
             </Text>
           </View>
         </View>
@@ -1570,7 +1578,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 {category.title}
               </Text>
               <Text style={{ fontSize: 14, color: '#6B7280' }}>
-                {categoryCharlenges.length} challenges
+                {t('explore.challenge_list.challenges_count', { count: categoryCharlenges.length })}
               </Text>
             </View>
           </View>
@@ -1634,7 +1642,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                       marginBottom: 8,
                       lineHeight: 20,
                     }} numberOfLines={2}>
-                      From your recent practice
+                      {t('explore.challenge_list.from_practice')}
                     </Text>
 
                     {/* Bottom row */}
@@ -1748,7 +1756,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
 
   // Main render
   return (
-    <TransitionWrapper isLoading={isLoading && navState === 'mode_selection'} loadingMessage="Loading your adventures...">
+    <TransitionWrapper isLoading={isLoading && navState === 'mode_selection'} loadingMessage={t('explore.loading.message')}>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1A1F' }}>
         <StatusBar barStyle="light-content" />
       {navState === 'mode_selection' && renderModeSelection()}
@@ -1844,7 +1852,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               marginBottom: 12,
               textAlign: 'center',
             }}>
-              Upgrade Successful!
+              {t('explore.upgrade.success_title')}
             </Text>
 
             {/* Subtitle */}
@@ -1855,7 +1863,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               lineHeight: 24,
               marginBottom: 28,
             }}>
-              You now have more hearts and can practice longer. Keep up the great work!
+              {t('explore.upgrade.success_message')}
             </Text>
 
             {/* Benefits */}
@@ -1888,7 +1896,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                   color: '#111827',
                   flex: 1,
                 }}>
-                  More hearts to practice
+                  {t('explore.upgrade.more_hearts')}
                 </Text>
               </View>
               <View style={{
@@ -1912,7 +1920,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                   color: '#111827',
                   flex: 1,
                 }}>
-                  Faster heart refill time
+                  {t('explore.upgrade.faster_refill')}
                 </Text>
               </View>
             </View>
@@ -1944,7 +1952,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 fontWeight: '700',
                 color: '#FFFFFF',
               }}>
-                Start Practicing
+                {t('explore.upgrade.start_practicing')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1984,7 +1992,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
               fontWeight: '600',
               color: '#FFFFFF',
             }}>
-              Loading challenges...
+              {t('explore.loading.challenges')}
             </Text>
           </View>
         </View>
@@ -2083,7 +2091,7 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
           }}>
             <Ionicons name="flame-outline" size={12} color="#FFFFFF" />
             <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
-              FEATURED
+              {t('explore.categories.featured_badge')}
             </Text>
           </View>
 
@@ -2133,7 +2141,7 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
                   borderColor: 'rgba(255, 255, 255, 0.3)',
                 }}>
                   <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
-                    {stats.completed}/{count} done
+                    {t('explore.categories.progress_done', { completed: stats.completed, count })}
                   </Text>
                 </View>
                 <View style={{
@@ -2145,7 +2153,7 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
                   borderColor: 'rgba(255, 255, 255, 0.3)',
                 }}>
                   <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
-                    {Math.round(stats.accuracy)}% accuracy
+                    {t('explore.categories.accuracy', { accuracy: Math.round(stats.accuracy) })}
                   </Text>
                 </View>
               </View>
@@ -2259,7 +2267,11 @@ function GameLobbyPrimaryCard({ challenge, count, stats, color1, color2, onPress
               borderColor: 'rgba(255, 255, 255, 0.3)',
             }}>
               <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
-                {stats.completed}/{count} • {Math.round(stats.accuracy)}%
+                {t('explore.categories.stats_short', {
+                  completed: stats.completed,
+                  count,
+                  accuracy: Math.round(stats.accuracy)
+                })}
               </Text>
             </View>
           ) : (

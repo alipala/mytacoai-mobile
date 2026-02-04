@@ -33,6 +33,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 import { BrainTicklerChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { LearningCompanion } from '../../../components/LearningCompanion';
@@ -59,6 +60,7 @@ export default function BrainTicklerScreen({
   onWrongAnswerSelected,
   onClose,
 }: BrainTicklerScreenProps) {
+  const { t } = useTranslation();
   const [timeLeft, setTimeLeft] = useState(challenge.timeLimit || 15);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -428,24 +430,24 @@ export default function BrainTicklerScreen({
             {timeLeft === 0 && !selectedOption ? (
               <>
                 <Text style={[styles.feedbackTitle, { color: '#DC2626' }]}>
-                  Time's up!
+                  {t('explore.brain_tickler.times_up')}
                 </Text>
                 <Text style={styles.feedbackSubtitle}>
-                  No worries, let's see the answer
+                  {t('explore.brain_tickler.no_worries')}
                 </Text>
               </>
             ) : isCorrectAnswer() ? (
               <>
                 <Text style={[styles.feedbackTitle, { color: '#7C3AED' }]}>
-                  Amazing!
+                  {t('explore.brain_tickler.amazing')}
                 </Text>
                 <Text style={styles.feedbackSubtitle}>
-                  Lightning fast thinking!
+                  {t('explore.brain_tickler.lightning_fast')}
                 </Text>
               </>
             ) : (
               <Text style={[styles.feedbackTitle, { color: '#D97706', marginBottom: 16 }]}>
-                Good try!
+                {t('explore.brain_tickler.good_try')}
               </Text>
             )}
           </>
@@ -477,7 +479,7 @@ export default function BrainTicklerScreen({
         {/* Explanation - shown inline for wrong answers */}
         {showFeedback && (!isCorrectAnswer() || !selectedOption) && (
           <View style={styles.explanationBox}>
-            <Text style={styles.explanationLabel}>EXPLANATION</Text>
+            <Text style={styles.explanationLabel}>{t('explore.brain_tickler.explanation')}</Text>
             <Text style={styles.explanationText}>{challenge.explanation}</Text>
           </View>
         )}
@@ -510,7 +512,7 @@ export default function BrainTicklerScreen({
               activeOpacity={1}
             >
               <Animated.View style={[styles.continueButton, continueButtonAnimatedStyle]}>
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>{t('explore.button_continue')}</Text>
               </Animated.View>
             </TouchableOpacity>
           </View>

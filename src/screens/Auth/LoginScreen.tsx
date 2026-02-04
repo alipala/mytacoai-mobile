@@ -35,9 +35,12 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { AuthenticationService } from '../../api/generated';
 import { styles } from './LoginScreen.styles';
 import { AuthResultModal } from '../../components/AuthResultModal';
+import { useTranslation } from 'react-i18next';
 
 
 export const LoginScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
+
   // Load Inter fonts
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -145,20 +148,20 @@ export const LoginScreen = ({ navigation }: any) => {
     let isValid = true;
 
     if (!email.trim()) {
-      setEmailError('Email is required');
+      setEmailError(t('auth.login.error_email_required'));
       isValid = false;
     } else if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email');
+      setEmailError(t('auth.login.error_invalid_email'));
       isValid = false;
     } else {
       setEmailError('');
     }
 
     if (!password) {
-      setPasswordError('Password is required');
+      setPasswordError(t('auth.login.error_password_required'));
       isValid = false;
     } else if (password.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
+      setPasswordError(t('auth.login.error_password_min_length'));
       isValid = false;
     } else {
       setPasswordError('');
@@ -171,40 +174,40 @@ export const LoginScreen = ({ navigation }: any) => {
     let isValid = true;
 
     if (!fullName.trim()) {
-      setFullNameError('Full name is required');
+      setFullNameError(t('auth.login.error_name_required'));
       isValid = false;
     } else if (fullName.trim().length < 2) {
-      setFullNameError('Please enter your full name');
+      setFullNameError(t('auth.login.error_name_min_length'));
       isValid = false;
     } else {
       setFullNameError('');
     }
 
     if (!signupEmail.trim()) {
-      setSignupEmailError('Email is required');
+      setSignupEmailError(t('auth.login.error_email_required'));
       isValid = false;
     } else if (!validateEmail(signupEmail)) {
-      setSignupEmailError('Please enter a valid email');
+      setSignupEmailError(t('auth.login.error_invalid_email'));
       isValid = false;
     } else {
       setSignupEmailError('');
     }
 
     if (!signupPassword) {
-      setSignupPasswordError('Password is required');
+      setSignupPasswordError(t('auth.login.error_password_required'));
       isValid = false;
     } else if (signupPassword.length < 8) {
-      setSignupPasswordError('Password must be at least 8 characters');
+      setSignupPasswordError(t('auth.login.error_password_min_length'));
       isValid = false;
     } else {
       setSignupPasswordError('');
     }
 
     if (!confirmPassword) {
-      setConfirmPasswordError('Please confirm your password');
+      setConfirmPasswordError(t('auth.login.error_password_confirm_required'));
       isValid = false;
     } else if (signupPassword !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
+      setConfirmPasswordError(t('auth.login.error_passwords_no_match'));
       isValid = false;
     } else {
       setConfirmPasswordError('');
@@ -236,8 +239,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
       // Show beautiful success modal
       setAuthModalType('success');
-      setAuthModalTitle('Welcome Back!');
-      setAuthModalMessage('Great to see you again! Loading your dashboard...');
+      setAuthModalTitle(t('auth.login.success_welcome_back'));
+      setAuthModalMessage(t('auth.login.success_welcome_back_message'));
       setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
       setShowAuthModal(true);
 
@@ -253,8 +256,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
       if (statusCode === 403) {
         setAuthModalType('error');
-        setAuthModalTitle('Email Not Verified');
-        setAuthModalMessage('Please check your inbox for the verification link. Redirecting...');
+        setAuthModalTitle(t('auth.login.error_email_not_verified'));
+        setAuthModalMessage(t('auth.login.error_email_not_verified_message'));
         setAuthModalUserName('');
         setShowAuthModal(true);
 
@@ -268,18 +271,18 @@ export const LoginScreen = ({ navigation }: any) => {
       }
 
       if (statusCode === 401) {
-        setPasswordError('Invalid email or password');
+        setPasswordError(t('auth.login.error_invalid_credentials'));
         setAuthModalType('error');
-        setAuthModalTitle('Invalid Credentials');
-        setAuthModalMessage('Please check your email and password and try again.');
+        setAuthModalTitle(t('auth.login.error_invalid_credentials_title'));
+        setAuthModalMessage(t('auth.login.error_invalid_credentials_message'));
         setAuthModalUserName('');
         setShowAuthModal(true);
         return;
       }
 
       setAuthModalType('error');
-      setAuthModalTitle('Login Failed');
-      setAuthModalMessage(errorDetail || 'An error occurred. Please try again.');
+      setAuthModalTitle(t('auth.login.error_login_failed'));
+      setAuthModalMessage(errorDetail || t('auth.login.error_login_message'));
       setAuthModalUserName('');
       setShowAuthModal(true);
     } finally {
@@ -314,8 +317,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
       showToast({
         type: 'success',
-        text1: 'Account Created! 🎉',
-        text2: 'Please check your email to verify your account.',
+        text1: t('auth.login.success_account_created'),
+        text2: t('auth.login.success_account_created_message'),
         duration: 4000,
       });
 
@@ -333,10 +336,10 @@ export const LoginScreen = ({ navigation }: any) => {
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
-      let errorMessage = 'Registration failed. Please try again.';
+      let errorMessage = t('auth.login.error_registration_failed');
 
       if (error.status === 400) {
-        errorMessage = 'This email is already registered';
+        errorMessage = t('auth.login.error_email_exists');
         setSignupEmailError(errorMessage);
       } else if (error.message) {
         errorMessage = error.message;
@@ -344,7 +347,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
       showToast({
         type: 'error',
-        text1: 'Registration Failed',
+        text1: t('auth.login.error_login_failed'),
         text2: errorMessage,
         duration: 4000,
       });
@@ -405,7 +408,7 @@ export const LoginScreen = ({ navigation }: any) => {
       // Check if we have the required token
       if (!userInfo || !userInfo.idToken) {
         console.log('⚠️ Sign-in succeeded but missing idToken');
-        throw new Error('Failed to get authentication token from Google');
+        throw new Error(t('auth.login.error_google_token'));
       }
 
       console.log('📡 Calling backend API...');
@@ -426,8 +429,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
       // Show beautiful success modal
       setAuthModalType('success');
-      setAuthModalTitle('Welcome!');
-      setAuthModalMessage('Successfully signed in with Google. Loading your dashboard...');
+      setAuthModalTitle(t('auth.login.success_welcome'));
+      setAuthModalMessage(t('auth.login.success_google_signin'));
       setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
       setShowAuthModal(true);
 
@@ -454,8 +457,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
       // Show error modal
       setAuthModalType('error');
-      setAuthModalTitle('Google Sign-In Failed');
-      setAuthModalMessage(error.message || 'Please try again or use email sign-in.');
+      setAuthModalTitle(t('auth.login.error_google_signin_failed'));
+      setAuthModalMessage(error.message || t('auth.login.error_google_signin_message'));
       setAuthModalUserName('');
       setShowAuthModal(true);
     } finally {
@@ -513,8 +516,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
       // Show beautiful success modal
       setAuthModalType('success');
-      setAuthModalTitle('Welcome!');
-      setAuthModalMessage('Successfully signed in with Apple. Loading your dashboard...');
+      setAuthModalTitle(t('auth.login.success_welcome'));
+      setAuthModalMessage(t('auth.login.success_apple_signin'));
       setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
       setShowAuthModal(true);
 
@@ -540,8 +543,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
       // Show error modal
       setAuthModalType('error');
-      setAuthModalTitle('Apple Sign-In Failed');
-      setAuthModalMessage(error.message || 'Please try again or use email sign-in.');
+      setAuthModalTitle(t('auth.login.error_apple_signin_failed'));
+      setAuthModalMessage(error.message || t('auth.login.error_apple_signin_message'));
       setAuthModalUserName('');
       setShowAuthModal(true);
     } finally {
@@ -568,7 +571,7 @@ export const LoginScreen = ({ navigation }: any) => {
    */
   const handleEmailBlur = () => {
     if (email.trim() && !validateEmailFormat(email)) {
-      setEmailError('Please enter a valid email address');
+      setEmailError(t('auth.login.error_invalid_email'));
     }
   };
 
@@ -577,7 +580,7 @@ export const LoginScreen = ({ navigation }: any) => {
    */
   const handleSignupEmailBlur = () => {
     if (signupEmail.trim() && !validateEmailFormat(signupEmail)) {
-      setSignupEmailError('Please enter a valid email address');
+      setSignupEmailError(t('auth.login.error_invalid_email'));
     }
   };
 
@@ -646,7 +649,7 @@ export const LoginScreen = ({ navigation }: any) => {
                         activeTab === 'signin' && styles.activeTabText,
                       ]}
                     >
-                      Login
+                      {t('auth.login.tab_signin')}
                     </Text>
                   </TouchableOpacity>
 
@@ -661,7 +664,7 @@ export const LoginScreen = ({ navigation }: any) => {
                         activeTab === 'signup' && styles.activeTabText,
                       ]}
                     >
-                      Create Account
+                      {t('auth.login.tab_signup')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -673,7 +676,7 @@ export const LoginScreen = ({ navigation }: any) => {
                       /* Social Login Options */
                       <>
                         <Text style={styles.formTitle}>
-                          Choose how to sign in
+                          {t('auth.login.title_choose_signin')}
                         </Text>
 
                         {/* Apple Sign-In Button (iOS only) */}
@@ -685,7 +688,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             activeOpacity={0.8}
                           >
                             <Ionicons name="logo-apple" size={24} color="#000000" />
-                            <Text style={styles.appleButtonText}>Sign in with Apple</Text>
+                            <Text style={styles.appleButtonText}>{t('auth.login.button_continue_apple')}</Text>
                           </TouchableOpacity>
                         )}
 
@@ -697,7 +700,7 @@ export const LoginScreen = ({ navigation }: any) => {
                           activeOpacity={0.8}
                         >
                           <Ionicons name="logo-google" size={24} color="#DB4437" />
-                          <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                          <Text style={styles.googleButtonText}>{t('auth.login.button_continue_google')}</Text>
                         </TouchableOpacity>
 
                         {/* Sign in with Email Button */}
@@ -711,17 +714,17 @@ export const LoginScreen = ({ navigation }: any) => {
                           activeOpacity={0.8}
                         >
                           <Ionicons name="mail-outline" size={24} color="#4ECFBF" />
-                          <Text style={styles.emailButtonText}>Sign in with Email</Text>
+                          <Text style={styles.emailButtonText}>{t('auth.login.button_continue_email')}</Text>
                         </TouchableOpacity>
 
                         {/* Sign Up Link */}
                         <View style={styles.signupLinkContainer}>
-                          <Text style={styles.signupLinkText}>Don't have an account? </Text>
+                          <Text style={styles.signupLinkText}>{t('auth.login.link_no_account')} </Text>
                           <TouchableOpacity
                             onPress={() => handleTabSwitch('signup')}
                             disabled={loading}
                           >
-                            <Text style={styles.signupLink}>Sign up</Text>
+                            <Text style={styles.signupLink}>{t('auth.login.link_signup')}</Text>
                           </TouchableOpacity>
                         </View>
                       </>
@@ -729,7 +732,7 @@ export const LoginScreen = ({ navigation }: any) => {
                       /* Email/Password Form */
                       <>
                         <Text style={styles.formTitle}>
-                          Enter your credentials to continue
+                          {t('auth.login.title_enter_credentials')}
                         </Text>
 
                         {/* Email Input */}
@@ -738,7 +741,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <Ionicons name="mail-outline" size={20} color={emailError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
-                              placeholder="Email"
+                              placeholder={t('auth.login.label_email')}
                               placeholderTextColor="#9CA3AF"
                               value={email}
                               onChangeText={(text) => {
@@ -766,7 +769,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <Ionicons name="lock-closed-outline" size={20} color={passwordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
-                              placeholder="Password"
+                              placeholder={t('auth.login.label_password')}
                               placeholderTextColor="#9CA3AF"
                               value={password}
                               onChangeText={(text) => {
@@ -804,7 +807,7 @@ export const LoginScreen = ({ navigation }: any) => {
                           style={styles.forgotPasswordContainer}
                           disabled={loading}
                         >
-                          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                          <Text style={styles.forgotPasswordText}>{t('auth.login.link_forgot_password')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -817,7 +820,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <ActivityIndicator color="white" />
                           ) : (
                             <>
-                              <Text style={styles.buttonText}>Sign In</Text>
+                              <Text style={styles.buttonText}>{t('auth.login.button_signin')}</Text>
                               <Ionicons name="arrow-forward" size={20} color="white" />
                             </>
                           )}
@@ -826,7 +829,7 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Quick Escape - Or continue with */}
                         <View style={styles.dividerContainer}>
                           <View style={styles.divider} />
-                          <Text style={styles.dividerText}>Or continue with</Text>
+                          <Text style={styles.dividerText}>{t('auth.login.divider_or_continue')}</Text>
                           <View style={styles.divider} />
                         </View>
 
@@ -863,7 +866,7 @@ export const LoginScreen = ({ navigation }: any) => {
                       /* Social Sign Up Options */
                       <>
                         <Text style={styles.formTitle}>
-                          Choose how to get started
+                          {t('auth.login.title_choose_signup')}
                         </Text>
 
                         {/* Apple Sign-In Button (iOS only) */}
@@ -875,7 +878,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             activeOpacity={0.8}
                           >
                             <Ionicons name="logo-apple" size={24} color="#000000" />
-                            <Text style={styles.appleButtonText}>Sign in with Apple</Text>
+                            <Text style={styles.appleButtonText}>{t('auth.login.button_continue_apple')}</Text>
                           </TouchableOpacity>
                         )}
 
@@ -887,7 +890,7 @@ export const LoginScreen = ({ navigation }: any) => {
                           activeOpacity={0.8}
                         >
                           <Ionicons name="logo-google" size={24} color="#DB4437" />
-                          <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                          <Text style={styles.googleButtonText}>{t('auth.login.button_continue_google')}</Text>
                         </TouchableOpacity>
 
                         {/* Sign up with Email Button */}
@@ -901,17 +904,17 @@ export const LoginScreen = ({ navigation }: any) => {
                           activeOpacity={0.8}
                         >
                           <Ionicons name="mail-outline" size={24} color="#4ECFBF" />
-                          <Text style={styles.emailButtonText}>Sign up with Email</Text>
+                          <Text style={styles.emailButtonText}>{t('auth.login.button_signup_email')}</Text>
                         </TouchableOpacity>
 
                         {/* Sign In Link */}
                         <View style={styles.signupLinkContainer}>
-                          <Text style={styles.signupLinkText}>Already have an account? </Text>
+                          <Text style={styles.signupLinkText}>{t('auth.login.link_have_account')} </Text>
                           <TouchableOpacity
                             onPress={() => handleTabSwitch('signin')}
                             disabled={loading}
                           >
-                            <Text style={styles.signupLink}>Sign in</Text>
+                            <Text style={styles.signupLink}>{t('auth.login.link_signin')}</Text>
                           </TouchableOpacity>
                         </View>
                       </>
@@ -919,7 +922,7 @@ export const LoginScreen = ({ navigation }: any) => {
                       /* Email/Password Sign Up Form */
                       <>
                         <Text style={styles.formTitle}>
-                          Fill in your details to create an account
+                          {t('auth.login.title_fill_details')}
                         </Text>
 
                         {/* Full Name Input */}
@@ -928,7 +931,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <Ionicons name="person-outline" size={20} color={fullNameError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
-                              placeholder="Full Name"
+                              placeholder={t('auth.login.label_name')}
                               placeholderTextColor="#9CA3AF"
                               value={fullName}
                               onChangeText={(text) => {
@@ -953,7 +956,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <Ionicons name="mail-outline" size={20} color={signupEmailError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
-                              placeholder="Email"
+                              placeholder={t('auth.login.label_email')}
                               placeholderTextColor="#9CA3AF"
                               value={signupEmail}
                               onChangeText={(text) => {
@@ -981,7 +984,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <Ionicons name="lock-closed-outline" size={20} color={signupPasswordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
-                              placeholder="Password (min. 8 characters)"
+                              placeholder={t('auth.login.placeholder_password_min')}
                               placeholderTextColor="#9CA3AF"
                               value={signupPassword}
                               onChangeText={(text) => {
@@ -1019,7 +1022,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <Ionicons name="lock-closed-outline" size={20} color={confirmPasswordError ? '#EF4444' : '#9CA3AF'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
-                              placeholder="Confirm Password"
+                              placeholder={t('auth.login.label_confirm_password')}
                               placeholderTextColor="#9CA3AF"
                               value={confirmPassword}
                               onChangeText={(text) => {
@@ -1061,7 +1064,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             <ActivityIndicator color="white" />
                           ) : (
                             <>
-                              <Text style={styles.buttonText}>Create Account</Text>
+                              <Text style={styles.buttonText}>{t('auth.login.button_create_account')}</Text>
                               <Ionicons name="arrow-forward" size={20} color="white" />
                             </>
                           )}
@@ -1070,7 +1073,7 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Quick Escape - Or continue with */}
                         <View style={styles.dividerContainer}>
                           <View style={styles.divider} />
-                          <Text style={styles.dividerText}>Or continue with</Text>
+                          <Text style={styles.dividerText}>{t('auth.login.divider_or_continue')}</Text>
                           <View style={styles.divider} />
                         </View>
 
