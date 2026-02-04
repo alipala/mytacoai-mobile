@@ -1698,5 +1698,34 @@
         }
       }
     }
+  },
+  "learning_plan": {
+    "tap_to_expand": "Tap to expand",
+    "tap_to_collapse": "Tap to collapse",
+    "dna_analysis": "DNA Analysis",
+    "continue": "Continue",
+    "details_button": "Details",
+    "status_new": "NEW",
+    "status_in_progress": "IN PROGRESS",
+    "status_completed": "COMPLETED",
+    "details": {
+      "learning_plan_suffix": " Learning Plan",
+      "level_suffix": " Level",
+      "overall_progress": "Overall Progress",
+      "sessions": "Sessions",
+      "spoken_time": "Spoken Time",
+      "est_time": "Est. Time",
+      "current_week": "Current Week",
+      "week_prefix": "Week ",
+      "plan_completed": "Plan Completed",
+      "continue_learning": "Continue Learning",
+      "plan_overview": "Plan Overview",
+      "month_suffix": "-Month",
+      "learning_plan_for": "Learning Plan for",
+      "level_text": "Level",
+      "plan_description": "This comprehensive plan is designed based on your speaking assessment results. You demonstrated a {{level}} level proficiency with an overall score of {{score}}/100. The plan spans {{weeks}} months with {{weeksCount}} weeks of structured learning.",
+      "learning_goals": "Learning Goals",
+      "created_prefix": "Created "
+    }
   }
 }

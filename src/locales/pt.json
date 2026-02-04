@@ -1698,5 +1698,34 @@
         }
       }
     }
+  },
+  "learning_plan": {
+    "tap_to_expand": "Toque para expandir",
+    "tap_to_collapse": "Toque para recolher",
+    "dna_analysis": "Análise de DNA",
+    "continue": "Continuar",
+    "details_button": "Detalhes",
+    "status_new": "NOVO",
+    "status_in_progress": "EM PROGRESSO",
+    "status_completed": "CONCLUÍDO",
+    "details": {
+      "learning_plan_suffix": " Plano de Aprendizado",
+      "level_suffix": " Nível",
+      "overall_progress": "Progresso Geral",
+      "sessions": "Sessões",
+      "spoken_time": "Tempo de Fala",
+      "est_time": "Tempo Est.",
+      "current_week": "Semana Atual",
+      "week_prefix": "Semana ",
+      "plan_completed": "Plano Concluído",
+      "continue_learning": "Continuar Aprendendo",
+      "plan_overview": "Visão Geral do Plano",
+      "month_suffix": "-Mês",
+      "learning_plan_for": "Plano de Aprendizado para",
+      "level_text": "Nível",
+      "plan_description": "Este plano abrangente foi desenvolvido com base nos resultados da sua avaliação de fala. Você demonstrou um nível de proficiência {{level}} com uma pontuação geral de {{score}}/100. O plano abrange {{weeks}} meses com {{weeksCount}} semanas de aprendizado estruturado.",
+      "learning_goals": "Objetivos de Aprendizado",
+      "created_prefix": "Criado em "
+    }
   }
 }

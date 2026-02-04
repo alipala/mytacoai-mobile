@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -53,14 +54,14 @@ const getLevelColor = (level: string): { bg: string; text: string } => {
   return colors[level.toUpperCase()] || { bg: 'rgba(8, 145, 178, 0.15)', text: '#67E8F9' };
 };
 
-const getStatusBadge = (percentage: number) => {
+const getStatusBadge = (percentage: number, t: any) => {
   if (percentage === 0) {
-    return { text: 'NEW', bg: '#8B5CF6', ribbonStyle: 'ribbonNew' };
+    return { text: t('learning_plan.status_new'), bg: '#8B5CF6', ribbonStyle: 'ribbonNew' };
   }
   if (percentage === 100) {
-    return { text: 'COMPLETED', bg: '#10B981', ribbonStyle: 'ribbonCompleted' };
+    return { text: t('learning_plan.status_completed'), bg: '#10B981', ribbonStyle: 'ribbonCompleted' };
   }
-  return { text: 'IN PROGRESS', bg: '#3B82F6', ribbonStyle: 'ribbonInProgress' };
+  return { text: t('learning_plan.status_in_progress'), bg: '#3B82F6', ribbonStyle: 'ribbonInProgress' };
 };
 
 // ============================================================================
@@ -74,6 +75,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
   onViewAssessment,
   onCreateNextPlan,
 }) => {
+  const { t } = useTranslation();
   const language = plan.language || plan.target_language || 'English';
   const languageCapitalized = language.charAt(0).toUpperCase() + language.slice(1);
   const level = plan.proficiency_level || plan.target_cefr_level || 'B1';
@@ -82,7 +84,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
   const percentage = Math.round((completedSessions / totalSessions) * 100);
 
   const levelColors = getLevelColor(level);
-  const statusBadge = getStatusBadge(percentage);
+  const statusBadge = getStatusBadge(percentage, t);
 
   const handleContinue = () => {
     if (Platform.OS !== 'web') {
@@ -116,7 +118,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
       <View style={styles.topRow}>
         <View style={[styles.levelBadge, { backgroundColor: levelColors.bg }]}>
           <Text style={[styles.levelText, { color: levelColors.text }]}>
-            {level.toUpperCase()} Level
+            {level.toUpperCase()}{t('learning_plan.details.level_suffix')}
           </Text>
         </View>
       </View>
@@ -171,7 +173,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
             style={styles.continueGradient}
           >
             <Ionicons name="play" size={14} color="#FFFFFF" />
-            <Text style={styles.continueText}>Continue</Text>
+            <Text style={styles.continueText}>{t('learning_plan.continue')}</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -182,7 +184,7 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
           activeOpacity={0.7}
         >
           <Ionicons name="information-circle" size={14} color="#14B8A6" />
-          <Text style={styles.detailsText}>Details</Text>
+          <Text style={styles.detailsText}>{t('learning_plan.details_button')}</Text>
         </TouchableOpacity>
       </View>
     </View>

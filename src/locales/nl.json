@@ -1698,5 +1698,34 @@
         }
       }
     }
+  },
+  "learning_plan": {
+    "tap_to_expand": "Tik om uit te vouwen",
+    "tap_to_collapse": "Tik om samen te vouwen",
+    "dna_analysis": "DNA-Analyse",
+    "continue": "Doorgaan",
+    "details_button": "Details",
+    "status_new": "NIEUW",
+    "status_in_progress": "BEZIG",
+    "status_completed": "VOLTOOID",
+    "details": {
+      "learning_plan_suffix": " Leerplan",
+      "level_suffix": " Niveau",
+      "overall_progress": "Algemene Voortgang",
+      "sessions": "Sessies",
+      "spoken_time": "Spreektijd",
+      "est_time": "Gesch. Tijd",
+      "current_week": "Huidige Week",
+      "week_prefix": "Week ",
+      "plan_completed": "Plan Voltooid",
+      "continue_learning": "Doorgaan met Leren",
+      "plan_overview": "Planoverzicht",
+      "month_suffix": "-Maand",
+      "learning_plan_for": "Leerplan voor",
+      "level_text": "Niveau",
+      "plan_description": "Dit uitgebreide plan is ontworpen op basis van de resultaten van je spreekassessment. Je hebt een vaardigheidsniveau van {{level}} aangetoond met een totaalscore van {{score}}/100. Het plan beslaat {{weeks}} maanden met {{weeksCount}} weken gestructureerd leren.",
+      "learning_goals": "Leerdoelen",
+      "created_prefix": "Aangemaakt "
+    }
   }
 }

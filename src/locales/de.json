@@ -1698,5 +1698,34 @@
         }
       }
     }
+  },
+  "learning_plan": {
+    "tap_to_expand": "Zum Erweitern tippen",
+    "tap_to_collapse": "Zum Reduzieren tippen",
+    "dna_analysis": "DNA-Analyse",
+    "continue": "Fortfahren",
+    "details_button": "Details",
+    "status_new": "NEU",
+    "status_in_progress": "IN BEARBEITUNG",
+    "status_completed": "ABGESCHLOSSEN",
+    "details": {
+      "learning_plan_suffix": " Lernplan",
+      "level_suffix": " Niveau",
+      "overall_progress": "Gesamtfortschritt",
+      "sessions": "Sitzungen",
+      "spoken_time": "Sprechzeit",
+      "est_time": "Gesch. Zeit",
+      "current_week": "Aktuelle Woche",
+      "week_prefix": "Woche ",
+      "plan_completed": "Plan Abgeschlossen",
+      "continue_learning": "Weiter Lernen",
+      "plan_overview": "Planübersicht",
+      "month_suffix": "-Monat",
+      "learning_plan_for": "Lernplan für",
+      "level_text": "Niveau",
+      "plan_description": "Dieser umfassende Plan basiert auf den Ergebnissen Ihrer Sprechbewertung. Sie haben ein Kompetenzniveau von {{level}} mit einer Gesamtpunktzahl von {{score}}/100 nachgewiesen. Der Plan erstreckt sich über {{weeks}} Monate mit {{weeksCount}} Wochen strukturiertem Lernen.",
+      "learning_goals": "Lernziele",
+      "created_prefix": "Erstellt am "
+    }
   }
 }

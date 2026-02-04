@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import Svg, { Circle } from 'react-native-svg';
 import { styles } from './styles/LearningPlanDetailsModal.styles';
 
@@ -143,6 +144,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   progressStats,
   onContinueLearning,
 }) => {
+  const { t } = useTranslation();
   // CRITICAL: Use timing instead of spring for reliability
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -272,11 +274,11 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 )}
                 <View>
                   <Text style={styles.headerTitle}>
-                    {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan
+                    {language.charAt(0).toUpperCase() + language.slice(1)}{t('learning_plan.details.learning_plan_suffix')}
                   </Text>
                   <View style={[styles.levelBadge, { backgroundColor: levelColors.bg }]}>
                     <Text style={[styles.levelText, { color: levelColors.text }]}>
-                      {level} Level
+                      {level}{t('learning_plan.details.level_suffix')}
                     </Text>
                   </View>
                 </View>
@@ -296,7 +298,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               {/* Progress Section */}
               <View style={styles.progressSection}>
                 <ProgressRing percentage={percentage} size={140} strokeWidth={12} />
-                <Text style={styles.overallProgressLabel}>Overall Progress</Text>
+                <Text style={styles.overallProgressLabel}>{t('learning_plan.details.overall_progress')}</Text>
               </View>
 
               {/* Stats Cards */}
@@ -304,7 +306,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <View style={styles.statCard}>
                   <View style={styles.statCardLeft}>
                     <Ionicons name="calendar-outline" size={24} color="#4FD1C5" />
-                    <Text style={styles.statCardLabel}>Sessions</Text>
+                    <Text style={styles.statCardLabel}>{t('learning_plan.details.sessions')}</Text>
                   </View>
                   <Text style={styles.statCardValue}>{completedSessions}/{totalSessions}</Text>
                 </View>
@@ -313,7 +315,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                   <View style={styles.statCardLeft}>
                     <Ionicons name="time-outline" size={24} color="#3B82F6" />
                     <Text style={styles.statCardLabel}>
-                      {actualMinutesUsed > 0 ? 'Spoken Time' : 'Est. Time'}
+                      {actualMinutesUsed > 0 ? t('learning_plan.details.spoken_time') : t('learning_plan.details.est_time')}
                     </Text>
                   </View>
                   <Text style={styles.statCardValue}>
@@ -324,10 +326,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <View style={styles.statCard}>
                   <View style={styles.statCardLeft}>
                     <Ionicons name="trending-up" size={24} color="#8B5CF6" />
-                    <Text style={styles.statCardLabel}>Current Week</Text>
+                    <Text style={styles.statCardLabel}>{t('learning_plan.details.current_week')}</Text>
                   </View>
                   <Text style={styles.statCardValue}>
-                    Week {currentWeek}
+                    {t('learning_plan.details.week_prefix')}{currentWeek}
                   </Text>
                 </View>
               </View>
@@ -342,33 +344,36 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 disabled={isCompleted}
                 activeOpacity={0.7}
               >
-                <Ionicons 
-                  name={isCompleted ? "checkmark-circle" : "play"} 
-                  size={20} 
-                  color="#FFFFFF" 
+                <Ionicons
+                  name={isCompleted ? "checkmark-circle" : "play"}
+                  size={20}
+                  color="#FFFFFF"
                 />
                 <Text style={styles.continueButtonText}>
-                  {isCompleted ? 'Plan Completed' : 'Continue Learning'}
+                  {isCompleted ? t('learning_plan.details.plan_completed') : t('learning_plan.details.continue_learning')}
                 </Text>
               </TouchableOpacity>
 
               {/* Plan Description */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Plan Overview</Text>
+                <Text style={styles.sectionTitle}>{t('learning_plan.details.plan_overview')}</Text>
                 <Text style={styles.planOverview}>
-                  {plan?.duration_weeks || 2}-Month {language.charAt(0).toUpperCase() + language.slice(1)} Learning Plan for {level} Level
+                  {plan?.duration_weeks || 2}{t('learning_plan.details.month_suffix')} {language.charAt(0).toUpperCase() + language.slice(1)} {t('learning_plan.details.learning_plan_for')} {level} {t('learning_plan.details.level_text')}
                 </Text>
                 <Text style={styles.planDescription}>
-                  This comprehensive plan is designed based on your speaking assessment results. 
-                  You demonstrated a {level} level proficiency with an overall score of {plan?.assessment_data?.overall_score || 65}/100. 
-                  The plan spans {plan?.duration_weeks || 2} months with {Math.ceil((totalSessions) / 4)} weeks of structured learning.
+                  {t('learning_plan.details.plan_description', {
+                    level,
+                    score: plan?.assessment_data?.overall_score || 65,
+                    weeks: plan?.duration_weeks || 2,
+                    weeksCount: Math.ceil((totalSessions) / 4)
+                  })}
                 </Text>
               </View>
 
               {/* Learning Goals */}
               {goals.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Learning Goals</Text>
+                  <Text style={styles.sectionTitle}>{t('learning_plan.details.learning_goals')}</Text>
                   {goals.map((goal: string, index: number) => (
                     <View key={index} style={styles.goalItem}>
                       <Ionicons name="checkmark-circle" size={20} color="#10B981" />
@@ -381,10 +386,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               {/* Footer */}
               <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                  Created {new Date(plan?.created_at || Date.now()).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  {t('learning_plan.details.created_prefix')}{new Date(plan?.created_at || Date.now()).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}
                 </Text>
               </View>

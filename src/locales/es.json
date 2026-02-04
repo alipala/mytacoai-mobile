@@ -1698,5 +1698,34 @@
         }
       }
     }
+  },
+  "learning_plan": {
+    "tap_to_expand": "Toca para expandir",
+    "tap_to_collapse": "Toca para colapsar",
+    "dna_analysis": "Análisis de ADN",
+    "continue": "Continuar",
+    "details_button": "Detalles",
+    "status_new": "NUEVO",
+    "status_in_progress": "EN PROGRESO",
+    "status_completed": "COMPLETADO",
+    "details": {
+      "learning_plan_suffix": " Plan de Aprendizaje",
+      "level_suffix": " Nivel",
+      "overall_progress": "Progreso General",
+      "sessions": "Sesiones",
+      "spoken_time": "Tiempo Hablado",
+      "est_time": "Tiempo Est.",
+      "current_week": "Semana Actual",
+      "week_prefix": "Semana ",
+      "plan_completed": "Plan Completado",
+      "continue_learning": "Continuar Aprendiendo",
+      "plan_overview": "Vista General del Plan",
+      "month_suffix": "-Mes",
+      "learning_plan_for": "Plan de Aprendizaje para",
+      "level_text": "Nivel",
+      "plan_description": "Este plan integral está diseñado basándose en los resultados de tu evaluación oral. Demostraste un nivel de competencia {{level}} con una puntuación general de {{score}}/100. El plan abarca {{weeks}} meses con {{weeksCount}} semanas de aprendizaje estructurado.",
+      "learning_goals": "Objetivos de Aprendizaje",
+      "created_prefix": "Creado "
+    }
   }
 }

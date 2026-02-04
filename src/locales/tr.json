@@ -1698,5 +1698,34 @@
         }
       }
     }
+  },
+  "learning_plan": {
+    "tap_to_expand": "Genişletmek için dokun",
+    "tap_to_collapse": "Daraltmak için dokun",
+    "dna_analysis": "DNA Analizi",
+    "continue": "Devam Et",
+    "details_button": "Detaylar",
+    "status_new": "YENİ",
+    "status_in_progress": "DEVAM EDİYOR",
+    "status_completed": "TAMAMLANDI",
+    "details": {
+      "learning_plan_suffix": " Öğrenme Planı",
+      "level_suffix": " Seviye",
+      "overall_progress": "Genel İlerleme",
+      "sessions": "Oturumlar",
+      "spoken_time": "Konuşma Süresi",
+      "est_time": "Tah. Süre",
+      "current_week": "Güncel Hafta",
+      "week_prefix": "Hafta ",
+      "plan_completed": "Plan Tamamlandı",
+      "continue_learning": "Öğrenmeye Devam Et",
+      "plan_overview": "Plan Genel Bakış",
+      "month_suffix": "-Ay",
+      "learning_plan_for": "Öğrenme Planı",
+      "level_text": "Seviye",
+      "plan_description": "Bu kapsamlı plan, konuşma değerlendirmenizin sonuçlarına göre tasarlanmıştır. {{level}} seviyesinde yeterlilik gösterdiniz ve genel puanınız {{score}}/100. Plan, {{weeksCount}} haftalık yapılandırılmış öğrenme ile {{weeks}} ayı kapsamaktadır.",
+      "learning_goals": "Öğrenme Hedefleri",
+      "created_prefix": "Oluşturuldu "
+    }
   }
 }

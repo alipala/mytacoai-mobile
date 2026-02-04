@@ -1698,5 +1698,34 @@
         }
       }
     }
+  },
+  "learning_plan": {
+    "tap_to_expand": "Appuyer pour développer",
+    "tap_to_collapse": "Appuyer pour réduire",
+    "dna_analysis": "Analyse ADN",
+    "continue": "Continuer",
+    "details_button": "Détails",
+    "status_new": "NOUVEAU",
+    "status_in_progress": "EN COURS",
+    "status_completed": "TERMINÉ",
+    "details": {
+      "learning_plan_suffix": " Plan d'Apprentissage",
+      "level_suffix": " Niveau",
+      "overall_progress": "Progrès Global",
+      "sessions": "Sessions",
+      "spoken_time": "Temps de Parole",
+      "est_time": "Temps Est.",
+      "current_week": "Semaine Actuelle",
+      "week_prefix": "Semaine ",
+      "plan_completed": "Plan Terminé",
+      "continue_learning": "Continuer l'Apprentissage",
+      "plan_overview": "Aperçu du Plan",
+      "month_suffix": "-Mois",
+      "learning_plan_for": "Plan d'Apprentissage pour",
+      "level_text": "Niveau",
+      "plan_description": "Ce plan complet est conçu en fonction de vos résultats d'évaluation orale. Vous avez démontré un niveau de compétence {{level}} avec un score global de {{score}}/100. Le plan s'étend sur {{weeks}} mois avec {{weeksCount}} semaines d'apprentissage structuré.",
+      "learning_goals": "Objectifs d'Apprentissage",
+      "created_prefix": "Créé le "
+    }
   }
 }
