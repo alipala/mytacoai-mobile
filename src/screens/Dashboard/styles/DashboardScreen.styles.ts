@@ -117,17 +117,8 @@ export const styles = StyleSheet.create({
   notificationBell: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)', // Turquoise tinted
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 4,
   },
   notificationDot: {
     position: 'absolute',

@@ -338,8 +338,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
   const fetchNotifications = async () => {
     try {
-      // Note: The notifications endpoint is literally /api/ (base path)
-      const data = await fetchWithAuth('/api/');
+      // Fetch notifications from the notifications endpoint
+      const data = await fetchWithAuth('/api/notifications/');
 
       // Filter and validate notifications to ensure they have required fields
       const validNotifications = (data.notifications || []).filter((notif: Notification) => {
@@ -451,7 +451,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
       // Mark as read on backend
       try {
-        await fetchWithAuth('/api/mark-read', {
+        await fetchWithAuth('/api/notifications/mark-read', {
           method: 'POST',
           body: JSON.stringify({ notification_id: notificationId }),
         });

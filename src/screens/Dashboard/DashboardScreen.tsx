@@ -39,9 +39,9 @@ import { styles } from './styles/DashboardScreen.styles';
 import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
 import { CollapsibleLanguageGroup } from '../../components/CollapsibleLanguageGroup';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
+import { API_BASE_URL } from '../../api/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const API_BASE_URL = 'https://taco-voice-ai-e9b98ce8e7c5.herokuapp.com';
 
 interface DashboardScreenProps {
   navigation: any;
@@ -143,7 +143,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       const authToken = await AsyncStorage.getItem('auth_token');
       if (!authToken) return { notifications: [], unread_count: 0 };
 
-      const response = await fetch(`${API_BASE_URL}/api/`, {
+      const response = await fetch(`${API_BASE_URL}/api/notifications/`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       if (!authToken) return;
 
       try {
-        await fetch(`${API_BASE_URL}/api/mark-read`, {
+        await fetch(`${API_BASE_URL}/api/notifications/mark-read`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -878,64 +878,39 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               setShowNotificationsModal(true);
             }}
           >
-            {/* Outer glow for notification */}
-            <View style={{
-              position: 'absolute',
-              top: -2,
-              left: -2,
-              right: -2,
-              bottom: -2,
-              borderRadius: 20,
-              backgroundColor: 'rgba(20, 184, 166, 0.2)',
-              opacity: 0.5,
-            }} />
             <Ionicons
               name={unreadCount > 0 ? "notifications" : "notifications-outline"}
-              size={22}
+              size={24}
               color="#14B8A6"
             />
-            {/* Red Pulsing Badge for Unread */}
+            {/* Red Badge - Only shows when unreadCount > 0 */}
             {unreadCount > 0 && (
-              <>
-                {/* Animated pulsing glow */}
-                <View style={{
-                  position: 'absolute',
-                  top: 2,
-                  right: 2,
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  backgroundColor: '#EF4444',
-                  opacity: 0.3,
-                }} />
-                <View style={{
-                  position: 'absolute',
-                  top: 4,
-                  right: 4,
-                  backgroundColor: '#EF4444',
-                  borderRadius: 10,
-                  minWidth: 18,
-                  height: 18,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingHorizontal: 4,
-                  borderWidth: 2,
-                  borderColor: '#0B1A1F',
-                  shadowColor: '#EF4444',
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.8,
-                  shadowRadius: 6,
-                  elevation: 8,
+              <View style={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                backgroundColor: '#EF4444',
+                borderRadius: 10,
+                minWidth: 20,
+                height: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: 5,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.3,
+                shadowRadius: 2,
+                elevation: 6,
+              }}>
+                <Text style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#FFFFFF',
+                  letterSpacing: -0.5,
                 }}>
-                  <Text style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    color: '#FFFFFF',
-                  }}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Text>
-                </View>
-              </>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -1658,7 +1633,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           backgroundColor: '#EF4444',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          width: 80,
+                          width: 90,
                           borderRadius: 12,
                           marginRight: 8,
                         }}
@@ -1677,9 +1652,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           );
                         }}
                       >
-                        <Ionicons name="trash" size={24} color="#FFFFFF" />
-                        <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
-                          {t('buttons.delete')}
+                        <Ionicons name="trash" size={28} color="#FFFFFF" />
+                        <Text style={{ color: '#FFFFFF', fontSize: 11, marginTop: 4, fontWeight: '700' }}>
+                          Delete
                         </Text>
                       </TouchableOpacity>
                     </Animated.View>
@@ -1707,7 +1682,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           backgroundColor: '#10B981',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          width: 80,
+                          width: 90,
                           borderRadius: 12,
                           marginLeft: 8,
                         }}
@@ -1718,9 +1693,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           markNotificationAsRead(notificationId);
                         }}
                       >
-                        <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
-                        <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4, fontWeight: '600' }}>
-                          {t('notifications.mark_as_read')}
+                        <Ionicons name="checkmark-circle" size={28} color="#FFFFFF" />
+                        <Text style={{ color: '#FFFFFF', fontSize: 11, marginTop: 4, fontWeight: '700' }}>
+                          Read
                         </Text>
                       </TouchableOpacity>
                     </Animated.View>
@@ -1796,20 +1771,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                             {notification.notification.content}
                           </Text>
 
-                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Text style={{ fontSize: 12, color: '#6B8A84' }}>
-                              {new Date(notification.notification.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </Text>
-                            <Text style={{ fontSize: 11, color: '#6B8A84', fontStyle: 'italic' }}>
-                              {notification.is_read ? t('notifications.swipe_instructions') : t('notifications.swipe_instructions')}
-                            </Text>
-                          </View>
+                          <Text style={{ fontSize: 12, color: '#6B8A84' }}>
+                            {new Date(notification.notification.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </Text>
                         </View>
                       </View>
                     </View>
