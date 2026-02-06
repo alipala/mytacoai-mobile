@@ -801,7 +801,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         <Ionicons name="sparkles" size={18} color="#FFD63A" />
                       </View>
                       <Text style={styles.upgradeLinkText}>{t('subscription.title')}</Text>
-                      <Ionicons name="arrow-forward" size={16} color="#4ECFBF" />
+                      <Ionicons name="arrow-forward" size={16} color="#FFD63A" />
                     </TouchableOpacity>
                   </View>
                 )}
