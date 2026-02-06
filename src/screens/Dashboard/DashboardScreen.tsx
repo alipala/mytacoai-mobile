@@ -575,7 +575,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 }} />
                 <Ionicons name="sparkles-outline" size={16} color="#6B8A84" />
                 <View>
-                  <Text style={styles.freeTextCompact}>{t('profile.subscription.free_badge')}</Text>
+                  <Text style={styles.freeTextCompact}>{t('profile.settings.subscription.free_badge')}</Text>
                   <Text style={styles.freeMinutesCompact}>
                     {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
                   </Text>
