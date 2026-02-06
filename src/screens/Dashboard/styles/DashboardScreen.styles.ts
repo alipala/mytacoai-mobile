@@ -81,6 +81,36 @@ export const styles = StyleSheet.create({
     color: '#FCD34D', // Lighter gold
     lineHeight: 10,
   },
+  // Compact Free Badge in Header - Dark Theme with Muted Feel
+  freeBadgeCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(107, 138, 132, 0.15)', // Muted teal
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(107, 138, 132, 0.4)',
+    shadowColor: '#6B8A84',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  freeTextCompact: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8CA5A0', // Muted teal text
+    letterSpacing: 0.3,
+    lineHeight: 12,
+  },
+  freeMinutesCompact: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#6B8A84', // Slightly muted
+    lineHeight: 10,
+  },
   // Compact Streak Badge in Header - Dark Theme with Glow
   streakBadgeCompact: {
     flexDirection: 'row',

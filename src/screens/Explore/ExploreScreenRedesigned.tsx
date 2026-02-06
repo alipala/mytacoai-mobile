@@ -2017,6 +2017,8 @@ interface CardProps {
 
 // 🔥 HERO CARD - Featured Daily Challenge
 function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }: CardProps) {
+  const { t } = useTranslation();
+
   // Pulsing glow animation
   const pulseAnim = useSharedValue(0);
 
@@ -2182,6 +2184,8 @@ function GameLobbyHeroCard({ challenge, count, stats, color1, color2, onPress }:
 
 // ⚡ PRIMARY CARD - Landscape, Medium Size
 function GameLobbyPrimaryCard({ challenge, count, stats, color1, color2, onPress }: CardProps) {
+  const { t } = useTranslation();
+
   // Gentle breathing animation (same as Secondary cards)
   const breatheAnim = useSharedValue(1);
 

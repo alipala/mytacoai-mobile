@@ -547,26 +547,138 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
-        {/* iOS-Native Header WITH USER BUTTON */}
+        {/* iOS-Native Header - Consistent with main dashboard */}
         <View style={styles.header}>
           <Image
-            source={require('../../assets/logo-transparent.png')}
-            style={styles.logo}
+            source={require('../../assets/logo-minimal-transparent.png')}
+            style={styles.logoMinimal}
             resizeMode="contain"
           />
 
           <View style={styles.headerActions}>
-            {/* Upgrade Button - only show for free users */}
-            {subscriptionStatus?.plan === 'free' && (
+            {/* Free User Badge - Show for non-premium users */}
+            {subscriptionStatus && ['try_learn', 'free'].includes(subscriptionStatus.plan) && (
               <TouchableOpacity
-                style={styles.upgradeButton}
+                style={styles.freeBadgeCompact}
                 onPress={handleUpgradePress}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
               >
-                <Ionicons name="sparkles" size={22} color="#14B8A6" />
-                <Text style={styles.upgradeButtonText}>{t('subscription.title')}</Text>
+                <View style={{
+                  position: 'absolute',
+                  top: -2,
+                  left: -2,
+                  right: -2,
+                  bottom: -2,
+                  borderRadius: 14,
+                  backgroundColor: 'rgba(107, 138, 132, 0.2)',
+                  opacity: 0.5,
+                }} />
+                <Ionicons name="sparkles-outline" size={16} color="#6B8A84" />
+                <View>
+                  <Text style={styles.freeTextCompact}>{t('subscription.free_badge')}</Text>
+                  <Text style={styles.freeMinutesCompact}>
+                    {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                  </Text>
+                </View>
               </TouchableOpacity>
             )}
+
+            {/* Premium Badge - Show for premium users */}
+            {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
+              <TouchableOpacity
+                style={styles.premiumBadgeCompact}
+                onPress={handleUpgradePress}
+                activeOpacity={0.8}
+              >
+                <View style={{
+                  position: 'absolute',
+                  top: -2,
+                  left: -2,
+                  right: -2,
+                  bottom: -2,
+                  borderRadius: 14,
+                  backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                  opacity: 0.5,
+                }} />
+                <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
+                <View>
+                  <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
+                  <Text style={styles.premiumMinutesCompact}>
+                    {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {/* Streak Badge */}
+            {progressStats && (
+              <TouchableOpacity
+                style={styles.streakBadgeCompact}
+                activeOpacity={0.8}
+              >
+                <View style={{
+                  position: 'absolute',
+                  top: -2,
+                  left: -2,
+                  right: -2,
+                  bottom: -2,
+                  borderRadius: 14,
+                  backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                  opacity: 0.5,
+                }} />
+                <Ionicons name="flame-outline" size={18} color="#EF4444" />
+                <View>
+                  <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
+                  <Text style={styles.streakLabelCompact}>{t('units.days_plural', { count: progressStats.current_streak || 0 })}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {/* Notifications Bell */}
+            <TouchableOpacity
+              style={styles.notificationBell}
+              activeOpacity={0.8}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setShowNotificationsModal(true);
+              }}
+            >
+              <Ionicons
+                name={unreadCount > 0 ? "notifications" : "notifications-outline"}
+                size={24}
+                color="#14B8A6"
+              />
+              {unreadCount > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -6,
+                  right: -6,
+                  backgroundColor: '#EF4444',
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingHorizontal: 5,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 2,
+                  elevation: 6,
+                }}>
+                  <Text style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: '#FFFFFF',
+                    letterSpacing: -0.5,
+                  }}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 

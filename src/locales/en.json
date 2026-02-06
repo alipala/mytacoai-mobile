@@ -758,6 +758,7 @@
       },
       "subscription": {
         "title": "Subscription",
+        "free_badge": "Free",
         "loading": "Loading subscription...",
         "error_load": "Failed to load subscription status",
         "button_retry": "Try Again",
