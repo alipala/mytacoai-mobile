@@ -23,6 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
+import { Typography } from '../constants/typography';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -146,14 +147,20 @@ export const MiniLearningPlanCard: React.FC<MiniLearningPlanCardProps> = ({
         {/* Stats Column */}
         <View style={styles.statsColumn}>
           <View style={styles.statRow}>
-            <Ionicons name="calendar" size={13} color="#6B7280" />
-            <Text style={styles.statText}>
-              {completedSessions}/{totalSessions} sessions
-            </Text>
+            <Ionicons name="calendar" size={16} color="#14B8A6" />
+            <View style={styles.statTextContainer}>
+              <Text style={styles.statNumber}>
+                {completedSessions}/{totalSessions}
+              </Text>
+              <Text style={styles.statLabel}>sessions</Text>
+            </View>
           </View>
           <View style={styles.statRow}>
-            <Ionicons name="time" size={13} color="#6B7280" />
-            <Text style={styles.statText}>{completedSessions * 5} min</Text>
+            <Ionicons name="time" size={16} color="#14B8A6" />
+            <View style={styles.statTextContainer}>
+              <Text style={styles.statNumber}>{completedSessions * 5}</Text>
+              <Text style={styles.statLabel}>min</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -256,14 +263,14 @@ const styles = StyleSheet.create({
     paddingRight: 50,
   },
   levelBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 8,
   },
   levelText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
   },
   progressSection: {
     flexDirection: 'row',
@@ -303,23 +310,33 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   progressText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '800',
     color: '#14B8A6',
   },
   statsColumn: {
     flex: 1,
-    gap: 8,
+    gap: 10,
   },
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
-  statText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#B4E4DD',
+  statTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  statNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.6)',
   },
   buttonsRow: {
     flexDirection: 'row',
@@ -345,7 +362,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   continueText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -363,7 +380,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(20, 184, 166, 0.4)',
   },
   detailsText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     color: '#14B8A6',
   },

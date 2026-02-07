@@ -1709,6 +1709,11 @@
     "status_new": "NEW",
     "status_in_progress": "IN PROGRESS",
     "status_completed": "COMPLETED",
+    "filters": {
+      "all": "All",
+      "in_progress": "In Progress",
+      "completed": "Completed"
+    },
     "details": {
       "learning_plan_suffix": " Learning Plan",
       "level_suffix": " Level",

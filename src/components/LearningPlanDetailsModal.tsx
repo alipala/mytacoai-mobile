@@ -13,7 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import Svg, { Circle } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './styles/LearningPlanDetailsModal.styles';
+import { getLanguageGradient } from '../utils/gradientHelpers';
 
 // Import SVG flags
 import EnglishFlag from '../assets/flags/english.svg';
@@ -31,6 +33,7 @@ interface LearningPlanDetailsModalProps {
   visible: boolean;
   onClose: () => void;
   plan: any;
+  language?: string;
   progressStats?: any;
   onContinueLearning: () => void;
 }
@@ -65,21 +68,23 @@ const getLevelColor = (level: string): { bg: string; text: string } => {
 
 interface ProgressRingProps {
   percentage: number;
+  accentColor: string;
   size?: number;
   strokeWidth?: number;
 }
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const ProgressRing: React.FC<ProgressRingProps> = ({ 
-  percentage, 
-  size = 140, 
-  strokeWidth = 12 
+const ProgressRing: React.FC<ProgressRingProps> = ({
+  percentage,
+  accentColor,
+  size = 140,
+  strokeWidth = 12
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  
+
   useEffect(() => {
     animatedValue.setValue(0);
     Animated.timing(animatedValue, {
@@ -95,7 +100,16 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   });
 
   const isComplete = percentage >= 100;
-  const progressColor = isComplete ? '#10B981' : '#14B8A6';
+  const progressColor = isComplete ? '#10B981' : accentColor;
+
+  // Helper to convert hex to rgba
+  const hexToRgba = (hex: string, opacity: number) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (result) {
+      return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${opacity})`;
+    }
+    return `rgba(20, 184, 166, ${opacity})`;
+  };
 
   return (
     <View style={[styles.progressRingWrapper, { width: size, height: size }]}>
@@ -104,7 +118,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(20, 184, 166, 0.15)"
+          stroke={hexToRgba(accentColor, 0.15)}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -121,11 +135,13 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      
+
       <View style={styles.progressTextContainer}>
-        <Text style={styles.progressPercentage}>{Math.round(percentage)}%</Text>
+        <Text style={[styles.progressPercentage, { color: progressColor }]}>
+          {Math.round(percentage)}%
+        </Text>
       </View>
-      
+
       {isComplete && (
         <View style={styles.completeBadge}>
           <Ionicons name="checkmark-circle" size={40} color="#10B981" />
@@ -141,6 +157,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   visible,
   onClose,
   plan,
+  language: languageProp,
   progressStats,
   onContinueLearning,
 }) => {
@@ -156,10 +173,24 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
 
   const planContent = plan?.plan_content || {};
   const goals = plan?.goals || [];
-  const language = plan?.language || plan?.target_language || 'English';
+  const language = languageProp || plan?.language || plan?.target_language || 'English';
   const level = plan?.proficiency_level || plan?.target_cefr_level || 'B1';
   const levelColors = getLevelColor(level);
   const FlagComponent = getLanguageFlagComponent(language);
+
+  // Get language-specific gradient colors
+  const gradientColors = getLanguageGradient(language);
+  const accentColor = gradientColors[0]; // Use first gradient color as primary accent
+  const secondaryColor = gradientColors[1]; // Secondary gradient color
+
+  // Helper to convert hex to rgba
+  const hexToRgba = (hex: string, opacity: number) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (result) {
+      return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${opacity})`;
+    }
+    return `rgba(20, 184, 166, ${opacity})`;
+  };
 
   // Get actual practice minutes used from the plan (tracked by backend)
   // Fallback to estimated calculation if not available
@@ -260,12 +291,25 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
             styles.modalContainer,
             {
               transform: [{ translateY: slideAnim }],
+              borderColor: hexToRgba(accentColor, 0.3),
+              shadowColor: accentColor,
             },
           ]}
         >
           <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-            {/* Header */}
-            <View style={styles.header}>
+            {/* Header with Gradient */}
+            <LinearGradient
+              colors={[hexToRgba(accentColor, 0.25), hexToRgba(secondaryColor, 0.15)] as [string, string, ...string[]]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[
+                styles.header,
+                {
+                  backgroundColor: 'transparent',
+                  borderBottomColor: hexToRgba(accentColor, 0.2),
+                }
+              ]}
+            >
               <View style={styles.headerLeft}>
                 {FlagComponent && (
                   <View style={styles.headerFlagContainer}>
@@ -287,48 +331,74 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={28} color="#FFFFFF" />
               </TouchableOpacity>
-            </View>
+            </LinearGradient>
 
             {/* Scrollable Content */}
-            <ScrollView 
+            <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
               bounces={true}
             >
               {/* Progress Section */}
-              <View style={styles.progressSection}>
-                <ProgressRing percentage={percentage} size={140} strokeWidth={12} />
-                <Text style={styles.overallProgressLabel}>{t('learning_plan.details.overall_progress')}</Text>
+              <View style={[styles.progressSection, { backgroundColor: hexToRgba(accentColor, 0.05) }]}>
+                <ProgressRing percentage={percentage} accentColor={accentColor} size={140} strokeWidth={12} />
+                <Text style={[styles.overallProgressLabel, { color: hexToRgba(accentColor, 0.7) }]}>
+                  {t('learning_plan.details.overall_progress')}
+                </Text>
               </View>
 
               {/* Stats Cards */}
               <View style={styles.statsContainer}>
-                <View style={styles.statCard}>
+                <View style={[
+                  styles.statCard,
+                  {
+                    backgroundColor: hexToRgba(accentColor, 0.08),
+                    borderColor: hexToRgba(accentColor, 0.2),
+                  }
+                ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="calendar-outline" size={24} color="#4FD1C5" />
-                    <Text style={styles.statCardLabel}>{t('learning_plan.details.sessions')}</Text>
+                    <Ionicons name="calendar-outline" size={24} color={accentColor} />
+                    <Text style={[styles.statCardLabel, { color: hexToRgba(accentColor, 0.8) }]}>
+                      {t('learning_plan.details.sessions')}
+                    </Text>
                   </View>
-                  <Text style={styles.statCardValue}>{completedSessions}/{totalSessions}</Text>
+                  <Text style={[styles.statCardValue, { color: accentColor }]}>
+                    {completedSessions}/{totalSessions}
+                  </Text>
                 </View>
 
-                <View style={styles.statCard}>
+                <View style={[
+                  styles.statCard,
+                  {
+                    backgroundColor: hexToRgba(secondaryColor, 0.08),
+                    borderColor: hexToRgba(secondaryColor, 0.2),
+                  }
+                ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="time-outline" size={24} color="#3B82F6" />
-                    <Text style={styles.statCardLabel}>
+                    <Ionicons name="time-outline" size={24} color={secondaryColor} />
+                    <Text style={[styles.statCardLabel, { color: hexToRgba(secondaryColor, 0.8) }]}>
                       {actualMinutesUsed > 0 ? t('learning_plan.details.spoken_time') : t('learning_plan.details.est_time')}
                     </Text>
                   </View>
-                  <Text style={styles.statCardValue}>
+                  <Text style={[styles.statCardValue, { color: secondaryColor }]}>
                     {actualMinutesUsed > 0 ? `${Math.round(practiceTimeMinutes)} min` : `~${practiceTimeMinutes} min`}
                   </Text>
                 </View>
 
-                <View style={styles.statCard}>
+                <View style={[
+                  styles.statCard,
+                  {
+                    backgroundColor: hexToRgba(accentColor, 0.08),
+                    borderColor: hexToRgba(accentColor, 0.2),
+                  }
+                ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="trending-up" size={24} color="#8B5CF6" />
-                    <Text style={styles.statCardLabel}>{t('learning_plan.details.current_week')}</Text>
+                    <Ionicons name="trending-up" size={24} color={accentColor} />
+                    <Text style={[styles.statCardLabel, { color: hexToRgba(accentColor, 0.8) }]}>
+                      {t('learning_plan.details.current_week')}
+                    </Text>
                   </View>
-                  <Text style={styles.statCardValue}>
+                  <Text style={[styles.statCardValue, { color: accentColor }]}>
                     {t('learning_plan.details.week_prefix')}{currentWeek}
                   </Text>
                 </View>
@@ -336,7 +406,15 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
 
               {/* Continue Learning Button */}
               <TouchableOpacity
-                style={[styles.continueButton, isCompleted && styles.continueButtonDisabled]}
+                style={[
+                  styles.continueButton,
+                  isCompleted && styles.continueButtonDisabled,
+                  !isCompleted && {
+                    backgroundColor: accentColor,
+                    shadowColor: accentColor,
+                    borderColor: hexToRgba(accentColor, 0.4),
+                  }
+                ]}
                 onPress={() => {
                   handleClose();
                   setTimeout(() => onContinueLearning(), 400);
@@ -357,10 +435,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               {/* Plan Description */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('learning_plan.details.plan_overview')}</Text>
-                <Text style={styles.planOverview}>
+                <Text style={[styles.planOverview, { color: accentColor }]}>
                   {plan?.duration_weeks || 2}{t('learning_plan.details.month_suffix')} {language.charAt(0).toUpperCase() + language.slice(1)} {t('learning_plan.details.learning_plan_for')} {level} {t('learning_plan.details.level_text')}
                 </Text>
-                <Text style={styles.planDescription}>
+                <Text style={[styles.planDescription, { color: hexToRgba(accentColor, 0.7) }]}>
                   {t('learning_plan.details.plan_description', {
                     level,
                     score: plan?.assessment_data?.overall_score || 65,

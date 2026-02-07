@@ -397,10 +397,27 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1D4ED8',
   },
-  // Language Groups Container
+  // Language Groups Container (Legacy - for CollapsibleLanguageGroup)
   languageGroupsContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
+  },
+  // Grid Container (New - for 2-column grid)
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    justifyContent: 'space-between',
+  },
+  gridItem: {
+    marginBottom: 12,
+  },
+  gridItemLeft: {
+    marginRight: 6,
+  },
+  gridItemRight: {
+    marginLeft: 6,
   },
   // Compact Divider
   divider: {

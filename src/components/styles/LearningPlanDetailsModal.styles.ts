@@ -62,20 +62,20 @@ export const styles = StyleSheet.create({
     fontSize: 32,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   levelBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
     alignSelf: 'flex-start',
   },
   levelText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
   },
   closeButton: {
     width: 36,
@@ -106,7 +106,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressPercentage: {
-    fontSize: 36,
+    fontSize: 42,
     fontWeight: 'bold',
     color: '#14B8A6',
   },
@@ -123,10 +123,10 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   overallProgressLabel: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#B4E4DD',
-    marginTop: 16,
-    fontWeight: '500',
+    marginTop: 18,
+    fontWeight: '600',
   },
   statsContainer: {
     paddingHorizontal: 20,
@@ -149,12 +149,12 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   statCardLabel: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#B4E4DD',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   statCardValue: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#14B8A6',
   },
@@ -184,8 +184,8 @@ export const styles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
   },
   section: {
     paddingHorizontal: 20,

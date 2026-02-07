@@ -27,8 +27,6 @@ import { useTranslation } from 'react-i18next';
 import { setBadgeCount } from '../../services/notificationService';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
-import { LearningPlanCard } from '../../components/LearningPlanCard';
-import { CompactLearningPlanCard } from '../../components/CompactLearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
@@ -37,7 +35,9 @@ import TransitionWrapper from '../../components/TransitionWrapper';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
-import { CollapsibleLanguageGroup } from '../../components/CollapsibleLanguageGroup';
+import { FilterChips } from '../../components/FilterChips';
+import { LanguageSection } from '../../components/LanguageSection';
+import { QuickResumeWidget } from '../../components/QuickResumeWidget';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { API_BASE_URL } from '../../api/config';
 
@@ -72,6 +72,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
+
+  // Filter state for Spotify-inspired layout
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
   // Notifications state
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
@@ -504,6 +507,46 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
 
     return `${greeting}, ${firstName}`;
+  };
+
+  // Filter and group learning plans for Spotify-inspired layout
+  const getFilteredAndGroupedPlans = () => {
+    // Filter plans based on selected filter
+    // Status values: "in_progress" (default), "awaiting_final_assessment", "completed", "failed_assessment"
+    const filteredPlans = learningPlans.filter(plan => {
+      if (selectedFilter === 'all') return true;
+
+      const status = plan.status?.toLowerCase() || 'in_progress';
+      const progressPercentage = plan.progress_percentage || 0;
+
+      if (selectedFilter === 'in_progress') {
+        return status === 'in_progress' || status === 'awaiting_final_assessment' || (!plan.status && progressPercentage < 100);
+      }
+      if (selectedFilter === 'completed') {
+        return status === 'completed' || progressPercentage >= 100;
+      }
+
+      return true;
+    });
+
+    // Group plans by language
+    const plansByLanguage = filteredPlans.reduce((acc, plan) => {
+      const language = (plan.language || 'english').toLowerCase();
+      if (!acc[language]) {
+        acc[language] = [];
+      }
+      acc[language].push(plan);
+      return acc;
+    }, {} as Record<string, LearningPlan[]>);
+
+    // Find most recent plan for Quick Resume (from all plans, not just filtered)
+    const mostRecentPlan = learningPlans.length > 0 ? [...learningPlans].sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || '').getTime();
+      const dateB = new Date(b.updated_at || b.created_at || '').getTime();
+      return dateB - dateA;
+    })[0] : null;
+
+    return { plansByLanguage, mostRecentPlan };
   };
 
   // Main content render
@@ -1049,55 +1092,34 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </>
         )}
 
-        {/* Learning Plans Grouped by Language - Collapsible */}
-        <View style={styles.languageGroupsContainer}>
-          {(() => {
-            // Group learning plans by language
-            const plansByLanguage: Record<string, LearningPlan[]> = {};
-            learningPlans.forEach(plan => {
-              const lang = plan.language || 'english';
-              if (!plansByLanguage[lang]) {
-                plansByLanguage[lang] = [];
-              }
-              plansByLanguage[lang].push(plan);
-            });
+        {/* Spotify-Inspired Learning Plans Layout */}
+        {(() => {
+          const { plansByLanguage, mostRecentPlan } = getFilteredAndGroupedPlans();
+          const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
 
-            // Get all plan IDs that have a next-level plan created
-            const existingPlanIds = learningPlans
-              .filter(p => p.previous_plan_id)
-              .map(p => p.previous_plan_id!);
-
-            // Get total count for dynamic height calculation
-            const totalLanguageCount = Object.keys(plansByLanguage).length;
-
-            // Render a CollapsibleLanguageGroup for each language
-            return Object.entries(plansByLanguage).map(([language, plans]) => (
-              <CollapsibleLanguageGroup
-                key={language}
-                language={language}
-                plans={plans}
-                progressStats={progressStats}
-                isPremium={subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan)}
-                onContinue={handleContinueLearning}
-                onViewDetails={handleViewDetails}
-                onViewAssessment={(plan) => {
-                  setSelectedAssessmentPlan(plan);
-                  setShowAssessmentModal(true);
-                }}
-                onCreateNextPlan={handleCreateNextPlan}
-                onViewDNA={(lang) => navigation.navigate('SpeakingDNA', { language: lang })}
-                existingPlanIds={existingPlanIds}
-                totalLanguageCount={totalLanguageCount}
-                hasDNAAnalysis={languagesWithDNA.has(language)}
-                isExpanded={expandedLanguage === language}
-                onToggleExpand={() => {
-                  // Toggle: if clicking same group, collapse it; otherwise expand the new one
-                  setExpandedLanguage(expandedLanguage === language ? null : language);
-                }}
+          return (
+            <>
+              {/* Filter Chips */}
+              <FilterChips
+                selectedFilter={selectedFilter}
+                onFilterChange={setSelectedFilter}
               />
-            ));
-          })()}
-        </View>
+
+              {/* Language Sections with Horizontal Scrolling Cards */}
+              {Object.entries(plansByLanguage).map(([language, plans]) => (
+                <LanguageSection
+                  key={language}
+                  language={language}
+                  plans={plans}
+                  onPlanPress={handleViewDetails}
+                  onViewDNA={(lang) => navigation.navigate('SpeakingDNA', { language: lang })}
+                  hasDNAAnalysis={languagesWithDNA.has(language)}
+                  isPremium={isPremium}
+                />
+              ))}
+            </>
+          );
+        })()}
 
         {/* Divider - Compact */}
         <View style={styles.divider}>
@@ -1151,12 +1173,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         </Animated.View>
       </ScrollView>
 
+      {/* Quick Resume Widget - Always Visible at Bottom */}
+      {(() => {
+        const { mostRecentPlan } = getFilteredAndGroupedPlans();
+        return mostRecentPlan ? (
+          <QuickResumeWidget
+            plan={mostRecentPlan}
+            onPress={() => handleViewDetails(mostRecentPlan)}
+          />
+        ) : null;
+      })()}
+
       {/* Learning Plan Details Modal */}
       {selectedPlan && (
         <LearningPlanDetailsModal
           visible={showDetailsModal}
           onClose={() => setShowDetailsModal(false)}
           plan={selectedPlan}
+          language={selectedPlan.language || selectedPlan.target_language || 'english'}
           progressStats={progressStats}
           onContinueLearning={handleModalContinueLearning}
         />
