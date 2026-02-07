@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
+import Animated, { useAnimatedStyle, withTiming, useSharedValue, Easing } from 'react-native-reanimated';
 import type { LearningPlan } from '../api/generated';
 import { SpotifyStylePlanCard } from './SpotifyStylePlanCard';
+import { DNAAnalysisCard } from './DNAAnalysisCard';
 
 // Import SVG flags
 import EnglishFlag from '../assets/flags/english.svg';
@@ -21,6 +23,8 @@ interface LanguageSectionProps {
   onViewDNA?: (language: string) => void;
   hasDNAAnalysis?: boolean;
   isPremium?: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
 const getLanguageFlagComponent = (language: string): React.FC<any> | null => {
@@ -56,10 +60,35 @@ export const LanguageSection: React.FC<LanguageSectionProps> = ({
   onViewDNA,
   hasDNAAnalysis = false,
   isPremium = false,
+  isExpanded,
+  onToggleExpand,
 }) => {
   const { t } = useTranslation();
   const languageName = getLanguageName(language);
   const FlagComponent = getLanguageFlagComponent(language);
+
+  // Animation values
+  const rotation = useSharedValue(isExpanded ? 90 : 0);
+  const cardsOpacity = useSharedValue(isExpanded ? 1 : 0);
+
+  React.useEffect(() => {
+    rotation.value = withTiming(isExpanded ? 90 : 0, {
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+    });
+    cardsOpacity.value = withTiming(isExpanded ? 1 : 0, {
+      duration: 250,
+      easing: Easing.out(Easing.ease),
+    });
+  }, [isExpanded]);
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  const cardsStyle = useAnimatedStyle(() => ({
+    opacity: cardsOpacity.value,
+  }));
 
   const handleDNAPress = () => {
     if (Platform.OS !== 'web') {
@@ -68,70 +97,111 @@ export const LanguageSection: React.FC<LanguageSectionProps> = ({
     onViewDNA?.(language);
   };
 
+  const handleHeaderPress = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onToggleExpand();
+  };
+
   return (
     <View style={styles.sectionContainer}>
-      {/* Section Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          {FlagComponent && (
-            <View style={styles.flagContainer}>
-              <FlagComponent width={32} height={32} />
-            </View>
-          )}
-          <Text style={styles.languageName}>{languageName}</Text>
-        </View>
-
-        {/* DNA Analysis Button */}
-        {hasDNAAnalysis && isPremium && onViewDNA && (
-          <TouchableOpacity
-            style={styles.dnaButton}
-            onPress={handleDNAPress}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="analytics" size={16} color="#14B8A6" />
-            <Text style={styles.dnaButtonText}>DNA</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Horizontal Scrolling Cards */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.cardsContainer,
-          plans.length <= 2 && styles.cardsContainerCentered,
-        ]}
-        style={styles.cardsScrollView}
+      {/* Section Header - Tappable to expand/collapse */}
+      <TouchableOpacity
+        style={styles.header}
+        onPress={handleHeaderPress}
+        activeOpacity={0.7}
       >
-        {plans.map((plan) => (
-          <SpotifyStylePlanCard
-            key={plan.id}
-            plan={plan}
-            onPress={onPlanPress}
-          />
-        ))}
-      </ScrollView>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            {FlagComponent && (
+              <View style={styles.flagContainer}>
+                <FlagComponent width={32} height={32} />
+              </View>
+            )}
+            <View style={styles.languageInfo}>
+              <Text style={styles.languageName}>{languageName}</Text>
+              <Text style={styles.planCountText}>
+                {plans.length} {plans.length === 1 ? t('learning_plan.plan_available') : t('learning_plan.plans_available')}
+                {hasDNAAnalysis && isPremium && t('learning_plan.and_dna_available')}
+              </Text>
+            </View>
+          </View>
+
+          {/* Expand/Collapse Icon with animation */}
+          <Animated.View style={chevronStyle}>
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color="#9CA3AF"
+            />
+          </Animated.View>
+        </View>
+      </TouchableOpacity>
+
+      {/* Horizontal Scrolling Cards - Only show when expanded */}
+      {isExpanded && (
+        <Animated.View style={[styles.cardsWrapper, cardsStyle]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.cardsContainer,
+              (plans.length + (hasDNAAnalysis && isPremium ? 1 : 0)) <= 2 && styles.cardsContainerCentered,
+            ]}
+            style={styles.cardsScrollView}
+          >
+            {/* DNA Analysis Card - Show first if available */}
+            {hasDNAAnalysis && isPremium && onViewDNA && (
+              <DNAAnalysisCard onPress={() => onViewDNA(language)} />
+            )}
+
+            {/* Learning Plan Cards */}
+            {plans.map((plan) => (
+              <SpotifyStylePlanCard
+                key={plan.id}
+                plan={plan}
+                onPress={onPlanPress}
+              />
+            ))}
+          </ScrollView>
+        </Animated.View>
+      )}
+
+      {/* Separator */}
+      <View style={styles.separator} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   sectionContainer: {
-    marginBottom: 32,
+    marginBottom: 16,
   },
   header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 12,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     flex: 1,
+  },
+  languageInfo: {
+    flex: 1,
+  },
+  planCountText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#9CA3AF',
+    marginTop: 2,
   },
   flagContainer: {
     width: 32,
@@ -148,21 +218,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: -0.5,
   },
-  dnaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+  cardsWrapper: {
+    overflow: 'hidden',
   },
-  dnaButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#14B8A6',
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginHorizontal: 16,
+    marginTop: 16,
   },
   cardsScrollView: {
     flexGrow: 0,

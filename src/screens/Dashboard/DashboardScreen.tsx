@@ -94,6 +94,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const buttonFloatAnim = useRef(new Animated.Value(0)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
 
+  // Set default expanded language when learning plans change
+  useEffect(() => {
+    if (learningPlans.length > 0 && expandedLanguage === null) {
+      const { mostRecentLanguage } = getFilteredAndGroupedPlans();
+      if (mostRecentLanguage) {
+        setExpandedLanguage(mostRecentLanguage);
+      }
+    }
+  }, [learningPlans]);
+
   useEffect(() => {
     loadDashboardData();
 
@@ -546,7 +556,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       return dateB - dateA;
     })[0] : null;
 
-    return { plansByLanguage, mostRecentPlan };
+    // Determine which language should be expanded by default (most recent)
+    const mostRecentLanguage = mostRecentPlan ? (mostRecentPlan.language || 'english').toLowerCase() : null;
+
+    return { plansByLanguage, mostRecentPlan, mostRecentLanguage };
   };
 
   // Main content render
@@ -1097,6 +1110,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           const { plansByLanguage, mostRecentPlan } = getFilteredAndGroupedPlans();
           const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
 
+          const handleToggleLanguage = (language: string) => {
+            // Accordion behavior: toggle or switch to new language
+            setExpandedLanguage(expandedLanguage === language ? null : language);
+          };
+
           return (
             <>
               {/* Filter Chips */}
@@ -1105,7 +1123,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onFilterChange={setSelectedFilter}
               />
 
-              {/* Language Sections with Horizontal Scrolling Cards */}
+              {/* Language Sections with Accordion Behavior */}
               {Object.entries(plansByLanguage).map(([language, plans]) => (
                 <LanguageSection
                   key={language}
@@ -1115,6 +1133,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   onViewDNA={(lang) => navigation.navigate('SpeakingDNA', { language: lang })}
                   hasDNAAnalysis={languagesWithDNA.has(language)}
                   isPremium={isPremium}
+                  isExpanded={expandedLanguage === language}
+                  onToggleExpand={() => handleToggleLanguage(language)}
                 />
               ))}
             </>
