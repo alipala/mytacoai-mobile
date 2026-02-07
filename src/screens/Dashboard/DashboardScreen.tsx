@@ -528,9 +528,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
       const status = plan.status?.toLowerCase() || 'in_progress';
       const progressPercentage = plan.progress_percentage || 0;
+      const completedSessions = plan.completed_sessions || 0;
 
+      if (selectedFilter === 'new') {
+        // New = in_progress with no sessions completed
+        return (status === 'in_progress' || !plan.status) && completedSessions === 0;
+      }
       if (selectedFilter === 'in_progress') {
-        return status === 'in_progress' || status === 'awaiting_final_assessment' || (!plan.status && progressPercentage < 100);
+        // In Progress = in_progress with at least 1 session completed
+        return (status === 'in_progress' || status === 'awaiting_final_assessment') && completedSessions > 0;
       }
       if (selectedFilter === 'completed') {
         return status === 'completed' || progressPercentage >= 100;

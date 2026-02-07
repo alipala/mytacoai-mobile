@@ -1716,6 +1716,7 @@
     "status_completed": "COMPLETED",
     "filters": {
       "all": "All",
+      "new": "New",
       "in_progress": "In Progress",
       "completed": "Completed"
     },

@@ -122,8 +122,15 @@ export const LanguageSection: React.FC<LanguageSectionProps> = ({
             <View style={styles.languageInfo}>
               <Text style={styles.languageName}>{languageName}</Text>
               <Text style={styles.planCountText}>
-                {plans.length} {plans.length === 1 ? t('learning_plan.plan_available') : t('learning_plan.plans_available')}
-                {hasDNAAnalysis && isPremium && t('learning_plan.and_dna_available')}
+                <Text style={styles.planCountNumber}>{plans.length}</Text>
+                <Text style={styles.planCountRegular}>
+                  {' '}{plans.length === 1 ? t('learning_plan.plan_available') : t('learning_plan.plans_available')}
+                </Text>
+                {hasDNAAnalysis && isPremium && (
+                  <Text style={styles.dnaText}>
+                    {t('learning_plan.and_dna_available')}
+                  </Text>
+                )}
               </Text>
             </View>
           </View>
@@ -198,10 +205,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   planCountText: {
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  planCountNumber: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#10B981',
+    letterSpacing: -0.3,
+  },
+  planCountRegular: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#9CA3AF',
-    marginTop: 2,
+    fontWeight: '600',
+    color: '#E5E7EB',
+  },
+  dnaText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#14B8A6',
+    letterSpacing: -0.2,
   },
   flagContainer: {
     width: 32,

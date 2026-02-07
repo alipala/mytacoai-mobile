@@ -1713,6 +1713,12 @@
     "status_new": "NOUVEAU",
     "status_in_progress": "EN COURS",
     "status_completed": "TERMINÉ",
+    "filters": {
+      "all": "Tous",
+      "new": "Nouveau",
+      "in_progress": "En Cours",
+      "completed": "Terminé"
+    },
     "details": {
       "learning_plan_suffix": " Plan d'Apprentissage",
       "level_suffix": " Niveau",

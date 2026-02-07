@@ -1713,6 +1713,12 @@
     "status_new": "YENİ",
     "status_in_progress": "DEVAM EDİYOR",
     "status_completed": "TAMAMLANDI",
+    "filters": {
+      "all": "Tümü",
+      "new": "Yeni",
+      "in_progress": "Devam Ediyor",
+      "completed": "Tamamlandı"
+    },
     "details": {
       "learning_plan_suffix": " Öğrenme Planı",
       "level_suffix": " Seviye",

@@ -8,7 +8,8 @@ interface FilterChipsProps {
 }
 
 // Learning plan status values: "in_progress", "awaiting_final_assessment", "completed", "failed_assessment"
-const FILTERS = ['all', 'in_progress', 'completed'];
+// "new" = in_progress + completed_sessions == 0
+const FILTERS = ['all', 'new', 'in_progress', 'completed'];
 
 export const FilterChips: React.FC<FilterChipsProps> = ({
   selectedFilter,
@@ -19,6 +20,7 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
   const getFilterLabel = (filter: string) => {
     const labels: Record<string, string> = {
       all: t('learning_plan.filters.all'),
+      new: t('learning_plan.filters.new'),
       in_progress: t('learning_plan.filters.in_progress'),
       completed: t('learning_plan.filters.completed'),
     };

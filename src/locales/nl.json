@@ -1713,6 +1713,12 @@
     "status_new": "NIEUW",
     "status_in_progress": "BEZIG",
     "status_completed": "VOLTOOID",
+    "filters": {
+      "all": "Alle",
+      "new": "Nieuw",
+      "in_progress": "Bezig",
+      "completed": "Voltooid"
+    },
     "details": {
       "learning_plan_suffix": " Leerplan",
       "level_suffix": " Niveau",
