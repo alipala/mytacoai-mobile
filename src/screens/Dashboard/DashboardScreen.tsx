@@ -443,11 +443,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     loadDashboardData();
   };
 
-  const handleContinueLearning = (planId: string) => {
+  const handleContinueLearning = (planId: string, cardColor?: string) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    navigation.navigate('Conversation', { planId });
+    navigation.navigate('Conversation', { planId, cardColor });
   };
 
   const handleViewDetails = (plan: LearningPlan, color: string) => {
@@ -488,7 +488,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const handleModalContinueLearning = () => {
     if (selectedPlan) {
       setShowDetailsModal(false);
-      navigation.navigate('Conversation', { planId: selectedPlan.id });
+      navigation.navigate('Conversation', { planId: selectedPlan.id, cardColor: selectedPlanColor });
     }
   };
 
@@ -1471,7 +1471,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               showsVerticalScrollIndicator={false}
             >
               {/* Subscription Info */}
-              <View style={styles.premiumSubscriptionCard}>
+              <View style={[styles.premiumSubscriptionCard, {
+                backgroundColor: '#FBBF24',
+                borderColor: '#F59E0B',
+              }]}>
+                <View style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: '#FFFFFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                }}>
+                  <Ionicons name="diamond" size={24} color="#FBBF24" />
+                </View>
                 <Text style={styles.premiumSubscriptionPlan}>
                   {subscriptionStatus?.plan === 'annual_premium' ? t('subscription.plans.yearly') : t('subscription.plans.monthly')}
                 </Text>
@@ -1482,8 +1496,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
               {/* Benefits List */}
               <View style={styles.premiumBenefitsList}>
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#14B8A6',
+                  borderColor: '#0D9488',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="infinite" size={24} color="#14B8A6" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1494,8 +1514,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#8B5CF6',
+                  borderColor: '#7C3AED',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="mic" size={24} color="#8B5CF6" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1506,8 +1532,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#EF4444',
+                  borderColor: '#DC2626',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="stats-chart" size={24} color="#EF4444" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1518,8 +1550,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#F59E0B',
+                  borderColor: '#D97706',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="flash" size={24} color="#F59E0B" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1530,8 +1568,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#EC4899',
+                  borderColor: '#DB2777',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="sparkles" size={24} color="#EC4899" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1541,25 +1585,27 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     </Text>
                   </View>
                 </View>
-
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
-                    <Ionicons name="shield-checkmark" size={24} color="#10B981" />
-                  </View>
-                  <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.no_ads')}</Text>
-                    <Text style={styles.premiumBenefitDescription}>
-                      {t('subscription.features.no_ads')}
-                    </Text>
-                  </View>
-                </View>
               </View>
 
               {/* Thank You Message */}
-              <View style={styles.premiumThankYouCard}>
-                <Ionicons name="heart" size={32} color="#EF4444" />
+              <View style={[styles.premiumThankYouCard, {
+                backgroundColor: '#EF4444',
+                borderColor: '#DC2626',
+              }]}>
+                <View style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: '#FFFFFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                  borderWidth: 0,
+                }}>
+                  <Ionicons name="heart" size={32} color="#EF4444" />
+                </View>
                 <Text style={styles.premiumThankYouText}>
-                  {t('dashboard.header.premium_badge')}
+                  Thank you for being Premium!
                 </Text>
                 <Text style={styles.premiumThankYouSubtext}>
                   {t('subscription.subtitle')}

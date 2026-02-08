@@ -122,7 +122,11 @@
       "pill_personalised_learning": "Personalisiertes Lernen",
       "pill_adaptive_ai": "Adaptive KI",
       "pill_custom_topics": "Individuelle Themen",
-      "pill_progress_tracking": "Fortschrittsverfolgung"
+      "pill_progress_tracking": "Fortschrittsverfolgung",
+      "pill_unlimited_practice": "Unbegrenzte Übung",
+      "pill_ai_tutor": "24/7 KI-Tutor",
+      "pill_real_conversations": "Echte Gespräche",
+      "pill_instant_feedback": "Sofortiges Feedback"
     }
   },
   "dashboard": {

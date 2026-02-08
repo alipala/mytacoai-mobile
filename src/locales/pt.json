@@ -122,7 +122,11 @@
       "pill_personalised_learning": "Aprendizado Personalizado",
       "pill_adaptive_ai": "IA Adaptativa",
       "pill_custom_topics": "Tópicos Personalizados",
-      "pill_progress_tracking": "Acompanhamento de Progresso"
+      "pill_progress_tracking": "Acompanhamento de Progresso",
+      "pill_unlimited_practice": "Prática Ilimitada",
+      "pill_ai_tutor": "Tutor de IA 24/7",
+      "pill_real_conversations": "Conversas Reais",
+      "pill_instant_feedback": "Feedback Instantâneo"
     }
   },
   "dashboard": {

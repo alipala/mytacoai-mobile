@@ -122,7 +122,11 @@
       "pill_personalised_learning": "Gepersonaliseerd Leren",
       "pill_adaptive_ai": "Adaptieve AI",
       "pill_custom_topics": "Aangepaste Onderwerpen",
-      "pill_progress_tracking": "Voortgang Volgen"
+      "pill_progress_tracking": "Voortgang Volgen",
+      "pill_unlimited_practice": "Onbeperkte Oefening",
+      "pill_ai_tutor": "24/7 AI-Tutor",
+      "pill_real_conversations": "Echte Gesprekken",
+      "pill_instant_feedback": "Directe Feedback"
     }
   },
   "dashboard": {

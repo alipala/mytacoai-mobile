@@ -122,7 +122,11 @@
       "pill_personalised_learning": "Kişiselleştirilmiş Öğrenme",
       "pill_adaptive_ai": "Uyarlanabilir Yapay Zeka",
       "pill_custom_topics": "Özel Konular",
-      "pill_progress_tracking": "İlerleme Takibi"
+      "pill_progress_tracking": "İlerleme Takibi",
+      "pill_unlimited_practice": "Sınırsız Pratik",
+      "pill_ai_tutor": "7/24 Yapay Zeka Öğretmen",
+      "pill_real_conversations": "Gerçek Konuşmalar",
+      "pill_instant_feedback": "Anlık Geri Bildirim"
     }
   },
   "dashboard": {

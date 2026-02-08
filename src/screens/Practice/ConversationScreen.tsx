@@ -259,7 +259,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   route,
 }) => {
   const { t } = useTranslation();
-  const { mode, language, topic, level, planId, customTopicText, researchData, newsContext, sessionType, newsTitle } = route.params;
+  const { mode, language, topic, level, planId, customTopicText, researchData, newsContext, sessionType, newsTitle, cardColor } = route.params;
+
+  // Use the card color or default to turquoise
+  const modalColor = cardColor || '#14B8A6';
 
   // Add state for the fetched learning plan
   const [learningPlan, setLearningPlan] = useState<LearningPlan | null>(null);
@@ -2090,15 +2093,19 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         onRequestClose={() => {}}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, {
+            backgroundColor: modalColor,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            shadowColor: modalColor,
+          }]}>
             <View style={styles.modalHeader}>
-              <Ionicons name="information-circle" size={32} color="#14B8A6" />
+              <Ionicons name="information-circle" size={32} color="#FFFFFF" />
               <Text style={styles.modalTitle}>{t('practice.conversation.modal_info_title')}</Text>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <View style={styles.infoCard}>
-                <Ionicons name="volume-high" size={24} color="#3B82F6" />
+              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="volume-high" size={24} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_headphones_title')}</Text>
                   <Text style={styles.infoText}>
@@ -2107,8 +2114,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 </View>
               </View>
 
-              <View style={styles.infoCard}>
-                <Ionicons name="mic" size={24} color="#10B981" />
+              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="mic" size={24} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_speak_title')}</Text>
                   <Text style={styles.infoText}>
@@ -2117,8 +2124,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 </View>
               </View>
 
-              <View style={styles.infoCard}>
-                <Ionicons name="time" size={24} color="#F59E0B" />
+              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="time" size={24} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_time_title')}</Text>
                   <Text style={styles.infoText}>
@@ -2127,8 +2134,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 </View>
               </View>
 
-              <View style={styles.infoCard}>
-                <Ionicons name="chatbubbles" size={24} color="#8B5CF6" />
+              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_conversation_title')}</Text>
                   <Text style={styles.infoText}>
@@ -2138,8 +2145,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               </View>
 
               {/* Conversation Help Toggle */}
-              <View style={[styles.infoCard, styles.helpToggleCard]}>
-                <Ionicons name="help-circle" size={24} color="#10B981" />
+              <View style={[styles.infoCard, styles.helpToggleCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="help-circle" size={24} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_help_title')}</Text>
                   <Text style={styles.infoText}>
@@ -2154,16 +2161,19 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                     }
                     conversationHelp.updateHelpSettings({ help_enabled: value });
                   }}
-                  trackColor={{ false: '#D1D5DB', true: '#86EFAC' }}
-                  thumbColor={conversationHelp.helpSettings.help_enabled ? '#10B981' : '#F3F4F6'}
-                  ios_backgroundColor="#D1D5DB"
+                  trackColor={{ false: 'rgba(255, 255, 255, 0.3)', true: 'rgba(255, 255, 255, 0.5)' }}
+                  thumbColor={conversationHelp.helpSettings.help_enabled ? '#FFFFFF' : 'rgba(255, 255, 255, 0.8)'}
+                  ios_backgroundColor="rgba(255, 255, 255, 0.3)"
                 />
               </View>
             </ScrollView>
 
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
-                style={styles.modalButtonSecondary}
+                style={[styles.modalButtonSecondary, {
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                }]}
                 onPress={() => {
                   if (Platform.OS === 'ios') {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -2173,12 +2183,16 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.modalButtonSecondaryText}>{t('practice.conversation.button_go_back')}</Text>
+                <Text style={[styles.modalButtonSecondaryText, { color: '#FFFFFF' }]}>{t('practice.conversation.button_go_back')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   styles.modalButtonPrimary,
+                  {
+                    backgroundColor: '#FFFFFF',
+                    shadowColor: '#000000',
+                  },
                   (planId && isConnecting) && styles.modalButtonDisabled
                 ]}
                 onPress={handleStartPracticeConversation}
@@ -2186,9 +2200,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 disabled={planId && isConnecting}
               >
                 {planId && isConnecting ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                  <ActivityIndicator color={modalColor} />
                 ) : (
-                  <Text style={styles.modalButtonText}>{t('practice.conversation.button_got_it')}</Text>
+                  <Text style={[styles.modalButtonText, { color: modalColor }]}>{t('practice.conversation.button_got_it')}</Text>
                 )}
               </TouchableOpacity>
             </View>
