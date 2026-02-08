@@ -99,19 +99,16 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   });
 
   const isComplete = percentage >= 100;
-  const progressColor = isComplete ? '#10B981' : '#FFFFFF';
-
-  // Helper to convert hex to rgba
-  const hexToRgba = (hex: string, opacity: number) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (result) {
-      return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${opacity})`;
-    }
-    return `rgba(20, 184, 166, ${opacity})`;
-  };
 
   return (
-    <View style={[styles.progressRingWrapper, { width: size, height: size }]}>
+    <View style={[styles.progressRingWrapper, {
+      width: size,
+      height: size,
+      shadowColor: '#FFFFFF',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.8,
+      shadowRadius: 15,
+    }]}>
       <Svg width={size} height={size}>
         <Circle
           cx={size / 2}
@@ -125,7 +122,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={progressColor}
+          stroke="#FFFFFF"
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={`${circumference} ${circumference}`}
@@ -136,16 +133,15 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       </Svg>
 
       <View style={styles.progressTextContainer}>
-        <Text style={[styles.progressPercentage, { color: '#FFFFFF' }]}>
+        <Text style={[styles.progressPercentage, {
+          color: '#FFFFFF',
+          textShadowColor: 'rgba(255, 255, 255, 0.5)',
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 10,
+        }]}>
           {Math.round(percentage)}%
         </Text>
       </View>
-
-      {isComplete && (
-        <View style={styles.completeBadge}>
-          <Ionicons name="checkmark-circle" size={40} color="#10B981" />
-        </View>
-      )}
     </View>
   );
 };
@@ -407,9 +403,9 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 style={[
                   styles.continueButton,
                   {
-                    backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.25)' : '#FFFFFF',
+                    backgroundColor: '#FFFFFF',
                     shadowColor: '#000000',
-                    borderColor: isCompleted ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.5)',
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
                     borderWidth: 2,
                   }
                 ]}
@@ -423,12 +419,12 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <Ionicons
                   name={isCompleted ? "checkmark-circle" : "play-circle"}
                   size={24}
-                  color={isCompleted ? "#10B981" : accentColor}
+                  color={accentColor}
                 />
                 <Text style={[
                   styles.continueButtonText,
                   {
-                    color: isCompleted ? "#10B981" : accentColor,
+                    color: accentColor,
                     fontWeight: '800',
                     fontSize: 17,
                   }

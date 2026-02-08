@@ -9,6 +9,7 @@ import {
   Pressable,
   Easing,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -167,12 +168,25 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
             <Pressable onPress={(e) => e.stopPropagation()}>
               {/* Glassmorphism container with gradient border */}
               <View style={styles.glassContainer}>
+                {/* Subtle gradient overlay for depth */}
+                <LinearGradient
+                  colors={['rgba(20, 184, 166, 0.08)', 'rgba(17, 24, 39, 0)', 'rgba(139, 92, 246, 0.06)']}
+                  locations={[0, 0.5, 1]}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                  }}
+                />
+
                 {/* Header with solid background */}
                 <View style={styles.header}>
                   <View style={styles.headerContent}>
                     <View style={styles.iconBadge}>
                       <View style={styles.iconBadgeGradient}>
-                        <Ionicons name="layers" size={24} color="#FFFFFF" />
+                        <Ionicons name="layers" size={26} color="#FFFFFF" />
                       </View>
                     </View>
                     <View style={styles.headerTextContainer}>
