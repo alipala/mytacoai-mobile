@@ -446,18 +446,17 @@ export const styles = StyleSheet.create({
   newSessionButton: {
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.4)',
-    shadowColor: '#14B8A6',
+    shadowColor: '#8B5CF6',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
   },
   newSessionGradient: {
     paddingVertical: 22,
     paddingHorizontal: 24,
     position: 'relative',
+    backgroundColor: '#8B5CF6',
   },
   newSessionContent: {
     flexDirection: 'row',
@@ -473,11 +472,11 @@ export const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   newSessionTextContainer: {
     flex: 1,
@@ -491,7 +490,7 @@ export const styles = StyleSheet.create({
   },
   newSessionSubtitle: {
     fontSize: 14,
-    color: '#B4E4DD',
+    color: 'rgba(255, 255, 255, 0.95)',
     fontWeight: '600',
   },
   arrowContainer: {

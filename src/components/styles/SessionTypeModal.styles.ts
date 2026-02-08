@@ -75,6 +75,7 @@ export const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#14B8A6',
   },
   headerTextContainer: {
     flex: 1,
@@ -110,17 +111,28 @@ export const styles = StyleSheet.create({
   optionCard: {
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.25)',
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  quickPracticeCard: {
     ...Platform.select({
       ios: {
         shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
       },
-      android: {
-        elevation: 6,
+    }),
+  },
+  assessmentCard: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#8B5CF6',
       },
     }),
   },
@@ -128,6 +140,12 @@ export const styles = StyleSheet.create({
     padding: 20,
     minHeight: 160,
     position: 'relative',
+  },
+  quickPracticeGradient: {
+    backgroundColor: '#14B8A6',
+  },
+  assessmentGradient: {
+    backgroundColor: '#8B5CF6',
   },
   optionCardContent: {
     position: 'relative',

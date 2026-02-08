@@ -9,7 +9,6 @@ import {
   Pressable,
   Easing,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -168,23 +167,13 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
             <Pressable onPress={(e) => e.stopPropagation()}>
               {/* Glassmorphism container with gradient border */}
               <View style={styles.glassContainer}>
-                {/* Header with gradient background */}
-                <LinearGradient
-                  colors={['rgba(20, 184, 166, 0.08)', 'rgba(20, 184, 166, 0.03)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.header}
-                >
+                {/* Header with solid background */}
+                <View style={styles.header}>
                   <View style={styles.headerContent}>
                     <View style={styles.iconBadge}>
-                      <LinearGradient
-                        colors={['#14B8A6', '#0D9488']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.iconBadgeGradient}
-                      >
+                      <View style={styles.iconBadgeGradient}>
                         <Ionicons name="layers" size={24} color="#FFFFFF" />
-                      </LinearGradient>
+                      </View>
                     </View>
                     <View style={styles.headerTextContainer}>
                       <Text style={styles.headerTitle}>{t('practice.session_modal.title')}</Text>
@@ -202,7 +191,7 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                       <Ionicons name="close" size={20} color="#6B7280" />
                     </View>
                   </TouchableOpacity>
-                </LinearGradient>
+                </View>
 
                 {/* Session Options */}
                 <View style={styles.optionsContainer}>
@@ -218,16 +207,11 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                     ]}
                   >
                     <TouchableOpacity
-                      style={styles.optionCard}
+                      style={[styles.optionCard, styles.quickPracticeCard]}
                       onPress={handleSelectQuickPractice}
-                      activeOpacity={0.9}
+                      activeOpacity={0.85}
                     >
-                      <LinearGradient
-                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.optionGradient}
-                      >
+                      <View style={[styles.optionGradient, styles.quickPracticeGradient]}>
                         {/* Content */}
                         <View style={styles.optionCardContent}>
                           <View style={styles.optionHeader}>
@@ -260,7 +244,7 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                             </View>
                           </View>
                         </View>
-                      </LinearGradient>
+                      </View>
                     </TouchableOpacity>
                   </Animated.View>
 
@@ -276,16 +260,11 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                     ]}
                   >
                     <TouchableOpacity
-                      style={styles.optionCard}
+                      style={[styles.optionCard, styles.assessmentCard]}
                       onPress={handleSelectAssessment}
-                      activeOpacity={0.9}
+                      activeOpacity={0.85}
                     >
-                      <LinearGradient
-                        colors={['rgba(139, 92, 246, 0.15)', 'rgba(124, 58, 237, 0.08)']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.optionGradient}
-                      >
+                      <View style={[styles.optionGradient, styles.assessmentGradient]}>
                         {/* Content */}
                         <View style={styles.optionCardContent}>
                           <View style={styles.optionHeader}>
@@ -314,7 +293,7 @@ export const SessionTypeModal: React.FC<SessionTypeModalProps> = ({
                             </View>
                           </View>
                         </View>
-                      </LinearGradient>
+                      </View>
                     </TouchableOpacity>
                   </Animated.View>
                 </View>

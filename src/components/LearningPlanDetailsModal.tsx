@@ -13,9 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import Svg, { Circle } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './styles/LearningPlanDetailsModal.styles';
-import { getLanguageGradient } from '../utils/gradientHelpers';
 
 // Import SVG flags
 import EnglishFlag from '../assets/flags/english.svg';
@@ -36,6 +34,7 @@ interface LearningPlanDetailsModalProps {
   language?: string;
   progressStats?: any;
   onContinueLearning: () => void;
+  cardColor: string;
 }
 
 // ==================== HELPER FUNCTIONS ====================
@@ -100,7 +99,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   });
 
   const isComplete = percentage >= 100;
-  const progressColor = isComplete ? '#10B981' : accentColor;
+  const progressColor = isComplete ? '#10B981' : '#FFFFFF';
 
   // Helper to convert hex to rgba
   const hexToRgba = (hex: string, opacity: number) => {
@@ -118,7 +117,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={hexToRgba(accentColor, 0.15)}
+          stroke="rgba(255, 255, 255, 0.2)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -137,7 +136,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       </Svg>
 
       <View style={styles.progressTextContainer}>
-        <Text style={[styles.progressPercentage, { color: progressColor }]}>
+        <Text style={[styles.progressPercentage, { color: '#FFFFFF' }]}>
           {Math.round(percentage)}%
         </Text>
       </View>
@@ -160,6 +159,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   language: languageProp,
   progressStats,
   onContinueLearning,
+  cardColor,
 }) => {
   const { t } = useTranslation();
   // CRITICAL: Use timing instead of spring for reliability
@@ -178,10 +178,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   const levelColors = getLevelColor(level);
   const FlagComponent = getLanguageFlagComponent(language);
 
-  // Get language-specific gradient colors
-  const gradientColors = getLanguageGradient(language);
-  const accentColor = gradientColors[0]; // Use first gradient color as primary accent
-  const secondaryColor = gradientColors[1]; // Secondary gradient color
+  // Use the card color as the primary accent color
+  const accentColor = cardColor;
+  // Create a slightly different shade for secondary color
+  const secondaryColor = cardColor;
 
   // Helper to convert hex to rgba
   const hexToRgba = (hex: string, opacity: number) => {
@@ -291,22 +291,20 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
             styles.modalContainer,
             {
               transform: [{ translateY: slideAnim }],
-              borderColor: hexToRgba(accentColor, 0.3),
+              backgroundColor: accentColor,
+              borderColor: 'rgba(255, 255, 255, 0.2)',
               shadowColor: accentColor,
             },
           ]}
         >
           <SafeAreaView style={styles.safeArea} edges={['bottom']}>
             {/* Header with Gradient */}
-            <LinearGradient
-              colors={[hexToRgba(accentColor, 0.25), hexToRgba(secondaryColor, 0.15)] as [string, string, ...string[]]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+            <View
               style={[
                 styles.header,
                 {
-                  backgroundColor: 'transparent',
-                  borderBottomColor: hexToRgba(accentColor, 0.2),
+                  backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                  borderBottomColor: 'rgba(255, 255, 255, 0.15)',
                 }
               ]}
             >
@@ -317,21 +315,21 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                   </View>
                 )}
                 <View>
-                  <Text style={styles.headerTitle}>
+                  <Text style={[styles.headerTitle, { color: '#FFFFFF', fontWeight: '800' }]}>
                     {language.charAt(0).toUpperCase() + language.slice(1)}{t('learning_plan.details.learning_plan_suffix')}
                   </Text>
-                  <View style={[styles.levelBadge, { backgroundColor: levelColors.bg }]}>
-                    <Text style={[styles.levelText, { color: levelColors.text }]}>
+                  <View style={[styles.levelBadge, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }]}>
+                    <Text style={[styles.levelText, { color: '#FFFFFF', fontWeight: '800' }]}>
                       {level}{t('learning_plan.details.level_suffix')}
                     </Text>
                   </View>
                 </View>
               </View>
 
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <TouchableOpacity onPress={handleClose} style={[styles.closeButton, { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderColor: 'rgba(255, 255, 255, 0.3)' }]}>
                 <Ionicons name="close" size={28} color="#FFFFFF" />
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
 
             {/* Scrollable Content */}
             <ScrollView
@@ -340,9 +338,9 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               bounces={true}
             >
               {/* Progress Section */}
-              <View style={[styles.progressSection, { backgroundColor: hexToRgba(accentColor, 0.05) }]}>
-                <ProgressRing percentage={percentage} accentColor={accentColor} size={140} strokeWidth={12} />
-                <Text style={[styles.overallProgressLabel, { color: hexToRgba(accentColor, 0.7) }]}>
+              <View style={styles.progressSection}>
+                <ProgressRing percentage={percentage} accentColor="#FFFFFF" size={140} strokeWidth={12} />
+                <Text style={[styles.overallProgressLabel, { color: '#FFFFFF', fontWeight: '700' }]}>
                   {t('learning_plan.details.overall_progress')}
                 </Text>
               </View>
@@ -352,17 +350,17 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <View style={[
                   styles.statCard,
                   {
-                    backgroundColor: hexToRgba(accentColor, 0.08),
-                    borderColor: hexToRgba(accentColor, 0.2),
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.25)',
                   }
                 ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="calendar-outline" size={24} color={accentColor} />
-                    <Text style={[styles.statCardLabel, { color: hexToRgba(accentColor, 0.8) }]}>
+                    <Ionicons name="calendar-outline" size={24} color="#FFFFFF" />
+                    <Text style={[styles.statCardLabel, { color: '#FFFFFF', fontWeight: '600' }]}>
                       {t('learning_plan.details.sessions')}
                     </Text>
                   </View>
-                  <Text style={[styles.statCardValue, { color: accentColor }]}>
+                  <Text style={[styles.statCardValue, { color: '#FFFFFF', fontWeight: '800' }]}>
                     {completedSessions}/{totalSessions}
                   </Text>
                 </View>
@@ -370,17 +368,17 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <View style={[
                   styles.statCard,
                   {
-                    backgroundColor: hexToRgba(secondaryColor, 0.08),
-                    borderColor: hexToRgba(secondaryColor, 0.2),
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.25)',
                   }
                 ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="time-outline" size={24} color={secondaryColor} />
-                    <Text style={[styles.statCardLabel, { color: hexToRgba(secondaryColor, 0.8) }]}>
+                    <Ionicons name="time-outline" size={24} color="#FFFFFF" />
+                    <Text style={[styles.statCardLabel, { color: '#FFFFFF', fontWeight: '600' }]}>
                       {actualMinutesUsed > 0 ? t('learning_plan.details.spoken_time') : t('learning_plan.details.est_time')}
                     </Text>
                   </View>
-                  <Text style={[styles.statCardValue, { color: secondaryColor }]}>
+                  <Text style={[styles.statCardValue, { color: '#FFFFFF', fontWeight: '800' }]}>
                     {actualMinutesUsed > 0 ? `${Math.round(practiceTimeMinutes)} min` : `~${practiceTimeMinutes} min`}
                   </Text>
                 </View>
@@ -388,17 +386,17 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 <View style={[
                   styles.statCard,
                   {
-                    backgroundColor: hexToRgba(accentColor, 0.08),
-                    borderColor: hexToRgba(accentColor, 0.2),
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.25)',
                   }
                 ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="trending-up" size={24} color={accentColor} />
-                    <Text style={[styles.statCardLabel, { color: hexToRgba(accentColor, 0.8) }]}>
+                    <Ionicons name="trending-up" size={24} color="#FFFFFF" />
+                    <Text style={[styles.statCardLabel, { color: '#FFFFFF', fontWeight: '600' }]}>
                       {t('learning_plan.details.current_week')}
                     </Text>
                   </View>
-                  <Text style={[styles.statCardValue, { color: accentColor }]}>
+                  <Text style={[styles.statCardValue, { color: '#FFFFFF', fontWeight: '800' }]}>
                     {t('learning_plan.details.week_prefix')}{currentWeek}
                   </Text>
                 </View>
@@ -408,11 +406,11 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               <TouchableOpacity
                 style={[
                   styles.continueButton,
-                  isCompleted && styles.continueButtonDisabled,
-                  !isCompleted && {
-                    backgroundColor: accentColor,
-                    shadowColor: accentColor,
-                    borderColor: hexToRgba(accentColor, 0.4),
+                  {
+                    backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.25)' : '#FFFFFF',
+                    shadowColor: '#000000',
+                    borderColor: isCompleted ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.5)',
+                    borderWidth: 2,
                   }
                 ]}
                 onPress={() => {
@@ -420,25 +418,32 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                   setTimeout(() => onContinueLearning(), 400);
                 }}
                 disabled={isCompleted}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
               >
                 <Ionicons
-                  name={isCompleted ? "checkmark-circle" : "play"}
-                  size={20}
-                  color="#FFFFFF"
+                  name={isCompleted ? "checkmark-circle" : "play-circle"}
+                  size={24}
+                  color={isCompleted ? "#10B981" : accentColor}
                 />
-                <Text style={styles.continueButtonText}>
+                <Text style={[
+                  styles.continueButtonText,
+                  {
+                    color: isCompleted ? "#10B981" : accentColor,
+                    fontWeight: '800',
+                    fontSize: 17,
+                  }
+                ]}>
                   {isCompleted ? t('learning_plan.details.plan_completed') : t('learning_plan.details.continue_learning')}
                 </Text>
               </TouchableOpacity>
 
               {/* Plan Description */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('learning_plan.details.plan_overview')}</Text>
-                <Text style={[styles.planOverview, { color: accentColor }]}>
+                <Text style={[styles.sectionTitle, { color: '#FFFFFF', fontWeight: '800' }]}>{t('learning_plan.details.plan_overview')}</Text>
+                <Text style={[styles.planOverview, { color: '#FFFFFF', fontWeight: '700' }]}>
                   {plan?.duration_weeks || 2}{t('learning_plan.details.month_suffix')} {language.charAt(0).toUpperCase() + language.slice(1)} {t('learning_plan.details.learning_plan_for')} {level} {t('learning_plan.details.level_text')}
                 </Text>
-                <Text style={[styles.planDescription, { color: hexToRgba(accentColor, 0.7) }]}>
+                <Text style={[styles.planDescription, { color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }]}>
                   {t('learning_plan.details.plan_description', {
                     level,
                     score: plan?.assessment_data?.overall_score || 65,
@@ -451,19 +456,23 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               {/* Learning Goals */}
               {goals.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('learning_plan.details.learning_goals')}</Text>
-                  {goals.map((goal: string, index: number) => (
-                    <View key={index} style={styles.goalItem}>
-                      <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                      <Text style={styles.goalText}>{goal}</Text>
-                    </View>
-                  ))}
+                  <Text style={[styles.sectionTitle, { color: '#FFFFFF', fontWeight: '800' }]}>{t('learning_plan.details.learning_goals')}</Text>
+                  {goals.map((goal: string, index: number) => {
+                    // Capitalize first letter of each goal
+                    const capitalizedGoal = goal.charAt(0).toUpperCase() + goal.slice(1);
+                    return (
+                      <View key={index} style={styles.goalItem}>
+                        <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                        <Text style={[styles.goalText, { color: '#FFFFFF', fontWeight: '600' }]}>{capitalizedGoal}</Text>
+                      </View>
+                    );
+                  })}
                 </View>
               )}
 
               {/* Footer */}
               <View style={styles.footer}>
-                <Text style={styles.footerText}>
+                <Text style={[styles.footerText, { color: 'rgba(255, 255, 255, 0.6)' }]}>
                   {t('learning_plan.details.created_prefix')}{new Date(plan?.created_at || Date.now()).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
