@@ -31,8 +31,10 @@ interface LearningPlanDetailsModalProps {
   visible: boolean;
   onClose: () => void;
   plan: any;
+  language?: string;
   progressStats?: any;
   onContinueLearning: () => void;
+  cardColor: string;
 }
 
 // ==================== HELPER FUNCTIONS ====================
@@ -65,21 +67,23 @@ const getLevelColor = (level: string): { bg: string; text: string } => {
 
 interface ProgressRingProps {
   percentage: number;
+  accentColor: string;
   size?: number;
   strokeWidth?: number;
 }
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const ProgressRing: React.FC<ProgressRingProps> = ({ 
-  percentage, 
-  size = 140, 
-  strokeWidth = 12 
+const ProgressRing: React.FC<ProgressRingProps> = ({
+  percentage,
+  accentColor,
+  size = 140,
+  strokeWidth = 12
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  
+
   useEffect(() => {
     animatedValue.setValue(0);
     Animated.timing(animatedValue, {
@@ -95,16 +99,22 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   });
 
   const isComplete = percentage >= 100;
-  const progressColor = isComplete ? '#10B981' : '#14B8A6';
 
   return (
-    <View style={[styles.progressRingWrapper, { width: size, height: size }]}>
+    <View style={[styles.progressRingWrapper, {
+      width: size,
+      height: size,
+      shadowColor: '#FFFFFF',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.8,
+      shadowRadius: 15,
+    }]}>
       <Svg width={size} height={size}>
         <Circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(20, 184, 166, 0.15)"
+          stroke="rgba(255, 255, 255, 0.2)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -112,7 +122,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={progressColor}
+          stroke="#FFFFFF"
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={`${circumference} ${circumference}`}
@@ -121,16 +131,17 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      
+
       <View style={styles.progressTextContainer}>
-        <Text style={styles.progressPercentage}>{Math.round(percentage)}%</Text>
+        <Text style={[styles.progressPercentage, {
+          color: '#FFFFFF',
+          textShadowColor: 'rgba(255, 255, 255, 0.5)',
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 10,
+        }]}>
+          {Math.round(percentage)}%
+        </Text>
       </View>
-      
-      {isComplete && (
-        <View style={styles.completeBadge}>
-          <Ionicons name="checkmark-circle" size={40} color="#10B981" />
-        </View>
-      )}
     </View>
   );
 };
@@ -141,8 +152,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   visible,
   onClose,
   plan,
+  language: languageProp,
   progressStats,
   onContinueLearning,
+  cardColor,
 }) => {
   const { t } = useTranslation();
   // CRITICAL: Use timing instead of spring for reliability
@@ -156,10 +169,24 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
 
   const planContent = plan?.plan_content || {};
   const goals = plan?.goals || [];
-  const language = plan?.language || plan?.target_language || 'English';
+  const language = languageProp || plan?.language || plan?.target_language || 'English';
   const level = plan?.proficiency_level || plan?.target_cefr_level || 'B1';
   const levelColors = getLevelColor(level);
   const FlagComponent = getLanguageFlagComponent(language);
+
+  // Use the card color as the primary accent color
+  const accentColor = cardColor;
+  // Create a slightly different shade for secondary color
+  const secondaryColor = cardColor;
+
+  // Helper to convert hex to rgba
+  const hexToRgba = (hex: string, opacity: number) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (result) {
+      return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${opacity})`;
+    }
+    return `rgba(20, 184, 166, ${opacity})`;
+  };
 
   // Get actual practice minutes used from the plan (tracked by backend)
   // Fallback to estimated calculation if not available
@@ -260,12 +287,23 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
             styles.modalContainer,
             {
               transform: [{ translateY: slideAnim }],
+              backgroundColor: accentColor,
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              shadowColor: accentColor,
             },
           ]}
         >
           <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-            {/* Header */}
-            <View style={styles.header}>
+            {/* Header with Gradient */}
+            <View
+              style={[
+                styles.header,
+                {
+                  backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                  borderBottomColor: 'rgba(255, 255, 255, 0.15)',
+                }
+              ]}
+            >
               <View style={styles.headerLeft}>
                 {FlagComponent && (
                   <View style={styles.headerFlagContainer}>
@@ -273,62 +311,88 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                   </View>
                 )}
                 <View>
-                  <Text style={styles.headerTitle}>
+                  <Text style={[styles.headerTitle, { color: '#FFFFFF', fontWeight: '800' }]}>
                     {language.charAt(0).toUpperCase() + language.slice(1)}{t('learning_plan.details.learning_plan_suffix')}
                   </Text>
-                  <View style={[styles.levelBadge, { backgroundColor: levelColors.bg }]}>
-                    <Text style={[styles.levelText, { color: levelColors.text }]}>
+                  <View style={[styles.levelBadge, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }]}>
+                    <Text style={[styles.levelText, { color: '#FFFFFF', fontWeight: '800' }]}>
                       {level}{t('learning_plan.details.level_suffix')}
                     </Text>
                   </View>
                 </View>
               </View>
 
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <TouchableOpacity onPress={handleClose} style={[styles.closeButton, { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderColor: 'rgba(255, 255, 255, 0.3)' }]}>
                 <Ionicons name="close" size={28} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
             {/* Scrollable Content */}
-            <ScrollView 
+            <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
               bounces={true}
             >
               {/* Progress Section */}
               <View style={styles.progressSection}>
-                <ProgressRing percentage={percentage} size={140} strokeWidth={12} />
-                <Text style={styles.overallProgressLabel}>{t('learning_plan.details.overall_progress')}</Text>
+                <ProgressRing percentage={percentage} accentColor="#FFFFFF" size={140} strokeWidth={12} />
+                <Text style={[styles.overallProgressLabel, { color: '#FFFFFF', fontWeight: '700' }]}>
+                  {t('learning_plan.details.overall_progress')}
+                </Text>
               </View>
 
               {/* Stats Cards */}
               <View style={styles.statsContainer}>
-                <View style={styles.statCard}>
+                <View style={[
+                  styles.statCard,
+                  {
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.25)',
+                  }
+                ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="calendar-outline" size={24} color="#4FD1C5" />
-                    <Text style={styles.statCardLabel}>{t('learning_plan.details.sessions')}</Text>
+                    <Ionicons name="calendar-outline" size={24} color="#FFFFFF" />
+                    <Text style={[styles.statCardLabel, { color: '#FFFFFF', fontWeight: '600' }]}>
+                      {t('learning_plan.details.sessions')}
+                    </Text>
                   </View>
-                  <Text style={styles.statCardValue}>{completedSessions}/{totalSessions}</Text>
+                  <Text style={[styles.statCardValue, { color: '#FFFFFF', fontWeight: '800' }]}>
+                    {completedSessions}/{totalSessions}
+                  </Text>
                 </View>
 
-                <View style={styles.statCard}>
+                <View style={[
+                  styles.statCard,
+                  {
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.25)',
+                  }
+                ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="time-outline" size={24} color="#3B82F6" />
-                    <Text style={styles.statCardLabel}>
+                    <Ionicons name="time-outline" size={24} color="#FFFFFF" />
+                    <Text style={[styles.statCardLabel, { color: '#FFFFFF', fontWeight: '600' }]}>
                       {actualMinutesUsed > 0 ? t('learning_plan.details.spoken_time') : t('learning_plan.details.est_time')}
                     </Text>
                   </View>
-                  <Text style={styles.statCardValue}>
+                  <Text style={[styles.statCardValue, { color: '#FFFFFF', fontWeight: '800' }]}>
                     {actualMinutesUsed > 0 ? `${Math.round(practiceTimeMinutes)} min` : `~${practiceTimeMinutes} min`}
                   </Text>
                 </View>
 
-                <View style={styles.statCard}>
+                <View style={[
+                  styles.statCard,
+                  {
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.25)',
+                  }
+                ]}>
                   <View style={styles.statCardLeft}>
-                    <Ionicons name="trending-up" size={24} color="#8B5CF6" />
-                    <Text style={styles.statCardLabel}>{t('learning_plan.details.current_week')}</Text>
+                    <Ionicons name="trending-up" size={24} color="#FFFFFF" />
+                    <Text style={[styles.statCardLabel, { color: '#FFFFFF', fontWeight: '600' }]}>
+                      {t('learning_plan.details.current_week')}
+                    </Text>
                   </View>
-                  <Text style={styles.statCardValue}>
+                  <Text style={[styles.statCardValue, { color: '#FFFFFF', fontWeight: '800' }]}>
                     {t('learning_plan.details.week_prefix')}{currentWeek}
                   </Text>
                 </View>
@@ -336,31 +400,46 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
 
               {/* Continue Learning Button */}
               <TouchableOpacity
-                style={[styles.continueButton, isCompleted && styles.continueButtonDisabled]}
+                style={[
+                  styles.continueButton,
+                  {
+                    backgroundColor: '#FFFFFF',
+                    shadowColor: '#000000',
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                    borderWidth: 2,
+                  }
+                ]}
                 onPress={() => {
                   handleClose();
                   setTimeout(() => onContinueLearning(), 400);
                 }}
                 disabled={isCompleted}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
               >
                 <Ionicons
-                  name={isCompleted ? "checkmark-circle" : "play"}
-                  size={20}
-                  color="#FFFFFF"
+                  name={isCompleted ? "checkmark-circle" : "play-circle"}
+                  size={24}
+                  color={accentColor}
                 />
-                <Text style={styles.continueButtonText}>
+                <Text style={[
+                  styles.continueButtonText,
+                  {
+                    color: accentColor,
+                    fontWeight: '800',
+                    fontSize: 17,
+                  }
+                ]}>
                   {isCompleted ? t('learning_plan.details.plan_completed') : t('learning_plan.details.continue_learning')}
                 </Text>
               </TouchableOpacity>
 
               {/* Plan Description */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('learning_plan.details.plan_overview')}</Text>
-                <Text style={styles.planOverview}>
+                <Text style={[styles.sectionTitle, { color: '#FFFFFF', fontWeight: '800' }]}>{t('learning_plan.details.plan_overview')}</Text>
+                <Text style={[styles.planOverview, { color: '#FFFFFF', fontWeight: '700' }]}>
                   {plan?.duration_weeks || 2}{t('learning_plan.details.month_suffix')} {language.charAt(0).toUpperCase() + language.slice(1)} {t('learning_plan.details.learning_plan_for')} {level} {t('learning_plan.details.level_text')}
                 </Text>
-                <Text style={styles.planDescription}>
+                <Text style={[styles.planDescription, { color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }]}>
                   {t('learning_plan.details.plan_description', {
                     level,
                     score: plan?.assessment_data?.overall_score || 65,
@@ -373,19 +452,23 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
               {/* Learning Goals */}
               {goals.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('learning_plan.details.learning_goals')}</Text>
-                  {goals.map((goal: string, index: number) => (
-                    <View key={index} style={styles.goalItem}>
-                      <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                      <Text style={styles.goalText}>{goal}</Text>
-                    </View>
-                  ))}
+                  <Text style={[styles.sectionTitle, { color: '#FFFFFF', fontWeight: '800' }]}>{t('learning_plan.details.learning_goals')}</Text>
+                  {goals.map((goal: string, index: number) => {
+                    // Capitalize first letter of each goal
+                    const capitalizedGoal = goal.charAt(0).toUpperCase() + goal.slice(1);
+                    return (
+                      <View key={index} style={styles.goalItem}>
+                        <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                        <Text style={[styles.goalText, { color: '#FFFFFF', fontWeight: '600' }]}>{capitalizedGoal}</Text>
+                      </View>
+                    );
+                  })}
                 </View>
               )}
 
               {/* Footer */}
               <View style={styles.footer}>
-                <Text style={styles.footerText}>
+                <Text style={[styles.footerText, { color: 'rgba(255, 255, 255, 0.6)' }]}>
                   {t('learning_plan.details.created_prefix')}{new Date(plan?.created_at || Date.now()).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',

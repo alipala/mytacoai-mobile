@@ -22,6 +22,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -35,6 +36,8 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import type { LearningPlan } from '../api/generated';
 import { MiniLearningPlanCard } from './MiniLearningPlanCard';
+import { Typography } from '../constants/typography';
+import { getLanguageGradient, getLanguageGradientWithOpacity } from '../utils/gradientHelpers';
 
 // Import SVG flags
 import EnglishFlag from '../assets/flags/english.svg';
@@ -269,36 +272,57 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
     maxHeight: contentHeight.value === 0 ? 0 : 10000, // Large number for auto-height
   }));
 
+  // Get gradient colors for this language
+  const gradientColors = getLanguageGradient(language);
+  const gradientOverlay = getLanguageGradientWithOpacity(language, isExpanded ? 0.25 : 0.15);
+
   return (
-    <View style={[
-      styles.container,
-      {
-        borderWidth: isExpanded ? 2 : 1.5,
-        borderColor: isExpanded ? languageColors.border : `${languageColors.border}80`,
-        backgroundColor: isExpanded ? languageColors.background : 'rgba(11, 26, 31, 0.6)',
-        shadowColor: languageColors.glow,
-        shadowOpacity: isExpanded ? 0.4 : 0.15,
-        shadowRadius: isExpanded ? 12 : 6,
-        elevation: isExpanded ? 8 : 3,
-      }
-    ]}>
-      {/* DNA Button - Positioned in top-right corner */}
-      {hasDNAAnalysis && (
-        <TouchableOpacity
-          style={[styles.dnaButtonAbsolute, !isPremium && styles.dnaButtonLocked]}
-          onPress={handleDNAPress}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name="analytics"
-            size={14}
-            color={isPremium ? '#14B8A6' : '#9CA3AF'}
-          />
-          <Text style={[styles.dnaButtonText, !isPremium && styles.dnaButtonTextLocked]}>
-            {t('learning_plan.dna_analysis')}
-          </Text>
-        </TouchableOpacity>
-      )}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={gradientOverlay as [string, string, ...string[]]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          styles.gradientContainer,
+          {
+            borderWidth: isExpanded ? 2 : 1.5,
+            borderColor: `${gradientColors[0]}${isExpanded ? 'FF' : '80'}`,
+            shadowColor: gradientColors[0],
+            shadowOpacity: isExpanded ? 0.4 : 0.15,
+            shadowRadius: isExpanded ? 12 : 6,
+            elevation: isExpanded ? 8 : 3,
+          }
+        ]}
+      >
+        {/* DNA Button - Positioned in top-right corner */}
+        {hasDNAAnalysis && (
+          <TouchableOpacity
+            style={[styles.dnaButtonAbsolute, !isPremium && styles.dnaButtonLocked]}
+            onPress={handleDNAPress}
+            activeOpacity={0.7}
+          >
+            {isPremium ? (
+              <LinearGradient
+                colors={gradientColors as [string, string, ...string[]]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.dnaButtonGradient}
+              >
+                <Ionicons name="analytics" size={14} color="#FFFFFF" />
+                <Text style={styles.dnaButtonText}>
+                  {t('learning_plan.dna_analysis')}
+                </Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.dnaButtonGradient}>
+                <Ionicons name="analytics" size={14} color="#9CA3AF" />
+                <Text style={[styles.dnaButtonText, styles.dnaButtonTextLocked]}>
+                  {t('learning_plan.dna_analysis')}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
 
       {/* Collapsible Header - Entire area is tappable, with dynamic height */}
       <TouchableOpacity
@@ -320,33 +344,35 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
             )}
             <View style={styles.languageInfo}>
               <View style={styles.topRow}>
-                <Text style={[styles.languageName, totalLanguageCount > 4 && styles.textSmall]}>
+                <Text style={styles.languageName}>
                   {name}
                 </Text>
-                <Text style={[styles.planCount, totalLanguageCount > 4 && styles.textSmall]}>
+                <Text style={styles.planCount}>
                   ({plans.length})
                 </Text>
               </View>
               <View style={styles.statsRow}>
                 <View style={styles.statItem}>
-                  <Ionicons name="flash" size={totalLanguageCount > 4 ? 10 : 11} color="#F59E0B" />
-                  <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
-                    {stats.avgProgress}% avg
-                  </Text>
+                  <Ionicons name="flash" size={14} color="#F59E0B" />
+                  <View style={styles.statTextContainer}>
+                    <Text style={styles.statNumber}>{stats.avgProgress}%</Text>
+                    <Text style={styles.statLabel}>avg</Text>
+                  </View>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <Ionicons name="calendar" size={totalLanguageCount > 4 ? 10 : 11} color="#6B7280" />
-                  <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
-                    {stats.sessionText}
-                  </Text>
+                  <Ionicons name="calendar" size={14} color="#14B8A6" />
+                  <View style={styles.statTextContainer}>
+                    <Text style={styles.statNumber}>{stats.sessionText}</Text>
+                    <Text style={styles.statLabel}>sessions</Text>
+                  </View>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <Ionicons name="time" size={totalLanguageCount > 4 ? 10 : 11} color="#6B7280" />
-                  <Text style={[styles.statText, totalLanguageCount > 4 && styles.textTiny]}>
-                    {stats.timeText}
-                  </Text>
+                  <Ionicons name="time" size={14} color="#14B8A6" />
+                  <View style={styles.statTextContainer}>
+                    <Text style={styles.statNumber}>{stats.timeText}</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -374,43 +400,44 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
         </View>
       </TouchableOpacity>
 
-      {/* Expandable Content - Plan Cards Horizontal Sliding */}
-      <Animated.View style={[styles.content, contentStyle]}>
-        {isExpanded && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.plansScrollContent}
-            snapToInterval={PLAN_CARD_WIDTH + CARD_SPACING}
-            decelerationRate="fast"
-            snapToAlignment="center"
-            style={styles.plansScroller}
-            pagingEnabled={false}
-          >
-            {plans.map((plan, index) => (
-              <View
-                key={plan.id || index}
-                style={[
-                  styles.planCardWrapper,
-                  index === plans.length - 1 && styles.lastCard,
-                ]}
-              >
-                <MiniLearningPlanCard
-                  plan={plan}
-                  onContinue={() => onContinue(plan.id)}
-                  onViewDetails={() => onViewDetails(plan)}
-                  onViewAssessment={() => onViewAssessment(plan)}
-                  onCreateNextPlan={
-                    existingPlanIds.includes(plan.id)
-                      ? undefined
-                      : () => onCreateNextPlan?.(plan)
-                  }
-                />
-              </View>
-            ))}
-          </ScrollView>
-        )}
-      </Animated.View>
+        {/* Expandable Content - Plan Cards Horizontal Sliding */}
+        <Animated.View style={[styles.content, contentStyle]}>
+          {isExpanded && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.plansScrollContent}
+              snapToInterval={PLAN_CARD_WIDTH + CARD_SPACING}
+              decelerationRate="fast"
+              snapToAlignment="center"
+              style={styles.plansScroller}
+              pagingEnabled={false}
+            >
+              {plans.map((plan, index) => (
+                <View
+                  key={plan.id || index}
+                  style={[
+                    styles.planCardWrapper,
+                    index === plans.length - 1 && styles.lastCard,
+                  ]}
+                >
+                  <MiniLearningPlanCard
+                    plan={plan}
+                    onContinue={() => onContinue(plan.id)}
+                    onViewDetails={() => onViewDetails(plan)}
+                    onViewAssessment={() => onViewAssessment(plan)}
+                    onCreateNextPlan={
+                      existingPlanIds.includes(plan.id)
+                        ? undefined
+                        : () => onCreateNextPlan?.(plan)
+                    }
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </Animated.View>
+      </LinearGradient>
     </View>
   );
 };
@@ -421,15 +448,17 @@ export const CollapsibleLanguageGroup: React.FC<CollapsibleLanguageGroupProps> =
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 8,
-    // backgroundColor removed - applied dynamically per language
+    marginBottom: 12,
     borderRadius: 14,
-    overflow: 'visible', // Changed from 'hidden' to allow button shadow
+    overflow: 'visible',
+  },
+  gradientContainer: {
+    borderRadius: 14,
+    overflow: 'visible',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   headerContainer: {
     // Outer container for entire touchable area
@@ -438,9 +467,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 10,
   },
   leftSection: {
     flexDirection: 'row',
@@ -448,10 +477,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   flagContainer: {
-    marginRight: 10, // Reduced from 12
+    marginRight: 12,
   },
   flagContainerSmall: {
-    marginRight: 8, // Reduced from 10
+    marginRight: 10,
   },
   languageInfo: {
     flex: 1,
@@ -459,57 +488,60 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2, // Reduced from 4 to tighten spacing
+    marginBottom: 6,
   },
   languageName: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...Typography.title.medium,
     color: '#FFFFFF',
-    marginRight: 4,
+    marginRight: 6,
   },
   planCount: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#B4E4DD',
-  },
-  textSmall: {
-    fontSize: 14, // Smaller text for 5+ languages
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4, // Reduced from 6 to make more compact
+    gap: 8,
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+  },
+  statTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
     gap: 3,
   },
-  statText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#B4E4DD',
+  statNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-  textTiny: {
-    fontSize: 10, // Even smaller for 5+ languages
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.6)',
   },
   statDivider: {
     width: 1,
-    height: 10,
-    backgroundColor: 'rgba(180, 228, 221, 0.3)',
+    height: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   // Bottom Expand/Collapse Hint Section
   expandHintContainer: {
     alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 4,
-    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
   },
   expandHintDivider: {
     width: '100%',
     height: 1,
-    backgroundColor: 'rgba(20, 184, 166, 0.2)',
-    marginBottom: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    marginBottom: 8,
   },
   expandHintTextContainer: {
     flexDirection: 'row',
@@ -517,46 +549,46 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   expandHintText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#14B8A6',
+    color: '#FFFFFF',
     letterSpacing: 0.3,
+    opacity: 0.7,
   },
   // DNA Button - Positioned Absolutely in Top-Right Corner
   dnaButtonAbsolute: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#14B8A6',
-    shadowColor: '#14B8A6',
+    top: 10,
+    right: 10,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
     zIndex: 10,
   },
+  dnaButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
   dnaButtonLocked: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     shadowOpacity: 0,
     elevation: 0,
   },
   dnaButtonText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#14B8A6',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
     letterSpacing: 0.3,
   },
   dnaButtonTextLocked: {
-    color: '#B4E4DD',
+    color: '#9CA3AF',
   },
   content: {
     overflow: 'hidden',

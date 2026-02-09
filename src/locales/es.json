@@ -122,7 +122,11 @@
       "pill_personalised_learning": "Aprendizaje Personalizado",
       "pill_adaptive_ai": "IA Adaptativa",
       "pill_custom_topics": "Temas Personalizados",
-      "pill_progress_tracking": "Seguimiento de Progreso"
+      "pill_progress_tracking": "Seguimiento de Progreso",
+      "pill_unlimited_practice": "Práctica Ilimitada",
+      "pill_ai_tutor": "Tutor de IA 24/7",
+      "pill_real_conversations": "Conversaciones Reales",
+      "pill_instant_feedback": "Retroalimentación Instantánea"
     }
   },
   "dashboard": {
@@ -1703,11 +1707,22 @@
     "tap_to_expand": "Toca para expandir",
     "tap_to_collapse": "Toca para colapsar",
     "dna_analysis": "Análisis de ADN",
+    "view_voice_dna": "Ver ADN de Voz",
+    "view_voice_profile": "Ver tu perfil de habla",
+    "and_dna_available": " y Análisis de ADN Disponible",
+    "plan_available": "Plan de Aprendizaje Disponible",
+    "plans_available": "Planes de Aprendizaje Disponibles",
     "continue": "Continuar",
     "details_button": "Detalles",
     "status_new": "NUEVO",
     "status_in_progress": "EN PROGRESO",
     "status_completed": "COMPLETADO",
+    "filters": {
+      "all": "Todos",
+      "new": "Nuevo",
+      "in_progress": "En Progreso",
+      "completed": "Completado"
+    },
     "details": {
       "learning_plan_suffix": " Plan de Aprendizaje",
       "level_suffix": " Nivel",

@@ -22,16 +22,16 @@ export const styles = StyleSheet.create({
     maxWidth: 500,
   },
   glassContainer: {
-    backgroundColor: 'rgba(11, 26, 31, 0.98)',
+    backgroundColor: 'rgba(17, 24, 39, 0.98)',
     borderRadius: 32,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    borderWidth: 3,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
     ...Platform.select({
       ios: {
         shadowColor: '#14B8A6',
         shadowOffset: { width: 0, height: 20 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.5,
         shadowRadius: 40,
       },
       android: {
@@ -46,27 +46,33 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 20,
+    backgroundColor: 'rgba(20, 184, 166, 0.03)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 184, 166, 0.15)',
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: 16,
+    gap: 14,
+    paddingRight: 8,
   },
   iconBadge: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
     ...Platform.select({
       ios: {
-        shadowColor: COLORS.turquoise,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.5,
+        shadowRadius: 10,
       },
       android: {
-        elevation: 6,
+        elevation: 8,
       },
     }),
   },
@@ -75,20 +81,24 @@ export const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#14B8A6',
   },
   headerTextContainer: {
     flex: 1,
+    marginRight: 8,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
     color: '#FFFFFF',
     marginBottom: 2,
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#B4E4DD',
-    fontWeight: '500',
+    color: 'rgba(180, 228, 221, 0.9)',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   closeButton: {
     padding: 4,
@@ -110,17 +120,28 @@ export const styles = StyleSheet.create({
   optionCard: {
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.25)',
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  quickPracticeCard: {
     ...Platform.select({
       ios: {
         shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
       },
-      android: {
-        elevation: 6,
+    }),
+  },
+  assessmentCard: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#8B5CF6',
       },
     }),
   },
@@ -128,6 +149,12 @@ export const styles = StyleSheet.create({
     padding: 20,
     minHeight: 160,
     position: 'relative',
+  },
+  quickPracticeGradient: {
+    backgroundColor: '#14B8A6',
+  },
+  assessmentGradient: {
+    backgroundColor: '#8B5CF6',
   },
   optionCardContent: {
     position: 'relative',

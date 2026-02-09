@@ -122,7 +122,11 @@
       "pill_personalised_learning": "Personalisiertes Lernen",
       "pill_adaptive_ai": "Adaptive KI",
       "pill_custom_topics": "Individuelle Themen",
-      "pill_progress_tracking": "Fortschrittsverfolgung"
+      "pill_progress_tracking": "Fortschrittsverfolgung",
+      "pill_unlimited_practice": "Unbegrenzte Übung",
+      "pill_ai_tutor": "24/7 KI-Tutor",
+      "pill_real_conversations": "Echte Gespräche",
+      "pill_instant_feedback": "Sofortiges Feedback"
     }
   },
   "dashboard": {
@@ -1703,11 +1707,22 @@
     "tap_to_expand": "Zum Erweitern tippen",
     "tap_to_collapse": "Zum Reduzieren tippen",
     "dna_analysis": "DNA-Analyse",
+    "view_voice_dna": "Stimm-DNA Ansehen",
+    "view_voice_profile": "Ihr Sprechprofil ansehen",
+    "and_dna_available": " und DNA-Analyse Verfügbar",
+    "plan_available": "Lernplan Verfügbar",
+    "plans_available": "Lernpläne Verfügbar",
     "continue": "Fortfahren",
     "details_button": "Details",
     "status_new": "NEU",
     "status_in_progress": "IN BEARBEITUNG",
     "status_completed": "ABGESCHLOSSEN",
+    "filters": {
+      "all": "Alle",
+      "new": "Neu",
+      "in_progress": "In Bearbeitung",
+      "completed": "Abgeschlossen"
+    },
     "details": {
       "learning_plan_suffix": " Lernplan",
       "level_suffix": " Niveau",

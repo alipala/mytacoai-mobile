@@ -17,14 +17,11 @@ export const styles = StyleSheet.create({
     zIndex: 1,
   },
   modalContainer: {
-    backgroundColor: 'rgba(11, 26, 31, 0.98)',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: SCREEN_HEIGHT < 700 ? SCREEN_HEIGHT * 0.85 : SCREEN_HEIGHT * 0.9,
     zIndex: 2,
     borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
-    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -62,30 +59,28 @@ export const styles = StyleSheet.create({
     fontSize: 32,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   levelBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
     alignSelf: 'flex-start',
   },
   levelText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
   },
   closeButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
   },
   scrollView: {
     flex: 1,
@@ -93,7 +88,6 @@ export const styles = StyleSheet.create({
   progressSection: {
     alignItems: 'center',
     paddingVertical: 32,
-    backgroundColor: 'rgba(20, 184, 166, 0.05)',
   },
   progressRingWrapper: {
     justifyContent: 'center',
@@ -106,7 +100,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressPercentage: {
-    fontSize: 36,
+    fontSize: 42,
     fontWeight: 'bold',
     color: '#14B8A6',
   },
@@ -123,10 +117,10 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   overallProgressLabel: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#B4E4DD',
-    marginTop: 16,
-    fontWeight: '500',
+    marginTop: 18,
+    fontWeight: '600',
   },
   statsContainer: {
     paddingHorizontal: 20,
@@ -149,12 +143,12 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   statCardLabel: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#B4E4DD',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   statCardValue: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#14B8A6',
   },
@@ -184,8 +178,8 @@ export const styles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
   },
   section: {
     paddingHorizontal: 20,
@@ -200,29 +194,29 @@ export const styles = StyleSheet.create({
   planOverview: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#14B8A6',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   planDescription: {
     fontSize: 14,
-    color: '#B4E4DD',
+    color: '#FFFFFF',
     lineHeight: 20,
   },
   goalItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   goalText: {
     flex: 1,
     fontSize: 14,
-    color: '#6EE7B7',
+    color: '#FFFFFF',
     lineHeight: 20,
   },
   footer: {
@@ -232,6 +226,6 @@ export const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#FFFFFF',
   },
 });

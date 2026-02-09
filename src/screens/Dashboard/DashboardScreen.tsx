@@ -27,8 +27,6 @@ import { useTranslation } from 'react-i18next';
 import { setBadgeCount } from '../../services/notificationService';
 import { ProgressService, LearningService, StripeService } from '../../api/generated';
 import type { LearningPlan } from '../../api/generated';
-import { LearningPlanCard } from '../../components/LearningPlanCard';
-import { CompactLearningPlanCard } from '../../components/CompactLearningPlanCard';
 import { LearningPlanDetailsModal } from '../../components/LearningPlanDetailsModal';
 import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
@@ -37,7 +35,14 @@ import TransitionWrapper from '../../components/TransitionWrapper';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
-import { CollapsibleLanguageGroup } from '../../components/CollapsibleLanguageGroup';
+import { FilterChips } from '../../components/FilterChips';
+import { QuickResumeWidget } from '../../components/QuickResumeWidget';
+import { MasonryGrid } from '../../components/MasonryGrid';
+import { MasonryPlanCard } from '../../components/MasonryPlanCard';
+import { MasonrySessionCard } from '../../components/MasonrySessionCard';
+import { StartSessionCard } from '../../components/StartSessionCard';
+import { DNAAnalysisCard } from '../../components/DNAAnalysisCard';
+import { PracticeSessionDetailsModal } from '../../components/PracticeSessionDetailsModal';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { API_BASE_URL } from '../../api/config';
 
@@ -58,7 +63,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [progressStats, setProgressStats] = useState<any>(null);
   const [selectedAssessmentPlan, setSelectedAssessmentPlan] = useState<LearningPlan | null>(null);
-  const [expandedLanguage, setExpandedLanguage] = useState<string | null>(null);
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
   const [languagesWithDNA, setLanguagesWithDNA] = useState<Set<string>>(new Set());
 
@@ -71,7 +75,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Modal state
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
+  const [selectedPlanColor, setSelectedPlanColor] = useState<string>('#14B8A6');
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
+
+  // Filter state for masonry grid layout
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [selectedLanguageFilter, setSelectedLanguageFilter] = useState<string | null>(null);
+
+  // Practice sessions state
+  const [practiceSessions, setPracticeSessions] = useState<any[]>([]);
+  const [showSessionDetailsModal, setShowSessionDetailsModal] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<any | null>(null);
+  const [selectedSessionColor, setSelectedSessionColor] = useState<string>('#14B8A6');
 
   // Notifications state
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
@@ -90,6 +105,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Animation refs for Start New Session button
   const buttonFloatAnim = useRef(new Animated.Value(0)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Masonry grid doesn't need expanded language state
 
   useEffect(() => {
     loadDashboardData();
@@ -366,6 +383,33 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setLanguagesWithDNA(dnaLanguages);
       console.log('🧬 Languages with DNA:', Array.from(dnaLanguages));
 
+      // Fetch recent practice sessions (conversation history)
+      try {
+        console.log('📡 Fetching conversation history...');
+        const conversationsResponse = await ProgressService.getConversationHistoryApiProgressConversationsGet(20);
+        console.log('📡 Conversation API Response:', conversationsResponse);
+
+        if (conversationsResponse && Array.isArray(conversationsResponse)) {
+          console.log(`💬 Loaded ${conversationsResponse.length} recent practice sessions`);
+          if (conversationsResponse.length > 0) {
+            console.log('📝 First session:', conversationsResponse[0]);
+          }
+          setPracticeSessions(conversationsResponse);
+        } else if (conversationsResponse && conversationsResponse.sessions) {
+          // Handle if response is wrapped in object
+          console.log(`💬 Loaded ${conversationsResponse.sessions.length} sessions (wrapped response)`);
+          setPracticeSessions(conversationsResponse.sessions);
+        } else {
+          console.log('⚠️ Unexpected conversation response format:', typeof conversationsResponse);
+          setPracticeSessions([]);
+        }
+      } catch (sessionsError: any) {
+        console.error('❌ Error fetching practice sessions:', sessionsError);
+        console.error('Error details:', sessionsError.message, sessionsError.status);
+        // Don't fail the whole dashboard if sessions fail to load
+        setPracticeSessions([]);
+      }
+
       // If user doesn't have preferences set, infer from most recent learning plan
       if ((!finalLanguage || finalLanguage === 'english') && plansResponse && plansResponse.length > 0) {
         const mostRecentPlan = plansResponse[0] as LearningPlan;
@@ -399,18 +443,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     loadDashboardData();
   };
 
-  const handleContinueLearning = (planId: string) => {
+  const handleContinueLearning = (planId: string, cardColor?: string) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    navigation.navigate('Conversation', { planId });
+    navigation.navigate('Conversation', { planId, cardColor });
   };
 
-  const handleViewDetails = (plan: LearningPlan) => {
+  const handleViewDetails = (plan: LearningPlan, color: string) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setSelectedPlan(plan);
+    setSelectedPlanColor(color);
     setShowDetailsModal(true);
   };
 
@@ -425,6 +470,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     navigation.navigate('LanguageSelection', { mode: 'practice' });
   };
 
+  const handleSessionPress = (session: any, color: string) => {
+    console.log('🎯 handleSessionPress called with session:', JSON.stringify(session, null, 2));
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setSelectedSession(session);
+    setSelectedSessionColor(color);
+    setShowSessionDetailsModal(true);
+    console.log('✅ Modal state set to true');
+  };
+
   const handleSelectAssessment = () => {
     navigation.navigate('AssessmentLanguageSelection');
   };
@@ -432,7 +488,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const handleModalContinueLearning = () => {
     if (selectedPlan) {
       setShowDetailsModal(false);
-      navigation.navigate('Conversation', { planId: selectedPlan.id });
+      navigation.navigate('Conversation', { planId: selectedPlan.id, cardColor: selectedPlanColor });
     }
   };
 
@@ -504,6 +560,64 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
 
     return `${greeting}, ${firstName}`;
+  };
+
+  // Filter and group learning plans for masonry grid layout
+  const getFilteredAndGroupedPlans = () => {
+    // Filter plans based on selected filter and language
+    // Status values: "in_progress" (default), "awaiting_final_assessment", "completed", "failed_assessment"
+    const filteredPlans = learningPlans.filter(plan => {
+      // Language filter
+      if (selectedLanguageFilter) {
+        const planLanguage = (plan.language || 'english').toLowerCase();
+        if (planLanguage !== selectedLanguageFilter.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // Status filter
+      if (selectedFilter === 'all') return true;
+
+      const status = plan.status?.toLowerCase() || 'in_progress';
+      const progressPercentage = plan.progress_percentage || 0;
+      const completedSessions = plan.completed_sessions || 0;
+
+      if (selectedFilter === 'new') {
+        // New = in_progress with no sessions completed
+        return (status === 'in_progress' || !plan.status) && completedSessions === 0;
+      }
+      if (selectedFilter === 'in_progress') {
+        // In Progress = in_progress with at least 1 session completed
+        return (status === 'in_progress' || status === 'awaiting_final_assessment') && completedSessions > 0;
+      }
+      if (selectedFilter === 'completed') {
+        return status === 'completed' || progressPercentage >= 100;
+      }
+
+      return true;
+    });
+
+    // Group plans by language
+    const plansByLanguage = filteredPlans.reduce((acc, plan) => {
+      const language = (plan.language || 'english').toLowerCase();
+      if (!acc[language]) {
+        acc[language] = [];
+      }
+      acc[language].push(plan);
+      return acc;
+    }, {} as Record<string, LearningPlan[]>);
+
+    // Find most recent plan for Quick Resume (from all plans, not just filtered)
+    const mostRecentPlan = learningPlans.length > 0 ? [...learningPlans].sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || '').getTime();
+      const dateB = new Date(b.updated_at || b.created_at || '').getTime();
+      return dateB - dateA;
+    })[0] : null;
+
+    // Determine which language should be expanded by default (most recent)
+    const mostRecentLanguage = mostRecentPlan ? (mostRecentPlan.language || 'english').toLowerCase() : null;
+
+    return { plansByLanguage, mostRecentPlan, mostRecentLanguage };
   };
 
   // Main content render
@@ -1049,107 +1163,262 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </>
         )}
 
-        {/* Learning Plans Grouped by Language - Collapsible */}
-        <View style={styles.languageGroupsContainer}>
-          {(() => {
-            // Group learning plans by language
-            const plansByLanguage: Record<string, LearningPlan[]> = {};
-            learningPlans.forEach(plan => {
-              const lang = plan.language || 'english';
-              if (!plansByLanguage[lang]) {
-                plansByLanguage[lang] = [];
-              }
-              plansByLanguage[lang].push(plan);
-            });
+        {/* Masonry Grid Layout with Learning Plans and Practice Sessions */}
+        {(() => {
+          const { plansByLanguage, mostRecentPlan } = getFilteredAndGroupedPlans();
+          const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
 
-            // Get all plan IDs that have a next-level plan created
-            const existingPlanIds = learningPlans
-              .filter(p => p.previous_plan_id)
-              .map(p => p.previous_plan_id!);
+          // Get all available languages from learning plans
+          const availableLanguages = [...new Set(learningPlans.map(plan =>
+            (plan.language || 'english').toLowerCase()
+          ))].sort();
 
-            // Get total count for dynamic height calculation
-            const totalLanguageCount = Object.keys(plansByLanguage).length;
+          // Get all filtered plans (not grouped)
+          const allFilteredPlans = Object.values(plansByLanguage).flat();
 
-            // Render a CollapsibleLanguageGroup for each language
-            return Object.entries(plansByLanguage).map(([language, plans]) => (
-              <CollapsibleLanguageGroup
-                key={language}
-                language={language}
-                plans={plans}
-                progressStats={progressStats}
-                isPremium={subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan)}
-                onContinue={handleContinueLearning}
-                onViewDetails={handleViewDetails}
-                onViewAssessment={(plan) => {
-                  setSelectedAssessmentPlan(plan);
-                  setShowAssessmentModal(true);
-                }}
-                onCreateNextPlan={handleCreateNextPlan}
-                onViewDNA={(lang) => navigation.navigate('SpeakingDNA', { language: lang })}
-                existingPlanIds={existingPlanIds}
-                totalLanguageCount={totalLanguageCount}
-                hasDNAAnalysis={languagesWithDNA.has(language)}
-                isExpanded={expandedLanguage === language}
-                onToggleExpand={() => {
-                  // Toggle: if clicking same group, collapse it; otherwise expand the new one
-                  setExpandedLanguage(expandedLanguage === language ? null : language);
-                }}
+          // Smart sort: Priority based on activity
+          const sortedPlans = [...allFilteredPlans].sort((a, b) => {
+            const aCompletedSessions = a.completed_sessions || 0;
+            const bCompletedSessions = b.completed_sessions || 0;
+            const aStatus = a.status?.toLowerCase() || 'in_progress';
+            const bStatus = b.status?.toLowerCase() || 'in_progress';
+
+            // Priority 1: In-progress with sessions > completed
+            const aIsActive = (aStatus === 'in_progress' || aStatus === 'awaiting_final_assessment') && aCompletedSessions > 0;
+            const bIsActive = (bStatus === 'in_progress' || bStatus === 'awaiting_final_assessment') && bCompletedSessions > 0;
+
+            if (aIsActive && !bIsActive) return -1;
+            if (!aIsActive && bIsActive) return 1;
+
+            // Priority 2: Recent activity (updated_at)
+            const dateA = new Date(a.updated_at || a.created_at || '').getTime();
+            const dateB = new Date(b.updated_at || b.created_at || '').getTime();
+
+            return dateB - dateA;
+          });
+
+          // Filter practice sessions by language if selected
+          const filteredSessions = selectedLanguageFilter
+            ? practiceSessions.filter(session => {
+                const sessionLang = (session.language || session.target_language || 'english').toLowerCase();
+                return sessionLang === selectedLanguageFilter.toLowerCase();
+              })
+            : practiceSessions;
+
+          // Build masonry grid items array with intelligent mixing
+          const gridItems: React.ReactNode[] = [];
+
+          // Combine ALL sessions (learning plans + practice sessions) with timestamps
+          const allSessions = [
+            ...sortedPlans.map((plan) => ({
+              type: 'plan' as const,
+              data: plan,
+              timestamp: new Date(plan.updated_at || plan.created_at || '').getTime(),
+            })),
+            ...filteredSessions.map((session) => ({
+              type: 'practice' as const,
+              data: session,
+              timestamp: new Date(session.created_at || '').getTime(),
+            })),
+          ].sort((a, b) => b.timestamp - a.timestamp); // Most recent first
+
+          console.log('🎯 All Sessions Combined & Sorted:', {
+            totalSessions: allSessions.length,
+            first: allSessions[0] ? `${allSessions[0].type} at ${new Date(allSessions[0].timestamp).toISOString()}` : 'none',
+            second: allSessions[1] ? `${allSessions[1].type} at ${new Date(allSessions[1].timestamp).toISOString()}` : 'none',
+          });
+
+          // First 2 cards are ALWAYS the most recent SESSIONS (practice OR plan) - LARGE (Hero cards)
+          let colorIndex = 0;
+          let cardIndex = 0; // Track card index for size calculation
+
+          // Helper function to get card size based on position
+          const getCardSize = (index: number): 'small' | 'medium' | 'large' => {
+            if (index < 2) {
+              return 'medium'; // Hero cards use isLarge prop instead
+            }
+            // Pattern: [large, medium, small, small, medium, large, medium, small] repeating
+            const position = (index - 2) % 8;
+            switch (position) {
+              case 0:
+                return 'large';
+              case 1:
+                return 'medium';
+              case 2:
+              case 3:
+                return 'small';
+              case 4:
+                return 'medium';
+              case 5:
+                return 'large';
+              case 6:
+                return 'medium';
+              case 7:
+                return 'small';
+              default:
+                return 'medium';
+            }
+          };
+
+          const first = allSessions[0];
+          const second = allSessions[1];
+
+          if (first) {
+            if (first.type === 'plan') {
+              gridItems.push(
+                <MasonryPlanCard
+                  key={`plan-${first.data.id}`}
+                  plan={first.data}
+                  onPress={handleViewDetails}
+                  isLarge={true}
+                  colorIndex={colorIndex++}
+                  size={getCardSize(cardIndex++)}
+                />
+              );
+            } else {
+              gridItems.push(
+                <MasonrySessionCard
+                  key={`session-${first.data.id || 'first'}`}
+                  session={first.data}
+                  onPress={handleSessionPress}
+                  isLarge={true}
+                  colorIndex={colorIndex++}
+                  size={getCardSize(cardIndex++)}
+                />
+              );
+            }
+          }
+
+          if (second) {
+            if (second.type === 'plan') {
+              gridItems.push(
+                <MasonryPlanCard
+                  key={`plan-${second.data.id}`}
+                  plan={second.data}
+                  onPress={handleViewDetails}
+                  isLarge={true}
+                  colorIndex={colorIndex++}
+                  size={getCardSize(cardIndex++)}
+                />
+              );
+            } else {
+              gridItems.push(
+                <MasonrySessionCard
+                  key={`session-${second.data.id || 'second'}`}
+                  session={second.data}
+                  onPress={handleSessionPress}
+                  isLarge={true}
+                  colorIndex={colorIndex++}
+                  size={getCardSize(cardIndex++)}
+                />
+              );
+            }
+          }
+
+          // Filter out the first 2 sessions that were already added
+          const remainingPlans = sortedPlans.filter((plan) => {
+            const isFirst = first?.type === 'plan' && first.data.id === plan.id;
+            const isSecond = second?.type === 'plan' && second.data.id === plan.id;
+            return !isFirst && !isSecond;
+          });
+
+          const remainingSessions = filteredSessions.filter((session) => {
+            const isFirst = first?.type === 'practice' && first.data.id === session.id;
+            const isSecond = second?.type === 'practice' && second.data.id === session.id;
+            return !isFirst && !isSecond;
+          });
+
+          console.log('🎯 Remaining Items:', {
+            remainingPlans: remainingPlans.length,
+            remainingSessions: remainingSessions.length,
+          });
+
+          // Mix remaining plans and practice sessions
+          let planIndex = 0;
+          let sessionIndex = 0;
+
+          // Add items in an interleaved pattern
+          while (planIndex < remainingPlans.length || sessionIndex < remainingSessions.length) {
+            // Add 2 plans
+            for (let i = 0; i < 2 && planIndex < remainingPlans.length; i++, planIndex++) {
+              gridItems.push(
+                <MasonryPlanCard
+                  key={`plan-${remainingPlans[planIndex].id}`}
+                  plan={remainingPlans[planIndex]}
+                  onPress={handleViewDetails}
+                  isLarge={false}
+                  colorIndex={colorIndex++}
+                  size={getCardSize(cardIndex++)}
+                />
+              );
+            }
+
+            // Add 2-3 practice sessions
+            for (let i = 0; i < 3 && sessionIndex < remainingSessions.length; i++, sessionIndex++) {
+              gridItems.push(
+                <MasonrySessionCard
+                  key={`session-${remainingSessions[sessionIndex].id || sessionIndex}`}
+                  session={remainingSessions[sessionIndex]}
+                  onPress={handleSessionPress}
+                  isLarge={false}
+                  colorIndex={colorIndex++}
+                  size={getCardSize(cardIndex++)}
+                />
+              );
+            }
+          }
+
+          // Debug logging
+          console.log('🎨 Masonry Grid Debug:', {
+            totalPlans: sortedPlans.length,
+            allPracticeSessions: practiceSessions.length,
+            filteredSessions: filteredSessions.length,
+            dnaLanguages: Array.from(languagesWithDNA),
+            totalGridItems: gridItems.length,
+            selectedLanguageFilter,
+            sessionSample: filteredSessions[0] || null,
+          });
+
+          // Log sessions data structure for debugging
+          if (practiceSessions.length > 0) {
+            console.log('📝 Sample Practice Session:', JSON.stringify(practiceSessions[0], null, 2));
+          } else {
+            console.log('⚠️ No practice sessions loaded - check API response');
+          }
+
+          return (
+            <>
+              {/* Combined Language + Status Filters */}
+              <FilterChips
+                selectedFilter={selectedFilter}
+                onFilterChange={setSelectedFilter}
+                selectedLanguage={selectedLanguageFilter}
+                onLanguageChange={setSelectedLanguageFilter}
+                availableLanguages={availableLanguages}
+                showLanguageSelector={true}
               />
-            ));
-          })()}
-        </View>
 
-        {/* Divider - Compact */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>{t('common.or')}</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        {/* Start New Session Button - Modern Animated Gradient Design */}
-        <Animated.View
-          style={[
-            styles.newSessionButtonContainer,
-            {
-              transform: [
-                { translateY: buttonFloatAnim },
-                { scale: buttonScaleAnim },
-              ],
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.newSessionButton}
-            onPress={handleStartNewSession}
-            activeOpacity={0.9}
-          >
-            <LinearGradient
-              colors={['rgba(20, 184, 166, 0.12)', 'rgba(20, 184, 166, 0.06)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.newSessionGradient}
-            >
-              {/* Content */}
-              <View style={styles.newSessionContent}>
-                <View style={styles.newSessionIconContainer}>
-                  <View style={styles.iconCircle}>
-                    <Ionicons name="rocket" size={32} color="#14B8A6" />
-                  </View>
-                </View>
-                <View style={styles.newSessionTextContainer}>
-                  <Text style={styles.newSessionTitle}>{t('buttons.start')}</Text>
-                  <Text style={styles.newSessionSubtitle}>
-                    {t('dashboard.quick_start.subtitle')}
+              {/* Masonry Grid */}
+              {gridItems.length > 0 ? (
+                <MasonryGrid>
+                  {gridItems}
+                </MasonryGrid>
+              ) : (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                  <Text style={{ color: '#9CA3AF', fontSize: 14 }}>
+                    No learning plans or sessions found
                   </Text>
                 </View>
-                <View style={styles.arrowContainer}>
-                  <Ionicons name="chevron-forward" size={28} color="#14B8A6" />
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
+              )}
+            </>
+          );
+        })()}
+
+        {/* Start New Session Card - Dashed Rectangle */}
+        <StartSessionCard onPress={handleStartNewSession} />
       </ScrollView>
+
+      {/* Quick Resume Widget - Removed per user request */}
 
       {/* Learning Plan Details Modal */}
       {selectedPlan && (
@@ -1157,8 +1426,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showDetailsModal}
           onClose={() => setShowDetailsModal(false)}
           plan={selectedPlan}
+          language={selectedPlan.language || selectedPlan.target_language || 'english'}
           progressStats={progressStats}
           onContinueLearning={handleModalContinueLearning}
+          cardColor={selectedPlanColor}
         />
       )}
 
@@ -1200,7 +1471,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               showsVerticalScrollIndicator={false}
             >
               {/* Subscription Info */}
-              <View style={styles.premiumSubscriptionCard}>
+              <View style={[styles.premiumSubscriptionCard, {
+                backgroundColor: '#FBBF24',
+                borderColor: '#F59E0B',
+              }]}>
+                <View style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: '#FFFFFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                }}>
+                  <Ionicons name="diamond" size={24} color="#FBBF24" />
+                </View>
                 <Text style={styles.premiumSubscriptionPlan}>
                   {subscriptionStatus?.plan === 'annual_premium' ? t('subscription.plans.yearly') : t('subscription.plans.monthly')}
                 </Text>
@@ -1211,8 +1496,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
               {/* Benefits List */}
               <View style={styles.premiumBenefitsList}>
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#14B8A6',
+                  borderColor: '#0D9488',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="infinite" size={24} color="#14B8A6" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1223,8 +1514,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#8B5CF6',
+                  borderColor: '#7C3AED',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="mic" size={24} color="#8B5CF6" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1235,8 +1532,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#EF4444',
+                  borderColor: '#DC2626',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="stats-chart" size={24} color="#EF4444" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1247,8 +1550,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#F59E0B',
+                  borderColor: '#D97706',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="flash" size={24} color="#F59E0B" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1259,8 +1568,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </View>
                 </View>
 
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
+                <View style={[styles.premiumBenefitItem, {
+                  backgroundColor: '#EC4899',
+                  borderColor: '#DB2777',
+                }]}>
+                  <View style={[styles.premiumBenefitIconContainer, {
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 0,
+                  }]}>
                     <Ionicons name="sparkles" size={24} color="#EC4899" />
                   </View>
                   <View style={styles.premiumBenefitTextContainer}>
@@ -1270,25 +1585,27 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     </Text>
                   </View>
                 </View>
-
-                <View style={styles.premiumBenefitItem}>
-                  <View style={styles.premiumBenefitIconContainer}>
-                    <Ionicons name="shield-checkmark" size={24} color="#10B981" />
-                  </View>
-                  <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.no_ads')}</Text>
-                    <Text style={styles.premiumBenefitDescription}>
-                      {t('subscription.features.no_ads')}
-                    </Text>
-                  </View>
-                </View>
               </View>
 
               {/* Thank You Message */}
-              <View style={styles.premiumThankYouCard}>
-                <Ionicons name="heart" size={32} color="#EF4444" />
+              <View style={[styles.premiumThankYouCard, {
+                backgroundColor: '#EF4444',
+                borderColor: '#DC2626',
+              }]}>
+                <View style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: '#FFFFFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                  borderWidth: 0,
+                }}>
+                  <Ionicons name="heart" size={32} color="#EF4444" />
+                </View>
                 <Text style={styles.premiumThankYouText}>
-                  {t('dashboard.header.premium_badge')}
+                  Thank you for being Premium!
                 </Text>
                 <Text style={styles.premiumThankYouSubtext}>
                   {t('subscription.subtitle')}
@@ -1305,6 +1622,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onClose={() => setShowSessionTypeModal(false)}
         onSelectQuickPractice={handleSelectQuickPractice}
         onSelectAssessment={handleSelectAssessment}
+      />
+
+      {/* Practice Session Details Modal */}
+      <PracticeSessionDetailsModal
+        visible={showSessionDetailsModal}
+        session={selectedSession}
+        onClose={() => setShowSessionDetailsModal(false)}
+        cardColor={selectedSessionColor}
       />
 
       {/* Assessment Results Modal */}

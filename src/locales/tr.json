@@ -122,7 +122,11 @@
       "pill_personalised_learning": "Kişiselleştirilmiş Öğrenme",
       "pill_adaptive_ai": "Uyarlanabilir Yapay Zeka",
       "pill_custom_topics": "Özel Konular",
-      "pill_progress_tracking": "İlerleme Takibi"
+      "pill_progress_tracking": "İlerleme Takibi",
+      "pill_unlimited_practice": "Sınırsız Pratik",
+      "pill_ai_tutor": "7/24 Yapay Zeka Öğretmen",
+      "pill_real_conversations": "Gerçek Konuşmalar",
+      "pill_instant_feedback": "Anlık Geri Bildirim"
     }
   },
   "dashboard": {
@@ -1703,11 +1707,22 @@
     "tap_to_expand": "Genişletmek için dokun",
     "tap_to_collapse": "Daraltmak için dokun",
     "dna_analysis": "DNA Analizi",
+    "view_voice_dna": "Ses DNA'sını Görüntüle",
+    "view_voice_profile": "Konuşma profilinizi görüntüleyin",
+    "and_dna_available": " ve DNA Analizi Mevcut",
+    "plan_available": "Öğrenme Planı Mevcut",
+    "plans_available": "Öğrenme Planları Mevcut",
     "continue": "Devam Et",
     "details_button": "Detaylar",
     "status_new": "YENİ",
     "status_in_progress": "DEVAM EDİYOR",
     "status_completed": "TAMAMLANDI",
+    "filters": {
+      "all": "Tümü",
+      "new": "Yeni",
+      "in_progress": "Devam Ediyor",
+      "completed": "Tamamlandı"
+    },
     "details": {
       "learning_plan_suffix": " Öğrenme Planı",
       "level_suffix": " Seviye",

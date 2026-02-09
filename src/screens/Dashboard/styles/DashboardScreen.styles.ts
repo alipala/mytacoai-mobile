@@ -397,10 +397,27 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1D4ED8',
   },
-  // Language Groups Container
+  // Language Groups Container (Legacy - for CollapsibleLanguageGroup)
   languageGroupsContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
+  },
+  // Grid Container (New - for 2-column grid)
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    justifyContent: 'space-between',
+  },
+  gridItem: {
+    marginBottom: 12,
+  },
+  gridItemLeft: {
+    marginRight: 6,
+  },
+  gridItemRight: {
+    marginLeft: 6,
   },
   // Compact Divider
   divider: {
@@ -429,18 +446,17 @@ export const styles = StyleSheet.create({
   newSessionButton: {
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.4)',
-    shadowColor: '#14B8A6',
+    shadowColor: '#8B5CF6',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
   },
   newSessionGradient: {
     paddingVertical: 22,
     paddingHorizontal: 24,
     position: 'relative',
+    backgroundColor: '#8B5CF6',
   },
   newSessionContent: {
     flexDirection: 'row',
@@ -456,11 +472,11 @@ export const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   newSessionTextContainer: {
     flex: 1,
@@ -474,7 +490,7 @@ export const styles = StyleSheet.create({
   },
   newSessionSubtitle: {
     fontSize: 14,
-    color: '#B4E4DD',
+    color: 'rgba(255, 255, 255, 0.95)',
     fontWeight: '600',
   },
   arrowContainer: {
@@ -1161,47 +1177,43 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   premiumSubscriptionCard: {
-    backgroundColor: 'rgba(251, 191, 36, 0.15)',
     borderRadius: 16,
     padding: 20,
     marginTop: 20,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.3)',
+    borderWidth: 1.5,
     alignItems: 'center',
+    // backgroundColor and borderColor applied inline for solid coloring
   },
   premiumSubscriptionPlan: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#FBBF24',
+    fontWeight: '800',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   premiumSubscriptionStatus: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FCD34D',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   premiumBenefitsList: {
     gap: 16,
   },
   premiumBenefitItem: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(31, 41, 55, 0.8)',
     borderRadius: 16,
     padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    borderWidth: 1.5,
     gap: 16,
+    // backgroundColor and borderColor applied inline for dynamic coloring
   },
   premiumBenefitIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    // backgroundColor and borderColor applied inline for dynamic coloring
   },
   premiumBenefitTextContainer: {
     flex: 1,
@@ -1215,31 +1227,29 @@ export const styles = StyleSheet.create({
   premiumBenefitDescription: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 20,
   },
   premiumThankYouCard: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
     borderRadius: 16,
     padding: 24,
     marginTop: 24,
     marginBottom: 40,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderWidth: 1.5,
     alignItems: 'center',
+    // backgroundColor and borderColor applied inline for dynamic coloring
   },
   premiumThankYouText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginTop: 12,
     marginBottom: 8,
     textAlign: 'center',
   },
   premiumThankYouSubtext: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#D1D5DB',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     lineHeight: 20,
   },
