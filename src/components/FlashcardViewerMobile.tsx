@@ -24,9 +24,10 @@ interface Flashcard {
 interface Props {
   flashcards: Flashcard[];
   onReview?: (flashcardId: string, correct: boolean) => void;
+  accentColor?: string;
 }
 
-const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview }) => {
+const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview, accentColor = '#14B8A6' }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const flipAnimation = useRef(new Animated.Value(0)).current;
@@ -134,13 +135,13 @@ const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview }) => {
           {currentIndex + 1} / {flashcards.length}
         </Text>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          <View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: accentColor }]} />
         </View>
       </View>
 
       {/* Card Info */}
       <View style={styles.cardInfo}>
-        <View style={styles.categoryBadge}>
+        <View style={[styles.categoryBadge, { backgroundColor: accentColor }]}>
           <Ionicons name={getCategoryIcon(currentCard.category) as any} size={14} color="#FFFFFF" />
           <Text style={styles.categoryText}>{currentCard.category}</Text>
         </View>
@@ -150,12 +151,12 @@ const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview }) => {
       </View>
 
       {/* Flashcard with 3D Flip Animation */}
-      <TouchableOpacity 
-        style={styles.cardContainer} 
-        onPress={handleFlip} 
+      <TouchableOpacity
+        style={styles.cardContainer}
+        onPress={handleFlip}
         activeOpacity={1}
       >
-        {/* Front Side - Question (Yellow) */}
+        {/* Front Side - Question */}
         <Animated.View
           style={[
             styles.card,
@@ -163,22 +164,23 @@ const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview }) => {
             {
               opacity: frontOpacity,
               transform: [{ rotateY: frontRotation }],
+              borderColor: accentColor,
             },
           ]}
         >
           <View style={styles.cardContent}>
-            <Text style={styles.cardLabelFront}>QUESTION</Text>
+            <Text style={[styles.cardLabelFront, { color: accentColor }]}>QUESTION</Text>
             <Text style={styles.cardTextFront}>
               {currentCard.front}
             </Text>
             <View style={styles.flipHintFront}>
-              <Ionicons name="sync-outline" size={20} color="#000000" />
-              <Text style={styles.flipHintTextFront}>Tap to flip</Text>
+              <Ionicons name="sync-outline" size={20} color={accentColor} />
+              <Text style={[styles.flipHintTextFront, { color: accentColor }]}>Tap to flip</Text>
             </View>
           </View>
         </Animated.View>
 
-        {/* Back Side - Answer (Turquoise) */}
+        {/* Back Side - Answer */}
         <Animated.View
           style={[
             styles.card,
@@ -186,6 +188,7 @@ const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview }) => {
             {
               opacity: backOpacity,
               transform: [{ rotateY: backRotation }],
+              backgroundColor: accentColor,
             },
           ]}
         >
@@ -205,11 +208,18 @@ const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview }) => {
       {/* Navigation Buttons */}
       <View style={styles.navigation}>
         <TouchableOpacity
-          style={[styles.navButton, currentIndex === 0 && styles.navButtonDisabled]}
+          style={[
+            styles.navButton,
+            {
+              backgroundColor: currentIndex === 0 ? `${accentColor}4D` : accentColor,
+              shadowColor: accentColor
+            },
+            currentIndex === 0 && styles.navButtonDisabled
+          ]}
           onPress={handlePrev}
           disabled={currentIndex === 0}
         >
-          <Ionicons name="chevron-back" size={24} color={currentIndex === 0 ? '#D1D5DB' : '#1F2937'} />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
         <View style={styles.navCenter}>
@@ -217,11 +227,18 @@ const FlashcardViewerMobile: React.FC<Props> = ({ flashcards, onReview }) => {
         </View>
 
         <TouchableOpacity
-          style={[styles.navButton, currentIndex === flashcards.length - 1 && styles.navButtonDisabled]}
+          style={[
+            styles.navButton,
+            {
+              backgroundColor: currentIndex === flashcards.length - 1 ? `${accentColor}4D` : accentColor,
+              shadowColor: accentColor
+            },
+            currentIndex === flashcards.length - 1 && styles.navButtonDisabled
+          ]}
           onPress={handleNext}
           disabled={currentIndex === flashcards.length - 1}
         >
-          <Ionicons name="chevron-forward" size={24} color={currentIndex === flashcards.length - 1 ? '#D1D5DB' : '#1F2937'} />
+          <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>

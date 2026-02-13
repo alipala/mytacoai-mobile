@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0B1A1F',
   },
   progressContainer: {
     marginBottom: 20,
@@ -14,19 +14,18 @@ export const styles = StyleSheet.create({
   progressText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#FFFFFF',
     marginBottom: 8,
     textAlign: 'center',
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#14B8A6',
   },
   cardInfo: {
     flexDirection: 'row',
@@ -36,7 +35,6 @@ export const styles = StyleSheet.create({
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14B8A6',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -80,10 +78,10 @@ export const styles = StyleSheet.create({
     backfaceVisibility: 'hidden',
   },
   cardFront: {
-    backgroundColor: '#FFD63A', // Yellow for Question
+    backgroundColor: '#1A2F38',
+    borderWidth: 2,
   },
   cardBack: {
-    backgroundColor: '#4ECFBF', // Turquoise for Answer
   },
   cardContent: {
     width: '100%',
@@ -92,7 +90,6 @@ export const styles = StyleSheet.create({
   cardLabelFront: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#000000', // Black text on yellow
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: 16,
@@ -100,7 +97,7 @@ export const styles = StyleSheet.create({
   cardLabelBack: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF', // White text on turquoise
+    color: '#FFFFFF',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: 16,
@@ -108,14 +105,14 @@ export const styles = StyleSheet.create({
   cardTextFront: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000000', // Black text on yellow
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 32,
   },
   cardTextBack: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF', // White text on turquoise
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 32,
   },
@@ -133,12 +130,11 @@ export const styles = StyleSheet.create({
   },
   flipHintTextFront: {
     fontSize: 14,
-    color: '#000000', // Black text on yellow
     fontWeight: '500',
   },
   flipHintTextBack: {
     fontSize: 14,
-    color: '#FFFFFF', // White text on turquoise
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   navigation: {
@@ -151,17 +147,15 @@ export const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   navButtonDisabled: {
-    backgroundColor: '#F3F4F6',
+    shadowOpacity: 0,
   },
   navCenter: {
     flex: 1,
@@ -170,7 +164,7 @@ export const styles = StyleSheet.create({
   },
   navHint: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#6B8A84',
     fontStyle: 'italic',
   },
   masteryContainer: {
@@ -211,13 +205,13 @@ export const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#B4E4DD',
     textAlign: 'center',
   },
 });

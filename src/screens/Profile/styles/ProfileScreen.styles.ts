@@ -1061,15 +1061,9 @@ export const styles = StyleSheet.create({
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
-  },
-  flashcardCardPurple: {
-    backgroundColor: '#8B5CF6', // Learning Plan - Vibrant purple
-  },
-  flashcardCardOrange: {
-    backgroundColor: '#FB923C', // Practice - Vibrant orange
   },
   flashcardCategoryBadge: {
     flexDirection: 'row',
@@ -1078,7 +1072,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     marginBottom: 12,
     gap: 4,
@@ -1112,42 +1105,34 @@ export const styles = StyleSheet.create({
   flashcardCardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
     marginBottom: 4,
     letterSpacing: -0.2,
   },
   flashcardCardMeta: {
     fontSize: 12,
-    color: '#FFFFFF',
     fontWeight: '600',
-    opacity: 0.85,
   },
   flashcardCardDescription: {
     fontSize: 14,
-    color: '#FFFFFF',
     marginBottom: 14,
     lineHeight: 20,
-    opacity: 0.9,
   },
   flashcardStudyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 20,
     gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   flashcardStudyButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#2D3748',
   },
 
   // ============================================================================
@@ -1299,8 +1284,9 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
@@ -1320,12 +1306,15 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   closeButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderRadius: 22,
+    marginRight: 12,
   },
   headerSpacer: {
-    width: 40,
+    width: 44,
   },
 });

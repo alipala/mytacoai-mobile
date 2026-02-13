@@ -206,8 +206,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   const [expandedNotifications, setExpandedNotifications] = useState<Record<string, boolean>>({});
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
+  const [flashcardViewerColor, setFlashcardViewerColor] = useState<string>('#6366F1');
   const [showAppSettings, setShowAppSettings] = useState(false);
-  const [flashcardFilter, setFlashcardFilter] = useState<'all' | 'practice' | 'learning_plan'>('all');
+  const [flashcardFilter, setFlashcardFilter] = useState<'practice' | 'learning_plan'>('practice');
 
   // Refs for Swipeable components to programmatically close them
   const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
@@ -728,6 +729,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
   const openFlashcardViewer = (flashcardSet: FlashcardSet) => {
     setSelectedFlashcardSet(flashcardSet);
+    // Determine color based on card type
+    const isLearningPlan = flashcardSet.session_id.startsWith('learning_plan');
+    const color = isLearningPlan ? '#EC4899' : '#6366F1'; // Pink for LP, Indigo for Practice
+    setFlashcardViewerColor(color);
     setShowFlashcardViewer(true);
   };
 
@@ -1157,19 +1162,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     // Determine if this is a learning plan card
     const isLearningPlan = item.session_id.startsWith('learning_plan');
 
-    // Different colors for different categories
-    const iconColor = isLearningPlan ? '#6366F1' : '#F59E0B'; // Purple for LP, Amber for Practice
-    const iconBgColor = isLearningPlan ? 'rgba(99, 102, 241, 0.15)' : 'rgba(245, 158, 11, 0.15)';
-    const iconBorderColor = isLearningPlan ? 'rgba(99, 102, 241, 0.3)' : 'rgba(245, 158, 11, 0.3)';
+    // Solid background colors that work well with white text - Modern & Harmonious
+    const bgColor = isLearningPlan ? '#EC4899' : '#6366F1'; // Pink for LP, Indigo for Practice
     const iconName = isLearningPlan ? 'school' : 'fitness';
 
     return (
       <View style={[
         styles.flashcardCard,
-        isLearningPlan ? styles.flashcardCardPurple : styles.flashcardCardOrange
+        { backgroundColor: bgColor }
       ]}>
         {/* Category Badge */}
-        <View style={[styles.flashcardCategoryBadge, { backgroundColor: 'rgba(255, 255, 255, 0.25)' }]}>
+        <View style={[
+          styles.flashcardCategoryBadge,
+          { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.3)' }
+        ]}>
           <Ionicons name={iconName} size={11} color="#FFFFFF" />
           <Text style={[styles.flashcardCategoryText, { color: '#FFFFFF' }]}>
             {isLearningPlan ? t('profile.flashcards.category_learning_plan') : t('profile.flashcards.category_practice')}
@@ -1179,29 +1185,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.flashcardCardHeader}>
           <View style={[
             styles.flashcardCardIcon,
-            {
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              shadowColor: '#000',
-            }
+            { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.3)', shadowColor: '#000' }
           ]}>
-            <Ionicons name={iconName} size={28} color={isLearningPlan ? '#8B5CF6' : '#FB923C'} />
+            <Ionicons name={iconName} size={28} color="#FFFFFF" />
           </View>
           <View style={styles.flashcardCardInfo}>
-            <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
-            <Text style={styles.flashcardCardMeta}>
+            <Text style={[styles.flashcardCardTitle, { color: '#FFFFFF' }]} numberOfLines={2}>{item.title}</Text>
+            <Text style={[styles.flashcardCardMeta, { color: 'rgba(255, 255, 255, 0.8)' }]}>
               {t('profile.flashcards.cards_count', { count: item.total_cards })}
             </Text>
           </View>
         </View>
-        <Text style={styles.flashcardCardDescription} numberOfLines={2}>
+        <Text style={[styles.flashcardCardDescription, { color: 'rgba(255, 255, 255, 0.9)' }]} numberOfLines={2}>
           {item.description}
         </Text>
         <TouchableOpacity
-          style={styles.flashcardStudyButton}
+          style={[
+            styles.flashcardStudyButton,
+            {
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              borderColor: '#FFFFFF',
+              borderRadius: 20,
+            }
+          ]}
           onPress={() => openFlashcardViewer(item)}
+          activeOpacity={0.8}
         >
-          <Ionicons name="play-circle" size={20} color={isLearningPlan ? '#8B5CF6' : '#FB923C'} />
-          <Text style={styles.flashcardStudyButtonText}>{t('flashcards.button_study')}</Text>
+          <Ionicons name="play-circle" size={20} color="#FFFFFF" />
+          <Text style={[styles.flashcardStudyButtonText, { color: '#FFFFFF' }]}>{t('flashcards.button_study')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -1210,8 +1222,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   const renderFlashcardsTab = () => {
     // Filter flashcard sets based on selected filter
     const filteredFlashcards = flashcardSets.filter((set) => {
-      if (flashcardFilter === 'all') return true;
-
       if (flashcardFilter === 'practice') {
         // Practice flashcards: session_id does NOT start with "learning_plan"
         return !set.session_id.startsWith('learning_plan');
@@ -1222,7 +1232,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         return set.session_id.startsWith('learning_plan');
       }
 
-      return true;
+      return false;
     });
 
     // Debug logging
@@ -1230,43 +1240,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
     return (
       <View style={styles.flashcardsContainer}>
-        {/* iOS-style segmented control filter */}
+        {/* iOS-style segmented control filter - Only Practice and Learning Plan */}
         <View style={styles.flashcardFilterContainer}>
           <View style={styles.flashcardFilterSegment}>
             <TouchableOpacity
               style={[
                 styles.flashcardFilterButton,
-                flashcardFilter === 'all' && [
-                  styles.flashcardFilterButtonActive,
-                  { backgroundColor: '#14B8A6', shadowColor: '#14B8A6' },
-                ],
-              ]}
-              onPress={() => {
-                if (Platform.OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                setFlashcardFilter('all');
-              }}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.flashcardFilterButtonText,
-                  { color: flashcardFilter === 'all' ? '#FFFFFF' : '#14B8A6' },
-                  flashcardFilter === 'all' && styles.flashcardFilterButtonTextActive,
-                ]}
-                numberOfLines={1}
-              >
-                {t('profile.flashcards.filter_all')}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.flashcardFilterButton,
                 flashcardFilter === 'practice' && [
                   styles.flashcardFilterButtonActive,
-                  { backgroundColor: '#F59E0B', shadowColor: '#F59E0B' },
+                  { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
                 ],
               ]}
               onPress={() => {
@@ -1280,12 +1262,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  { color: flashcardFilter === 'practice' ? '#FFFFFF' : '#F59E0B' },
+                  { color: flashcardFilter === 'practice' ? '#FFFFFF' : '#6366F1' },
                   flashcardFilter === 'practice' && styles.flashcardFilterButtonTextActive,
                 ]}
                 numberOfLines={1}
               >
-                {t('profile.flashcards.filter_practice')}
+                Practice Sessions
               </Text>
             </TouchableOpacity>
 
@@ -1294,7 +1276,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 styles.flashcardFilterButton,
                 flashcardFilter === 'learning_plan' && [
                   styles.flashcardFilterButtonActive,
-                  { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
+                  { backgroundColor: '#EC4899', shadowColor: '#EC4899' },
                 ],
               ]}
               onPress={() => {
@@ -1308,14 +1290,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  { color: flashcardFilter === 'learning_plan' ? '#FFFFFF' : '#6366F1' },
+                  { color: flashcardFilter === 'learning_plan' ? '#FFFFFF' : '#EC4899' },
                   flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonTextActive,
                 ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
               >
-                {t('profile.flashcards.filter_learning_plan')}
+                Learning Plans
               </Text>
             </TouchableOpacity>
           </View>
@@ -1918,15 +1900,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           animationType="slide"
           presentationStyle="fullScreen"
           onRequestClose={closeFlashcardViewer}
+          statusBarTranslucent
         >
           <View style={styles.flashcardModalContainer}>
             <View style={styles.flashcardModalHeader}>
               <TouchableOpacity
                 onPress={closeFlashcardViewer}
-                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 style={styles.closeButton}
+                activeOpacity={0.7}
               >
-                <Ionicons name="close-circle" size={32} color="#EF4444" />
+                <Ionicons name="close" size={28} color="#EF4444" />
               </TouchableOpacity>
               <View style={styles.flashcardModalTitleContainer}>
                 <Text style={styles.flashcardModalTitle} numberOfLines={1}>
@@ -1943,6 +1927,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <FlashcardViewerMobile
                 flashcards={selectedFlashcardSet.flashcards}
                 onReview={handleReviewFlashcard}
+                accentColor={flashcardViewerColor}
               />
             )}
           </View>
