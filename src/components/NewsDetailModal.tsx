@@ -63,16 +63,10 @@ interface NewsDetailModalProps {
   }) => void;
 }
 
-const LANGUAGE_FLAGS: { [key: string]: string } = {
-  en: '🇺🇸',
-  es: '🇪🇸',
-  nl: '🇳🇱',
-};
-
-const LANGUAGE_NAMES: { [key: string]: string } = {
-  en: 'English',
-  es: 'Spanish',
-  nl: 'Dutch',
+const LANGUAGE_FLAGS: { [key: string]: any } = {
+  en: require('../assets/flags/english.svg'),
+  es: require('../assets/flags/spanish.svg'),
+  nl: require('../assets/flags/dutch.svg'),
 };
 
 const LEVEL_NAMES: { [key: string]: string } = {
@@ -302,16 +296,11 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         key={lang}
                         style={[
                           styles.flagButton,
-                          {
-                            borderColor: `${categoryColor}33`,
-                          },
                           selectedLanguage === lang && {
-                            borderColor: categoryColor,
-                            borderWidth: 2.5,
                             shadowColor: categoryColor,
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.5,
-                            shadowRadius: 12,
+                            shadowOffset: { width: 0, height: 0 },
+                            shadowOpacity: 0.6,
+                            shadowRadius: 16,
                             elevation: 8,
                           },
                         ]}
@@ -323,13 +312,17 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         }}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.flagEmoji}>{LANGUAGE_FLAGS[lang] || '🏳️'}</Text>
-                        <Text style={[
-                          styles.flagLabel,
-                          selectedLanguage === lang && { color: categoryColor, fontWeight: '800' }
-                        ]}>
-                          {LANGUAGE_NAMES[lang] || lang}
-                        </Text>
+                        <Image
+                          source={LANGUAGE_FLAGS[lang]}
+                          style={[
+                            styles.flagImage,
+                            selectedLanguage === lang && {
+                              borderColor: categoryColor,
+                              borderWidth: 3,
+                            }
+                          ]}
+                          resizeMode="cover"
+                        />
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -671,27 +664,17 @@ const styles = StyleSheet.create({
   flagOptionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 14,
   },
   flagButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: 8,
+  },
+  flagImage: {
+    width: 56,
+    height: 40,
+    borderRadius: 6,
     borderWidth: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    minWidth: 100,
-  },
-  flagEmoji: {
-    fontSize: 32,
-    marginBottom: 6,
-  },
-  flagLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    textAlign: 'center',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   optionButton: {
     paddingHorizontal: 18,
