@@ -63,6 +63,12 @@ interface NewsDetailModalProps {
   }) => void;
 }
 
+const LANGUAGE_FLAGS: { [key: string]: string } = {
+  en: '🇺🇸',
+  es: '🇪🇸',
+  nl: '🇳🇱',
+};
+
 const LANGUAGE_NAMES: { [key: string]: string } = {
   en: 'English',
   es: 'Spanish',
@@ -290,24 +296,24 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 {/* Language Selector */}
                 <View style={[styles.selectorContainer, { borderTopColor: `${categoryColor}26` }]}>
                   <Text style={[styles.selectorLabel, { color: categoryColor }]}>Language</Text>
-                  <View style={styles.optionsContainer}>
+                  <View style={styles.flagOptionsContainer}>
                     {availableLanguages.map((lang: string) => (
                       <TouchableOpacity
                         key={lang}
                         style={[
-                          styles.optionButton,
+                          styles.flagButton,
                           {
-                            backgroundColor: `${categoryColor}14`,
                             borderColor: `${categoryColor}33`,
                           },
-                          selectedLanguage === lang && [
-                            styles.optionButtonActive,
-                            {
-                              borderColor: categoryColor,
-                              backgroundColor: `${categoryColor}33`,
-                              shadowColor: categoryColor,
-                            }
-                          ],
+                          selectedLanguage === lang && {
+                            borderColor: categoryColor,
+                            borderWidth: 2.5,
+                            shadowColor: categoryColor,
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.5,
+                            shadowRadius: 12,
+                            elevation: 8,
+                          },
                         ]}
                         onPress={() => {
                           if (Platform.OS === 'ios') {
@@ -315,13 +321,13 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                           }
                           setSelectedLanguage(lang);
                         }}
+                        activeOpacity={0.8}
                       >
-                        <Text
-                          style={[
-                            styles.optionText,
-                            selectedLanguage === lang && [styles.optionTextActive, { color: categoryColor }],
-                          ]}
-                        >
+                        <Text style={styles.flagEmoji}>{LANGUAGE_FLAGS[lang] || '🏳️'}</Text>
+                        <Text style={[
+                          styles.flagLabel,
+                          selectedLanguage === lang && { color: categoryColor, fontWeight: '800' }
+                        ]}>
                           {LANGUAGE_NAMES[lang] || lang}
                         </Text>
                       </TouchableOpacity>
@@ -661,6 +667,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+  },
+  flagOptionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  flagButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    minWidth: 100,
+  },
+  flagEmoji: {
+    fontSize: 32,
+    marginBottom: 6,
+  },
+  flagLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   optionButton: {
     paddingHorizontal: 18,
