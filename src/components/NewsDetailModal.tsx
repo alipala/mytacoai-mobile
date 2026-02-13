@@ -73,9 +73,9 @@ const LANGUAGE_FLAGS: { [key: string]: React.FC<any> } = {
 };
 
 const LANGUAGE_FLAG_COLORS: { [key: string]: string } = {
-  en: '#C8102E', // UK flag red
-  es: '#AA151B', // Spanish flag red
-  nl: '#FF4F00', // Dutch flag orange
+  en: '#00247D', // UK flag blue (distinctive)
+  es: '#F1BF00', // Spanish flag gold/yellow (very different)
+  nl: '#FF4F00', // Dutch flag orange (iconic Netherlands color)
 };
 
 const LEVEL_NAMES: { [key: string]: string } = {
@@ -309,13 +309,11 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                           style={[
                             styles.flagButton,
                             selectedLanguage === lang && {
-                              borderColor: flagColor,
-                              borderWidth: 2.5,
                               shadowColor: flagColor,
                               shadowOffset: { width: 0, height: 0 },
-                              shadowOpacity: 0.8,
-                              shadowRadius: 18,
-                              elevation: 10,
+                              shadowOpacity: 0.9,
+                              shadowRadius: 20,
+                              elevation: 12,
                             },
                           ]}
                           onPress={() => {
@@ -675,10 +673,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 40,
     borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     overflow: 'hidden',
-    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   optionButton: {
     paddingHorizontal: 18,
