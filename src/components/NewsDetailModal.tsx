@@ -259,12 +259,6 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                   </View>
                 </View>
 
-                {/* Gradient Transition from colored to dark */}
-                <View style={[styles.gradientTransition, {
-                  backgroundColor: categoryColor,
-                  opacity: 0.15
-                }]} />
-
                 {/* Title and Meta Info */}
                 <View style={styles.contentContainer}>
                   <Text style={styles.title}>{newsContent.original.title}</Text>
@@ -570,10 +564,6 @@ const styles = StyleSheet.create({
   heroContainer: {
     position: 'relative',
     height: 240,
-  },
-  gradientTransition: {
-    height: 60,
-    width: '100%',
   },
   heroImage: {
     width: '100%',
