@@ -1791,9 +1791,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               activeOpacity={0.8}
             >
               <Ionicons
-                name={activeTab === 'overview' ? 'home' : 'home-outline'}
+                name={activeTab === 'overview' ? 'grid' : 'grid-outline'}
                 size={22}
-                color={activeTab === 'overview' ? '#FFFFFF' : '#14B8A6'}
+                color={activeTab === 'overview' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>{t('profile.tabs.overview')}</Text>
             </TouchableOpacity>
@@ -1804,11 +1804,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               activeOpacity={0.8}
             >
               <Ionicons
-                name={activeTab === 'progress' ? 'trending-up' : 'trending-up-outline'}
+                name={activeTab === 'progress' ? 'rocket' : 'rocket-outline'}
                 size={22}
-                color={activeTab === 'progress' ? '#FFFFFF' : '#14B8A6'}
+                color={activeTab === 'progress' ? '#14B8A6' : '#6B8A84'}
               />
-              <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>{t('profile.tabs.progress')}</Text>
+              <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>Plans</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1819,7 +1819,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'flashcards' ? 'albums' : 'albums-outline'}
                 size={22}
-                color={activeTab === 'flashcards' ? '#FFFFFF' : '#14B8A6'}
+                color={activeTab === 'flashcards' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>{t('profile.tabs.cards')}</Text>
             </TouchableOpacity>
@@ -1832,7 +1832,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <Ionicons
                 name={activeTab === 'dna' ? 'analytics' : 'analytics-outline'}
                 size={22}
-                color={activeTab === 'dna' ? '#FFFFFF' : '#14B8A6'}
+                color={activeTab === 'dna' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'dna' && styles.tabTextActive]}>{t('profile.tabs.dna')}</Text>
             </TouchableOpacity>

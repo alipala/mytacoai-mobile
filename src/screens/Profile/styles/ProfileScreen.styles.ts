@@ -135,33 +135,27 @@ export const styles = StyleSheet.create({
   // ============================================================================
   tabsContainer: {
     backgroundColor: '#0B1A1F',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(20, 184, 166, 0.15)',
   },
   tabs: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 0,
   },
   tab: {
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    gap: 4,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   tabActive: {
-    backgroundColor: '#14B8A6', // SOLID TEAL when active
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
+    borderBottomColor: '#14B8A6',
   },
   tabContent: {
     alignItems: 'center',
@@ -169,13 +163,13 @@ export const styles = StyleSheet.create({
     position: 'relative',
   },
   tabText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#6B8A84', // Muted teal-gray when inactive
+    color: '#6B8A84',
   },
   tabTextActive: {
-    color: '#FFFFFF', // WHITE when active (on solid teal)
-    fontWeight: '800',
+    color: '#14B8A6',
+    fontWeight: '700',
   },
   tabBadge: {
     position: 'absolute',
