@@ -677,16 +677,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onPress={handleUpgradePress}
                 activeOpacity={0.8}
               >
-                <View style={{
-                  position: 'absolute',
-                  top: -2,
-                  left: -2,
-                  right: -2,
-                  bottom: -2,
-                  borderRadius: 14,
-                  backgroundColor: 'rgba(107, 138, 132, 0.2)',
-                  opacity: 0.5,
-                }} />
+                <View style={styles.badgeGlowFree} />
                 <Ionicons name="sparkles-outline" size={16} color="#6B8A84" />
                 <View>
                   <Text style={styles.freeTextCompact}>{t('profile.settings.subscription.free_badge')}</Text>
@@ -704,16 +695,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 onPress={handleUpgradePress}
                 activeOpacity={0.8}
               >
-                <View style={{
-                  position: 'absolute',
-                  top: -2,
-                  left: -2,
-                  right: -2,
-                  bottom: -2,
-                  borderRadius: 14,
-                  backgroundColor: 'rgba(251, 191, 36, 0.2)',
-                  opacity: 0.5,
-                }} />
+                <View style={styles.badgeGlowPremium} />
                 <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
                 <View>
                   <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
@@ -730,16 +712,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 style={styles.streakBadgeCompact}
                 activeOpacity={0.8}
               >
-                <View style={{
-                  position: 'absolute',
-                  top: -2,
-                  left: -2,
-                  right: -2,
-                  bottom: -2,
-                  borderRadius: 14,
-                  backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                  opacity: 0.5,
-                }} />
+                <View style={styles.badgeGlowStreak} />
                 <Ionicons name="flame-outline" size={18} color="#EF4444" />
                 <View>
                   <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
@@ -765,29 +738,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 color="#14B8A6"
               />
               {unreadCount > 0 && (
-                <View style={{
-                  position: 'absolute',
-                  top: -6,
-                  right: -6,
-                  backgroundColor: '#EF4444',
-                  borderRadius: 10,
-                  minWidth: 20,
-                  height: 20,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingHorizontal: 5,
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 2,
-                  elevation: 6,
-                }}>
-                  <Text style={{
-                    fontSize: 11,
-                    fontWeight: '800',
-                    color: '#FFFFFF',
-                    letterSpacing: -0.5,
-                  }}>
+                <View style={styles.notificationCountBadge}>
+                  <Text style={styles.notificationCountText}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Text>
                 </View>
@@ -1048,16 +1000,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               activeOpacity={0.8}
             >
               {/* Outer glow for premium feel */}
-              <View style={{
-                position: 'absolute',
-                top: -2,
-                left: -2,
-                right: -2,
-                bottom: -2,
-                borderRadius: 14,
-                backgroundColor: 'rgba(251, 191, 36, 0.2)',
-                opacity: 0.5,
-              }} />
+              <View style={styles.badgeGlowPremium} />
               <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
               <View>
                 <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
@@ -1075,16 +1018,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               activeOpacity={0.8}
             >
               {/* Outer glow for streak */}
-              <View style={{
-                position: 'absolute',
-                top: -2,
-                left: -2,
-                right: -2,
-                bottom: -2,
-                borderRadius: 14,
-                backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                opacity: 0.5,
-              }} />
+              <View style={styles.badgeGlowStreak} />
               <Ionicons name="flame-outline" size={18} color="#EF4444" />
               <View>
                 <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
@@ -1111,29 +1045,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             />
             {/* Red Badge - Only shows when unreadCount > 0 */}
             {unreadCount > 0 && (
-              <View style={{
-                position: 'absolute',
-                top: -6,
-                right: -6,
-                backgroundColor: '#EF4444',
-                borderRadius: 10,
-                minWidth: 20,
-                height: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: 5,
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.3,
-                shadowRadius: 2,
-                elevation: 6,
-              }}>
-                <Text style={{
-                  fontSize: 11,
-                  fontWeight: '800',
-                  color: '#FFFFFF',
-                  letterSpacing: -0.5,
-                }}>
+              <View style={styles.notificationCountBadge}>
+                <Text style={styles.notificationCountText}>
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </Text>
               </View>
@@ -1404,8 +1317,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   {gridItems}
                 </MasonryGrid>
               ) : (
-                <View style={{ padding: 20, alignItems: 'center' }}>
-                  <Text style={{ color: '#9CA3AF', fontSize: 14 }}>
+                <View style={styles.emptyGridContainer}>
+                  <Text style={styles.emptyGridText}>
                     No learning plans or sessions found
                   </Text>
                 </View>
