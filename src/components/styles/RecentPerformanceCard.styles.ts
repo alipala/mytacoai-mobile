@@ -1,7 +1,8 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 export const CARD_WIDTH = width - 40; // Assuming 20px padding on each side
+const MAX_CARD_HEIGHT = height * 0.5; // Half of screen height
 
 export const styles = StyleSheet.create({
   card: {
@@ -16,6 +17,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
+    height: MAX_CARD_HEIGHT,
   },
   gradient: {
     padding: 20,
@@ -126,32 +128,47 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: 8,
     marginBottom: 0,
   },
-  dailyItem: {
-    width: '48%',
-    backgroundColor: 'rgba(17, 24, 39, 0.6)',
-    borderRadius: 10,
+  dailyCalendarBox: {
+    flex: 1,
+    minWidth: 56,
+    height: 80,
+    borderRadius: 12,
     padding: 8,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(107, 114, 128, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  dailyDate: {
-    fontSize: 12,
-    fontWeight: '700',
+  dailyCalendarBoxToday: {
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+  },
+  dailyCalendarDay: {
+    fontSize: 10,
+    fontWeight: '600',
     color: '#FFFFFF',
-    marginBottom: 3,
-  },
-  dailyChallenges: {
-    fontSize: 11,
-    color: '#D1D5DB',
+    textTransform: 'uppercase',
     marginBottom: 2,
   },
-  dailyAccuracy: {
+  dailyCalendarDate: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  dailyCalendarAccuracy: {
     fontSize: 11,
-    color: '#14B8A6',
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   errorContainer: {
     alignItems: 'center',

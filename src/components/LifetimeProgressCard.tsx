@@ -19,13 +19,16 @@ import {
   Animated,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifetimeProgress } from '../hooks/useStats';
+import { LanguageGradients, ChallengeGradients } from '../constants/colors';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const MAX_CARD_HEIGHT = height * 0.5; // Half of screen height
 
 interface LifetimeProgressCardProps {
   onRefresh?: () => void;
@@ -59,6 +62,8 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
     types: new Animated.Value(0),
     levels: new Animated.Value(0),
   }).current;
+  const languagesAnim = useRef(new Animated.Value(0)).current;
+  const typesAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Entry animation
@@ -108,6 +113,30 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
     });
 
     setExpandedSection(newExpandedSection);
+  };
+
+  // Toggle languages section
+  const toggleLanguages = () => {
+    const newValue = !showLanguages;
+    setShowLanguages(newValue);
+    Animated.spring(languagesAnim, {
+      toValue: newValue ? 1 : 0,
+      friction: 8,
+      tension: 80,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Toggle types section
+  const toggleTypes = () => {
+    const newValue = !showTypes;
+    setShowTypes(newValue);
+    Animated.spring(typesAnim, {
+      toValue: newValue ? 1 : 0,
+      friction: 8,
+      tension: 80,
+      useNativeDriver: false,
+    }).start();
   };
 
   // Handle retry
@@ -208,6 +237,17 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
       'novice': '🌱',
     };
     return emojiMap[rank] || '📊';
+  };
+
+  // Simple color rotation for consistency (matches main stat boxes)
+  const STAT_COLORS = ['#14B8A6', '#F75A5A', '#8B5CF6', '#FBBF24'];
+
+  const getLanguageColor = (index: number): string => {
+    return STAT_COLORS[index % STAT_COLORS.length];
+  };
+
+  const getChallengeColor = (index: number): string => {
+    return STAT_COLORS[index % STAT_COLORS.length];
   };
 
   // Loading state
@@ -350,110 +390,46 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
         </View>
 
         {/* Main Stats Grid - 2x2 */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statsRow}>
-            {/* Challenges - Turquoise */}
-            <View style={[styles.statBox, { backgroundColor: 'rgba(20, 184, 166, 0.12)', borderColor: 'rgba(20, 184, 166, 0.4)' }]}>
-              <Text style={[styles.statValue, { color: '#14B8A6' }]}>{formatNumber(lifetime.summary.total_challenges)}</Text>
-              <Text style={[styles.statLabel, { color: '#B4E4DD' }]}>{t('explore.stats.challenges')}</Text>
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+        >
+          <View style={styles.statsContainer}>
+            <View style={styles.statsRow}>
+              {/* Challenges - Turquoise */}
+              <View style={[styles.statBox, { backgroundColor: '#14B8A6', borderWidth: 0 }]}>
+                <Text style={[styles.statValue, { color: '#FFFFFF' }]}>{formatNumber(lifetime.summary.total_challenges)}</Text>
+                <Text style={[styles.statLabel, { color: '#FFFFFF' }]}>{t('explore.stats.challenges')}</Text>
+              </View>
+
+              {/* Accuracy - Coral */}
+              <View style={[styles.statBox, { backgroundColor: '#F75A5A', borderWidth: 0 }]}>
+                <Text style={[styles.statValue, { color: '#FFFFFF' }]}>
+                  {Math.round(overallAccuracy)}%
+                </Text>
+                <Text style={[styles.statLabel, { color: '#FFFFFF' }]}>{t('explore.stats.accuracy')}</Text>
+              </View>
             </View>
 
-            {/* Accuracy - Coral */}
-            <View style={[styles.statBox, { backgroundColor: 'rgba(247, 90, 90, 0.12)', borderColor: 'rgba(247, 90, 90, 0.4)' }]}>
-              <Text style={[styles.statValue, { color: '#F75A5A' }]}>
-                {Math.round(overallAccuracy)}%
-              </Text>
-              <Text style={[styles.statLabel, { color: '#FFB4B4' }]}>{t('explore.stats.accuracy')}</Text>
-            </View>
-          </View>
+            <View style={styles.statsRow}>
+              {/* Total XP - Purple */}
+              <View style={[styles.statBox, { backgroundColor: '#8B5CF6', borderWidth: 0 }]}>
+                <Text style={[styles.statValue, { color: '#FFFFFF' }]}>{formatNumber(lifetime.summary.total_xp)}</Text>
+                <Text style={[styles.statLabel, { color: '#FFFFFF' }]}>{t('explore.stats.total_xp')}</Text>
+              </View>
 
-          <View style={styles.statsRow}>
-            {/* Total XP - Yellow */}
-            <View style={[styles.statBox, { backgroundColor: 'rgba(139, 92, 246, 0.12)', borderColor: 'rgba(139, 92, 246, 0.4)' }]}>
-              <Text style={[styles.statValue, { color: '#8B5CF6' }]}>{formatNumber(lifetime.summary.total_xp)}</Text>
-              <Text style={[styles.statLabel, { color: '#C4B5FD' }]}>{t('explore.stats.total_xp')}</Text>
-            </View>
-
-            {/* Best Streak - Orange */}
-            <View style={[styles.statBox, { backgroundColor: 'rgba(251, 191, 36, 0.12)', borderColor: 'rgba(251, 191, 36, 0.4)' }]}>
-              <Text style={[styles.statValue, { color: '#FBBF24' }]}>{lifetime.summary.longest_streak}</Text>
-              <Text style={[styles.statLabel, { color: '#FDE68A' }]}>{t('explore.stats.best_streak')}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Languages Section - Horizontal Top 2 */}
-        {topLanguages.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="language" size={16} color="#14B8A6" />
-              <Text style={styles.sectionTitle}>{t('explore.stats.top_languages')}</Text>
-            </View>
-            <View style={styles.languagesGridHorizontal}>
-              {topLanguages.slice(0, 2).map(([lang, progress]) => {
-                const totalChallenges = lifetime.summary.total_challenges;
-                const percentage = (progress.total_challenges / totalChallenges) * 100;
-
-                return (
-                  <View key={lang} style={styles.languageCompactItem}>
-                    <View style={styles.languageCompactHeader}>
-                      <Text style={styles.languageCompactName}>
-                        {lang.charAt(0).toUpperCase() + lang.slice(1)}
-                      </Text>
-                      <Text style={styles.languageCompactCount}>
-                        {progress.total_challenges}
-                      </Text>
-                    </View>
-                    <View style={styles.languageProgressBar}>
-                      <View
-                        style={[
-                          styles.languageProgressFill,
-                          { width: `${percentage}%` },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.languageCompactLevel}>
-                      {progress.highest_level} • {Math.round(percentage)}%
-                    </Text>
-                  </View>
-                );
-              })}
+              {/* Best Streak - Gold */}
+              <View style={[styles.statBox, { backgroundColor: '#FBBF24', borderWidth: 0 }]}>
+                <Text style={[styles.statValue, { color: '#0F1B2D' }]}>{lifetime.summary.longest_streak}</Text>
+                <Text style={[styles.statLabel, { color: '#0F1B2D' }]}>{t('explore.stats.best_streak')}</Text>
+              </View>
             </View>
           </View>
-        )}
 
-        {/* Challenge Types Section - Top 2 */}
-        {topTypes.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="game-controller" size={16} color="#8B5CF6" />
-              <Text style={styles.sectionTitle}>{t('explore.stats.top_challenge_types')}</Text>
-            </View>
-            <View style={styles.typesGrid}>
-              {topTypes.slice(0, 2).map(([type, mastery]) => {
-                const typeIconName = getChallengeTypeIcon(type);
+        </ScrollView>
 
-                return (
-                  <View key={type} style={styles.typeCompactItem}>
-                    <View style={styles.typeCompactIcon}>
-                      <Ionicons name={typeIconName as any} size={16} color="#8B5CF6" />
-                    </View>
-                    <View style={styles.typeCompactInfo}>
-                      <Text style={styles.typeCompactName} numberOfLines={1}>
-                        {formatChallengeType(type)}
-                      </Text>
-                      <Text style={styles.typeCompactStats}>
-                        {mastery.total_challenges} • {Math.round(mastery.accuracy)}%
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
-        {/* CEFR Levels Section - Removed for cleaner UI */}
+        {/* Member Since */}
         {false && sortedLevels.length > 0 && (
           <>
             <TouchableOpacity
@@ -558,6 +534,7 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
 const styles = StyleSheet.create({
   container: {
     width: width - 40, // Match CARD_WIDTH for consistent sizing
+    height: MAX_CARD_HEIGHT,
   },
   whiteCard: {
     padding: 16,
@@ -569,6 +546,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
+    height: MAX_CARD_HEIGHT,
   },
   header: {
     flexDirection: 'row',
@@ -605,6 +583,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+  scrollContainer: {
+    flex: 1,
+  },
   statsContainer: {
     gap: 6,
     marginBottom: 12,
@@ -620,10 +601,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 6,
     marginHorizontal: 2,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 64,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   statLabel: {
     fontSize: 10,
@@ -825,6 +810,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  sectionHeaderButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
   sectionTitle: {
@@ -844,11 +834,13 @@ const styles = StyleSheet.create({
   },
   languageCompactItem: {
     flex: 1,
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
-    padding: 8,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    padding: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   languageCompactHeader: {
     flexDirection: 'row',
@@ -868,14 +860,13 @@ const styles = StyleSheet.create({
   },
   languageProgressBar: {
     height: 5,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 4,
   },
   languageProgressFill: {
     height: '100%',
-    backgroundColor: '#14B8A6',
     borderRadius: 3,
   },
   languageCompactLevel: {
@@ -893,20 +884,22 @@ const styles = StyleSheet.create({
   typeCompactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     gap: 8,
     flex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   typeCompactIcon: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -922,7 +915,8 @@ const styles = StyleSheet.create({
   typeCompactStats: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
 
   // Milestone - Compact & Prominent
@@ -972,5 +966,107 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#FBBF24',
     borderRadius: 4,
+  },
+  sectionCard: {
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderRadius: 16,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.1)',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  sectionContent: {
+    gap: 8,
+  },
+  itemCard: {
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  languageHeaderText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4ECFBF',
+    marginBottom: 10,
+    letterSpacing: -0.3,
+  },
+  miniStatsRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  miniStatBox: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  miniStatValue: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  miniStatLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  typeItemCard: {
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.2)',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  typeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  typeIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(139, 92, 246, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typeHeaderText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#A78BFA',
+    letterSpacing: -0.3,
   },
 });

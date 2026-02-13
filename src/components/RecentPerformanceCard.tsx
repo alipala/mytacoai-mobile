@@ -293,13 +293,15 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
             {/* Gradients definition */}
             <Defs>
               <SvgLinearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <Stop offset="0%" stopColor="#14B8A6" stopOpacity="0.8" />
-                <Stop offset="50%" stopColor="#3B82F6" stopOpacity="1" />
-                <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                <Stop offset="0%" stopColor="#10B981" stopOpacity="1" />
+                <Stop offset="33%" stopColor="#14B8A6" stopOpacity="1" />
+                <Stop offset="66%" stopColor="#3B82F6" stopOpacity="1" />
+                <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="1" />
               </SvgLinearGradient>
               <SvgLinearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <Stop offset="0%" stopColor="#14B8A6" stopOpacity="0.3" />
-                <Stop offset="100%" stopColor="#14B8A6" stopOpacity="0" />
+                <Stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.5" />
+                <Stop offset="50%" stopColor="#3B82F6" stopOpacity="0.3" />
+                <Stop offset="100%" stopColor="#10B981" stopOpacity="0" />
               </SvgLinearGradient>
             </Defs>
 
@@ -314,12 +316,22 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
               fill="url(#areaGradient)"
             />
 
-            {/* Sparkline with gradient and glow */}
+            {/* Sparkline glow layer */}
             <Polyline
               points={sparklinePoints}
               fill="none"
               stroke="url(#lineGradient)"
-              strokeWidth="4"
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.3"
+            />
+            {/* Sparkline with gradient */}
+            <Polyline
+              points={sparklinePoints}
+              fill="none"
+              stroke="url(#lineGradient)"
+              strokeWidth="5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -332,28 +344,36 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
               const isMilestone = accuracy >= 85;
 
               // Color code by accuracy
-              let pointColor = '#F59E0B'; // Yellow for medium
+              let pointColor = '#FFD63A'; // Gold for medium
               if (accuracy >= 85) pointColor = '#10B981'; // Green for excellent
               else if (accuracy < 70) pointColor = '#EF4444'; // Red for needs work
 
               return (
                 <React.Fragment key={index}>
-                  {/* Glow effect */}
+                  {/* Outer glow effect */}
                   <Circle
                     cx={x}
                     cy={y}
-                    r={isToday ? "8" : "6"}
+                    r={isToday ? "14" : "10"}
                     fill={pointColor}
-                    opacity="0.3"
+                    opacity="0.2"
+                  />
+                  {/* Mid glow effect */}
+                  <Circle
+                    cx={x}
+                    cy={y}
+                    r={isToday ? "10" : "7"}
+                    fill={pointColor}
+                    opacity="0.4"
                   />
                   {/* Main point */}
                   <Circle
                     cx={x}
                     cy={y}
-                    r={isToday ? "5" : "4"}
+                    r={isToday ? "6" : "5"}
                     fill={pointColor}
                     stroke="#FFFFFF"
-                    strokeWidth="2"
+                    strokeWidth="3"
                   />
                 </React.Fragment>
               );
@@ -429,18 +449,53 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
           {/* Daily Breakdown */}
           <Text style={styles.detailsTitle}>📅 Daily Breakdown</Text>
           <View style={styles.dailyGrid}>
-            {recent.daily_breakdown.slice().reverse().slice(0, maxDays).map((day, index) => (
-              <View key={index} style={styles.dailyItem}>
-                <Text style={styles.dailyDate}>
-                  {new Date(day.date).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </Text>
-                <Text style={styles.dailyChallenges}>{day.challenges} challenges</Text>
-                <Text style={styles.dailyAccuracy}>{Math.round(day.accuracy)}% accuracy</Text>
-              </View>
-            ))}
+            {recent.daily_breakdown.slice(-maxDays).map((day, index, arr) => {
+              const isToday = index === arr.length - 1; // Last item is today
+              const accuracy = day.accuracy ?? 0;
+              const challenges = day.challenges ?? 0;
+
+              // Determine color based on accuracy and activity
+              let backgroundColor: string;
+              if (challenges === 0) {
+                // No activity - dark gray
+                backgroundColor = '#374151';
+              } else if (accuracy === 100) {
+                // Perfect - green
+                backgroundColor = '#10B981';
+              } else if (accuracy >= 75) {
+                // Great - teal
+                backgroundColor = '#14B8A6';
+              } else if (accuracy >= 50) {
+                // Good - yellow
+                backgroundColor = '#FFD63A';
+              } else {
+                // Needs work - red
+                backgroundColor = '#EF4444';
+              }
+
+              return (
+                <View
+                  key={index}
+                  style={[
+                    styles.dailyCalendarBox,
+                    { backgroundColor },
+                    isToday && styles.dailyCalendarBoxToday,
+                  ]}
+                >
+                  <Text style={styles.dailyCalendarDay}>
+                    {new Date(day.date).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                    })}
+                  </Text>
+                  <Text style={styles.dailyCalendarDate}>
+                    {new Date(day.date).getDate()}
+                  </Text>
+                  <Text style={styles.dailyCalendarAccuracy}>
+                    {challenges > 0 ? `${Math.round(accuracy)}%` : '-'}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       </View>
