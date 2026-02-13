@@ -724,7 +724,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       {/* Learning Info Badge */}
       {user?.preferred_language && (
         <View style={styles.learningInfoBadge}>
-          <Ionicons name="school" size={16} color="#14B8A6" />
+          <Ionicons name="school" size={18} color="#FFFFFF" />
           <Text style={styles.learningInfoText}>
             {t('profile.overview.learning_info', {
               language: user.preferred_language,
@@ -734,66 +734,116 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         </View>
       )}
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Ionicons name="chatbubbles" size={24} color="#14B8A6" />
-          <Text style={styles.statValue}>{conversationHistory.length}</Text>
-          <Text style={styles.statLabel}>{t('profile.overview.stat_conversations')}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Ionicons name="trending-up" size={24} color="#3B82F6" />
-          <Text style={styles.statValue}>{learningPlans.length}</Text>
-          <Text style={styles.statLabel}>{t('profile.overview.stat_plans')}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Ionicons name="school" size={24} color="#F59E0B" />
-          <Text style={styles.statValue}>{flashcardSets.length}</Text>
-          <Text style={styles.statLabel}>{t('profile.overview.stat_sets')}</Text>
-        </View>
-      </View>
-
+      {/* Statistics Dashboard - Masonry Style (NO TITLE) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('profile.overview.recent_activity')}</Text>
-        {conversationHistory.length > 0 ? (
-          <View style={styles.activityList}>
-            {conversationHistory.slice(0, 3).map((session) => (
-              <TouchableOpacity
-                key={session.id}
-                style={styles.activityCard}
-                onPress={() => toggleConversationExpanded(session.id)}
-              >
-                <View style={styles.activityHeader}>
-                  <View style={styles.activityIcon}>
-                    <Ionicons name="chatbubbles" size={20} color="#14B8A6" />
-                  </View>
-                  <View style={styles.activityInfo}>
-                    <Text style={styles.activityTitle}>
-                      {session.topic
-                        ? session.topic.charAt(0).toUpperCase() + session.topic.slice(1)
-                        : session.conversation_type === 'news'
-                          ? t('news.title')
-                          : t('profile.overview.practice_session')}
-                    </Text>
-                    <Text style={styles.activitySubtitle}>
-                      {session.language?.charAt(0).toUpperCase() + session.language?.slice(1) || t('practice.languages.english')} • {session.level}
-                    </Text>
-                  </View>
-                  <Text style={styles.activityDate}>{formatDate(session.created_at)}</Text>
-                </View>
-                {expandedConversations[session.id] && (
-                  <View style={styles.activityDetails}>
-                    <Text style={styles.activitySummary}>{session.summary}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
+        {/* Row 1: Large Cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCardLarge, { backgroundColor: '#14B8A6' }]}>
+            <Ionicons name="time" size={36} color="#FFFFFF" />
+            <Text style={styles.statLargeValue}>270</Text>
+            <Text style={styles.statLargeLabel}>Minutes Practiced</Text>
           </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyStateText}>{t('empty_states.no_sessions')}</Text>
+
+          <View style={[styles.statCardLarge, { backgroundColor: '#8B5CF6' }]}>
+            <Ionicons name="trophy" size={36} color="#FFFFFF" />
+            <Text style={styles.statLargeValue}>236</Text>
+            <Text style={styles.statLargeLabel}>Challenges Completed</Text>
+          </View>
+        </View>
+
+        {/* Row 2: Medium Cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCardMedium, { backgroundColor: '#FCD34D' }]}>
+            <Ionicons name="flame" size={32} color="#FFFFFF" />
+            <Text style={styles.statMediumValue}>5</Text>
+            <Text style={styles.statMediumLabel}>Day Streak</Text>
+          </View>
+
+          <View style={[styles.statCardMedium, { backgroundColor: '#EC4899' }]}>
+            <Ionicons name="albums" size={32} color="#FFFFFF" />
+            <Text style={styles.statMediumValue}>{flashcardSets.length}</Text>
+            <Text style={styles.statMediumLabel}>Flashcard Sets</Text>
+          </View>
+
+          <View style={[styles.statCardMedium, { backgroundColor: '#10B981' }]}>
+            <Ionicons name="ribbon" size={32} color="#FFFFFF" />
+            <Text style={styles.statMediumValue}>3</Text>
+            <Text style={styles.statMediumLabel}>Achievements</Text>
+          </View>
+        </View>
+
+        {/* Full-Width Card: Average Practice Time */}
+        <View style={[styles.statCardFullWidth, { backgroundColor: '#3B82F6' }]}>
+          <View style={styles.statFullWidthHeader}>
+            <Text style={styles.statFullWidthTitle}>Average Practice Time</Text>
+            <Ionicons name="analytics" size={24} color="#FFFFFF" />
+          </View>
+          <View style={styles.statFullWidthContent}>
+            <View>
+              <Text style={styles.statFullWidthValue}>
+                {conversationHistory.length > 0 ? Math.round(270 / conversationHistory.length) : 0}
+              </Text>
+              <Text style={styles.statFullWidthSubtext}>minutes per session</Text>
+            </View>
+            <View style={styles.statFullWidthBadge}>
+              <Ionicons name="trending-up" size={16} color="#FFFFFF" />
+              <Text style={styles.statFullWidthBadgeText}>+12%</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Full-Width Card: Speaking Assessment Score */}
+        {(user as any)?.latest_assessment && (
+          <View style={[styles.statCardFullWidth, { backgroundColor: '#10B981' }]}>
+            <View style={styles.statFullWidthHeader}>
+              <Text style={styles.statFullWidthTitle}>Latest Assessment Score</Text>
+              <Ionicons name="checkbox-outline" size={24} color="#FFFFFF" />
+            </View>
+            <View style={styles.statFullWidthContent}>
+              <View>
+                <Text style={styles.statFullWidthValue}>
+                  {(user as any).latest_assessment.overall_score}
+                </Text>
+                <Text style={styles.statFullWidthSubtext}>
+                  Level: {(user as any).latest_assessment.recommended_level || 'B1'}
+                </Text>
+              </View>
+              <View style={styles.statFullWidthBadge}>
+                <Ionicons name="trophy" size={16} color="#FFFFFF" />
+                <Text style={styles.statFullWidthBadgeText}>
+                  {(user as any).latest_assessment.confidence}% confident
+                </Text>
+              </View>
+            </View>
           </View>
         )}
+
+        {/* Row 3: Small Cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCardSmall, { backgroundColor: '#EF4444' }]}>
+            <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>{conversationHistory.length}</Text>
+            <Text style={styles.statSmallLabel}>Practice Sessions</Text>
+          </View>
+
+          <View style={[styles.statCardSmall, { backgroundColor: '#3B82F6' }]}>
+            <Ionicons name="school" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>{learningPlans.length}</Text>
+            <Text style={styles.statSmallLabel}>Learning Plans</Text>
+          </View>
+
+          <View style={[styles.statCardSmall, { backgroundColor: '#FB923C' }]}>
+            <Ionicons name="star" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>1250</Text>
+            <Text style={styles.statSmallLabel}>Total XP</Text>
+          </View>
+
+          <View style={[styles.statCardSmall, { backgroundColor: '#A855F7' }]}>
+            <Ionicons name="checkbox" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>{user?.assessments_used || 0}</Text>
+            <Text style={styles.statSmallLabel}>Assessments</Text>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -1005,11 +1055,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     const iconName = isLearningPlan ? 'school' : 'fitness';
 
     return (
-      <View style={styles.flashcardCard}>
+      <View style={[
+        styles.flashcardCard,
+        isLearningPlan ? styles.flashcardCardPurple : styles.flashcardCardOrange
+      ]}>
         {/* Category Badge */}
-        <View style={[styles.flashcardCategoryBadge, { borderColor: iconColor }]}>
-          <Ionicons name={iconName} size={11} color={iconColor} />
-          <Text style={[styles.flashcardCategoryText, { color: iconColor }]}>
+        <View style={[styles.flashcardCategoryBadge, { backgroundColor: 'rgba(255, 255, 255, 0.25)' }]}>
+          <Ionicons name={iconName} size={11} color="#FFFFFF" />
+          <Text style={[styles.flashcardCategoryText, { color: '#FFFFFF' }]}>
             {isLearningPlan ? t('profile.flashcards.category_learning_plan') : t('profile.flashcards.category_practice')}
           </Text>
         </View>
@@ -1018,12 +1071,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           <View style={[
             styles.flashcardCardIcon,
             {
-              backgroundColor: iconBgColor,
-              borderColor: iconBorderColor,
-              shadowColor: iconColor,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              shadowColor: '#000',
             }
           ]}>
-            <Ionicons name={iconName} size={28} color={iconColor} />
+            <Ionicons name={iconName} size={28} color={isLearningPlan ? '#8B5CF6' : '#FB923C'} />
           </View>
           <View style={styles.flashcardCardInfo}>
             <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
@@ -1036,13 +1088,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           {item.description}
         </Text>
         <TouchableOpacity
-          style={[
-            styles.flashcardStudyButton,
-            isLearningPlan ? styles.flashcardStudyButtonLP : styles.flashcardStudyButtonPractice
-          ]}
+          style={styles.flashcardStudyButton}
           onPress={() => openFlashcardViewer(item)}
         >
-          <Ionicons name="play-circle" size={20} color="#FFFFFF" />
+          <Ionicons name="play-circle" size={20} color={isLearningPlan ? '#8B5CF6' : '#FB923C'} />
           <Text style={styles.flashcardStudyButtonText}>{t('flashcards.button_study')}</Text>
         </TouchableOpacity>
       </View>
@@ -1076,83 +1125,82 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.flashcardFilterContainer}>
           <View style={styles.flashcardFilterSegment}>
             <TouchableOpacity
-              style={styles.flashcardFilterButton}
+              style={[
+                styles.flashcardFilterButton,
+                flashcardFilter === 'all' && [
+                  styles.flashcardFilterButtonActive,
+                  { backgroundColor: '#14B8A6', shadowColor: '#14B8A6' },
+                ],
+              ]}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
                 setFlashcardFilter('all');
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
+                  { color: flashcardFilter === 'all' ? '#FFFFFF' : '#14B8A6' },
                   flashcardFilter === 'all' && styles.flashcardFilterButtonTextActive,
                 ]}
                 numberOfLines={1}
               >
                 {t('profile.flashcards.filter_all')}
               </Text>
-              {flashcardFilter === 'all' && (
-                <View
-                  style={[
-                    styles.flashcardFilterUnderline,
-                    { backgroundColor: '#14B8A6', shadowColor: '#14B8A6' },
-                  ]}
-                />
-              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.flashcardFilterButton}
+              style={[
+                styles.flashcardFilterButton,
+                flashcardFilter === 'practice' && [
+                  styles.flashcardFilterButtonActive,
+                  { backgroundColor: '#F59E0B', shadowColor: '#F59E0B' },
+                ],
+              ]}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
                 setFlashcardFilter('practice');
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'practice' && {
-                    color: '#F59E0B',
-                    fontWeight: '700',
-                  },
+                  { color: flashcardFilter === 'practice' ? '#FFFFFF' : '#F59E0B' },
+                  flashcardFilter === 'practice' && styles.flashcardFilterButtonTextActive,
                 ]}
                 numberOfLines={1}
               >
                 {t('profile.flashcards.filter_practice')}
               </Text>
-              {flashcardFilter === 'practice' && (
-                <View
-                  style={[
-                    styles.flashcardFilterUnderline,
-                    { backgroundColor: '#F59E0B', shadowColor: '#F59E0B' },
-                  ]}
-                />
-              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.flashcardFilterButton}
+              style={[
+                styles.flashcardFilterButton,
+                flashcardFilter === 'learning_plan' && [
+                  styles.flashcardFilterButtonActive,
+                  { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
+                ],
+              ]}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
                 setFlashcardFilter('learning_plan');
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'learning_plan' && {
-                    color: '#6366F1',
-                    fontWeight: '700',
-                  },
+                  { color: flashcardFilter === 'learning_plan' ? '#FFFFFF' : '#6366F1' },
+                  flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonTextActive,
                 ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -1160,14 +1208,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               >
                 {t('profile.flashcards.filter_learning_plan')}
               </Text>
-              {flashcardFilter === 'learning_plan' && (
-                <View
-                  style={[
-                    styles.flashcardFilterUnderline,
-                    { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
-                  ]}
-                />
-              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -1657,12 +1697,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'overview' && styles.tabActive]}
               onPress={() => handleTabPress('overview')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
                 name={activeTab === 'overview' ? 'home' : 'home-outline'}
-                size={24}
-                color={activeTab === 'overview' ? '#14B8A6' : '#6B8A84'}
+                size={22}
+                color={activeTab === 'overview' ? '#FFFFFF' : '#14B8A6'}
               />
               <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>{t('profile.tabs.overview')}</Text>
             </TouchableOpacity>
@@ -1670,12 +1710,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'progress' && styles.tabActive]}
               onPress={() => handleTabPress('progress')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
                 name={activeTab === 'progress' ? 'trending-up' : 'trending-up-outline'}
-                size={24}
-                color={activeTab === 'progress' ? '#14B8A6' : '#6B8A84'}
+                size={22}
+                color={activeTab === 'progress' ? '#FFFFFF' : '#14B8A6'}
               />
               <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>{t('profile.tabs.progress')}</Text>
             </TouchableOpacity>
@@ -1683,12 +1723,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'flashcards' && styles.tabActive]}
               onPress={() => handleTabPress('flashcards')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
                 name={activeTab === 'flashcards' ? 'albums' : 'albums-outline'}
-                size={24}
-                color={activeTab === 'flashcards' ? '#14B8A6' : '#6B8A84'}
+                size={22}
+                color={activeTab === 'flashcards' ? '#FFFFFF' : '#14B8A6'}
               />
               <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>{t('profile.tabs.cards')}</Text>
             </TouchableOpacity>
@@ -1696,12 +1736,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'dna' && styles.tabActive]}
               onPress={() => handleTabPress('dna')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
                 name={activeTab === 'dna' ? 'analytics' : 'analytics-outline'}
-                size={24}
-                color={activeTab === 'dna' ? '#14B8A6' : '#6B8A84'}
+                size={22}
+                color={activeTab === 'dna' ? '#FFFFFF' : '#14B8A6'}
               />
               <Text style={[styles.tabText, activeTab === 'dna' && styles.tabTextActive]}>{t('profile.tabs.dna')}</Text>
             </TouchableOpacity>
