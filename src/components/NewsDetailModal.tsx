@@ -17,6 +17,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { API_BASE_URL } from '../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import EnglishFlag from '../assets/flags/english.svg';
+import SpanishFlag from '../assets/flags/spanish.svg';
+import DutchFlag from '../assets/flags/dutch.svg';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -51,6 +54,7 @@ interface NewsDetailModalProps {
   title: string;
   recommendedLevel: string;
   availableLanguages: string[];
+  categoryColor: string;
   onClose: () => void;
   onStartConversation: (params: {
     sessionId: string;
@@ -62,10 +66,16 @@ interface NewsDetailModalProps {
   }) => void;
 }
 
-const LANGUAGE_NAMES: { [key: string]: string } = {
-  en: 'English',
-  es: 'Spanish',
-  nl: 'Dutch',
+const LANGUAGE_FLAGS: { [key: string]: React.FC<any> } = {
+  en: EnglishFlag,
+  es: SpanishFlag,
+  nl: DutchFlag,
+};
+
+const LANGUAGE_FLAG_COLORS: { [key: string]: string } = {
+  en: '#FF0000', // UK flag bright red (most vibrant light color)
+  es: '#FFD700', // Spanish flag bright gold (light and visible)
+  nl: '#FF6B35', // Dutch flag bright orange-red (light and distinctive)
 };
 
 const LEVEL_NAMES: { [key: string]: string } = {
@@ -80,6 +90,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
   title,
   recommendedLevel,
   availableLanguages,
+  categoryColor,
   onClose,
   onStartConversation,
 }) => {
@@ -191,29 +202,6 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      technology: '#3B82F6',
-      science: '#8B5CF6',
-      health: '#EC4899',
-      sports: '#EF4444',
-      environment: '#14B8A6',
-      business: '#10B981',
-      culture: '#F59E0B',
-      entertainment: '#F43F5E',
-      education: '#6366F1',
-      politics: '#64748B',
-      finance: '#059669',
-      travel: '#0EA5E9',
-      food: '#F97316',
-      fashion: '#A855F7',
-      automotive: '#71717A',
-    };
-    return colors[category.toLowerCase()] || '#6B7280';
-  };
-
-  const categoryColor = newsContent ? getCategoryColor(newsContent.original.category) : '#6B7280';
-
   return (
     <Modal
       visible={visible}
@@ -232,8 +220,8 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
           {/* Drag Handle */}
           <View style={styles.dragHandle} />
 
-          {/* Header with Close Button */}
-          <View style={styles.modalHeader}>
+          {/* Header with Close Button - On colored background */}
+          <View style={[styles.modalHeader, { backgroundColor: categoryColor }]}>
             <Text style={styles.modalHeaderTitle}>News Details</Text>
             <TouchableOpacity
               style={styles.closeButton}
@@ -263,17 +251,17 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
               >
-                {/* Hero Image with Category Badge */}
-                <View style={styles.heroContainer}>
+                {/* Hero Image with Category Badge - Colored Background */}
+                <View style={[styles.heroContainer, { backgroundColor: categoryColor }]}>
                   {newsContent.original.image_url ? (
                     <Image source={{ uri: newsContent.original.image_url }} style={styles.heroImage} />
                   ) : (
                     <View style={[styles.heroImage, styles.placeholderImage]}>
-                      <Ionicons name="newspaper-outline" size={48} color="#9CA3AF" />
+                      <Ionicons name="newspaper-outline" size={48} color="rgba(255, 255, 255, 0.4)" />
                     </View>
                   )}
                   <View style={styles.heroOverlay} />
-                  <View style={[styles.heroCategoryBadge, { backgroundColor: categoryColor }]}>
+                  <View style={styles.heroCategoryBadge}>
                     <Text style={styles.heroCategoryText}>
                       {newsContent.original.category.charAt(0).toUpperCase() + newsContent.original.category.slice(1)}
                     </Text>
@@ -285,17 +273,20 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                   <Text style={styles.title}>{newsContent.original.title}</Text>
 
                   {/* Stats Bar */}
-                  <View style={styles.statsBar}>
+                  <View style={[styles.statsBar, {
+                    backgroundColor: `${categoryColor}15`,
+                    borderColor: `${categoryColor}33`,
+                  }]}>
                     <View style={styles.statItem}>
                       <Ionicons name="time-outline" size={16} color={categoryColor} />
                       <Text style={styles.statText}>~3 min read</Text>
                     </View>
-                    <View style={styles.statDivider} />
+                    <View style={[styles.statDivider, { backgroundColor: `${categoryColor}4D` }]} />
                     <View style={styles.statItem}>
                       <Ionicons name="library-outline" size={16} color={categoryColor} />
                       <Text style={styles.statText}>{newsContent.vocabulary.length} words</Text>
                     </View>
-                    <View style={styles.statDivider} />
+                    <View style={[styles.statDivider, { backgroundColor: `${categoryColor}4D` }]} />
                     <View style={styles.statItem}>
                       <Ionicons name="school-outline" size={16} color={categoryColor} />
                       <Text style={styles.statText}>{selectedLevel}</Text>
@@ -306,42 +297,46 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 </View>
 
                 {/* Language Selector */}
-                <View style={styles.selectorContainer}>
-                  <Text style={styles.selectorLabel}>Language</Text>
-                  <View style={styles.optionsContainer}>
-                    {availableLanguages.map((lang: string) => (
-                      <TouchableOpacity
-                        key={lang}
-                        style={[
-                          styles.optionButton,
-                          selectedLanguage === lang && styles.optionButtonActive,
-                        ]}
-                        onPress={() => {
-                          if (Platform.OS === 'ios') {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          }
-                          setSelectedLanguage(lang);
-                        }}
-                      >
-                        <Text
+                <View style={[styles.selectorContainer, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.selectorLabel, { color: categoryColor }]}>Language</Text>
+                  <View style={styles.flagOptionsContainer}>
+                    {availableLanguages.map((lang: string) => {
+                      const FlagComponent = LANGUAGE_FLAGS[lang];
+                      const flagColor = LANGUAGE_FLAG_COLORS[lang] || '#14B8A6';
+                      return (
+                        <TouchableOpacity
+                          key={lang}
                           style={[
-                            styles.optionText,
-                            selectedLanguage === lang && styles.optionTextActive,
+                            styles.flagButton,
+                            selectedLanguage === lang && {
+                              shadowColor: flagColor,
+                              shadowOffset: { width: 0, height: 0 },
+                              shadowOpacity: 0.9,
+                              shadowRadius: 20,
+                              elevation: 12,
+                            },
                           ]}
+                          onPress={() => {
+                            if (Platform.OS === 'ios') {
+                              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            }
+                            setSelectedLanguage(lang);
+                          }}
+                          activeOpacity={0.8}
                         >
-                          {LANGUAGE_NAMES[lang] || lang}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                          {FlagComponent && <FlagComponent width={56} height={40} />}
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 </View>
 
                 {/* Level Selector */}
-                <View style={styles.selectorContainer}>
-                  <Text style={styles.selectorLabel}>
+                <View style={[styles.selectorContainer, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.selectorLabel, { color: categoryColor }]}>
                     Proficiency Level
                     {selectedLevel === recommendedLevel && (
-                      <Text style={styles.recommendedBadge}> • Recommended</Text>
+                      <Text style={[styles.recommendedBadge, { color: categoryColor }]}> • Recommended</Text>
                     )}
                   </Text>
                   <View style={styles.optionsContainer}>
@@ -350,7 +345,18 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         key={lvl}
                         style={[
                           styles.optionButton,
-                          selectedLevel === lvl && styles.optionButtonActive,
+                          {
+                            backgroundColor: `${categoryColor}14`,
+                            borderColor: `${categoryColor}33`,
+                          },
+                          selectedLevel === lvl && [
+                            styles.optionButtonActive,
+                            {
+                              borderColor: categoryColor,
+                              backgroundColor: `${categoryColor}33`,
+                              shadowColor: categoryColor,
+                            }
+                          ],
                         ]}
                         onPress={() => {
                           if (Platform.OS === 'ios') {
@@ -362,7 +368,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         <Text
                           style={[
                             styles.optionText,
-                            selectedLevel === lvl && styles.optionTextActive,
+                            selectedLevel === lvl && [styles.optionTextActive, { color: categoryColor }],
                           ]}
                         >
                           {lvl}
@@ -373,14 +379,14 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 </View>
 
                 {/* Summary */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Summary</Text>
+                <View style={[styles.section, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.sectionTitle, { color: categoryColor }]}>Summary</Text>
                   <Text style={styles.summaryText}>{newsContent.summary}</Text>
                   <Text style={styles.wordCount}>{newsContent.word_count} words</Text>
                 </View>
 
                 {/* Vocabulary */}
-                <View style={styles.section}>
+                <View style={[styles.section, { borderTopColor: `${categoryColor}26` }]}>
                   <TouchableOpacity
                     style={styles.sectionHeader}
                     onPress={() => {
@@ -391,24 +397,31 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                     }}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.sectionTitle}>
+                    <Text style={[styles.sectionTitle, { color: categoryColor }]}>
                       Key Vocabulary ({newsContent.vocabulary.length} words)
                     </Text>
                     <Ionicons
                       name={vocabularyExpanded ? 'chevron-up' : 'chevron-down'}
                       size={24}
-                      color="#B4E4DD"
+                      color={categoryColor}
                     />
                   </TouchableOpacity>
 
                   {vocabularyExpanded && (
                     <View style={styles.vocabularyList}>
                       {newsContent.vocabulary.map((item, index) => (
-                        <View key={index} style={styles.vocabularyItem}>
+                        <View key={index} style={[
+                          styles.vocabularyItem,
+                          {
+                            borderLeftColor: categoryColor,
+                            backgroundColor: `${categoryColor}14`,
+                            borderColor: `${categoryColor}33`,
+                          }
+                        ]}>
                           <View style={styles.vocabularyHeader}>
                             <Text style={styles.vocabularyWord}>{item.word}</Text>
                             {item.translation && (
-                              <Text style={styles.vocabularyTranslation}>
+                              <Text style={[styles.vocabularyTranslation, { color: categoryColor }]}>
                                 {item.translation}
                               </Text>
                             )}
@@ -424,11 +437,11 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 </View>
 
                 {/* Discussion Questions */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>We'll Discuss:</Text>
+                <View style={[styles.section, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.sectionTitle, { color: categoryColor }]}>We'll Discuss:</Text>
                   {newsContent.discussion_questions.map((question, index) => (
                     <View key={index} style={styles.questionItem}>
-                      <Ionicons name="chatbubble-outline" size={20} color="#14B8A6" />
+                      <Ionicons name="chatbubble-outline" size={20} color={categoryColor} />
                       <Text style={styles.questionText}>{question}</Text>
                     </View>
                   ))}
@@ -439,10 +452,14 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
               </ScrollView>
 
               {/* Start Conversation Button (Fixed at bottom) */}
-              <View style={styles.footer}>
+              <View style={[styles.footer, { borderTopColor: `${categoryColor}33` }]}>
                 <TouchableOpacity
                   style={[
                     styles.startButton,
+                    {
+                      backgroundColor: categoryColor,
+                      shadowColor: categoryColor,
+                    },
                     startingConversation && styles.startButtonDisabled,
                   ]}
                   onPress={handleStartConversation}
@@ -470,34 +487,32 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
-    backgroundColor: '#0B1A1F', // Dark theme primary
+    backgroundColor: '#0B1A1F',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: SCREEN_HEIGHT * 0.92,
     paddingBottom: 0,
-    shadowColor: '#14B8A6',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 20,
-    borderTopWidth: 2,
-    borderTopColor: 'rgba(20, 184, 166, 0.3)',
   },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: 'rgba(20, 184, 166, 0.4)', // Teal drag handle
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 3,
     alignSelf: 'center',
     marginTop: 12,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -505,13 +520,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
+    paddingTop: 20,
+    borderBottomWidth: 0,
   },
   modalHeaderTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
+    color: '#FFFFFF',
   },
   closeButton: {
     padding: 4,
@@ -521,11 +536,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    backgroundColor: '#0D2832',
+    backgroundColor: '#0B1A1F',
   },
   loadingText: {
     fontSize: 16,
-    color: '#B4E4DD', // Light teal
+    color: '#6B8A84',
     marginTop: 16,
   },
   switchingOverlay: {
@@ -533,16 +548,14 @@ const styles = StyleSheet.create({
     top: 80,
     right: 20,
     zIndex: 1000,
-    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark glassmorphic
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     padding: 12,
     borderRadius: 12,
-    shadowColor: '#14B8A6',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
   },
   scrollView: {
     flex: 1,
@@ -552,8 +565,7 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     position: 'relative',
-    height: 180,
-    backgroundColor: '#1F2937', // Dark background
+    height: 240,
   },
   heroImage: {
     width: '100%',
@@ -563,52 +575,54 @@ const styles = StyleSheet.create({
   placeholderImage: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1F2937', // Dark placeholder
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Darker overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   heroCategoryBadge: {
     position: 'absolute',
-    bottom: 16,
+    bottom: 20,
     left: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 12,
-    backgroundColor: 'rgba(11, 26, 31, 0.85)', // Dark glassmorphic
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   heroCategoryText: {
-    color: '#14B8A6', // Teal accent
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
+    color: '#1F2937',
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 24,
+    backgroundColor: '#0B1A1F',
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF', // White text
-    lineHeight: 30,
-    marginBottom: 12,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 32,
+    marginBottom: 16,
   },
   statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   statItem: {
     flexDirection: 'row',
@@ -617,34 +631,31 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: '#B4E4DD', // Light teal
+    color: '#B4E4DD',
     fontWeight: '600',
   },
   statDivider: {
     width: 1,
     height: 16,
-    backgroundColor: 'rgba(20, 184, 166, 0.3)',
     marginHorizontal: 12,
   },
   source: {
     fontSize: 14,
-    color: '#B4E4DD', // Light teal
+    color: '#6B8A84',
     fontStyle: 'italic',
   },
   selectorContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: '#0B1A1F',
   },
   selectorLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
     marginBottom: 12,
   },
   recommendedBadge: {
-    color: '#14B8A6', // Teal accent
     fontSize: 13,
     fontWeight: '600',
   },
@@ -653,37 +664,45 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  flagOptionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 14,
+  },
+  flagButton: {
+    width: 56,
+    height: 40,
+    borderRadius: 8,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   optionButton: {
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   optionButtonActive: {
-    backgroundColor: '#14B8A6', // Teal solid
-    borderColor: '#14B8A6',
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    borderWidth: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#B4E4DD', // Light teal
+    color: '#9CA3AF',
   },
   optionTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
   section: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: '#0B1A1F',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -693,17 +712,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
     marginBottom: 14,
   },
   summaryText: {
     fontSize: 15,
-    lineHeight: 24,
-    color: '#B4E4DD', // Light teal
+    lineHeight: 26,
+    color: '#D1D5DB',
   },
   wordCount: {
     fontSize: 13,
-    color: '#6B8A84', // Muted teal
+    color: '#6B8A84',
     marginTop: 10,
   },
   vocabularyList: {
@@ -711,13 +729,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   vocabularyItem: {
-    backgroundColor: 'rgba(20, 184, 166, 0.08)', // Subtle teal background
     padding: 16,
     borderRadius: 14,
-    borderLeftWidth: 3,
-    borderLeftColor: '#14B8A6', // Teal accent border
+    borderLeftWidth: 4,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   vocabularyHeader: {
     flexDirection: 'row',
@@ -728,23 +743,22 @@ const styles = StyleSheet.create({
   vocabularyWord: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
+    color: '#FFFFFF',
     marginRight: 8,
   },
   vocabularyTranslation: {
     fontSize: 14,
-    color: '#14B8A6', // Teal accent
     fontStyle: 'italic',
     fontWeight: '600',
   },
   vocabularyExample: {
     fontSize: 14,
-    color: '#B4E4DD', // Light teal
-    lineHeight: 20,
+    color: '#B4E4DD',
+    lineHeight: 22,
   },
   vocabularyIPA: {
     fontSize: 12,
-    color: '#6B8A84', // Muted teal
+    color: '#6B8A84',
     marginTop: 6,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
@@ -756,41 +770,35 @@ const styles = StyleSheet.create({
   },
   questionText: {
     flex: 1,
-    fontSize: 14,
-    color: '#B4E4DD', // Light teal
-    lineHeight: 22,
+    fontSize: 15,
+    color: '#D1D5DB',
+    lineHeight: 24,
   },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.2)',
-    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark translucent
+    backgroundColor: '#0B1A1F',
   },
   startButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#14B8A6', // Teal button
     paddingVertical: 18,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.4,
     shadowRadius: 16,
-    elevation: 10,
-    borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    elevation: 8,
   },
   startButtonDisabled: {
-    backgroundColor: 'rgba(20, 184, 166, 0.4)', // Muted teal
-    opacity: 0.6,
+    opacity: 0.5,
   },
   startButtonText: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },

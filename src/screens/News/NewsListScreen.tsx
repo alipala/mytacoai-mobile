@@ -184,10 +184,44 @@ export default function NewsListScreen({ navigation }: any) {
     fetchNews();
   };
 
+  // Category helper functions (must be defined before use)
+  const getCategoryConfig = (category: string) => {
+    // Normalize category to lowercase for matching
+    const normalizedCategory = category.toLowerCase();
+
+    const configs: { [key: string]: { color: string; icon: string } } = {
+      all: { color: '#06B6D4', icon: 'apps' },
+      technology: { color: '#3B82F6', icon: 'hardware-chip' },
+      science: { color: '#8B5CF6', icon: 'flask' },
+      culture: { color: '#F59E0B', icon: 'color-palette' },
+      sports: { color: '#EF4444', icon: 'football' },
+      environment: { color: '#14B8A6', icon: 'leaf' },
+      health: { color: '#EC4899', icon: 'heart' },
+      business: { color: '#10B981', icon: 'briefcase' },
+      entertainment: { color: '#F43F5E', icon: 'sparkles' },
+      education: { color: '#6366F1', icon: 'school' },
+      politics: { color: '#64748B', icon: 'megaphone' },
+      finance: { color: '#059669', icon: 'cash' },
+      travel: { color: '#0EA5E9', icon: 'airplane' },
+      food: { color: '#F97316', icon: 'restaurant' },
+      fashion: { color: '#A855F7', icon: 'shirt' },
+      automotive: { color: '#71717A', icon: 'car-sport' },
+    };
+    return configs[normalizedCategory] || { color: '#6B7280', icon: 'ellipse' };
+  };
+
+  const getCategoryColor = (category: string) => {
+    return getCategoryConfig(category).color;
+  };
+
   const handleArticlePress = (article: NewsArticle) => {
     setSelectedArticle(article);
     setModalVisible(true);
   };
+
+  const selectedArticleCategoryColor = selectedArticle
+    ? getCategoryColor(selectedArticle.category)
+    : '#14B8A6';
 
   const handleCloseModal = () => {
     setModalVisible(false);
@@ -218,35 +252,6 @@ export default function NewsListScreen({ navigation }: any) {
     });
   };
 
-  const getCategoryConfig = (category: string) => {
-    // Normalize category to lowercase for matching
-    const normalizedCategory = category.toLowerCase();
-
-    const configs: { [key: string]: { color: string; icon: string } } = {
-      all: { color: '#06B6D4', icon: 'apps' },
-      technology: { color: '#3B82F6', icon: 'hardware-chip' },
-      science: { color: '#8B5CF6', icon: 'flask' },
-      culture: { color: '#F59E0B', icon: 'color-palette' },
-      sports: { color: '#EF4444', icon: 'football' },
-      environment: { color: '#14B8A6', icon: 'leaf' },
-      health: { color: '#EC4899', icon: 'heart' },
-      business: { color: '#10B981', icon: 'briefcase' },
-      entertainment: { color: '#F43F5E', icon: 'sparkles' },
-      education: { color: '#6366F1', icon: 'school' },
-      politics: { color: '#64748B', icon: 'megaphone' },
-      finance: { color: '#059669', icon: 'cash' },
-      travel: { color: '#0EA5E9', icon: 'airplane' },
-      food: { color: '#F97316', icon: 'restaurant' },
-      fashion: { color: '#A855F7', icon: 'shirt' },
-      automotive: { color: '#71717A', icon: 'car-sport' },
-    };
-    return configs[normalizedCategory] || { color: '#6B7280', icon: 'ellipse' };
-  };
-
-  const getCategoryColor = (category: string) => {
-    return getCategoryConfig(category).color;
-  };
-
   // Get unique categories from articles
   // Get unique categories from articles
   const articleCategories = Array.from(new Set(newsData?.articles.map(a => a.category) || []));
@@ -265,49 +270,46 @@ export default function NewsListScreen({ navigation }: any) {
 
     return (
       <TouchableOpacity
-        style={styles.articleCard}
+        style={[styles.articleCard, { backgroundColor: categoryColor }]}
         onPress={() => handleArticlePress(item)}
-        activeOpacity={0.8}
+        activeOpacity={0.85}
       >
         {/* Read/Unread Indicator */}
         {item.read && (
           <View style={styles.readIndicator}>
-            <Ionicons name="checkmark-circle" size={18} color="#14B8A6" />
+            <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
           </View>
         )}
 
-        {/* Article Image with Category Color Border Glow */}
-        <View style={[styles.imageContainer, {
-          borderColor: categoryColor,
-          shadowColor: categoryColor,
-        }]}>
+        {/* Article Image */}
+        <View style={styles.imageContainer}>
           {item.image_url ? (
             <Image source={{ uri: item.image_url }} style={styles.articleImage} />
           ) : (
             <View style={[styles.articleImage, styles.placeholderImage]}>
-              <Ionicons name="newspaper-outline" size={40} color="#6B8A84" />
+              <Ionicons name="newspaper-outline" size={48} color="rgba(255,255,255,0.6)" />
             </View>
           )}
-          {/* Stronger overlay for readability */}
+          {/* Lighter overlay for vibrant look */}
           <View style={styles.imageOverlay} />
         </View>
 
         {/* Article Content */}
         <View style={styles.articleContent}>
-          {/* Category Badge - Compact */}
-          <View style={[styles.categoryBadgeCompact, { borderColor: categoryColor }]}>
+          {/* Category Badge - White with Category Color Text */}
+          <View style={styles.categoryBadgeCompact}>
             <Ionicons
               name={categoryConfig.icon as any}
-              size={12}
+              size={13}
               color={categoryColor}
-              style={{ marginRight: 4 }}
+              style={{ marginRight: 5 }}
             />
-            <Text style={[styles.categoryTextCompact, { color: categoryColor }]}>
+            <Text style={styles.categoryTextCompact}>
               {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
             </Text>
           </View>
 
-          {/* Article Title - Bolder */}
+          {/* Article Title - White Bold */}
           <Text style={styles.articleTitle} numberOfLines={3}>
             {item.title}
           </Text>
@@ -321,28 +323,19 @@ export default function NewsListScreen({ navigation }: any) {
             <Text style={styles.metadataText}>{timeAgo}</Text>
           </View>
 
-          {/* CTA Button with Glow Effect */}
+          {/* Speak Now Button - Solid White */}
           <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              {
-                borderColor: categoryColor,
-                shadowColor: categoryColor, // Glow effect
-              }
-            ]}
+            style={styles.ctaButton}
             onPress={() => handleArticlePress(item)}
             activeOpacity={0.8}
           >
-            <Ionicons name="mic" size={20} color={categoryColor} />
+            <Ionicons name="mic" size={22} color={categoryColor} />
             <Text style={[styles.ctaButtonText, { color: categoryColor }]}>
               {t('news.button_speak_now')}
             </Text>
-            <Ionicons name="arrow-forward" size={16} color={categoryColor} />
+            <Ionicons name="arrow-forward" size={18} color={categoryColor} />
           </TouchableOpacity>
         </View>
-
-        {/* Color Indicator Bar at Bottom */}
-        <View style={[styles.colorIndicatorBar, { backgroundColor: categoryColor }]} />
       </TouchableOpacity>
     );
   };
@@ -365,7 +358,7 @@ export default function NewsListScreen({ navigation }: any) {
 
     return (
       <SafeAreaView style={styles.container}>
-      {/* Enhanced Personalized Header (Compact Height) */}
+      {/* Compact Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.greetingRow}>
@@ -381,28 +374,10 @@ export default function NewsListScreen({ navigation }: any) {
           <Text style={styles.dateText}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </Text>
-
-          {/* Stats Cards Row - NO EMOJI ICONS */}
-          <View style={styles.statsCardsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{progressStats?.current_streak || 0}</Text>
-              <Text style={styles.statLabel}>{t('news.stats.day_streak')}</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{newsData?.articles.length || 0}</Text>
-              <Text style={styles.statLabel}>
-                {newsData?.fallback_used ? t('news.stats.yesterday') : t('news.stats.today')}
-              </Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{filteredArticles.length}</Text>
-              <Text style={styles.statLabel}>{t('news.stats.filtered')}</Text>
-            </View>
-          </View>
         </View>
       </View>
 
-      {/* Category Filter with Article Counts */}
+      {/* Category Filter with Colored Pills */}
       <View style={styles.filterWrapper}>
         <ScrollView
           horizontal
@@ -422,22 +397,32 @@ export default function NewsListScreen({ navigation }: any) {
             return (
               <TouchableOpacity
                 key={category}
-                style={styles.filterChip}
+                style={[
+                  styles.filterChip,
+                  isSelected && {
+                    backgroundColor: config.color,
+                    shadowColor: config.color,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 6,
+                  }
+                ]}
                 onPress={() => setSelectedCategory(category)}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
               >
                 <Ionicons
                   name={config.icon as any}
                   size={18}
-                  color={isSelected ? config.color : 'rgba(180, 228, 221, 0.5)'}
+                  color={isSelected ? '#FFFFFF' : 'rgba(180, 228, 221, 0.6)'}
                   style={styles.filterIcon}
                 />
                 <Text
                   style={[
                     styles.filterChipText,
                     isSelected && {
-                      color: config.color,
-                      fontWeight: '700',
+                      color: '#FFFFFF',
+                      fontWeight: '800',
                     },
                   ]}
                 >
@@ -448,37 +433,19 @@ export default function NewsListScreen({ navigation }: any) {
                 <View style={[
                   styles.countBadge,
                   isSelected && {
-                    backgroundColor: config.color,
-                    shadowColor: config.color,
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.5,
-                    shadowRadius: 6,
-                    elevation: 4,
+                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
                   }
                 ]}>
                   <Text style={[
                     styles.countBadgeText,
                     isSelected && {
-                      color: '#0B1A1F',
+                      color: '#FFFFFF',
                       fontWeight: '800',
                     }
                   ]}>
                     {articleCount}
                   </Text>
                 </View>
-
-                {/* Underline indicator with category color + glow */}
-                {isSelected && (
-                  <View
-                    style={[
-                      styles.activeUnderline,
-                      {
-                        backgroundColor: config.color,
-                        shadowColor: config.color,
-                      },
-                    ]}
-                  />
-                )}
               </TouchableOpacity>
             );
           })}
@@ -521,6 +488,7 @@ export default function NewsListScreen({ navigation }: any) {
           title={selectedArticle.title}
           recommendedLevel={newsData?.recommended_level || 'B1'}
           availableLanguages={newsData?.available_languages || ['en', 'es', 'nl']}
+          categoryColor={selectedArticleCategoryColor}
           onClose={handleCloseModal}
           onStartConversation={handleStartConversation}
         />
@@ -600,33 +568,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#6B8A84',
-    marginBottom: 10,
-  },
-  statsCardsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.15)',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#6B8A84',
-    textAlign: 'center',
   },
   fallbackBadge: {
     backgroundColor: 'rgba(255, 214, 58, 0.15)', // Dark theme badge
@@ -647,34 +588,28 @@ const styles = StyleSheet.create({
   },
   articleCard: {
     position: 'relative',
-    backgroundColor: 'rgba(11, 26, 31, 0.6)', // Dark card background
-    borderRadius: 18,
+    borderRadius: 20,
     marginBottom: 18,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   readIndicator: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 14,
+    right: 14,
     zIndex: 10,
-    backgroundColor: 'rgba(11, 26, 31, 0.9)',
-    borderRadius: 12,
-    padding: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 14,
+    padding: 6,
   },
   imageContainer: {
     width: '100%',
     height: 180,
-    borderRadius: 16,
     overflow: 'hidden',
-    margin: 8,
-    width: 'calc(100% - 16px)',
-    borderWidth: 2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 6,
   },
   articleImage: {
     width: '100%',
@@ -686,83 +621,79 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
   },
   placeholderImage: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   articleContent: {
-    padding: 16,
-    paddingTop: 8,
+    padding: 18,
+    paddingTop: 14,
   },
   categoryBadgeCompact: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    marginBottom: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 12,
   },
   categoryTextCompact: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   articleTitle: {
     fontSize: 18,
     fontWeight: '800',
     color: '#FFFFFF',
-    lineHeight: 25,
+    lineHeight: 26,
     marginBottom: 10,
     letterSpacing: -0.4,
   },
   metadataRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   metadataText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#6B8A84',
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   metadataDot: {
     width: 3,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: '#6B8A84',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     marginHorizontal: 8,
   },
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderWidth: 1.5,
-    gap: 8,
-    // Glow effect (shadowColor set dynamically per category)
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    gap: 10,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 6,
   },
   ctaButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     flex: 1,
     textAlign: 'center',
-  },
-  colorIndicatorBar: {
-    height: 3,
-    width: '100%',
+    letterSpacing: 0.2,
   },
   loadingContainer: {
     flex: 1,
@@ -856,25 +787,23 @@ const styles = StyleSheet.create({
     color: '#14B8A6',
   },
   filterWrapper: {
-    backgroundColor: '#0B1A1F', // Dark header
+    backgroundColor: '#0B1A1F',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)', // Subtle separator
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   filterContent: {
     paddingHorizontal: 20,
     alignItems: 'center',
-    gap: 8, // Tight spacing for minimal look
+    gap: 10,
   },
   filterChip: {
-    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    paddingBottom: 12, // Extra space for underline
-    backgroundColor: 'transparent', // No background - minimal!
-    overflow: 'visible',
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   filterIcon: {
     marginRight: 7,
@@ -898,18 +827,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: 'rgba(180, 228, 221, 0.8)',
-  },
-  activeUnderline: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    borderRadius: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.9,
-    shadowRadius: 10,
-    elevation: 5,
   },
   // Skeleton Loading Styles
   skeletonCard: {
