@@ -73,9 +73,9 @@ const LANGUAGE_FLAGS: { [key: string]: React.FC<any> } = {
 };
 
 const LANGUAGE_FLAG_COLORS: { [key: string]: string } = {
-  en: '#00247D', // UK flag blue (distinctive)
-  es: '#F1BF00', // Spanish flag gold/yellow (very different)
-  nl: '#FF4F00', // Dutch flag orange (iconic Netherlands color)
+  en: '#FF0000', // UK flag bright red (most vibrant light color)
+  es: '#FFD700', // Spanish flag bright gold (light and visible)
+  nl: '#FF6B35', // Dutch flag bright orange-red (light and distinctive)
 };
 
 const LEVEL_NAMES: { [key: string]: string } = {
