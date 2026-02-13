@@ -37,8 +37,8 @@ export const COLORS = {
  */
 export const LanguageGradients = {
   french: {
-    colors: ['#4ECFBF', '#3B9FFF'],
-    name: 'French Gradient (Turquoise to Sky Blue)',
+    colors: ['#3B82F6', '#60A5FA'],
+    name: 'French Gradient (Blue to Light Blue)',
   },
   german: {
     colors: ['#F75A5A', '#FFA955'],

@@ -32,6 +32,7 @@ import SettingsScreen from './Settings/SettingsScreen';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import { styles } from './styles/ProfileScreen.styles';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
+import { LanguageGradients } from '../../constants/colors';
 
 // Flag imports
 import EnglishFlag from '../../assets/flags/english.svg';
@@ -413,6 +414,57 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     if (score >= 60) return '#3B82F6';
     if (score >= 50) return '#F59E0B';
     return '#EF4444';
+  };
+
+  // Helper function to get language-specific color from gradients
+  const getLanguageColor = (language: string) => {
+    const languageLower = language.toLowerCase();
+    const gradientKey = languageLower as keyof typeof LanguageGradients;
+
+    if (LanguageGradients[gradientKey]) {
+      return LanguageGradients[gradientKey].colors[0]; // Return primary color
+    }
+
+    // Default fallback to turquoise
+    return '#14B8A6';
+  };
+
+  // Helper function to determine if a color is light or dark
+  const isLightColor = (hexColor: string) => {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+
+    // Calculate relative luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    // Return true if light (luminance > 0.6)
+    return luminance > 0.6;
+  };
+
+  // Helper function to get text color based on background
+  const getTextColor = (backgroundColor: string) => {
+    return isLightColor(backgroundColor) ? '#1F2937' : '#FFFFFF';
+  };
+
+  // Helper function to get subtitle color based on background
+  const getSubtitleColor = (backgroundColor: string) => {
+    if (isLightColor(backgroundColor)) {
+      // For light backgrounds, use darker gray
+      return '#6B7280';
+    } else {
+      // For dark backgrounds, use lighter tint
+      const r = parseInt(backgroundColor.slice(1, 3), 16);
+      const g = parseInt(backgroundColor.slice(3, 5), 16);
+      const b = parseInt(backgroundColor.slice(5, 7), 16);
+
+      const lighterR = Math.round(r + (255 - r) * 0.7);
+      const lighterG = Math.round(g + (255 - g) * 0.7);
+      const lighterB = Math.round(b + (255 - b) * 0.7);
+
+      return `rgb(${lighterR}, ${lighterG}, ${lighterB})`;
+    }
   };
 
   const getNotificationIcon = (type: string) => {
@@ -875,8 +927,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
           const FlagComponent = getFlagComponent(plan.language);
 
+          const languageColor = getLanguageColor(plan.language);
+
           return (
-            <View key={plan.id} style={styles.progressPlanCard}>
+            <View key={plan.id} style={[styles.progressPlanCard, { backgroundColor: languageColor }]}>
               {/* Header with Progress */}
               <TouchableOpacity
                 style={styles.progressPlanHeader}
@@ -891,25 +945,37 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               >
                 {/* Flag Icon */}
                 {FlagComponent && (
-                  <View style={styles.planFlagContainer}>
+                  <View style={[styles.planFlagContainer, { shadowColor: languageColor }]}>
                     <FlagComponent width={40} height={40} />
                   </View>
                 )}
 
                 <View style={styles.progressPlanHeaderLeft}>
-                  <Text style={styles.progressPlanTitle} numberOfLines={2}>
+                  <Text style={[styles.progressPlanTitle, { color: '#FFFFFF' }]} numberOfLines={2}>
                     {plan.goals && plan.goals.length > 0
                       ? plan.goals.slice(0, 2).join(', ').toUpperCase() + (plan.goals.length > 2 ? '...' : '')
                       : t('profile.progress.default_plan_title')}
                   </Text>
-                  <Text style={styles.progressPlanSubtitle}>
+                  <Text style={[styles.progressPlanSubtitle, { color: 'rgba(255, 255, 255, 0.85)' }]}>
                     {plan.proficiency_level} • {t('profile.progress.duration_months', { count: plan.duration_months })} • {t('profile.progress.created')} {formatDate(plan.created_at)}
                   </Text>
                   <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBarTrack}>
-                      <View style={[styles.progressBarFill, { width: `${progressPercentage}%`, backgroundColor: getScoreColor(progressPercentage) }]} />
+                    <View style={[
+                      styles.progressBarTrack,
+                      { backgroundColor: 'rgba(255, 255, 255, 0.3)' }
+                    ]}>
+                      <View style={[
+                        styles.progressBarFill,
+                        {
+                          width: `${progressPercentage}%`,
+                          backgroundColor: '#FFFFFF',
+                        }
+                      ]} />
                     </View>
-                    <Text style={[styles.progressBarText, { color: getScoreColor(progressPercentage) }]}>
+                    <Text style={[
+                      styles.progressBarText,
+                      { color: '#FFFFFF' }
+                    ]}>
                       {Math.round(progressPercentage)}%
                     </Text>
                   </View>
@@ -917,17 +983,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <Ionicons
                   name={isExpanded ? 'chevron-up' : 'chevron-down'}
                   size={24}
-                  color="#6B8A84"
+                  color="#FFFFFF"
                 />
               </TouchableOpacity>
 
               {/* Expanded Content */}
               {isExpanded && (
-                <View style={styles.progressPlanContent}>
+                <View style={[
+                  styles.progressPlanContent,
+                  {
+                    backgroundColor: languageColor,
+                    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+                  }
+                ]}>
                   {/* Skills Grid - TRUE HORIZONTAL 2 COLUMNS */}
                   {plan.assessment_data && (
                     <View style={styles.skillsSection}>
-                      <Text style={styles.skillsSectionTitle}>{t('profile.progress.skills_assessment')}</Text>
+                      <Text style={[styles.skillsSectionTitle, { color: '#FFFFFF' }]}>{t('profile.progress.skills_assessment')}</Text>
                       <View style={styles.skillsGridHorizontal}>
                         <View style={styles.skillColumn}>
                           {[
@@ -935,13 +1007,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                             { key: 'grammar', label: t('profile.progress.skill_grammar'), icon: 'book', score: plan.assessment_data.grammar.score },
                             { key: 'vocabulary', label: t('profile.progress.skill_vocabulary'), icon: 'text', score: plan.assessment_data.vocabulary.score },
                           ].map((skill) => (
-                            <View key={skill.key} style={styles.skillCardHorizontal}>
-                              <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
-                                <Ionicons name={skill.icon as any} size={18} color={getScoreColor(skill.score)} />
+                            <View key={skill.key} style={[
+                              styles.skillCardHorizontal,
+                              {
+                                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                borderColor: 'rgba(255, 255, 255, 0.25)',
+                              }
+                            ]}>
+                              <View style={[styles.skillIconHorizontal, { backgroundColor: 'rgba(255, 255, 255, 0.3)' }]}>
+                                <Ionicons name={skill.icon as any} size={18} color="#FFFFFF" />
                               </View>
                               <View style={styles.skillInfo}>
-                                <Text style={styles.skillLabelHorizontal}>{skill.label}</Text>
-                                <Text style={[styles.skillScoreHorizontal, { color: getScoreColor(skill.score) }]}>
+                                <Text style={[styles.skillLabelHorizontal, { color: '#FFFFFF' }]}>{skill.label}</Text>
+                                <Text style={[styles.skillScoreHorizontal, { color: '#FFFFFF' }]}>
                                   {skill.score}
                                 </Text>
                               </View>
@@ -953,13 +1031,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                             { key: 'fluency', label: t('profile.progress.skill_fluency'), icon: 'chatbubbles', score: plan.assessment_data.fluency.score },
                             { key: 'coherence', label: t('profile.progress.skill_coherence'), icon: 'git-merge', score: plan.assessment_data.coherence.score },
                           ].map((skill) => (
-                            <View key={skill.key} style={styles.skillCardHorizontal}>
-                              <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
-                                <Ionicons name={skill.icon as any} size={18} color={getScoreColor(skill.score)} />
+                            <View key={skill.key} style={[
+                              styles.skillCardHorizontal,
+                              {
+                                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                borderColor: 'rgba(255, 255, 255, 0.25)',
+                              }
+                            ]}>
+                              <View style={[styles.skillIconHorizontal, { backgroundColor: 'rgba(255, 255, 255, 0.3)' }]}>
+                                <Ionicons name={skill.icon as any} size={18} color="#FFFFFF" />
                               </View>
                               <View style={styles.skillInfo}>
-                                <Text style={styles.skillLabelHorizontal}>{skill.label}</Text>
-                                <Text style={[styles.skillScoreHorizontal, { color: getScoreColor(skill.score) }]}>
+                                <Text style={[styles.skillLabelHorizontal, { color: '#FFFFFF' }]}>{skill.label}</Text>
+                                <Text style={[styles.skillScoreHorizontal, { color: '#FFFFFF' }]}>
                                   {skill.score}
                                 </Text>
                               </View>
@@ -972,18 +1056,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
                   {/* Current Week Focus */}
                   {plan.plan_content.weekly_schedule && plan.plan_content.weekly_schedule[currentWeek - 1] && (
-                    <View style={styles.currentWeekSection}>
+                    <View style={[
+                      styles.currentWeekSection,
+                      {
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                      }
+                    ]}>
                       <View style={styles.currentWeekHeader}>
-                        <Text style={styles.currentWeekLabel}>{t('profile.progress.current_focus')} • {t('profile.progress.week', { week: currentWeek })}</Text>
+                        <Text style={[styles.currentWeekLabel, { color: '#FFFFFF' }]}>{t('profile.progress.current_focus')} • {t('profile.progress.week', { week: currentWeek })}</Text>
                       </View>
-                      <Text style={styles.currentWeekFocus}>
+                      <Text style={[styles.currentWeekFocus, { color: '#FFFFFF' }]}>
                         {plan.plan_content.weekly_schedule[currentWeek - 1].focus}
                       </Text>
                       <View style={styles.currentWeekActivities}>
                         {plan.plan_content.weekly_schedule[currentWeek - 1].activities.slice(0, 3).map((activity, index) => (
                           <View key={index} style={styles.activityRow}>
-                            <View style={styles.activityBullet} />
-                            <Text style={styles.activityRowText}>{activity}</Text>
+                            <View style={[styles.activityBullet, { backgroundColor: '#FFFFFF' }]} />
+                            <Text style={[styles.activityRowText, { color: '#FFFFFF' }]}>{activity}</Text>
                           </View>
                         ))}
                       </View>
@@ -993,7 +1083,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   {/* Weekly Schedule Preview */}
                   {plan.plan_content.weekly_schedule && (
                     <View style={styles.weeklyScheduleSection}>
-                      <Text style={styles.weeklyScheduleTitle}>{t('profile.progress.schedule')}</Text>
+                      <Text style={[styles.weeklyScheduleTitle, { color: '#FFFFFF' }]}>{t('profile.progress.schedule')}</Text>
                       <View style={styles.weeksList}>
                         {plan.plan_content.weekly_schedule.slice(0, 4).map((week) => {
                           const isCurrentWeek = week.week === currentWeek;
@@ -1004,15 +1094,31 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                               key={week.week}
                               style={[
                                 styles.weekItem,
-                                isCurrentWeek && styles.weekItemCurrent,
-                                isCompleted && styles.weekItemCompleted,
+                                {
+                                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                  borderColor: 'rgba(255, 255, 255, 0.25)',
+                                },
+                                isCurrentWeek && [
+                                  styles.weekItemCurrent,
+                                  {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                                    borderColor: '#FFFFFF',
+                                    shadowColor: '#FFFFFF',
+                                  },
+                                ],
+                                isCompleted && [
+                                  styles.weekItemCompleted,
+                                  {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    borderColor: '#10B981',
+                                  }
+                                ],
                               ]}
                             >
                               <View style={styles.weekItemHeader}>
                                 <Text style={[
                                   styles.weekItemNumber,
-                                  isCurrentWeek && styles.weekItemNumberCurrent,
-                                  isCompleted && styles.weekItemNumberCompleted,
+                                  { color: '#FFFFFF' },
                                 ]}>
                                   {t('profile.progress.week', { week: week.week })}
                                 </Text>
@@ -1022,10 +1128,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                                   </View>
                                 )}
                                 {isCompleted && (
-                                  <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                                  <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
                                 )}
                               </View>
-                              <Text style={styles.weekItemFocus} numberOfLines={2}>
+                              <Text style={[
+                                styles.weekItemFocus,
+                                { color: 'rgba(255, 255, 255, 0.9)' }
+                              ]} numberOfLines={2}>
                                 {week.focus}
                               </Text>
                             </View>

@@ -558,9 +558,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
     gap: 16,
   },
   planFlagContainer: {
@@ -592,27 +589,27 @@ export const styles = StyleSheet.create({
     marginBottom: 14,
   },
   progressBarContainer: {
-    marginTop: 8,
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   progressBarTrack: {
-    height: 8,
+    flex: 1,
+    height: 10,
     backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    borderRadius: 4,
+    borderRadius: 5,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
+    borderRadius: 5,
   },
   progressBarText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#14B8A6',
-    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '800',
+    minWidth: 42,
+    textAlign: 'right',
   },
   progressExpandIcon: {
     width: 32,
@@ -681,7 +678,6 @@ export const styles = StyleSheet.create({
   skillsSectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
     marginBottom: 16,
   },
   skillsGridHorizontal: {
@@ -695,21 +691,18 @@ export const styles = StyleSheet.create({
   skillCardHorizontal: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(13, 40, 50, 0.6)',
     borderRadius: 12,
-    padding: 12,
+    padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
     gap: 12,
+    marginBottom: 10,
   },
   skillIconHorizontal: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   skillInfo: {
     flex: 1,
@@ -717,7 +710,6 @@ export const styles = StyleSheet.create({
   skillLabelHorizontal: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#B4E4DD',
     marginBottom: 2,
   },
   skillScoreHorizontal: {
@@ -732,12 +724,10 @@ export const styles = StyleSheet.create({
     borderTopColor: 'rgba(20, 184, 166, 0.15)',
   },
   currentWeekSection: {
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.25)',
   },
   currentWeekHeader: {
     marginBottom: 12,
@@ -745,20 +735,17 @@ export const styles = StyleSheet.create({
   currentWeekLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#14B8A6',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   currentWeekTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#14B8A6',
     marginBottom: 4,
   },
   currentWeekFocus: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: 12,
     lineHeight: 22,
   },
@@ -773,7 +760,6 @@ export const styles = StyleSheet.create({
   activityRowText: {
     flex: 1,
     fontSize: 13,
-    color: '#B4E4DD',
     lineHeight: 20,
   },
   activityItem: {
@@ -786,7 +772,6 @@ export const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#14B8A6',
     marginTop: 6,
   },
   activityText: {
@@ -801,7 +786,6 @@ export const styles = StyleSheet.create({
   weeklyScheduleTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
     marginBottom: 16,
   },
   weeksList: {
@@ -813,25 +797,19 @@ export const styles = StyleSheet.create({
     flex: 1,
     minWidth: '48%',
     maxWidth: '48%',
-    backgroundColor: 'rgba(13, 40, 50, 0.6)',
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   weekItemCurrent: {
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    borderColor: '#14B8A6',
     borderWidth: 2,
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
   },
   weekItemCompleted: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderWidth: 1.5,
   },
   weekItemHeader: {
     flexDirection: 'row',
@@ -842,19 +820,18 @@ export const styles = StyleSheet.create({
   weekItemNumber: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#B4E4DD',
     letterSpacing: 0.3,
   },
   weekItemNumberCurrent: {
-    color: '#14B8A6',
+    fontWeight: '800',
   },
   weekItemNumberCompleted: {
-    color: '#10B981',
+    fontWeight: '800',
   },
   weekItemFocus: {
     fontSize: 12,
-    color: '#6B8A84',
     lineHeight: 16,
+    marginTop: 4,
   },
   currentBadge: {
     backgroundColor: 'rgba(251, 191, 36, 0.15)',
