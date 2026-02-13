@@ -240,7 +240,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="close" size={28} color="#FFFFFF" />
+              <Ionicons name="close" size={28} color="#1F2937" />
             </TouchableOpacity>
           </View>
 
@@ -273,8 +273,8 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                     </View>
                   )}
                   <View style={styles.heroOverlay} />
-                  <View style={[styles.heroCategoryBadge, { backgroundColor: categoryColor }]}>
-                    <Text style={styles.heroCategoryText}>
+                  <View style={styles.heroCategoryBadge}>
+                    <Text style={[styles.heroCategoryText, { color: categoryColor }]}>
                       {newsContent.original.category.charAt(0).toUpperCase() + newsContent.original.category.slice(1)}
                     </Text>
                   </View>
@@ -314,7 +314,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         key={lang}
                         style={[
                           styles.optionButton,
-                          selectedLanguage === lang && styles.optionButtonActive,
+                          selectedLanguage === lang && [styles.optionButtonActive, { borderColor: categoryColor }],
                         ]}
                         onPress={() => {
                           if (Platform.OS === 'ios') {
@@ -326,7 +326,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         <Text
                           style={[
                             styles.optionText,
-                            selectedLanguage === lang && styles.optionTextActive,
+                            selectedLanguage === lang && [styles.optionTextActive, { color: categoryColor }],
                           ]}
                         >
                           {LANGUAGE_NAMES[lang] || lang}
@@ -341,7 +341,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                   <Text style={styles.selectorLabel}>
                     Proficiency Level
                     {selectedLevel === recommendedLevel && (
-                      <Text style={styles.recommendedBadge}> • Recommended</Text>
+                      <Text style={[styles.recommendedBadge, { color: categoryColor }]}> • Recommended</Text>
                     )}
                   </Text>
                   <View style={styles.optionsContainer}>
@@ -350,7 +350,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         key={lvl}
                         style={[
                           styles.optionButton,
-                          selectedLevel === lvl && styles.optionButtonActive,
+                          selectedLevel === lvl && [styles.optionButtonActive, { borderColor: categoryColor }],
                         ]}
                         onPress={() => {
                           if (Platform.OS === 'ios') {
@@ -362,7 +362,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         <Text
                           style={[
                             styles.optionText,
-                            selectedLevel === lvl && styles.optionTextActive,
+                            selectedLevel === lvl && [styles.optionTextActive, { color: categoryColor }],
                           ]}
                         >
                           {lvl}
@@ -397,18 +397,18 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                     <Ionicons
                       name={vocabularyExpanded ? 'chevron-up' : 'chevron-down'}
                       size={24}
-                      color="#B4E4DD"
+                      color="#6B7280"
                     />
                   </TouchableOpacity>
 
                   {vocabularyExpanded && (
                     <View style={styles.vocabularyList}>
                       {newsContent.vocabulary.map((item, index) => (
-                        <View key={index} style={styles.vocabularyItem}>
+                        <View key={index} style={[styles.vocabularyItem, { borderLeftColor: categoryColor }]}>
                           <View style={styles.vocabularyHeader}>
                             <Text style={styles.vocabularyWord}>{item.word}</Text>
                             {item.translation && (
-                              <Text style={styles.vocabularyTranslation}>
+                              <Text style={[styles.vocabularyTranslation, { color: categoryColor }]}>
                                 {item.translation}
                               </Text>
                             )}
@@ -428,7 +428,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                   <Text style={styles.sectionTitle}>We'll Discuss:</Text>
                   {newsContent.discussion_questions.map((question, index) => (
                     <View key={index} style={styles.questionItem}>
-                      <Ionicons name="chatbubble-outline" size={20} color="#14B8A6" />
+                      <Ionicons name="chatbubble-outline" size={20} color={categoryColor} />
                       <Text style={styles.questionText}>{question}</Text>
                     </View>
                   ))}
@@ -443,6 +443,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 <TouchableOpacity
                   style={[
                     styles.startButton,
+                    { backgroundColor: categoryColor },
                     startingConversation && styles.startButtonDisabled,
                   ]}
                   onPress={handleStartConversation}
@@ -470,30 +471,28 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
-    backgroundColor: '#0B1A1F', // Dark theme primary
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: SCREEN_HEIGHT * 0.92,
     paddingBottom: 0,
-    shadowColor: '#14B8A6',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 20,
-    borderTopWidth: 2,
-    borderTopColor: 'rgba(20, 184, 166, 0.3)',
   },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: 'rgba(20, 184, 166, 0.4)', // Teal drag handle
+    backgroundColor: '#E5E7EB',
     borderRadius: 3,
     alignSelf: 'center',
     marginTop: 12,
@@ -506,12 +505,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
+    borderBottomColor: '#F3F4F6',
   },
   modalHeaderTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
+    color: '#1F2937',
   },
   closeButton: {
     padding: 4,
@@ -521,11 +520,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    backgroundColor: '#0D2832',
+    backgroundColor: '#F9FAFB',
   },
   loadingText: {
     fontSize: 16,
-    color: '#B4E4DD', // Light teal
+    color: '#6B7280',
     marginTop: 16,
   },
   switchingOverlay: {
@@ -533,16 +532,16 @@ const styles = StyleSheet.create({
     top: 80,
     right: 20,
     zIndex: 1000,
-    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark glassmorphic
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     padding: 12,
     borderRadius: 12,
-    shadowColor: '#14B8A6',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    borderColor: '#E5E7EB',
   },
   scrollView: {
     flex: 1,
@@ -553,7 +552,7 @@ const styles = StyleSheet.create({
   heroContainer: {
     position: 'relative',
     height: 180,
-    backgroundColor: '#1F2937', // Dark background
+    backgroundColor: '#F3F4F6',
   },
   heroImage: {
     width: '100%',
@@ -563,25 +562,27 @@ const styles = StyleSheet.create({
   placeholderImage: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1F2937', // Dark placeholder
+    backgroundColor: '#E5E7EB',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Darker overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   heroCategoryBadge: {
     position: 'absolute',
     bottom: 16,
     left: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(11, 26, 31, 0.85)', // Dark glassmorphic
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   heroCategoryText: {
-    color: '#14B8A6', // Teal accent
     fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -593,8 +594,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF', // White text
+    fontWeight: '800',
+    color: '#1F2937',
     lineHeight: 30,
     marginBottom: 12,
   },
@@ -604,11 +605,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    borderColor: '#E5E7EB',
   },
   statItem: {
     flexDirection: 'row',
@@ -617,34 +618,33 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: '#B4E4DD', // Light teal
+    color: '#6B7280',
     fontWeight: '600',
   },
   statDivider: {
     width: 1,
     height: 16,
-    backgroundColor: 'rgba(20, 184, 166, 0.3)',
+    backgroundColor: '#D1D5DB',
     marginHorizontal: 12,
   },
   source: {
     fontSize: 14,
-    color: '#B4E4DD', // Light teal
+    color: '#6B7280',
     fontStyle: 'italic',
   },
   selectorContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.15)',
+    borderTopColor: '#F3F4F6',
   },
   selectorLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
+    color: '#1F2937',
     marginBottom: 12,
   },
   recommendedBadge: {
-    color: '#14B8A6', // Teal accent
     fontSize: 13,
     fontWeight: '600',
   },
@@ -657,33 +657,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal glassmorphic
+    backgroundColor: '#F9FAFB',
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    borderColor: '#E5E7EB',
   },
   optionButtonActive: {
-    backgroundColor: '#14B8A6', // Teal solid
-    borderColor: '#14B8A6',
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#B4E4DD', // Light teal
+    color: '#6B7280',
   },
   optionTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
   section: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.15)',
+    borderTopColor: '#F3F4F6',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -693,17 +691,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
+    color: '#1F2937',
     marginBottom: 14,
   },
   summaryText: {
     fontSize: 15,
     lineHeight: 24,
-    color: '#B4E4DD', // Light teal
+    color: '#4B5563',
   },
   wordCount: {
     fontSize: 13,
-    color: '#6B8A84', // Muted teal
+    color: '#9CA3AF',
     marginTop: 10,
   },
   vocabularyList: {
@@ -711,13 +709,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   vocabularyItem: {
-    backgroundColor: 'rgba(20, 184, 166, 0.08)', // Subtle teal background
+    backgroundColor: '#F9FAFB',
     padding: 16,
     borderRadius: 14,
     borderLeftWidth: 3,
-    borderLeftColor: '#14B8A6', // Teal accent border
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    borderColor: '#E5E7EB',
   },
   vocabularyHeader: {
     flexDirection: 'row',
@@ -728,23 +725,22 @@ const styles = StyleSheet.create({
   vocabularyWord: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF', // White text
+    color: '#1F2937',
     marginRight: 8,
   },
   vocabularyTranslation: {
     fontSize: 14,
-    color: '#14B8A6', // Teal accent
     fontStyle: 'italic',
     fontWeight: '600',
   },
   vocabularyExample: {
     fontSize: 14,
-    color: '#B4E4DD', // Light teal
+    color: '#6B7280',
     lineHeight: 20,
   },
   vocabularyIPA: {
     fontSize: 12,
-    color: '#6B8A84', // Muted teal
+    color: '#9CA3AF',
     marginTop: 6,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
@@ -757,7 +753,7 @@ const styles = StyleSheet.create({
   questionText: {
     flex: 1,
     fontSize: 14,
-    color: '#B4E4DD', // Light teal
+    color: '#4B5563',
     lineHeight: 22,
   },
   footer: {
@@ -765,32 +761,28 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.2)',
-    backgroundColor: 'rgba(11, 26, 31, 0.95)', // Dark translucent
+    borderTopColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF',
   },
   startButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#14B8A6', // Teal button
     paddingVertical: 18,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 10,
-    borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
   startButtonDisabled: {
-    backgroundColor: 'rgba(20, 184, 166, 0.4)', // Muted teal
-    opacity: 0.6,
+    opacity: 0.5,
   },
   startButtonText: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },
