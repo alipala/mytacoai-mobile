@@ -72,6 +72,12 @@ const LANGUAGE_FLAGS: { [key: string]: React.FC<any> } = {
   nl: DutchFlag,
 };
 
+const LANGUAGE_FLAG_COLORS: { [key: string]: string } = {
+  en: '#C8102E', // UK flag red
+  es: '#AA151B', // Spanish flag red
+  nl: '#FF4F00', // Dutch flag orange
+};
+
 const LEVEL_NAMES: { [key: string]: string } = {
   A2: 'A2 - Elementary',
   B1: 'B1 - Intermediate',
@@ -296,18 +302,19 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                   <View style={styles.flagOptionsContainer}>
                     {availableLanguages.map((lang: string) => {
                       const FlagComponent = LANGUAGE_FLAGS[lang];
+                      const flagColor = LANGUAGE_FLAG_COLORS[lang] || '#14B8A6';
                       return (
                         <TouchableOpacity
                           key={lang}
                           style={[
                             styles.flagButton,
                             selectedLanguage === lang && {
-                              borderColor: categoryColor,
-                              borderWidth: 3,
-                              shadowColor: categoryColor,
+                              borderColor: flagColor,
+                              borderWidth: 2.5,
+                              shadowColor: flagColor,
                               shadowOffset: { width: 0, height: 0 },
-                              shadowOpacity: 0.7,
-                              shadowRadius: 20,
+                              shadowOpacity: 0.8,
+                              shadowRadius: 18,
                               elevation: 10,
                             },
                           ]}
@@ -667,10 +674,11 @@ const styles = StyleSheet.create({
   flagButton: {
     width: 56,
     height: 40,
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
   optionButton: {
     paddingHorizontal: 18,
