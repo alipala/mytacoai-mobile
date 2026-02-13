@@ -207,12 +207,12 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
           onPress={onClose}
         />
 
-        <View style={[styles.modalContainer, { backgroundColor: categoryColor }]}>
+        <View style={styles.modalContainer}>
           {/* Drag Handle */}
           <View style={styles.dragHandle} />
 
-          {/* Header with Close Button */}
-          <View style={styles.modalHeader}>
+          {/* Header with Close Button - On colored background */}
+          <View style={[styles.modalHeader, { backgroundColor: categoryColor }]}>
             <Text style={styles.modalHeaderTitle}>News Details</Text>
             <TouchableOpacity
               style={styles.closeButton}
@@ -242,22 +242,28 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
               >
-                {/* Hero Image with Category Badge */}
-                <View style={styles.heroContainer}>
+                {/* Hero Image with Category Badge - Colored Background */}
+                <View style={[styles.heroContainer, { backgroundColor: categoryColor }]}>
                   {newsContent.original.image_url ? (
                     <Image source={{ uri: newsContent.original.image_url }} style={styles.heroImage} />
                   ) : (
                     <View style={[styles.heroImage, styles.placeholderImage]}>
-                      <Ionicons name="newspaper-outline" size={48} color="#9CA3AF" />
+                      <Ionicons name="newspaper-outline" size={48} color="rgba(255, 255, 255, 0.4)" />
                     </View>
                   )}
                   <View style={styles.heroOverlay} />
                   <View style={styles.heroCategoryBadge}>
-                    <Text style={[styles.heroCategoryText, { color: categoryColor }]}>
+                    <Text style={styles.heroCategoryText}>
                       {newsContent.original.category.charAt(0).toUpperCase() + newsContent.original.category.slice(1)}
                     </Text>
                   </View>
                 </View>
+
+                {/* Gradient Transition from colored to dark */}
+                <View style={[styles.gradientTransition, {
+                  backgroundColor: categoryColor,
+                  opacity: 0.15
+                }]} />
 
                 {/* Title and Meta Info */}
                 <View style={styles.contentContainer}>
@@ -376,7 +382,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                     <Ionicons
                       name={vocabularyExpanded ? 'chevron-up' : 'chevron-down'}
                       size={24}
-                      color="rgba(255, 255, 255, 0.7)"
+                      color="#6B8A84"
                     />
                   </TouchableOpacity>
 
@@ -422,7 +428,10 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 <TouchableOpacity
                   style={[
                     styles.startButton,
-                    { backgroundColor: categoryColor },
+                    {
+                      backgroundColor: '#14B8A6',
+                      shadowColor: '#14B8A6',
+                    },
                     startingConversation && styles.startButtonDisabled,
                   ]}
                   onPress={handleStartConversation}
@@ -457,6 +466,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
+    backgroundColor: '#0B1A1F',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: SCREEN_HEIGHT * 0.92,
@@ -470,11 +480,11 @@ const styles = StyleSheet.create({
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 3,
     alignSelf: 'center',
     marginTop: 12,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -482,8 +492,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+    paddingTop: 20,
+    borderBottomWidth: 0,
   },
   modalHeaderTitle: {
     fontSize: 20,
@@ -498,10 +508,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    backgroundColor: '#0B1A1F',
   },
   loadingText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#6B8A84',
     marginTop: 16,
   },
   switchingOverlay: {
@@ -526,8 +537,11 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     position: 'relative',
-    height: 180,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    height: 240,
+  },
+  gradientTransition: {
+    height: 60,
+    width: '100%',
   },
   heroImage: {
     width: '100%',
@@ -541,51 +555,52 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   heroCategoryBadge: {
     position: 'absolute',
-    bottom: 16,
+    bottom: 20,
     left: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   heroCategoryText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    color: '#FFFFFF',
+    letterSpacing: 0.8,
+    color: '#1F2937',
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 24,
+    backgroundColor: '#0B1A1F',
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
     color: '#FFFFFF',
-    lineHeight: 30,
-    marginBottom: 12,
+    lineHeight: 32,
+    marginBottom: 16,
   },
   statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   statItem: {
     flexDirection: 'row',
@@ -594,36 +609,37 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#B4E4DD',
     fontWeight: '600',
   },
   statDivider: {
     width: 1,
     height: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(20, 184, 166, 0.3)',
     marginHorizontal: 12,
   },
   source: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: '#6B8A84',
     fontStyle: 'italic',
   },
   selectorContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.15)',
+    borderTopColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: '#0B1A1F',
   },
   selectorLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#B4E4DD',
     marginBottom: 12,
   },
   recommendedBadge: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#14B8A6',
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -634,31 +650,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   optionButtonActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)',
+    borderWidth: 2,
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
     elevation: 4,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: '#6B8A84',
   },
   optionTextActive: {
     fontWeight: '800',
+    color: '#14B8A6',
   },
   section: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.15)',
+    borderTopColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: '#0B1A1F',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -668,17 +687,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#B4E4DD',
     marginBottom: 14,
   },
   summaryText: {
     fontSize: 15,
-    lineHeight: 24,
-    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 26,
+    color: '#D1D5DB',
   },
   wordCount: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: '#6B8A84',
     marginTop: 10,
   },
   vocabularyList: {
@@ -686,12 +705,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   vocabularyItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     padding: 16,
     borderRadius: 14,
-    borderLeftWidth: 3,
+    borderLeftWidth: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   vocabularyHeader: {
     flexDirection: 'row',
@@ -709,15 +728,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     fontWeight: '600',
+    color: '#14B8A6',
   },
   vocabularyExample: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
-    lineHeight: 20,
+    color: '#B4E4DD',
+    lineHeight: 22,
   },
   vocabularyIPA: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: '#6B8A84',
     marginTop: 6,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
@@ -729,17 +749,17 @@ const styles = StyleSheet.create({
   },
   questionText: {
     flex: 1,
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 22,
+    fontSize: 15,
+    color: '#D1D5DB',
+    lineHeight: 24,
   },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    borderTopColor: 'rgba(20, 184, 166, 0.2)',
+    backgroundColor: '#0B1A1F',
   },
   startButton: {
     flexDirection: 'row',
@@ -748,10 +768,10 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
     elevation: 8,
   },
   startButtonDisabled: {
