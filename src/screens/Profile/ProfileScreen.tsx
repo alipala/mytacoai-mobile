@@ -32,6 +32,7 @@ import SettingsScreen from './Settings/SettingsScreen';
 import TransitionWrapper from '../../components/TransitionWrapper';
 import { styles } from './styles/ProfileScreen.styles';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
+import { LanguageGradients } from '../../constants/colors';
 
 // Flag imports
 import EnglishFlag from '../../assets/flags/english.svg';
@@ -205,8 +206,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   const [expandedNotifications, setExpandedNotifications] = useState<Record<string, boolean>>({});
   const [showFlashcardViewer, setShowFlashcardViewer] = useState(false);
   const [selectedFlashcardSet, setSelectedFlashcardSet] = useState<FlashcardSet | null>(null);
+  const [flashcardViewerColor, setFlashcardViewerColor] = useState<string>('#6366F1');
   const [showAppSettings, setShowAppSettings] = useState(false);
-  const [flashcardFilter, setFlashcardFilter] = useState<'all' | 'practice' | 'learning_plan'>('all');
+  const [flashcardFilter, setFlashcardFilter] = useState<'practice' | 'learning_plan'>('practice');
 
   // Refs for Swipeable components to programmatically close them
   const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
@@ -413,6 +415,57 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     if (score >= 60) return '#3B82F6';
     if (score >= 50) return '#F59E0B';
     return '#EF4444';
+  };
+
+  // Helper function to get language-specific color from gradients
+  const getLanguageColor = (language: string) => {
+    const languageLower = language.toLowerCase();
+    const gradientKey = languageLower as keyof typeof LanguageGradients;
+
+    if (LanguageGradients[gradientKey]) {
+      return LanguageGradients[gradientKey].colors[0]; // Return primary color
+    }
+
+    // Default fallback to turquoise
+    return '#14B8A6';
+  };
+
+  // Helper function to determine if a color is light or dark
+  const isLightColor = (hexColor: string) => {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+
+    // Calculate relative luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    // Return true if light (luminance > 0.6)
+    return luminance > 0.6;
+  };
+
+  // Helper function to get text color based on background
+  const getTextColor = (backgroundColor: string) => {
+    return isLightColor(backgroundColor) ? '#1F2937' : '#FFFFFF';
+  };
+
+  // Helper function to get subtitle color based on background
+  const getSubtitleColor = (backgroundColor: string) => {
+    if (isLightColor(backgroundColor)) {
+      // For light backgrounds, use darker gray
+      return '#6B7280';
+    } else {
+      // For dark backgrounds, use lighter tint
+      const r = parseInt(backgroundColor.slice(1, 3), 16);
+      const g = parseInt(backgroundColor.slice(3, 5), 16);
+      const b = parseInt(backgroundColor.slice(5, 7), 16);
+
+      const lighterR = Math.round(r + (255 - r) * 0.7);
+      const lighterG = Math.round(g + (255 - g) * 0.7);
+      const lighterB = Math.round(b + (255 - b) * 0.7);
+
+      return `rgb(${lighterR}, ${lighterG}, ${lighterB})`;
+    }
   };
 
   const getNotificationIcon = (type: string) => {
@@ -676,6 +729,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
   const openFlashcardViewer = (flashcardSet: FlashcardSet) => {
     setSelectedFlashcardSet(flashcardSet);
+    // Determine color based on card type
+    const isLearningPlan = flashcardSet.session_id.startsWith('learning_plan');
+    const color = isLearningPlan ? '#EC4899' : '#6366F1'; // Pink for LP, Indigo for Practice
+    setFlashcardViewerColor(color);
     setShowFlashcardViewer(true);
   };
 
@@ -724,7 +781,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       {/* Learning Info Badge */}
       {user?.preferred_language && (
         <View style={styles.learningInfoBadge}>
-          <Ionicons name="school" size={16} color="#14B8A6" />
+          <Ionicons name="school" size={18} color="#FFFFFF" />
           <Text style={styles.learningInfoText}>
             {t('profile.overview.learning_info', {
               language: user.preferred_language,
@@ -734,66 +791,116 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         </View>
       )}
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Ionicons name="chatbubbles" size={24} color="#14B8A6" />
-          <Text style={styles.statValue}>{conversationHistory.length}</Text>
-          <Text style={styles.statLabel}>{t('profile.overview.stat_conversations')}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Ionicons name="trending-up" size={24} color="#3B82F6" />
-          <Text style={styles.statValue}>{learningPlans.length}</Text>
-          <Text style={styles.statLabel}>{t('profile.overview.stat_plans')}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Ionicons name="school" size={24} color="#F59E0B" />
-          <Text style={styles.statValue}>{flashcardSets.length}</Text>
-          <Text style={styles.statLabel}>{t('profile.overview.stat_sets')}</Text>
-        </View>
-      </View>
-
+      {/* Statistics Dashboard - Masonry Style (NO TITLE) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('profile.overview.recent_activity')}</Text>
-        {conversationHistory.length > 0 ? (
-          <View style={styles.activityList}>
-            {conversationHistory.slice(0, 3).map((session) => (
-              <TouchableOpacity
-                key={session.id}
-                style={styles.activityCard}
-                onPress={() => toggleConversationExpanded(session.id)}
-              >
-                <View style={styles.activityHeader}>
-                  <View style={styles.activityIcon}>
-                    <Ionicons name="chatbubbles" size={20} color="#14B8A6" />
-                  </View>
-                  <View style={styles.activityInfo}>
-                    <Text style={styles.activityTitle}>
-                      {session.topic
-                        ? session.topic.charAt(0).toUpperCase() + session.topic.slice(1)
-                        : session.conversation_type === 'news'
-                          ? t('news.title')
-                          : t('profile.overview.practice_session')}
-                    </Text>
-                    <Text style={styles.activitySubtitle}>
-                      {session.language?.charAt(0).toUpperCase() + session.language?.slice(1) || t('practice.languages.english')} • {session.level}
-                    </Text>
-                  </View>
-                  <Text style={styles.activityDate}>{formatDate(session.created_at)}</Text>
-                </View>
-                {expandedConversations[session.id] && (
-                  <View style={styles.activityDetails}>
-                    <Text style={styles.activitySummary}>{session.summary}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
+        {/* Row 1: Large Cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCardLarge, { backgroundColor: '#14B8A6' }]}>
+            <Ionicons name="time" size={36} color="#FFFFFF" />
+            <Text style={styles.statLargeValue}>270</Text>
+            <Text style={styles.statLargeLabel}>Minutes Practiced</Text>
           </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyStateText}>{t('empty_states.no_sessions')}</Text>
+
+          <View style={[styles.statCardLarge, { backgroundColor: '#8B5CF6' }]}>
+            <Ionicons name="trophy" size={36} color="#FFFFFF" />
+            <Text style={styles.statLargeValue}>236</Text>
+            <Text style={styles.statLargeLabel}>Challenges Completed</Text>
+          </View>
+        </View>
+
+        {/* Row 2: Medium Cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCardMedium, { backgroundColor: '#FCD34D' }]}>
+            <Ionicons name="flame" size={32} color="#FFFFFF" />
+            <Text style={styles.statMediumValue}>5</Text>
+            <Text style={styles.statMediumLabel}>Day Streak</Text>
+          </View>
+
+          <View style={[styles.statCardMedium, { backgroundColor: '#EC4899' }]}>
+            <Ionicons name="albums" size={32} color="#FFFFFF" />
+            <Text style={styles.statMediumValue}>{flashcardSets.length}</Text>
+            <Text style={styles.statMediumLabel}>Flashcard Sets</Text>
+          </View>
+
+          <View style={[styles.statCardMedium, { backgroundColor: '#10B981' }]}>
+            <Ionicons name="ribbon" size={32} color="#FFFFFF" />
+            <Text style={styles.statMediumValue}>3</Text>
+            <Text style={styles.statMediumLabel}>Achievements</Text>
+          </View>
+        </View>
+
+        {/* Full-Width Card: Average Practice Time */}
+        <View style={[styles.statCardFullWidth, { backgroundColor: '#3B82F6' }]}>
+          <View style={styles.statFullWidthHeader}>
+            <Text style={styles.statFullWidthTitle}>Average Practice Time</Text>
+            <Ionicons name="analytics" size={24} color="#FFFFFF" />
+          </View>
+          <View style={styles.statFullWidthContent}>
+            <View>
+              <Text style={styles.statFullWidthValue}>
+                {conversationHistory.length > 0 ? Math.round(270 / conversationHistory.length) : 0}
+              </Text>
+              <Text style={styles.statFullWidthSubtext}>minutes per session</Text>
+            </View>
+            <View style={styles.statFullWidthBadge}>
+              <Ionicons name="trending-up" size={16} color="#FFFFFF" />
+              <Text style={styles.statFullWidthBadgeText}>+12%</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Full-Width Card: Speaking Assessment Score */}
+        {(user as any)?.latest_assessment && (
+          <View style={[styles.statCardFullWidth, { backgroundColor: '#10B981' }]}>
+            <View style={styles.statFullWidthHeader}>
+              <Text style={styles.statFullWidthTitle}>Latest Assessment Score</Text>
+              <Ionicons name="checkbox-outline" size={24} color="#FFFFFF" />
+            </View>
+            <View style={styles.statFullWidthContent}>
+              <View>
+                <Text style={styles.statFullWidthValue}>
+                  {(user as any).latest_assessment.overall_score}
+                </Text>
+                <Text style={styles.statFullWidthSubtext}>
+                  Level: {(user as any).latest_assessment.recommended_level || 'B1'}
+                </Text>
+              </View>
+              <View style={styles.statFullWidthBadge}>
+                <Ionicons name="trophy" size={16} color="#FFFFFF" />
+                <Text style={styles.statFullWidthBadgeText}>
+                  {(user as any).latest_assessment.confidence}% confident
+                </Text>
+              </View>
+            </View>
           </View>
         )}
+
+        {/* Row 3: Small Cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCardSmall, { backgroundColor: '#EF4444' }]}>
+            <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>{conversationHistory.length}</Text>
+            <Text style={styles.statSmallLabel}>Practice Sessions</Text>
+          </View>
+
+          <View style={[styles.statCardSmall, { backgroundColor: '#3B82F6' }]}>
+            <Ionicons name="school" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>{learningPlans.length}</Text>
+            <Text style={styles.statSmallLabel}>Learning Plans</Text>
+          </View>
+
+          <View style={[styles.statCardSmall, { backgroundColor: '#FB923C' }]}>
+            <Ionicons name="star" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>1250</Text>
+            <Text style={styles.statSmallLabel}>Total XP</Text>
+          </View>
+
+          <View style={[styles.statCardSmall, { backgroundColor: '#A855F7' }]}>
+            <Ionicons name="checkbox" size={24} color="#FFFFFF" />
+            <Text style={styles.statSmallValue}>{user?.assessments_used || 0}</Text>
+            <Text style={styles.statSmallLabel}>Assessments</Text>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -825,8 +932,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
           const FlagComponent = getFlagComponent(plan.language);
 
+          const languageColor = getLanguageColor(plan.language);
+
           return (
-            <View key={plan.id} style={styles.progressPlanCard}>
+            <View key={plan.id} style={[styles.progressPlanCard, { backgroundColor: languageColor }]}>
               {/* Header with Progress */}
               <TouchableOpacity
                 style={styles.progressPlanHeader}
@@ -841,25 +950,37 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               >
                 {/* Flag Icon */}
                 {FlagComponent && (
-                  <View style={styles.planFlagContainer}>
+                  <View style={[styles.planFlagContainer, { shadowColor: languageColor }]}>
                     <FlagComponent width={40} height={40} />
                   </View>
                 )}
 
                 <View style={styles.progressPlanHeaderLeft}>
-                  <Text style={styles.progressPlanTitle} numberOfLines={2}>
+                  <Text style={[styles.progressPlanTitle, { color: '#FFFFFF' }]} numberOfLines={2}>
                     {plan.goals && plan.goals.length > 0
                       ? plan.goals.slice(0, 2).join(', ').toUpperCase() + (plan.goals.length > 2 ? '...' : '')
                       : t('profile.progress.default_plan_title')}
                   </Text>
-                  <Text style={styles.progressPlanSubtitle}>
+                  <Text style={[styles.progressPlanSubtitle, { color: 'rgba(255, 255, 255, 0.85)' }]}>
                     {plan.proficiency_level} • {t('profile.progress.duration_months', { count: plan.duration_months })} • {t('profile.progress.created')} {formatDate(plan.created_at)}
                   </Text>
                   <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBarTrack}>
-                      <View style={[styles.progressBarFill, { width: `${progressPercentage}%`, backgroundColor: getScoreColor(progressPercentage) }]} />
+                    <View style={[
+                      styles.progressBarTrack,
+                      { backgroundColor: 'rgba(255, 255, 255, 0.3)' }
+                    ]}>
+                      <View style={[
+                        styles.progressBarFill,
+                        {
+                          width: `${progressPercentage}%`,
+                          backgroundColor: '#FFFFFF',
+                        }
+                      ]} />
                     </View>
-                    <Text style={[styles.progressBarText, { color: getScoreColor(progressPercentage) }]}>
+                    <Text style={[
+                      styles.progressBarText,
+                      { color: '#FFFFFF' }
+                    ]}>
                       {Math.round(progressPercentage)}%
                     </Text>
                   </View>
@@ -867,17 +988,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <Ionicons
                   name={isExpanded ? 'chevron-up' : 'chevron-down'}
                   size={24}
-                  color="#6B8A84"
+                  color="#FFFFFF"
                 />
               </TouchableOpacity>
 
               {/* Expanded Content */}
               {isExpanded && (
-                <View style={styles.progressPlanContent}>
+                <View style={[
+                  styles.progressPlanContent,
+                  {
+                    backgroundColor: languageColor,
+                    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+                  }
+                ]}>
                   {/* Skills Grid - TRUE HORIZONTAL 2 COLUMNS */}
                   {plan.assessment_data && (
                     <View style={styles.skillsSection}>
-                      <Text style={styles.skillsSectionTitle}>{t('profile.progress.skills_assessment')}</Text>
+                      <Text style={[styles.skillsSectionTitle, { color: '#FFFFFF' }]}>{t('profile.progress.skills_assessment')}</Text>
                       <View style={styles.skillsGridHorizontal}>
                         <View style={styles.skillColumn}>
                           {[
@@ -885,13 +1012,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                             { key: 'grammar', label: t('profile.progress.skill_grammar'), icon: 'book', score: plan.assessment_data.grammar.score },
                             { key: 'vocabulary', label: t('profile.progress.skill_vocabulary'), icon: 'text', score: plan.assessment_data.vocabulary.score },
                           ].map((skill) => (
-                            <View key={skill.key} style={styles.skillCardHorizontal}>
-                              <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
-                                <Ionicons name={skill.icon as any} size={18} color={getScoreColor(skill.score)} />
+                            <View key={skill.key} style={[
+                              styles.skillCardHorizontal,
+                              {
+                                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                borderColor: 'rgba(255, 255, 255, 0.25)',
+                              }
+                            ]}>
+                              <View style={[styles.skillIconHorizontal, { backgroundColor: 'rgba(255, 255, 255, 0.3)' }]}>
+                                <Ionicons name={skill.icon as any} size={18} color="#FFFFFF" />
                               </View>
                               <View style={styles.skillInfo}>
-                                <Text style={styles.skillLabelHorizontal}>{skill.label}</Text>
-                                <Text style={[styles.skillScoreHorizontal, { color: getScoreColor(skill.score) }]}>
+                                <Text style={[styles.skillLabelHorizontal, { color: '#FFFFFF' }]}>{skill.label}</Text>
+                                <Text style={[styles.skillScoreHorizontal, { color: '#FFFFFF' }]}>
                                   {skill.score}
                                 </Text>
                               </View>
@@ -903,13 +1036,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                             { key: 'fluency', label: t('profile.progress.skill_fluency'), icon: 'chatbubbles', score: plan.assessment_data.fluency.score },
                             { key: 'coherence', label: t('profile.progress.skill_coherence'), icon: 'git-merge', score: plan.assessment_data.coherence.score },
                           ].map((skill) => (
-                            <View key={skill.key} style={styles.skillCardHorizontal}>
-                              <View style={[styles.skillIconHorizontal, { backgroundColor: `${getScoreColor(skill.score)}20` }]}>
-                                <Ionicons name={skill.icon as any} size={18} color={getScoreColor(skill.score)} />
+                            <View key={skill.key} style={[
+                              styles.skillCardHorizontal,
+                              {
+                                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                borderColor: 'rgba(255, 255, 255, 0.25)',
+                              }
+                            ]}>
+                              <View style={[styles.skillIconHorizontal, { backgroundColor: 'rgba(255, 255, 255, 0.3)' }]}>
+                                <Ionicons name={skill.icon as any} size={18} color="#FFFFFF" />
                               </View>
                               <View style={styles.skillInfo}>
-                                <Text style={styles.skillLabelHorizontal}>{skill.label}</Text>
-                                <Text style={[styles.skillScoreHorizontal, { color: getScoreColor(skill.score) }]}>
+                                <Text style={[styles.skillLabelHorizontal, { color: '#FFFFFF' }]}>{skill.label}</Text>
+                                <Text style={[styles.skillScoreHorizontal, { color: '#FFFFFF' }]}>
                                   {skill.score}
                                 </Text>
                               </View>
@@ -922,18 +1061,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
                   {/* Current Week Focus */}
                   {plan.plan_content.weekly_schedule && plan.plan_content.weekly_schedule[currentWeek - 1] && (
-                    <View style={styles.currentWeekSection}>
+                    <View style={[
+                      styles.currentWeekSection,
+                      {
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                      }
+                    ]}>
                       <View style={styles.currentWeekHeader}>
-                        <Text style={styles.currentWeekLabel}>{t('profile.progress.current_focus')} • {t('profile.progress.week', { week: currentWeek })}</Text>
+                        <Text style={[styles.currentWeekLabel, { color: '#FFFFFF' }]}>{t('profile.progress.current_focus')} • {t('profile.progress.week', { week: currentWeek })}</Text>
                       </View>
-                      <Text style={styles.currentWeekFocus}>
+                      <Text style={[styles.currentWeekFocus, { color: '#FFFFFF' }]}>
                         {plan.plan_content.weekly_schedule[currentWeek - 1].focus}
                       </Text>
                       <View style={styles.currentWeekActivities}>
                         {plan.plan_content.weekly_schedule[currentWeek - 1].activities.slice(0, 3).map((activity, index) => (
                           <View key={index} style={styles.activityRow}>
-                            <View style={styles.activityBullet} />
-                            <Text style={styles.activityRowText}>{activity}</Text>
+                            <View style={[styles.activityBullet, { backgroundColor: '#FFFFFF' }]} />
+                            <Text style={[styles.activityRowText, { color: '#FFFFFF' }]}>{activity}</Text>
                           </View>
                         ))}
                       </View>
@@ -943,7 +1088,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   {/* Weekly Schedule Preview */}
                   {plan.plan_content.weekly_schedule && (
                     <View style={styles.weeklyScheduleSection}>
-                      <Text style={styles.weeklyScheduleTitle}>{t('profile.progress.schedule')}</Text>
+                      <Text style={[styles.weeklyScheduleTitle, { color: '#FFFFFF' }]}>{t('profile.progress.schedule')}</Text>
                       <View style={styles.weeksList}>
                         {plan.plan_content.weekly_schedule.slice(0, 4).map((week) => {
                           const isCurrentWeek = week.week === currentWeek;
@@ -954,15 +1099,31 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                               key={week.week}
                               style={[
                                 styles.weekItem,
-                                isCurrentWeek && styles.weekItemCurrent,
-                                isCompleted && styles.weekItemCompleted,
+                                {
+                                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                  borderColor: 'rgba(255, 255, 255, 0.25)',
+                                },
+                                isCurrentWeek && [
+                                  styles.weekItemCurrent,
+                                  {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                                    borderColor: '#FFFFFF',
+                                    shadowColor: '#FFFFFF',
+                                  },
+                                ],
+                                isCompleted && [
+                                  styles.weekItemCompleted,
+                                  {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    borderColor: '#10B981',
+                                  }
+                                ],
                               ]}
                             >
                               <View style={styles.weekItemHeader}>
                                 <Text style={[
                                   styles.weekItemNumber,
-                                  isCurrentWeek && styles.weekItemNumberCurrent,
-                                  isCompleted && styles.weekItemNumberCompleted,
+                                  { color: '#FFFFFF' },
                                 ]}>
                                   {t('profile.progress.week', { week: week.week })}
                                 </Text>
@@ -972,10 +1133,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                                   </View>
                                 )}
                                 {isCompleted && (
-                                  <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                                  <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
                                 )}
                               </View>
-                              <Text style={styles.weekItemFocus} numberOfLines={2}>
+                              <Text style={[
+                                styles.weekItemFocus,
+                                { color: 'rgba(255, 255, 255, 0.9)' }
+                              ]} numberOfLines={2}>
                                 {week.focus}
                               </Text>
                             </View>
@@ -998,18 +1162,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     // Determine if this is a learning plan card
     const isLearningPlan = item.session_id.startsWith('learning_plan');
 
-    // Different colors for different categories
-    const iconColor = isLearningPlan ? '#6366F1' : '#F59E0B'; // Purple for LP, Amber for Practice
-    const iconBgColor = isLearningPlan ? 'rgba(99, 102, 241, 0.15)' : 'rgba(245, 158, 11, 0.15)';
-    const iconBorderColor = isLearningPlan ? 'rgba(99, 102, 241, 0.3)' : 'rgba(245, 158, 11, 0.3)';
+    // Solid background colors that work well with white text - Modern & Harmonious
+    const bgColor = isLearningPlan ? '#EC4899' : '#6366F1'; // Pink for LP, Indigo for Practice
     const iconName = isLearningPlan ? 'school' : 'fitness';
 
     return (
-      <View style={styles.flashcardCard}>
+      <View style={[
+        styles.flashcardCard,
+        { backgroundColor: bgColor }
+      ]}>
         {/* Category Badge */}
-        <View style={[styles.flashcardCategoryBadge, { borderColor: iconColor }]}>
-          <Ionicons name={iconName} size={11} color={iconColor} />
-          <Text style={[styles.flashcardCategoryText, { color: iconColor }]}>
+        <View style={[
+          styles.flashcardCategoryBadge,
+          { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.3)' }
+        ]}>
+          <Ionicons name={iconName} size={11} color="#FFFFFF" />
+          <Text style={[styles.flashcardCategoryText, { color: '#FFFFFF' }]}>
             {isLearningPlan ? t('profile.flashcards.category_learning_plan') : t('profile.flashcards.category_practice')}
           </Text>
         </View>
@@ -1017,33 +1185,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.flashcardCardHeader}>
           <View style={[
             styles.flashcardCardIcon,
-            {
-              backgroundColor: iconBgColor,
-              borderColor: iconBorderColor,
-              shadowColor: iconColor,
-            }
+            { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.3)', shadowColor: '#000' }
           ]}>
-            <Ionicons name={iconName} size={28} color={iconColor} />
+            <Ionicons name={iconName} size={28} color="#FFFFFF" />
           </View>
           <View style={styles.flashcardCardInfo}>
-            <Text style={styles.flashcardCardTitle} numberOfLines={2}>{item.title}</Text>
-            <Text style={styles.flashcardCardMeta}>
+            <Text style={[styles.flashcardCardTitle, { color: '#FFFFFF' }]} numberOfLines={2}>{item.title}</Text>
+            <Text style={[styles.flashcardCardMeta, { color: 'rgba(255, 255, 255, 0.8)' }]}>
               {t('profile.flashcards.cards_count', { count: item.total_cards })}
             </Text>
           </View>
         </View>
-        <Text style={styles.flashcardCardDescription} numberOfLines={2}>
+        <Text style={[styles.flashcardCardDescription, { color: 'rgba(255, 255, 255, 0.9)' }]} numberOfLines={2}>
           {item.description}
         </Text>
         <TouchableOpacity
           style={[
             styles.flashcardStudyButton,
-            isLearningPlan ? styles.flashcardStudyButtonLP : styles.flashcardStudyButtonPractice
+            {
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              borderColor: '#FFFFFF',
+              borderRadius: 20,
+            }
           ]}
           onPress={() => openFlashcardViewer(item)}
+          activeOpacity={0.8}
         >
           <Ionicons name="play-circle" size={20} color="#FFFFFF" />
-          <Text style={styles.flashcardStudyButtonText}>{t('flashcards.button_study')}</Text>
+          <Text style={[styles.flashcardStudyButtonText, { color: '#FFFFFF' }]}>{t('flashcards.button_study')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -1052,8 +1222,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   const renderFlashcardsTab = () => {
     // Filter flashcard sets based on selected filter
     const filteredFlashcards = flashcardSets.filter((set) => {
-      if (flashcardFilter === 'all') return true;
-
       if (flashcardFilter === 'practice') {
         // Practice flashcards: session_id does NOT start with "learning_plan"
         return !set.session_id.startsWith('learning_plan');
@@ -1064,7 +1232,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         return set.session_id.startsWith('learning_plan');
       }
 
-      return true;
+      return false;
     });
 
     // Debug logging
@@ -1072,102 +1240,67 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
     return (
       <View style={styles.flashcardsContainer}>
-        {/* iOS-style segmented control filter */}
+        {/* iOS-style segmented control filter - Only Practice and Learning Plan */}
         <View style={styles.flashcardFilterContainer}>
           <View style={styles.flashcardFilterSegment}>
             <TouchableOpacity
-              style={styles.flashcardFilterButton}
-              onPress={() => {
-                if (Platform.OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                setFlashcardFilter('all');
-              }}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.flashcardFilterButtonText,
-                  flashcardFilter === 'all' && styles.flashcardFilterButtonTextActive,
-                ]}
-                numberOfLines={1}
-              >
-                {t('profile.flashcards.filter_all')}
-              </Text>
-              {flashcardFilter === 'all' && (
-                <View
-                  style={[
-                    styles.flashcardFilterUnderline,
-                    { backgroundColor: '#14B8A6', shadowColor: '#14B8A6' },
-                  ]}
-                />
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.flashcardFilterButton}
+              style={[
+                styles.flashcardFilterButton,
+                { borderColor: '#6366F1' },
+                flashcardFilter === 'practice' && [
+                  styles.flashcardFilterButtonActive,
+                  { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
+                ],
+              ]}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
                 setFlashcardFilter('practice');
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'practice' && {
-                    color: '#F59E0B',
-                    fontWeight: '700',
-                  },
+                  { color: flashcardFilter === 'practice' ? '#FFFFFF' : '#6366F1' },
+                  flashcardFilter === 'practice' && styles.flashcardFilterButtonTextActive,
                 ]}
                 numberOfLines={1}
               >
-                {t('profile.flashcards.filter_practice')}
+                Practice Sessions
               </Text>
-              {flashcardFilter === 'practice' && (
-                <View
-                  style={[
-                    styles.flashcardFilterUnderline,
-                    { backgroundColor: '#F59E0B', shadowColor: '#F59E0B' },
-                  ]}
-                />
-              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.flashcardFilterButton}
+              style={[
+                styles.flashcardFilterButton,
+                { borderColor: '#EC4899' },
+                flashcardFilter === 'learning_plan' && [
+                  styles.flashcardFilterButtonActive,
+                  { backgroundColor: '#EC4899', shadowColor: '#EC4899' },
+                ],
+              ]}
               onPress={() => {
                 if (Platform.OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
                 setFlashcardFilter('learning_plan');
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
                   styles.flashcardFilterButtonText,
-                  flashcardFilter === 'learning_plan' && {
-                    color: '#6366F1',
-                    fontWeight: '700',
-                  },
+                  { color: flashcardFilter === 'learning_plan' ? '#FFFFFF' : '#EC4899' },
+                  flashcardFilter === 'learning_plan' && styles.flashcardFilterButtonTextActive,
                 ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
               >
-                {t('profile.flashcards.filter_learning_plan')}
+                Learning Plans
               </Text>
-              {flashcardFilter === 'learning_plan' && (
-                <View
-                  style={[
-                    styles.flashcardFilterUnderline,
-                    { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
-                  ]}
-                />
-              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -1483,86 +1616,78 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 </View>
               </View>
 
-              {/* DNA Strands - Inline Visualization */}
-              <View style={{ gap: 10 }}>
+              {/* DNA Strands - Grid Layout 2x3 */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
                 {[
                   { name: t('profile.dna.strand_confidence'), key: 'confidence', icon: 'shield-checkmark', color: '#6366F1', accessor: (p: any) => (p.dna_strands?.confidence?.score || 0) * 100 },
                   { name: t('profile.dna.strand_vocabulary'), key: 'vocabulary', icon: 'book', color: '#8B5CF6', accessor: (p: any) => (p.dna_strands?.vocabulary?.new_word_attempt_rate || 0) * 100 },
                   { name: t('profile.dna.strand_accuracy'), key: 'accuracy', icon: 'checkmark-circle', color: '#EC4899', accessor: (p: any) => (p.dna_strands?.accuracy?.grammar_accuracy || 0) * 100 },
                   { name: t('profile.dna.strand_rhythm'), key: 'rhythm', icon: 'pulse', color: '#F59E0B', accessor: (p: any) => (p.dna_strands?.rhythm?.consistency_score || 0) * 100 },
                   { name: t('profile.dna.strand_learning'), key: 'learning', icon: 'school', color: '#10B981', accessor: (p: any) => (p.dna_strands?.learning?.challenge_acceptance || 0) * 100 },
-                  { name: t('profile.dna.strand_emotional'), key: 'emotional', icon: 'heart', color: '#14B8A6', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
+                  { name: t('profile.dna.strand_emotional'), key: 'emotional', icon: 'heart', color: '#EF4444', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
                 ].map((strand) => {
                   const value = strand.accessor(dnaProfile);
                   const normalizedValue = Math.min(Math.max(value, 0), 100);
 
                   return (
                     <View key={strand.key} style={{
+                      width: 'calc(50% - 6px)',
                       backgroundColor: 'rgba(26, 47, 58, 0.4)',
-                      borderRadius: 12,
+                      borderRadius: 16,
                       padding: 16,
                       borderWidth: 1,
                       borderColor: `${strand.color}30`,
-                      borderLeftWidth: 4,
-                      borderLeftColor: strand.color,
+                      alignItems: 'center',
                     }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                          <View style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            backgroundColor: `${strand.color}25`,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}>
-                            <Ionicons name={strand.icon as any} size={18} color={strand.color} />
-                          </View>
-                          <View>
-                            <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
-                              {strand.name}
-                            </Text>
-                            <Text style={{
-                              fontSize: 10,
-                              color: normalizedValue >= 80 ? '#10B981' :
-                                     normalizedValue >= 60 ? '#14B8A6' :
-                                     normalizedValue >= 40 ? '#F59E0B' : '#EF4444',
-                              fontWeight: '700',
-                              letterSpacing: 0.3,
-                              marginTop: 2,
-                            }}>
-                              {normalizedValue >= 80 ? t('profile.dna.level_excellent') :
-                               normalizedValue >= 60 ? t('profile.dna.level_good') :
-                               normalizedValue >= 40 ? t('profile.dna.level_developing') :
-                               t('profile.dna.level_needs_practice')}
-                            </Text>
-                          </View>
+                      {/* Circle Progress Ring */}
+                      <View style={{ position: 'relative', width: 70, height: 70, marginBottom: 12 }}>
+                        <View style={{
+                          position: 'absolute',
+                          width: 70,
+                          height: 70,
+                          borderRadius: 35,
+                          borderWidth: 6,
+                          borderColor: `${strand.color}20`,
+                        }} />
+                        <View style={{
+                          position: 'absolute',
+                          width: 70,
+                          height: 70,
+                          borderRadius: 35,
+                          borderWidth: 6,
+                          borderColor: strand.color,
+                          borderRightColor: 'transparent',
+                          borderBottomColor: normalizedValue > 25 ? strand.color : 'transparent',
+                          borderLeftColor: normalizedValue > 50 ? strand.color : 'transparent',
+                          borderTopColor: normalizedValue > 75 ? strand.color : 'transparent',
+                          transform: [{ rotate: '-90deg' }],
+                        }} />
+                        <View style={{
+                          position: 'absolute',
+                          width: 70,
+                          height: 70,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          <Ionicons name={strand.icon as any} size={24} color={strand.color} />
                         </View>
-                        <Text style={{ fontSize: 24, fontWeight: '800', color: strand.color }}>
-                          {Math.round(normalizedValue)}
-                        </Text>
                       </View>
 
-                      {/* Progress Bar */}
-                      <View style={{
-                        height: 6,
-                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
-                        borderRadius: 3,
-                        overflow: 'hidden',
-                      }}>
-                        <View style={{
-                          width: `${normalizedValue}%`,
-                          height: '100%',
-                          backgroundColor: strand.color,
-                          borderRadius: 3,
-                        }} />
-                      </View>
+                      {/* Score */}
+                      <Text style={{ fontSize: 24, fontWeight: '800', color: strand.color, marginBottom: 4 }}>
+                        {Math.round(normalizedValue)}
+                      </Text>
+
+                      {/* Name */}
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' }}>
+                        {strand.name}
+                      </Text>
                     </View>
                   );
                 })}
               </View>
 
-              {/* View Full Analysis Button */}
+              {/* View Full Analysis Button - Immersive */}
               <TouchableOpacity
                 onPress={() => {
                   if (Platform.OS === 'ios') {
@@ -1571,27 +1696,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   navigation.navigate('SpeakingDNA', { language: selectedDNALanguage });
                 }}
                 style={{
-                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                  borderWidth: 2,
-                  borderColor: 'rgba(20, 184, 166, 0.4)',
-                  borderRadius: 14,
-                  padding: 18,
+                  backgroundColor: '#14B8A6',
+                  borderRadius: 16,
+                  padding: 20,
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 10,
-                  marginTop: 24,
+                  gap: 12,
+                  marginTop: 20,
                   shadowColor: '#14B8A6',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.3,
                   shadowRadius: 8,
+                  elevation: 6,
                 }}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Ionicons name="expand" size={22} color="#14B8A6" />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#14B8A6' }}>
+                <Ionicons name="bar-chart" size={24} color="#FFFFFF" />
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
                   {t('profile.dna.view_full_analysis')}
                 </Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </ScrollView>
           ) : (
@@ -1657,11 +1782,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'overview' && styles.tabActive]}
               onPress={() => handleTabPress('overview')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
-                name={activeTab === 'overview' ? 'home' : 'home-outline'}
-                size={24}
+                name={activeTab === 'overview' ? 'grid' : 'grid-outline'}
+                size={22}
                 color={activeTab === 'overview' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>{t('profile.tabs.overview')}</Text>
@@ -1670,24 +1795,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'progress' && styles.tabActive]}
               onPress={() => handleTabPress('progress')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
-                name={activeTab === 'progress' ? 'trending-up' : 'trending-up-outline'}
-                size={24}
+                name={activeTab === 'progress' ? 'rocket' : 'rocket-outline'}
+                size={22}
                 color={activeTab === 'progress' ? '#14B8A6' : '#6B8A84'}
               />
-              <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>{t('profile.tabs.progress')}</Text>
+              <Text style={[styles.tabText, activeTab === 'progress' && styles.tabTextActive]}>Plans</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.tab, activeTab === 'flashcards' && styles.tabActive]}
               onPress={() => handleTabPress('flashcards')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
                 name={activeTab === 'flashcards' ? 'albums' : 'albums-outline'}
-                size={24}
+                size={22}
                 color={activeTab === 'flashcards' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'flashcards' && styles.tabTextActive]}>{t('profile.tabs.cards')}</Text>
@@ -1696,11 +1821,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'dna' && styles.tabActive]}
               onPress={() => handleTabPress('dna')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <Ionicons
                 name={activeTab === 'dna' ? 'analytics' : 'analytics-outline'}
-                size={24}
+                size={22}
                 color={activeTab === 'dna' ? '#14B8A6' : '#6B8A84'}
               />
               <Text style={[styles.tabText, activeTab === 'dna' && styles.tabTextActive]}>{t('profile.tabs.dna')}</Text>
@@ -1769,15 +1894,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           animationType="slide"
           presentationStyle="fullScreen"
           onRequestClose={closeFlashcardViewer}
+          statusBarTranslucent
         >
           <View style={styles.flashcardModalContainer}>
             <View style={styles.flashcardModalHeader}>
               <TouchableOpacity
                 onPress={closeFlashcardViewer}
-                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 style={styles.closeButton}
+                activeOpacity={0.7}
               >
-                <Ionicons name="close-circle" size={32} color="#EF4444" />
+                <Ionicons name="close" size={28} color="#EF4444" />
               </TouchableOpacity>
               <View style={styles.flashcardModalTitleContainer}>
                 <Text style={styles.flashcardModalTitle} numberOfLines={1}>
@@ -1794,6 +1921,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
               <FlashcardViewerMobile
                 flashcards={selectedFlashcardSet.flashcards}
                 onReview={handleReviewFlashcard}
+                accentColor={flashcardViewerColor}
               />
             )}
           </View>
