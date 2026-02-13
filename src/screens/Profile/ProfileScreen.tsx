@@ -1246,6 +1246,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[
                 styles.flashcardFilterButton,
+                { borderColor: '#6366F1' },
                 flashcardFilter === 'practice' && [
                   styles.flashcardFilterButtonActive,
                   { backgroundColor: '#6366F1', shadowColor: '#6366F1' },
@@ -1274,6 +1275,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <TouchableOpacity
               style={[
                 styles.flashcardFilterButton,
+                { borderColor: '#EC4899' },
                 flashcardFilter === 'learning_plan' && [
                   styles.flashcardFilterButtonActive,
                   { backgroundColor: '#EC4899', shadowColor: '#EC4899' },
@@ -1614,86 +1616,78 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 </View>
               </View>
 
-              {/* DNA Strands - Inline Visualization */}
-              <View style={{ gap: 10 }}>
+              {/* DNA Strands - Grid Layout 2x3 */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
                 {[
                   { name: t('profile.dna.strand_confidence'), key: 'confidence', icon: 'shield-checkmark', color: '#6366F1', accessor: (p: any) => (p.dna_strands?.confidence?.score || 0) * 100 },
                   { name: t('profile.dna.strand_vocabulary'), key: 'vocabulary', icon: 'book', color: '#8B5CF6', accessor: (p: any) => (p.dna_strands?.vocabulary?.new_word_attempt_rate || 0) * 100 },
                   { name: t('profile.dna.strand_accuracy'), key: 'accuracy', icon: 'checkmark-circle', color: '#EC4899', accessor: (p: any) => (p.dna_strands?.accuracy?.grammar_accuracy || 0) * 100 },
                   { name: t('profile.dna.strand_rhythm'), key: 'rhythm', icon: 'pulse', color: '#F59E0B', accessor: (p: any) => (p.dna_strands?.rhythm?.consistency_score || 0) * 100 },
                   { name: t('profile.dna.strand_learning'), key: 'learning', icon: 'school', color: '#10B981', accessor: (p: any) => (p.dna_strands?.learning?.challenge_acceptance || 0) * 100 },
-                  { name: t('profile.dna.strand_emotional'), key: 'emotional', icon: 'heart', color: '#14B8A6', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
+                  { name: t('profile.dna.strand_emotional'), key: 'emotional', icon: 'heart', color: '#EF4444', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
                 ].map((strand) => {
                   const value = strand.accessor(dnaProfile);
                   const normalizedValue = Math.min(Math.max(value, 0), 100);
 
                   return (
                     <View key={strand.key} style={{
+                      width: 'calc(50% - 6px)',
                       backgroundColor: 'rgba(26, 47, 58, 0.4)',
-                      borderRadius: 12,
+                      borderRadius: 16,
                       padding: 16,
                       borderWidth: 1,
                       borderColor: `${strand.color}30`,
-                      borderLeftWidth: 4,
-                      borderLeftColor: strand.color,
+                      alignItems: 'center',
                     }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                          <View style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            backgroundColor: `${strand.color}25`,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}>
-                            <Ionicons name={strand.icon as any} size={18} color={strand.color} />
-                          </View>
-                          <View>
-                            <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
-                              {strand.name}
-                            </Text>
-                            <Text style={{
-                              fontSize: 10,
-                              color: normalizedValue >= 80 ? '#10B981' :
-                                     normalizedValue >= 60 ? '#14B8A6' :
-                                     normalizedValue >= 40 ? '#F59E0B' : '#EF4444',
-                              fontWeight: '700',
-                              letterSpacing: 0.3,
-                              marginTop: 2,
-                            }}>
-                              {normalizedValue >= 80 ? t('profile.dna.level_excellent') :
-                               normalizedValue >= 60 ? t('profile.dna.level_good') :
-                               normalizedValue >= 40 ? t('profile.dna.level_developing') :
-                               t('profile.dna.level_needs_practice')}
-                            </Text>
-                          </View>
+                      {/* Circle Progress Ring */}
+                      <View style={{ position: 'relative', width: 70, height: 70, marginBottom: 12 }}>
+                        <View style={{
+                          position: 'absolute',
+                          width: 70,
+                          height: 70,
+                          borderRadius: 35,
+                          borderWidth: 6,
+                          borderColor: `${strand.color}20`,
+                        }} />
+                        <View style={{
+                          position: 'absolute',
+                          width: 70,
+                          height: 70,
+                          borderRadius: 35,
+                          borderWidth: 6,
+                          borderColor: strand.color,
+                          borderRightColor: 'transparent',
+                          borderBottomColor: normalizedValue > 25 ? strand.color : 'transparent',
+                          borderLeftColor: normalizedValue > 50 ? strand.color : 'transparent',
+                          borderTopColor: normalizedValue > 75 ? strand.color : 'transparent',
+                          transform: [{ rotate: '-90deg' }],
+                        }} />
+                        <View style={{
+                          position: 'absolute',
+                          width: 70,
+                          height: 70,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          <Ionicons name={strand.icon as any} size={24} color={strand.color} />
                         </View>
-                        <Text style={{ fontSize: 24, fontWeight: '800', color: strand.color }}>
-                          {Math.round(normalizedValue)}
-                        </Text>
                       </View>
 
-                      {/* Progress Bar */}
-                      <View style={{
-                        height: 6,
-                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
-                        borderRadius: 3,
-                        overflow: 'hidden',
-                      }}>
-                        <View style={{
-                          width: `${normalizedValue}%`,
-                          height: '100%',
-                          backgroundColor: strand.color,
-                          borderRadius: 3,
-                        }} />
-                      </View>
+                      {/* Score */}
+                      <Text style={{ fontSize: 24, fontWeight: '800', color: strand.color, marginBottom: 4 }}>
+                        {Math.round(normalizedValue)}
+                      </Text>
+
+                      {/* Name */}
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' }}>
+                        {strand.name}
+                      </Text>
                     </View>
                   );
                 })}
               </View>
 
-              {/* View Full Analysis Button */}
+              {/* View Full Analysis Button - Immersive */}
               <TouchableOpacity
                 onPress={() => {
                   if (Platform.OS === 'ios') {
@@ -1702,27 +1696,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   navigation.navigate('SpeakingDNA', { language: selectedDNALanguage });
                 }}
                 style={{
-                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                  borderWidth: 2,
-                  borderColor: 'rgba(20, 184, 166, 0.4)',
-                  borderRadius: 14,
-                  padding: 18,
+                  backgroundColor: '#14B8A6',
+                  borderRadius: 16,
+                  padding: 20,
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 10,
-                  marginTop: 24,
+                  gap: 12,
+                  marginTop: 20,
                   shadowColor: '#14B8A6',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.3,
                   shadowRadius: 8,
+                  elevation: 6,
                 }}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Ionicons name="expand" size={22} color="#14B8A6" />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#14B8A6' }}>
+                <Ionicons name="bar-chart" size={24} color="#FFFFFF" />
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
                   {t('profile.dna.view_full_analysis')}
                 </Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </ScrollView>
           ) : (

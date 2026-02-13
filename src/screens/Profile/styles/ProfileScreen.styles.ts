@@ -1025,6 +1025,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
+    borderWidth: 2,
   },
   flashcardFilterButtonActive: {
     shadowOffset: { width: 0, height: 4 },
