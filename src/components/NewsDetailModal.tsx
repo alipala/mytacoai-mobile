@@ -302,11 +302,13 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                           style={[
                             styles.flagButton,
                             selectedLanguage === lang && {
+                              borderColor: categoryColor,
+                              borderWidth: 3,
                               shadowColor: categoryColor,
                               shadowOffset: { width: 0, height: 0 },
-                              shadowOpacity: 0.6,
-                              shadowRadius: 16,
-                              elevation: 8,
+                              shadowOpacity: 0.7,
+                              shadowRadius: 20,
+                              elevation: 10,
                             },
                           ]}
                           onPress={() => {
@@ -317,17 +319,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                           }}
                           activeOpacity={0.8}
                         >
-                          <View
-                            style={[
-                              styles.flagImage,
-                              selectedLanguage === lang && {
-                                borderColor: categoryColor,
-                                borderWidth: 3,
-                              }
-                            ]}
-                          >
-                            {FlagComponent && <FlagComponent width={56} height={40} />}
-                          </View>
+                          {FlagComponent && <FlagComponent width={56} height={40} />}
                         </TouchableOpacity>
                       );
                     })}
@@ -673,10 +665,6 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   flagButton: {
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  flagImage: {
     width: 56,
     height: 40,
     borderRadius: 6,
