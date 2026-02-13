@@ -42,14 +42,14 @@ interface Props {
   initialLevel?: CEFRLevel;
 }
 
-// Language options with beautiful gradients
-const LANGUAGES: { value: Language; label: string; FlagComponent: React.FC<any>; gradient: [string, string] }[] = [
-  { value: 'english', label: 'English', FlagComponent: EnglishFlag, gradient: ['#667eea', '#764ba2'] },
-  { value: 'spanish', label: 'Español', FlagComponent: SpanishFlag, gradient: ['#f093fb', '#f5576c'] },
-  { value: 'french', label: 'Français', FlagComponent: FrenchFlag, gradient: ['#4facfe', '#00f2fe'] },
-  { value: 'german', label: 'Deutsch', FlagComponent: GermanFlag, gradient: ['#43e97b', '#38f9d7'] },
-  { value: 'portuguese', label: 'Português', FlagComponent: PortugueseFlag, gradient: ['#fa709a', '#fee140'] },
-  { value: 'dutch', label: 'Nederlands', FlagComponent: DutchFlag, gradient: ['#30cfd0', '#330867'] },
+// Language options with solid colors
+const LANGUAGES: { value: Language; label: string; FlagComponent: React.FC<any>; color: string }[] = [
+  { value: 'english', label: 'English', FlagComponent: EnglishFlag, color: '#6366F1' },
+  { value: 'spanish', label: 'Español', FlagComponent: SpanishFlag, color: '#EC4899' },
+  { value: 'french', label: 'Français', FlagComponent: FrenchFlag, color: '#06B6D4' },
+  { value: 'german', label: 'Deutsch', FlagComponent: GermanFlag, color: '#10B981' },
+  { value: 'portuguese', label: 'Português', FlagComponent: PortugueseFlag, color: '#F59E0B' },
+  { value: 'dutch', label: 'Nederlands', FlagComponent: DutchFlag, color: '#8B5CF6' },
 ];
 
 // Level options
@@ -278,15 +278,16 @@ export default function AnimatedLanguageLevelSelector({
               style={[
                 styles.languageCard,
                 {
+                  backgroundColor: currentLanguage.color,
                   opacity: languageCardOpacity,
                   transform: [{ translateX: languageCardX }]
                 }
               ]}
             >
-              <LinearGradient colors={currentLanguage.gradient} style={styles.languageGradient}>
+              <View style={styles.languageGradient}>
                 <currentLanguage.FlagComponent width={80} height={80} style={styles.languageFlag} />
                 <Text style={styles.languageLabel}>{currentLanguage.label}</Text>
-              </LinearGradient>
+              </View>
             </Animated.View>
           </View>
 
@@ -359,13 +360,15 @@ export default function AnimatedLanguageLevelSelector({
                 activeOpacity={0.7}
                 style={styles.levelButtonWrapper}
               >
-                <LinearGradient
-                  colors={index === selectedLevelIndex
-                    ? currentLanguage.gradient
-                    : ['rgba(139, 92, 246, 0.15)', 'rgba(139, 92, 246, 0.05)']}
+                <View
                   style={[
                     styles.levelButton,
-                    index === selectedLevelIndex && styles.levelButtonActive
+                    index === selectedLevelIndex && styles.levelButtonActive,
+                    {
+                      backgroundColor: index === selectedLevelIndex
+                        ? currentLanguage.color
+                        : 'rgba(139, 92, 246, 0.15)'
+                    }
                   ]}
                 >
                   <Text style={[
@@ -380,7 +383,7 @@ export default function AnimatedLanguageLevelSelector({
                   ]}>
                     {level.description}
                   </Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
