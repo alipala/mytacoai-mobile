@@ -17,6 +17,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { API_BASE_URL } from '../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import EnglishFlag from '../assets/flags/english.svg';
+import SpanishFlag from '../assets/flags/spanish.svg';
+import DutchFlag from '../assets/flags/dutch.svg';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -63,10 +66,10 @@ interface NewsDetailModalProps {
   }) => void;
 }
 
-const LANGUAGE_FLAGS: { [key: string]: any } = {
-  en: require('../assets/flags/english.svg'),
-  es: require('../assets/flags/spanish.svg'),
-  nl: require('../assets/flags/dutch.svg'),
+const LANGUAGE_FLAGS: { [key: string]: React.FC<any> } = {
+  en: EnglishFlag,
+  es: SpanishFlag,
+  nl: DutchFlag,
 };
 
 const LEVEL_NAMES: { [key: string]: string } = {
@@ -291,40 +294,43 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 <View style={[styles.selectorContainer, { borderTopColor: `${categoryColor}26` }]}>
                   <Text style={[styles.selectorLabel, { color: categoryColor }]}>Language</Text>
                   <View style={styles.flagOptionsContainer}>
-                    {availableLanguages.map((lang: string) => (
-                      <TouchableOpacity
-                        key={lang}
-                        style={[
-                          styles.flagButton,
-                          selectedLanguage === lang && {
-                            shadowColor: categoryColor,
-                            shadowOffset: { width: 0, height: 0 },
-                            shadowOpacity: 0.6,
-                            shadowRadius: 16,
-                            elevation: 8,
-                          },
-                        ]}
-                        onPress={() => {
-                          if (Platform.OS === 'ios') {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          }
-                          setSelectedLanguage(lang);
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Image
-                          source={LANGUAGE_FLAGS[lang]}
+                    {availableLanguages.map((lang: string) => {
+                      const FlagComponent = LANGUAGE_FLAGS[lang];
+                      return (
+                        <TouchableOpacity
+                          key={lang}
                           style={[
-                            styles.flagImage,
+                            styles.flagButton,
                             selectedLanguage === lang && {
-                              borderColor: categoryColor,
-                              borderWidth: 3,
-                            }
+                              shadowColor: categoryColor,
+                              shadowOffset: { width: 0, height: 0 },
+                              shadowOpacity: 0.6,
+                              shadowRadius: 16,
+                              elevation: 8,
+                            },
                           ]}
-                          resizeMode="cover"
-                        />
-                      </TouchableOpacity>
-                    ))}
+                          onPress={() => {
+                            if (Platform.OS === 'ios') {
+                              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            }
+                            setSelectedLanguage(lang);
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <View
+                            style={[
+                              styles.flagImage,
+                              selectedLanguage === lang && {
+                                borderColor: categoryColor,
+                                borderWidth: 3,
+                              }
+                            ]}
+                          >
+                            {FlagComponent && <FlagComponent width={56} height={40} />}
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 </View>
 
@@ -668,6 +674,7 @@ const styles = StyleSheet.create({
   },
   flagButton: {
     borderRadius: 8,
+    overflow: 'hidden',
   },
   flagImage: {
     width: 56,
@@ -675,6 +682,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.15)',
+    overflow: 'hidden',
   },
   optionButton: {
     paddingHorizontal: 18,
