@@ -803,7 +803,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
 
         {/* Quest Cards - Side by Side */}
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 4 }}>
-          {/* Completed Plans Card */}
+          {/* Completed Plans Card - DISABLED (Coming Soon) */}
           <Animated.View
             style={{
               flex: 1,
@@ -812,11 +812,11 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           >
             <TouchableOpacity
               style={{
-                opacity: completedPlans.length === 0 ? 0.6 : 1,
+                flex: 1,
+                opacity: 0.5,
               }}
-              onPress={() => handleModeSelection('completed_plans')}
-              activeOpacity={0.8}
-              disabled={completedPlans.length === 0}
+              activeOpacity={1}
+              disabled={true}
             >
               {/* Outer glow layer */}
               <View style={{
@@ -826,27 +826,28 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 right: -4,
                 bottom: -4,
                 borderRadius: 24,
-                backgroundColor: completedPlans.length === 0 ? 'transparent' : 'rgba(220, 38, 38, 0.3)',
-                opacity: completedPlans.length === 0 ? 0 : 0.6,
+                backgroundColor: 'transparent',
+                opacity: 0,
               }} />
               <LinearGradient
-                colors={completedPlans.length === 0 ? ['#3F3F46', '#27272A'] : ['#DC2626', '#991B1B']}
+                colors={['#3F3F46', '#27272A']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
+                  flex: 1,
                   borderRadius: 20,
                   padding: 16,
                   minHeight: 120,
                   borderWidth: 2,
-                  borderColor: completedPlans.length === 0 ? 'rgba(107, 114, 128, 0.3)' : 'rgba(255, 255, 255, 0.2)',
-                  shadowColor: completedPlans.length === 0 ? '#4B5563' : '#DC2626',
+                  borderColor: 'rgba(107, 114, 128, 0.3)',
+                  shadowColor: '#4B5563',
                   shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: completedPlans.length === 0 ? 0.2 : 0.6,
+                  shadowOpacity: 0.2,
                   shadowRadius: 20,
                   elevation: 12,
                 }}
               >
-              <View style={{ flex: 1, justifyContent: 'space-between' }}>
+              <View style={{ justifyContent: 'space-between', flex: 1 }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
                     width: 48,
@@ -876,24 +877,24 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 </View>
 
                 <View style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  borderRadius: 12,
+                  backgroundColor: '#F59E0B',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 8,
                   alignSelf: 'center',
-                  borderWidth: 1.5,
-                  borderColor: 'rgba(255, 255, 255, 0.25)',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 3,
                 }}>
                   <Text style={{
-                    fontSize: 13,
-                    fontWeight: '800',
+                    fontSize: 11,
+                    fontWeight: '900',
                     color: '#FFFFFF',
                     textAlign: 'center',
-                    letterSpacing: 0.5,
+                    letterSpacing: 1,
                   }}>
-                    {completedPlans.length > 0
-                      ? t('explore.quest.plans_count', { count: completedPlans.length })
-                      : t('explore.quest.no_plans')}
+                    COMING SOON
                   </Text>
                 </View>
               </View>
@@ -928,6 +929,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
+                  flex: 1,
                   borderRadius: 20,
                   padding: 16,
                   minHeight: 120,
@@ -940,7 +942,7 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
                   elevation: 12,
                 }}
               >
-              <View style={{ flex: 1, justifyContent: 'space-between' }}>
+              <View style={{ justifyContent: 'space-between', flex: 1 }}>
                 <View style={{ alignItems: 'center', marginBottom: 8 }}>
                   <View style={{
                     width: 48,
