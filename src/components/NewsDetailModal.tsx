@@ -270,17 +270,20 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                   <Text style={styles.title}>{newsContent.original.title}</Text>
 
                   {/* Stats Bar */}
-                  <View style={styles.statsBar}>
+                  <View style={[styles.statsBar, {
+                    backgroundColor: `${categoryColor}15`,
+                    borderColor: `${categoryColor}33`,
+                  }]}>
                     <View style={styles.statItem}>
                       <Ionicons name="time-outline" size={16} color={categoryColor} />
                       <Text style={styles.statText}>~3 min read</Text>
                     </View>
-                    <View style={styles.statDivider} />
+                    <View style={[styles.statDivider, { backgroundColor: `${categoryColor}4D` }]} />
                     <View style={styles.statItem}>
                       <Ionicons name="library-outline" size={16} color={categoryColor} />
                       <Text style={styles.statText}>{newsContent.vocabulary.length} words</Text>
                     </View>
-                    <View style={styles.statDivider} />
+                    <View style={[styles.statDivider, { backgroundColor: `${categoryColor}4D` }]} />
                     <View style={styles.statItem}>
                       <Ionicons name="school-outline" size={16} color={categoryColor} />
                       <Text style={styles.statText}>{selectedLevel}</Text>
@@ -291,15 +294,26 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 </View>
 
                 {/* Language Selector */}
-                <View style={styles.selectorContainer}>
-                  <Text style={styles.selectorLabel}>Language</Text>
+                <View style={[styles.selectorContainer, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.selectorLabel, { color: categoryColor }]}>Language</Text>
                   <View style={styles.optionsContainer}>
                     {availableLanguages.map((lang: string) => (
                       <TouchableOpacity
                         key={lang}
                         style={[
                           styles.optionButton,
-                          selectedLanguage === lang && [styles.optionButtonActive, { borderColor: categoryColor }],
+                          {
+                            backgroundColor: `${categoryColor}14`,
+                            borderColor: `${categoryColor}33`,
+                          },
+                          selectedLanguage === lang && [
+                            styles.optionButtonActive,
+                            {
+                              borderColor: categoryColor,
+                              backgroundColor: `${categoryColor}33`,
+                              shadowColor: categoryColor,
+                            }
+                          ],
                         ]}
                         onPress={() => {
                           if (Platform.OS === 'ios') {
@@ -322,8 +336,8 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 </View>
 
                 {/* Level Selector */}
-                <View style={styles.selectorContainer}>
-                  <Text style={styles.selectorLabel}>
+                <View style={[styles.selectorContainer, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.selectorLabel, { color: categoryColor }]}>
                     Proficiency Level
                     {selectedLevel === recommendedLevel && (
                       <Text style={[styles.recommendedBadge, { color: categoryColor }]}> • Recommended</Text>
@@ -335,7 +349,18 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                         key={lvl}
                         style={[
                           styles.optionButton,
-                          selectedLevel === lvl && [styles.optionButtonActive, { borderColor: categoryColor }],
+                          {
+                            backgroundColor: `${categoryColor}14`,
+                            borderColor: `${categoryColor}33`,
+                          },
+                          selectedLevel === lvl && [
+                            styles.optionButtonActive,
+                            {
+                              borderColor: categoryColor,
+                              backgroundColor: `${categoryColor}33`,
+                              shadowColor: categoryColor,
+                            }
+                          ],
                         ]}
                         onPress={() => {
                           if (Platform.OS === 'ios') {
@@ -358,14 +383,14 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 </View>
 
                 {/* Summary */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Summary</Text>
+                <View style={[styles.section, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.sectionTitle, { color: categoryColor }]}>Summary</Text>
                   <Text style={styles.summaryText}>{newsContent.summary}</Text>
                   <Text style={styles.wordCount}>{newsContent.word_count} words</Text>
                 </View>
 
                 {/* Vocabulary */}
-                <View style={styles.section}>
+                <View style={[styles.section, { borderTopColor: `${categoryColor}26` }]}>
                   <TouchableOpacity
                     style={styles.sectionHeader}
                     onPress={() => {
@@ -376,20 +401,27 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                     }}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.sectionTitle}>
+                    <Text style={[styles.sectionTitle, { color: categoryColor }]}>
                       Key Vocabulary ({newsContent.vocabulary.length} words)
                     </Text>
                     <Ionicons
                       name={vocabularyExpanded ? 'chevron-up' : 'chevron-down'}
                       size={24}
-                      color="#6B8A84"
+                      color={categoryColor}
                     />
                   </TouchableOpacity>
 
                   {vocabularyExpanded && (
                     <View style={styles.vocabularyList}>
                       {newsContent.vocabulary.map((item, index) => (
-                        <View key={index} style={[styles.vocabularyItem, { borderLeftColor: categoryColor }]}>
+                        <View key={index} style={[
+                          styles.vocabularyItem,
+                          {
+                            borderLeftColor: categoryColor,
+                            backgroundColor: `${categoryColor}14`,
+                            borderColor: `${categoryColor}33`,
+                          }
+                        ]}>
                           <View style={styles.vocabularyHeader}>
                             <Text style={styles.vocabularyWord}>{item.word}</Text>
                             {item.translation && (
@@ -409,8 +441,8 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                 </View>
 
                 {/* Discussion Questions */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>We'll Discuss:</Text>
+                <View style={[styles.section, { borderTopColor: `${categoryColor}26` }]}>
+                  <Text style={[styles.sectionTitle, { color: categoryColor }]}>We'll Discuss:</Text>
                   {newsContent.discussion_questions.map((question, index) => (
                     <View key={index} style={styles.questionItem}>
                       <Ionicons name="chatbubble-outline" size={20} color={categoryColor} />
@@ -424,13 +456,13 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
               </ScrollView>
 
               {/* Start Conversation Button (Fixed at bottom) */}
-              <View style={styles.footer}>
+              <View style={[styles.footer, { borderTopColor: `${categoryColor}33` }]}>
                 <TouchableOpacity
                   style={[
                     styles.startButton,
                     {
-                      backgroundColor: '#14B8A6',
-                      shadowColor: '#14B8A6',
+                      backgroundColor: categoryColor,
+                      shadowColor: categoryColor,
                     },
                     startingConversation && styles.startButtonDisabled,
                   ]}
@@ -596,11 +628,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(20, 184, 166, 0.1)',
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   statItem: {
     flexDirection: 'row',
@@ -615,7 +645,6 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 16,
-    backgroundColor: 'rgba(20, 184, 166, 0.3)',
     marginHorizontal: 12,
   },
   source: {
@@ -627,19 +656,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.15)',
     backgroundColor: '#0B1A1F',
   },
   selectorLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#B4E4DD',
     marginBottom: 12,
   },
   recommendedBadge: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#14B8A6',
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -650,14 +676,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   optionButtonActive: {
-    backgroundColor: 'rgba(20, 184, 166, 0.2)',
     borderWidth: 2,
-    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -666,17 +688,15 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B8A84',
+    color: '#9CA3AF',
   },
   optionTextActive: {
     fontWeight: '800',
-    color: '#14B8A6',
   },
   section: {
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.15)',
     backgroundColor: '#0B1A1F',
   },
   sectionHeader: {
@@ -687,7 +707,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#B4E4DD',
     marginBottom: 14,
   },
   summaryText: {
@@ -705,12 +724,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   vocabularyItem: {
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     padding: 16,
     borderRadius: 14,
     borderLeftWidth: 4,
     borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
   vocabularyHeader: {
     flexDirection: 'row',
@@ -728,7 +745,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     fontWeight: '600',
-    color: '#14B8A6',
   },
   vocabularyExample: {
     fontSize: 14,
@@ -758,7 +774,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.2)',
     backgroundColor: '#0B1A1F',
   },
   startButton: {
@@ -768,7 +783,6 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
