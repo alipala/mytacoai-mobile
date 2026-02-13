@@ -51,6 +51,7 @@ interface NewsDetailModalProps {
   title: string;
   recommendedLevel: string;
   availableLanguages: string[];
+  categoryColor: string;
   onClose: () => void;
   onStartConversation: (params: {
     sessionId: string;
@@ -80,6 +81,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
   title,
   recommendedLevel,
   availableLanguages,
+  categoryColor,
   onClose,
   onStartConversation,
 }) => {
@@ -191,29 +193,6 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      technology: '#3B82F6',
-      science: '#8B5CF6',
-      health: '#EC4899',
-      sports: '#EF4444',
-      environment: '#14B8A6',
-      business: '#10B981',
-      culture: '#F59E0B',
-      entertainment: '#F43F5E',
-      education: '#6366F1',
-      politics: '#64748B',
-      finance: '#059669',
-      travel: '#0EA5E9',
-      food: '#F97316',
-      fashion: '#A855F7',
-      automotive: '#71717A',
-    };
-    return colors[category.toLowerCase()] || '#6B7280';
-  };
-
-  const categoryColor = newsContent ? getCategoryColor(newsContent.original.category) : '#6B7280';
-
   return (
     <Modal
       visible={visible}
@@ -228,7 +207,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
           onPress={onClose}
         />
 
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, { backgroundColor: categoryColor }]}>
           {/* Drag Handle */}
           <View style={styles.dragHandle} />
 
@@ -240,7 +219,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="close" size={28} color="#1F2937" />
+              <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -397,7 +376,7 @@ const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
                     <Ionicons
                       name={vocabularyExpanded ? 'chevron-up' : 'chevron-down'}
                       size={24}
-                      color="#6B7280"
+                      color="rgba(255, 255, 255, 0.7)"
                     />
                   </TouchableOpacity>
 
@@ -478,21 +457,20 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: SCREEN_HEIGHT * 0.92,
     paddingBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 20,
   },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 3,
     alignSelf: 'center',
     marginTop: 12,
@@ -505,12 +483,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
   },
   modalHeaderTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   closeButton: {
     padding: 4,
@@ -520,11 +498,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    backgroundColor: '#F9FAFB',
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 16,
   },
   switchingOverlay: {
@@ -532,16 +509,14 @@ const styles = StyleSheet.create({
     top: 80,
     right: 20,
     zIndex: 1000,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     padding: 12,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   scrollView: {
     flex: 1,
@@ -552,7 +527,7 @@ const styles = StyleSheet.create({
   heroContainer: {
     position: 'relative',
     height: 180,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   heroImage: {
     width: '100%',
@@ -562,11 +537,11 @@ const styles = StyleSheet.create({
   placeholderImage: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
   },
   heroCategoryBadge: {
     position: 'absolute',
@@ -575,10 +550,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
   },
@@ -587,6 +562,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    color: '#FFFFFF',
   },
   contentContainer: {
     paddingHorizontal: 20,
@@ -595,7 +571,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#FFFFFF',
     lineHeight: 30,
     marginBottom: 12,
   },
@@ -605,11 +581,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   statItem: {
     flexDirection: 'row',
@@ -618,35 +594,36 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
   },
   statDivider: {
     width: 1,
     height: 16,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     marginHorizontal: 12,
   },
   source: {
     fontSize: 14,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.85)',
     fontStyle: 'italic',
   },
   selectorContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: 'rgba(255, 255, 255, 0.15)',
   },
   selectorLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   recommendedBadge: {
     fontSize: 13,
     fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -657,22 +634,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   optionButtonActive: {
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   optionTextActive: {
     fontWeight: '800',
@@ -681,7 +658,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: 'rgba(255, 255, 255, 0.15)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -691,17 +668,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginBottom: 14,
   },
   summaryText: {
     fontSize: 15,
     lineHeight: 24,
-    color: '#4B5563',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   wordCount: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 10,
   },
   vocabularyList: {
@@ -709,12 +686,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   vocabularyItem: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     padding: 16,
     borderRadius: 14,
     borderLeftWidth: 3,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   vocabularyHeader: {
     flexDirection: 'row',
@@ -725,7 +702,7 @@ const styles = StyleSheet.create({
   vocabularyWord: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#FFFFFF',
     marginRight: 8,
   },
   vocabularyTranslation: {
@@ -735,12 +712,12 @@ const styles = StyleSheet.create({
   },
   vocabularyExample: {
     fontSize: 14,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.85)',
     lineHeight: 20,
   },
   vocabularyIPA: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.6)',
     marginTop: 6,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
@@ -753,7 +730,7 @@ const styles = StyleSheet.create({
   questionText: {
     flex: 1,
     fontSize: 14,
-    color: '#4B5563',
+    color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 22,
   },
   footer: {
@@ -761,8 +738,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
   },
   startButton: {
     flexDirection: 'row',

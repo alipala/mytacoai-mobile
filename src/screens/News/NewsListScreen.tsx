@@ -189,6 +189,10 @@ export default function NewsListScreen({ navigation }: any) {
     setModalVisible(true);
   };
 
+  const selectedArticleCategoryColor = selectedArticle
+    ? getCategoryColor(selectedArticle.category)
+    : '#14B8A6';
+
   const handleCloseModal = () => {
     setModalVisible(false);
     setSelectedArticle(null);
@@ -353,7 +357,7 @@ export default function NewsListScreen({ navigation }: any) {
 
     return (
       <SafeAreaView style={styles.container}>
-      {/* Enhanced Personalized Header (Compact Height) */}
+      {/* Compact Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.greetingRow}>
@@ -369,28 +373,10 @@ export default function NewsListScreen({ navigation }: any) {
           <Text style={styles.dateText}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </Text>
-
-          {/* Stats Cards Row - NO EMOJI ICONS */}
-          <View style={styles.statsCardsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{progressStats?.current_streak || 0}</Text>
-              <Text style={styles.statLabel}>{t('news.stats.day_streak')}</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{newsData?.articles.length || 0}</Text>
-              <Text style={styles.statLabel}>
-                {newsData?.fallback_used ? t('news.stats.yesterday') : t('news.stats.today')}
-              </Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{filteredArticles.length}</Text>
-              <Text style={styles.statLabel}>{t('news.stats.filtered')}</Text>
-            </View>
-          </View>
         </View>
       </View>
 
-      {/* Category Filter with Article Counts */}
+      {/* Category Filter with Colored Pills */}
       <View style={styles.filterWrapper}>
         <ScrollView
           horizontal
@@ -410,22 +396,32 @@ export default function NewsListScreen({ navigation }: any) {
             return (
               <TouchableOpacity
                 key={category}
-                style={styles.filterChip}
+                style={[
+                  styles.filterChip,
+                  isSelected && {
+                    backgroundColor: config.color,
+                    shadowColor: config.color,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 6,
+                  }
+                ]}
                 onPress={() => setSelectedCategory(category)}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
               >
                 <Ionicons
                   name={config.icon as any}
                   size={18}
-                  color={isSelected ? config.color : 'rgba(180, 228, 221, 0.5)'}
+                  color={isSelected ? '#FFFFFF' : 'rgba(180, 228, 221, 0.6)'}
                   style={styles.filterIcon}
                 />
                 <Text
                   style={[
                     styles.filterChipText,
                     isSelected && {
-                      color: config.color,
-                      fontWeight: '700',
+                      color: '#FFFFFF',
+                      fontWeight: '800',
                     },
                   ]}
                 >
@@ -436,37 +432,19 @@ export default function NewsListScreen({ navigation }: any) {
                 <View style={[
                   styles.countBadge,
                   isSelected && {
-                    backgroundColor: config.color,
-                    shadowColor: config.color,
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.5,
-                    shadowRadius: 6,
-                    elevation: 4,
+                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
                   }
                 ]}>
                   <Text style={[
                     styles.countBadgeText,
                     isSelected && {
-                      color: '#0B1A1F',
+                      color: '#FFFFFF',
                       fontWeight: '800',
                     }
                   ]}>
                     {articleCount}
                   </Text>
                 </View>
-
-                {/* Underline indicator with category color + glow */}
-                {isSelected && (
-                  <View
-                    style={[
-                      styles.activeUnderline,
-                      {
-                        backgroundColor: config.color,
-                        shadowColor: config.color,
-                      },
-                    ]}
-                  />
-                )}
               </TouchableOpacity>
             );
           })}
@@ -509,6 +487,7 @@ export default function NewsListScreen({ navigation }: any) {
           title={selectedArticle.title}
           recommendedLevel={newsData?.recommended_level || 'B1'}
           availableLanguages={newsData?.available_languages || ['en', 'es', 'nl']}
+          categoryColor={selectedArticleCategoryColor}
           onClose={handleCloseModal}
           onStartConversation={handleStartConversation}
         />
@@ -588,33 +567,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#6B8A84',
-    marginBottom: 10,
-  },
-  statsCardsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.15)',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#6B8A84',
-    textAlign: 'center',
   },
   fallbackBadge: {
     backgroundColor: 'rgba(255, 214, 58, 0.15)', // Dark theme badge
@@ -834,25 +786,23 @@ const styles = StyleSheet.create({
     color: '#14B8A6',
   },
   filterWrapper: {
-    backgroundColor: '#0B1A1F', // Dark header
+    backgroundColor: '#0B1A1F',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)', // Subtle separator
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   filterContent: {
     paddingHorizontal: 20,
     alignItems: 'center',
-    gap: 8, // Tight spacing for minimal look
+    gap: 10,
   },
   filterChip: {
-    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    paddingBottom: 12, // Extra space for underline
-    backgroundColor: 'transparent', // No background - minimal!
-    overflow: 'visible',
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   filterIcon: {
     marginRight: 7,
@@ -876,18 +826,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: 'rgba(180, 228, 221, 0.8)',
-  },
-  activeUnderline: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    borderRadius: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.9,
-    shadowRadius: 10,
-    elevation: 5,
   },
   // Skeleton Loading Styles
   skeletonCard: {
