@@ -38,6 +38,7 @@ import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
+import FullScreenCelebration from '../../../components/FullScreenCelebration';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -62,6 +63,7 @@ export default function ErrorSpottingScreen({
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const { session } = useChallengeSession();
   const { characterState, reactToAnswer, reactToSelection } = useCharacterState();
@@ -75,22 +77,12 @@ export default function ErrorSpottingScreen({
 
   // No breathing animation for question box - removed for cleaner look
 
-  // Safety check: Ensure challenge has required data
-  if (!challenge.options || challenge.options.length === 0) {
-    console.error('❌ ErrorSpottingScreen: Invalid challenge data - missing options array');
-    return (
-      <View style={styles.container}>
-        <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={{ fontSize: 18, color: '#FFFFFF', textAlign: 'center' }}>
-            {t('explore.story_builder.data_error')}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
   // Reset state when challenge changes with fade animation
   useEffect(() => {
+    // Safety check with warning instead of error
+    if (!challenge.options || challenge.options.length === 0) {
+      console.warn('⚠️ ErrorSpottingScreen: Challenge data may be incomplete');
+    }
     // Fade in animation for new challenge
     screenOpacity.value = 0;
     screenOpacity.value = withTiming(1, { duration: 300 });
@@ -99,6 +91,7 @@ export default function ErrorSpottingScreen({
     setShowFeedback(false);
     setShowXPAnimation(false);
     setIsAdvancing(false);
+    setShowCelebration(false);
     backgroundOpacity.value = 0;
   }, [challenge.id]);
 
@@ -153,6 +146,9 @@ export default function ErrorSpottingScreen({
 
         // Show XP animation
         setShowXPAnimation(true);
+
+        // Show full-screen celebration animation
+        setShowCelebration(true);
 
         // Background success glow
         backgroundOpacity.value = withSequence(
@@ -226,14 +222,7 @@ export default function ErrorSpottingScreen({
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        {/* Learning Companion */}
-        <View style={styles.companionContainer}>
-          <LearningCompanion
-            state={characterState}
-            combo={session?.currentCombo || 1}
-            size={showFeedback ? 64 : 80}
-          />
-        </View>
+        {/* Learning Companion - removed, now using full-screen celebration */}
 
         {/* Sentence container - hide during feedback */}
         {!showFeedback && (
@@ -343,6 +332,12 @@ export default function ErrorSpottingScreen({
           delay={0}
         />
       )}
+
+      {/* Full Screen Celebration Animation */}
+      <FullScreenCelebration
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+      />
     </Animated.View>
   );
 }
@@ -465,17 +460,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sentenceContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red/coral tint for error spotting
-    padding: 20,
+    backgroundColor: '#1F2937', // Solid dark gray background
+    padding: 24,
     borderRadius: 20,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    shadowColor: '#EF4444',
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: '#F97316', // Solid orange border (error spotting theme)
+    shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.6,
+    shadowOpacity: 0.5,
     shadowRadius: 16,
-    elevation: 3,
+    elevation: 8,
   },
   sentence: {
     fontSize: 20,
@@ -491,57 +486,68 @@ const styles = StyleSheet.create({
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    backgroundColor: '#1F2937', // Solid dark gray
     padding: 18,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: 'rgba(107, 114, 128, 0.3)',
+    borderWidth: 2,
+    borderColor: '#374151', // Visible medium gray border
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.03,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
         shadowRadius: 4,
       },
       android: {
-        elevation: 1,
+        elevation: 2,
       },
     }),
   },
   optionSelected: {
-    borderColor: '#14B8A6',
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    borderWidth: 1.5,
+    backgroundColor: '#065F46', // Solid dark teal background
+    borderColor: '#14B8A6', // Bright teal border
+    borderWidth: 2.5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   optionWrong: {
-    borderColor: '#F87171',
-    borderWidth: 2,
-    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    backgroundColor: '#7F1D1D', // Solid dark red background
+    borderColor: '#EF4444', // Bright red border
+    borderWidth: 3,
     ...Platform.select({
       ios: {
         shadowColor: '#DC2626',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.6,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 2,
+        elevation: 6,
       },
     }),
   },
   optionCorrect: {
-    borderColor: '#34D399',
-    borderWidth: 2,
-    backgroundColor: 'rgba(52, 211, 153, 0.15)',
+    backgroundColor: '#064E3B', // Solid dark green background
+    borderColor: '#10B981', // Bright green border
+    borderWidth: 3,
     ...Platform.select({
       ios: {
         shadowColor: '#059669',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.6,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 2,
+        elevation: 6,
       },
     }),
   },
@@ -549,40 +555,40 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(107, 114, 128, 0.2)',
+    backgroundColor: '#374151', // Solid medium gray
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   optionLetterWrong: {
-    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    backgroundColor: '#991B1B', // Solid darker red
   },
   optionLetterCorrect: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: '#065F46', // Solid dark green
   },
   optionLetterText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#E5E7EB',
+    color: '#F9FAFB', // Bright white
   },
   optionLetterTextWrong: {
-    color: '#DC2626',
+    color: '#FECACA', // Light red for contrast
   },
   optionLetterTextCorrect: {
-    color: '#059669',
+    color: '#D1FAE5', // Light green for contrast
   },
   optionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#E5E7EB',
+    color: '#F9FAFB', // Bright white for better contrast
     flex: 1,
     lineHeight: 22,
   },
   optionTextWrong: {
-    color: '#DC2626',
+    color: '#FECACA', // Lighter red for contrast on dark red background
   },
   optionTextCorrect: {
-    color: '#059669',
+    color: '#D1FAE5', // Lighter green for contrast on dark green background
   },
   feedbackContainer: {
     flex: 1,

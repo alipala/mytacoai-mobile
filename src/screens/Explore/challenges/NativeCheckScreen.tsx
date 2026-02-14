@@ -49,6 +49,7 @@ import { calculateXP } from '../../../services/xpCalculator';
 import { useAudio } from '../../../hooks/useAudio';
 import { heartAPI } from '../../../services/heartAPI';
 import { CHALLENGE_TYPE_API_NAMES } from '../../../types/hearts';
+import FullScreenCelebration from '../../../components/FullScreenCelebration';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -76,6 +77,7 @@ export default function NativeCheckScreen({
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
   const [showUndo, setShowUndo] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [lastSwipe, setLastSwipe] = useState<{
     isCorrect: boolean;
     direction: 'left' | 'right';
@@ -149,6 +151,7 @@ export default function NativeCheckScreen({
 
     setIsAnswered(false);
     setShowXPAnimation(false);
+    setShowCelebration(false);
     setShowUndo(false);
     setLastSwipe(null);
     translateX.value = 0;
@@ -308,6 +311,7 @@ export default function NativeCheckScreen({
       // Delay XP animation from card center (200ms delay)
       setTimeout(() => {
         setShowXPAnimation(true);
+        setShowCelebration(true);
       }, 200);
 
       // Auto-advance (correct answers advance immediately, no undo needed)
@@ -629,6 +633,12 @@ export default function NativeCheckScreen({
             delay={0}
           />
         )}
+
+      {/* Full Screen Celebration Animation */}
+      <FullScreenCelebration
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+      />
       </Animated.View>
     </GestureHandlerRootView>
   );

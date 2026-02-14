@@ -47,10 +47,13 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
 
   // Fetch user stats
   const { daily } = useDailyStats(true);
-  const { recent } = useRecentPerformance(7, true);
-  const { lifetime } = useLifetimeProgress(false, true);
+  const { recent, isLoading: recentLoading } = useRecentPerformance(7, true);
+  const { lifetime, isLoading: lifetimeLoading } = useLifetimeProgress(false, true);
 
-  // Determine user activity state
+  // Wait for initial data load to determine layout (prevents hook count mismatch)
+  const isLoadingInitialData = (recentLoading && !recent) || (lifetimeLoading && !lifetime);
+
+  // Determine user activity state (only after data loads)
   const hasRecentActivity = recent && recent.summary && recent.summary.total_challenges > 0;
   const hasLifetimeData = lifetime && lifetime.summary && lifetime.summary.total_challenges > 0;
 
@@ -146,6 +149,11 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
     const isNearEnd = scrollX + scrollViewWidth >= contentWidth - 50;
     setIsAtEnd(isNearEnd);
   };
+
+  // Show nothing while determining layout (prevents hook count mismatch)
+  if (isLoadingInitialData) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>

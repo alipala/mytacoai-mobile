@@ -100,8 +100,31 @@ export default function ByCEFRLevelTodayCard({ onRefresh }: ByCEFRLevelTodayCard
     return descMap[level.toLowerCase()] || '';
   };
 
-  // Loading state
+  // Debug logging - MUST be called before any early returns
+  useEffect(() => {
+    if (daily) {
+      console.log('[ByCEFRLevelTodayCard] Daily data:', {
+        total_challenges: daily.overall?.total_challenges,
+        by_level_exists: !!daily.by_level,
+        by_level_keys: daily.by_level ? Object.keys(daily.by_level) : [],
+        by_level_data: daily.by_level,
+      });
+    }
+  }, [daily]);
+
+  // Determine what to render (all hooks must be called before this)
+  let contentToRender: 'loading' | 'empty' | 'emptyToday' | 'data' = 'data';
+
   if (isLoading && !daily) {
+    contentToRender = 'loading';
+  } else if (!daily) {
+    contentToRender = 'empty';
+  } else if (daily.overall.total_challenges === 0 || !daily.by_level || Object.keys(daily.by_level).length === 0) {
+    contentToRender = 'emptyToday';
+  }
+
+  // Loading state
+  if (contentToRender === 'loading') {
     return (
       <View style={styles.container}>
         <LinearGradient
@@ -118,25 +141,13 @@ export default function ByCEFRLevelTodayCard({ onRefresh }: ByCEFRLevelTodayCard
     );
   }
 
-  // Debug logging
-  useEffect(() => {
-    if (daily) {
-      console.log('[ByCEFRLevelTodayCard] Daily data:', {
-        total_challenges: daily.overall?.total_challenges,
-        by_level_exists: !!daily.by_level,
-        by_level_keys: daily.by_level ? Object.keys(daily.by_level) : [],
-        by_level_data: daily.by_level,
-      });
-    }
-  }, [daily]);
-
   // No data state
-  if (!daily) {
+  if (contentToRender === 'empty') {
     return null;
   }
 
   // Empty state (no challenges today)
-  if (daily.overall.total_challenges === 0 || !daily.by_level || Object.keys(daily.by_level).length === 0) {
+  if (contentToRender === 'emptyToday') {
     return (
       <Animated.View
         style={[

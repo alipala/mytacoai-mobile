@@ -76,12 +76,9 @@ function ProgressNode({ index, state, challengeType, total, challengeId }: Progr
 
   useEffect(() => {
     if (state === 'completed_correct' || state === 'completed_incorrect') {
-      // Gamified burst animation with rotation on completion
+      // Gamified burst animation (no rotation)
       animateNodeComplete(scale, opacity);
-      rotation.value = withSequence(
-        withTiming(0, { duration: 0 }),
-        withSpring(360, { damping: 10, stiffness: 80 })
-      );
+      rotation.value = 0;
       glowScale.value = 1;
     } else if (state === 'current') {
       // Breathing pulse for current node

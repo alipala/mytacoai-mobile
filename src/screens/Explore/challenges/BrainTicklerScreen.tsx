@@ -43,6 +43,7 @@ import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
+import FullScreenCelebration from '../../../components/FullScreenCelebration';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -70,6 +71,7 @@ export default function BrainTicklerScreen({
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const { session } = useChallengeSession();
   const { characterState, reactToAnswer, reactToSelection, updateState } = useCharacterState();
@@ -125,6 +127,7 @@ export default function BrainTicklerScreen({
     setTimerActive(true);
     setShowXPAnimation(false);
     setIsAdvancing(false);
+    setShowCelebration(false);
     progressPercent.value = 0;
     timerScale.value = 1;
     backgroundOpacity.value = 0;
@@ -283,6 +286,9 @@ export default function BrainTicklerScreen({
         // Show XP animation
         setShowXPAnimation(true);
 
+        // Show full-screen celebration animation
+        setShowCelebration(true);
+
         // Background success glow
         backgroundOpacity.value = withSequence(
           withTiming(0.3, { duration: 200 }),
@@ -406,16 +412,7 @@ export default function BrainTicklerScreen({
           </Animated.View>
         )}
 
-        {/* Character - shown during feedback */}
-        {showFeedback && (
-          <View style={styles.companionContainer}>
-            <LearningCompanion
-              state={characterState}
-              combo={session?.currentCombo || 1}
-              size={64}
-            />
-          </View>
-        )}
+        {/* Character - removed, now using full-screen celebration */}
 
         {/* Question container - hide during feedback */}
         {!showFeedback && (
@@ -532,6 +529,12 @@ export default function BrainTicklerScreen({
           delay={0}
         />
       )}
+
+      {/* Full Screen Celebration Animation */}
+      <FullScreenCelebration
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+      />
     </Animated.View>
   );
 }
@@ -649,17 +652,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   questionContainer: {
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
-    padding: 20,
+    backgroundColor: '#1F2937', // Solid dark gray background
+    padding: 24,
     borderRadius: 20,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#FBCFE8',
-    shadowColor: '#831843',
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: '#EC4899', // Solid pink border (brain tickler theme)
+    shadowColor: '#EC4899',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.5,
     shadowRadius: 16,
-    elevation: 3,
+    elevation: 8,
   },
   question: {
     fontSize: 18,
@@ -673,72 +676,83 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   optionButton: {
-    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    backgroundColor: '#1F2937', // Solid dark gray
     padding: 18,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: 'rgba(107, 114, 128, 0.3)',
+    borderWidth: 2,
+    borderColor: '#374151', // Visible medium gray border
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.03,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
         shadowRadius: 4,
       },
       android: {
-        elevation: 1,
+        elevation: 2,
       },
     }),
   },
   optionSelected: {
-    borderColor: '#EC4899',
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    borderWidth: 1.5,
+    backgroundColor: '#831843', // Solid dark pink background
+    borderColor: '#EC4899', // Bright pink border
+    borderWidth: 2.5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#EC4899',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   optionWrong: {
-    borderColor: '#F87171',
-    borderWidth: 2,
-    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    backgroundColor: '#7F1D1D', // Solid dark red background
+    borderColor: '#EF4444', // Bright red border
+    borderWidth: 3,
     ...Platform.select({
       ios: {
         shadowColor: '#DC2626',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.6,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 2,
+        elevation: 6,
       },
     }),
   },
   optionCorrect: {
-    borderColor: '#34D399',
-    borderWidth: 2,
-    backgroundColor: 'rgba(52, 211, 153, 0.15)',
+    backgroundColor: '#064E3B', // Solid dark green background
+    borderColor: '#10B981', // Bright green border
+    borderWidth: 3,
     ...Platform.select({
       ios: {
         shadowColor: '#059669',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.6,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 2,
+        elevation: 6,
       },
     }),
   },
   optionText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#E5E7EB',
+    color: '#F9FAFB', // Bright white for better contrast
     textAlign: 'center',
     lineHeight: 24,
   },
   optionTextWrong: {
-    color: '#DC2626',
+    color: '#FECACA', // Lighter red for contrast on dark red background
   },
   optionTextCorrect: {
-    color: '#059669',
+    color: '#D1FAE5', // Lighter green for contrast on dark green background
   },
   feedbackContainer: {
     flex: 1,

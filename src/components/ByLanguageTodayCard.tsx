@@ -89,8 +89,31 @@ export default function ByLanguageTodayCard({ onRefresh }: ByLanguageTodayCardPr
     return language.charAt(0).toUpperCase() + language.slice(1);
   };
 
-  // Loading state
+  // Debug logging - MUST be called before any early returns
+  useEffect(() => {
+    if (daily) {
+      console.log('[ByLanguageTodayCard] Daily data:', {
+        total_challenges: daily.overall?.total_challenges,
+        by_language_exists: !!daily.by_language,
+        by_language_keys: daily.by_language ? Object.keys(daily.by_language) : [],
+        by_language_data: daily.by_language,
+      });
+    }
+  }, [daily]);
+
+  // Determine what to render (all hooks must be called before this)
+  let contentToRender: 'loading' | 'empty' | 'emptyToday' | 'data' = 'data';
+
   if (isLoading && !daily) {
+    contentToRender = 'loading';
+  } else if (!daily) {
+    contentToRender = 'empty';
+  } else if (daily.overall.total_challenges === 0 || !daily.by_language || Object.keys(daily.by_language).length === 0) {
+    contentToRender = 'emptyToday';
+  }
+
+  // Loading state
+  if (contentToRender === 'loading') {
     return (
       <View style={styles.container}>
         <LinearGradient
@@ -107,25 +130,13 @@ export default function ByLanguageTodayCard({ onRefresh }: ByLanguageTodayCardPr
     );
   }
 
-  // Debug logging
-  useEffect(() => {
-    if (daily) {
-      console.log('[ByLanguageTodayCard] Daily data:', {
-        total_challenges: daily.overall?.total_challenges,
-        by_language_exists: !!daily.by_language,
-        by_language_keys: daily.by_language ? Object.keys(daily.by_language) : [],
-        by_language_data: daily.by_language,
-      });
-    }
-  }, [daily]);
-
   // No data state
-  if (!daily) {
+  if (contentToRender === 'empty') {
     return null;
   }
 
   // Empty state (no challenges today)
-  if (daily.overall.total_challenges === 0 || !daily.by_language || Object.keys(daily.by_language).length === 0) {
+  if (contentToRender === 'emptyToday') {
     return (
       <Animated.View
         style={[

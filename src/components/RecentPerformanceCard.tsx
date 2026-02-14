@@ -42,15 +42,11 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
 
   // Debug logging
   React.useEffect(() => {
-    console.log('[RecentPerformanceCard] 🔍 DEBUG - recent data:', JSON.stringify({
+    console.log('[RecentPerformanceCard] 🔍 DEBUG - recent data:', {
       hasRecent: !!recent,
-      summary: recent?.summary,
-      dailyBreakdownLength: recent?.daily_breakdown?.length,
-      dailyBreakdown: recent?.daily_breakdown,
       isLoading,
-      hasError: !!error,
-      errorMessage: error?.message
-    }, null, 2));
+      hasError: !!error
+    });
   }, [recent, isLoading, error]);
 
   const handleRefresh = async () => {
@@ -69,36 +65,46 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
     setShowDetails(!showDetails);
   };
 
-  // Error state (but show empty state for "not found" errors)
+  // Determine what to render (all hooks must be called before this)
+  let contentToRender: 'error' | 'loading' | 'empty' | 'data' = 'data';
+  let isNotFoundError = false;
+
   if (error && !recent) {
-    // Check if it's a "not found" error (new user with no stats)
-    const isNotFoundError =
+    isNotFoundError =
       error.message.includes('not found') ||
       error.message.includes('404') ||
       error.message.includes('Statistics not found');
+    contentToRender = isNotFoundError ? 'empty' : 'error';
+  } else if (isLoading && !recent) {
+    contentToRender = 'loading';
+  } else if (!recent || recent.daily_breakdown.length < 3) {
+    contentToRender = 'empty';
+  }
 
-    if (isNotFoundError) {
-      // Show empty state for new users
-      return (
-        <View style={styles.card}>
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>📈</Text>
-            <Text style={styles.emptyTitle}>Start Your Journey!</Text>
-            <Text style={styles.emptyMessage}>
-              Complete a few challenges to see your performance trends
-            </Text>
-          </View>
+  // Render based on state (no early returns)
+  if (contentToRender === 'empty') {
+    return (
+      <View style={styles.card}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>📈</Text>
+          <Text style={styles.emptyTitle}>
+            {isNotFoundError ? 'Start Your Journey!' : 'Not Enough Data Yet'}
+          </Text>
+          <Text style={styles.emptyMessage}>
+            Complete a few {isNotFoundError ? '' : 'more '}challenges to see your performance trends
+          </Text>
         </View>
-      );
-    }
+      </View>
+    );
+  }
 
-    // Show error state for actual errors
+  if (contentToRender === 'error') {
     return (
       <View style={styles.card}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorEmoji}>📊</Text>
           <Text style={styles.errorTitle}>Unable to Load Trends</Text>
-          <Text style={styles.errorMessage}>{error.message}</Text>
+          <Text style={styles.errorMessage}>{error?.message}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
@@ -107,28 +113,12 @@ export default function RecentPerformanceCard({ onRefresh, initiallyExpanded = f
     );
   }
 
-  // Loading state
-  if (isLoading && !recent) {
+  if (contentToRender === 'loading') {
     return (
       <View style={styles.card}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#14B8A6" />
           <Text style={styles.loadingText}>Loading your performance trends...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // No data state
-  if (!recent || recent.daily_breakdown.length < 3) {
-    return (
-      <View style={styles.card}>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>📈</Text>
-          <Text style={styles.emptyTitle}>Not Enough Data Yet</Text>
-          <Text style={styles.emptyMessage}>
-            Complete a few more challenges to see your performance trends
-          </Text>
         </View>
       </View>
     );

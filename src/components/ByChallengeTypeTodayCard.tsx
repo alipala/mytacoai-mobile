@@ -96,8 +96,31 @@ export default function ByChallengeTypeTodayCard({ onRefresh }: ByChallengeTypeT
     return typeMap[type] || type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
-  // Loading state
+  // Debug logging - MUST be called before any early returns
+  useEffect(() => {
+    if (daily) {
+      console.log('[ByChallengeTypeTodayCard] Daily data:', {
+        total_challenges: daily.overall?.total_challenges,
+        by_type_exists: !!daily.by_type,
+        by_type_keys: daily.by_type ? Object.keys(daily.by_type) : [],
+        by_type_data: daily.by_type,
+      });
+    }
+  }, [daily]);
+
+  // Determine what to render (all hooks must be called before this)
+  let contentToRender: 'loading' | 'empty' | 'emptyToday' | 'data' = 'data';
+
   if (isLoading && !daily) {
+    contentToRender = 'loading';
+  } else if (!daily) {
+    contentToRender = 'empty';
+  } else if (daily.overall.total_challenges === 0 || !daily.by_type || Object.keys(daily.by_type).length === 0) {
+    contentToRender = 'emptyToday';
+  }
+
+  // Loading state
+  if (contentToRender === 'loading') {
     return (
       <View style={styles.container}>
         <LinearGradient
@@ -114,25 +137,13 @@ export default function ByChallengeTypeTodayCard({ onRefresh }: ByChallengeTypeT
     );
   }
 
-  // Debug logging
-  useEffect(() => {
-    if (daily) {
-      console.log('[ByChallengeTypeTodayCard] Daily data:', {
-        total_challenges: daily.overall?.total_challenges,
-        by_type_exists: !!daily.by_type,
-        by_type_keys: daily.by_type ? Object.keys(daily.by_type) : [],
-        by_type_data: daily.by_type,
-      });
-    }
-  }, [daily]);
-
   // No data state
-  if (!daily) {
+  if (contentToRender === 'empty') {
     return null;
   }
 
   // Empty state (no challenges today)
-  if (daily.overall.total_challenges === 0 || !daily.by_type || Object.keys(daily.by_type).length === 0) {
+  if (contentToRender === 'emptyToday') {
     return (
       <Animated.View
         style={[

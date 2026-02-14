@@ -124,9 +124,26 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     onRefresh?.();
   };
 
+  // Determine what to render (all hooks must be called before this)
+  let contentToRender: 'loading' | 'error' | 'empty' | 'emptyToday' | 'data' = 'data';
+  let isNotFoundError = false;
+
+  if (isLoading && !daily) {
+    contentToRender = 'loading';
+  } else if (error && !daily) {
+    isNotFoundError =
+      error.message.includes('not found') ||
+      error.message.includes('404') ||
+      error.message.includes('Statistics not found');
+    contentToRender = isNotFoundError ? 'empty' : 'error';
+  } else if (!daily) {
+    contentToRender = 'empty';
+  } else if (daily.overall.total_challenges === 0) {
+    contentToRender = 'emptyToday';
+  }
 
   // Loading state
-  if (isLoading && !daily) {
+  if (contentToRender === 'loading') {
     return (
       <View style={styles.container}>
         <View style={styles.whiteCard}>
@@ -139,14 +156,8 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     );
   }
 
-  // Error state (but show empty state for "not found" errors)
-  if (error && !daily) {
-    // Check if it's a "not found" error (new user with no stats)
-    const isNotFoundError =
-      error.message.includes('not found') ||
-      error.message.includes('404') ||
-      error.message.includes('Statistics not found');
-
+  // Empty state for new users
+  if (contentToRender === 'empty') {
     if (isNotFoundError) {
       // Show motivational banner for new users
       return (
@@ -216,14 +227,19 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
       );
     }
 
-    // Show error state for actual errors
+    // No data fallback
+    return null;
+  }
+
+  // Error state
+  if (contentToRender === 'error') {
     return (
       <View style={styles.container}>
         <View style={styles.whiteCard}>
           <View style={styles.errorContainer}>
             <Text style={styles.errorEmoji}>⚠️</Text>
             <Text style={styles.errorTitle}>Could not load stats</Text>
-            <Text style={styles.errorMessage}>{error.message}</Text>
+            <Text style={styles.errorMessage}>{error?.message}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
@@ -233,13 +249,8 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     );
   }
 
-  // No data state
-  if (!daily) {
-    return null;
-  }
-
   // Empty state (no activity today) - Motivational banner with streak urgency
-  if (daily.overall.total_challenges === 0) {
+  if (contentToRender === 'emptyToday') {
     const hasStreak = daily.streak.current > 0;
 
     return (

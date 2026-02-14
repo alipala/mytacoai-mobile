@@ -41,6 +41,7 @@ import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { useAudio } from '../../../hooks/useAudio';
 import { styles, SCREEN_WIDTH, SCREEN_HEIGHT } from './styles/StoryBuilderScreen.styles';
+import FullScreenCelebration from '../../../components/FullScreenCelebration';
 
 interface StoryGap {
   id: string;
@@ -84,6 +85,7 @@ export default function StoryBuilderScreen({
   const [showXPAnimation, setShowXPAnimation] = useState(false);
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [startTime] = useState(Date.now());
 
   const { session } = useChallengeSession();
@@ -110,6 +112,7 @@ export default function StoryBuilderScreen({
     setAvailableWords([...challenge.wordBank]);
     setShowFeedback(false);
     setShowXPAnimation(false);
+    setShowCelebration(false);
     setSelectedGapId(null);
     backgroundOpacity.value = 0;
   }, [challenge.id]);
@@ -213,6 +216,7 @@ export default function StoryBuilderScreen({
 
     setTimeout(() => {
       setShowXPAnimation(true);
+      setShowCelebration(true);
     }, 150);
 
     backgroundOpacity.value = withSequence(
@@ -399,13 +403,7 @@ export default function StoryBuilderScreen({
               </>
             ) : (
               <View style={styles.feedbackContainer}>
-                <View style={styles.feedbackCharacter}>
-                  <LearningCompanion
-                    state={characterState}
-                    combo={session?.currentCombo || 1}
-                    size={96}
-                  />
-                </View>
+                {/* Learning Companion - removed, now using full-screen celebration */}
 
                 {gapStates.every((gap) => {
                   const gapDef = challenge.gaps.find((g) => g.id === gap.id);
@@ -510,6 +508,12 @@ export default function StoryBuilderScreen({
             delay={0}
           />
         )}
+
+      {/* Full Screen Celebration Animation */}
+      <FullScreenCelebration
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+      />
       </Animated.View>
     </GestureHandlerRootView>
   );
