@@ -33,6 +33,7 @@ import { useTranslation } from 'react-i18next';
 import { SmartFlashcardChallenge } from '../../../services/mockChallengeData';
 import { COLORS } from '../../../constants/colors';
 import { useAudio } from '../../../hooks/useAudio';
+import FullScreenCelebration from '../../../components/FullScreenCelebration';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -49,6 +50,7 @@ export default function SmartFlashcardScreen({
 }: SmartFlashcardScreenProps) {
   const { t } = useTranslation();
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const { play } = useAudio();
 
@@ -66,6 +68,7 @@ export default function SmartFlashcardScreen({
     screenOpacity.value = withTiming(1, { duration: 300 });
 
     setIsFlipped(false);
+    setShowCelebration(false);
     flipRotation.value = 0;
   }, [challenge.id]);
 
@@ -89,13 +92,15 @@ export default function SmartFlashcardScreen({
   };
 
   const handleDone = (event: any) => {
-    // SmartFlashcard is practice mode - no celebrations, hearts, or XP
-    // Just simple advancement with gentle feedback
+    // SmartFlashcard - show celebration on completion
 
     // Soft haptic feedback
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+
+    // Show celebration animation
+    setShowCelebration(true);
 
     // Simple fade out and advance
     screenOpacity.value = withTiming(0, { duration: 200 }, (finished) => {
@@ -231,7 +236,11 @@ export default function SmartFlashcardScreen({
         )}
       </View>
 
-
+      {/* Full Screen Celebration Animation */}
+      <FullScreenCelebration
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+      />
     </Animated.View>
   );
 }

@@ -59,6 +59,7 @@ export default function StatsCarousel({ navigation }: any) {
   const { daily } = useDailyStats(true);
   const { recent } = useRecentPerformance(7, true);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [isAtEnd, setIsAtEnd] = React.useState(false);
 
   // Calculate values
   const challengesToday = daily?.challenges || 0;
@@ -83,6 +84,18 @@ export default function StatsCarousel({ navigation }: any) {
   };
 
   const trend = getTrend();
+
+  // Handle scroll to detect when at end
+  const handleScroll = (event: any) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const scrollX = contentOffset.x;
+    const scrollViewWidth = layoutMeasurement.width;
+    const contentWidth = contentSize.width;
+
+    // Check if scrolled close to the end (within 50px threshold)
+    const isNearEnd = scrollX + scrollViewWidth >= contentWidth - 50;
+    setIsAtEnd(isNearEnd);
+  };
 
   const cards = [
     {
@@ -112,7 +125,9 @@ export default function StatsCarousel({ navigation }: any) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Your Progress</Text>
-        <Text style={styles.sectionSubtitle}>Swipe to see more →</Text>
+        <Text style={styles.sectionSubtitle}>
+          {isAtEnd ? '← Swipe to see more' : 'Swipe to see more →'}
+        </Text>
       </View>
 
       <ScrollView
@@ -124,6 +139,8 @@ export default function StatsCarousel({ navigation }: any) {
         snapToInterval={CARD_WIDTH + CARD_SPACING}
         contentContainerStyle={styles.scrollContent}
         style={styles.scrollView}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {cards.map((card, index) => (
           <CompactStatCard

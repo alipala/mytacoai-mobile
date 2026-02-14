@@ -21,6 +21,14 @@ import EnhancedTodaysProgressCard from './EnhancedTodaysProgressCard';
 import RecentPerformanceCard from './RecentPerformanceCard';
 import LifetimeProgressCard from './LifetimeProgressCard';
 import WelcomeBackCard from './WelcomeBackCard';
+import TopLanguagesCard from './TopLanguagesCard';
+import TopChallengeTypesCard from './TopChallengeTypesCard';
+import ByLanguageTodayCard from './ByLanguageTodayCard';
+import ByChallengeTypeTodayCard from './ByChallengeTypeTodayCard';
+import ByCEFRLevelTodayCard from './ByCEFRLevelTodayCard';
+import TodaysSeparatorCard from './TodaysSeparatorCard';
+import AccuracyTrendSeparatorCard from './AccuracyTrendSeparatorCard';
+import LifetimeSeparatorCard from './LifetimeSeparatorCard';
 import { useDailyStats, useRecentPerformance, useLifetimeProgress } from '../hooks/useStats';
 
 const { width } = Dimensions.get('window');
@@ -35,13 +43,17 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
   const navigation = useNavigation();
   const scrollViewRef = useRef<ScrollView>(null);
   const arrowAnim = useRef(new Animated.Value(0)).current;
+  const [isAtEnd, setIsAtEnd] = React.useState(false);
 
   // Fetch user stats
   const { daily } = useDailyStats(true);
-  const { recent } = useRecentPerformance(7, true);
-  const { lifetime } = useLifetimeProgress(false, true);
+  const { recent, isLoading: recentLoading } = useRecentPerformance(7, true);
+  const { lifetime, isLoading: lifetimeLoading } = useLifetimeProgress(false, true);
 
-  // Determine user activity state
+  // Wait for initial data load to determine layout (prevents hook count mismatch)
+  const isLoadingInitialData = (recentLoading && !recent) || (lifetimeLoading && !lifetime);
+
+  // Determine user activity state (only after data loads)
   const hasRecentActivity = recent && recent.summary && recent.summary.total_challenges > 0;
   const hasLifetimeData = lifetime && lifetime.summary && lifetime.summary.total_challenges > 0;
 
@@ -126,24 +138,61 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
     onRefresh();
   };
 
+  // Handle scroll to detect when at end
+  const handleScroll = (event: any) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const scrollX = contentOffset.x;
+    const scrollViewWidth = layoutMeasurement.width;
+    const contentWidth = contentSize.width;
+
+    // Check if scrolled close to the end (within 50px threshold)
+    const isNearEnd = scrollX + scrollViewWidth >= contentWidth - 50;
+    setIsAtEnd(isNearEnd);
+  };
+
+  // Show nothing while determining layout (prevents hook count mismatch)
+  if (isLoadingInitialData) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, isAtEnd && styles.headerLeft]}>
         <View style={styles.swipeIndicator}>
+          {isAtEnd && (
+            <Animated.Text
+              style={[
+                styles.animatedArrow,
+                {
+                  opacity: arrowOpacity,
+                  transform: [{
+                    translateX: arrowAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -8],
+                    })
+                  }],
+                },
+              ]}
+            >
+              ←
+            </Animated.Text>
+          )}
           <Text style={styles.sectionSubtitle}>
             {isInactive ? 'Swipe for detailed stats' : 'Swipe to see more'}
           </Text>
-          <Animated.Text
-            style={[
-              styles.animatedArrow,
-              {
-                opacity: arrowOpacity,
-                transform: [{ translateX: arrowTranslateX }],
-              },
-            ]}
-          >
-            →
-          </Animated.Text>
+          {!isAtEnd && (
+            <Animated.Text
+              style={[
+                styles.animatedArrow,
+                {
+                  opacity: arrowOpacity,
+                  transform: [{ translateX: arrowTranslateX }],
+                },
+              ]}
+            >
+              →
+            </Animated.Text>
+          )}
         </View>
       </View>
 
@@ -156,6 +205,8 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
         snapToInterval={CARD_WIDTH + CARD_SPACING}
         contentContainerStyle={styles.scrollContent}
         style={styles.scrollView}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {isInactive ? (
           // Inactive user with history: Show WelcomeBack + Lifetime (2 cards)
@@ -178,14 +229,49 @@ export default function HorizontalStatsCarousel({ onRefresh }: HorizontalStatsCa
             </View>
           </>
         ) : (
-          // Active user: Show all 3 cards (Daily → Recent → Lifetime)
+          // Active user: Show all cards with separators (Separator → Daily → By Language → By Type → By Level → Separator → Accuracy → Separator → Top Languages → Top Types → Lifetime)
           <>
+            {/* TODAY'S PROGRESS SECTION */}
+            <View style={styles.cardWrapper}>
+              <TodaysSeparatorCard />
+            </View>
+
             <View style={styles.cardWrapper}>
               <EnhancedTodaysProgressCard onRefresh={onRefresh} />
             </View>
 
             <View style={styles.cardWrapper}>
-              <RecentPerformanceCard onRefresh={onRefresh} initiallyExpanded={true} maxDays={4} />
+              <ByLanguageTodayCard onRefresh={onRefresh} />
+            </View>
+
+            <View style={styles.cardWrapper}>
+              <ByChallengeTypeTodayCard onRefresh={onRefresh} />
+            </View>
+
+            <View style={styles.cardWrapper}>
+              <ByCEFRLevelTodayCard onRefresh={onRefresh} />
+            </View>
+
+            {/* ACCURACY TREND SECTION */}
+            <View style={styles.cardWrapper}>
+              <AccuracyTrendSeparatorCard />
+            </View>
+
+            <View style={styles.cardWrapper}>
+              <RecentPerformanceCard onRefresh={onRefresh} initiallyExpanded={true} maxDays={5} />
+            </View>
+
+            {/* LIFETIME PROGRESS SECTION */}
+            <View style={styles.cardWrapper}>
+              <LifetimeSeparatorCard />
+            </View>
+
+            <View style={styles.cardWrapper}>
+              <TopLanguagesCard onRefresh={onRefresh} />
+            </View>
+
+            <View style={styles.cardWrapper}>
+              <TopChallengeTypesCard onRefresh={onRefresh} />
             </View>
 
             <View style={styles.cardWrapper}>
@@ -207,6 +293,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40, // Compensate for negative margin + add own padding
     marginBottom: 8,
     alignItems: 'flex-end',
+  },
+  headerLeft: {
+    alignItems: 'flex-start',
   },
   swipeIndicator: {
     flexDirection: 'row',

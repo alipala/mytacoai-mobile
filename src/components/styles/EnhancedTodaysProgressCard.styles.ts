@@ -1,8 +1,9 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const MAX_CARD_HEIGHT = height * 0.5; // Half of screen height
 
-export { width };
+export { width, MAX_CARD_HEIGHT };
 
 export const styles = StyleSheet.create({
   container: {
@@ -10,6 +11,7 @@ export const styles = StyleSheet.create({
     marginBottom: 0,
     borderRadius: 20,
     overflow: 'hidden',
+    height: MAX_CARD_HEIGHT,
   },
   gradient: {
     borderRadius: 20,
@@ -26,6 +28,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
+    height: MAX_CARD_HEIGHT,
   },
   header: {
     flexDirection: 'row',
@@ -55,7 +58,6 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 6,
     marginHorizontal: 3,
-    borderWidth: 2,
   },
   statValue: {
     fontSize: 24,
@@ -126,9 +128,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(17, 24, 39, 0.6)',
     borderRadius: 10,
-    marginTop: 8,
   },
   breakdownLeft: {
     flex: 1,
@@ -153,7 +153,6 @@ export const styles = StyleSheet.create({
     marginBottom: 2,
   },
   breakdownXP: {
-    backgroundColor: 'rgba(20, 184, 166, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -161,7 +160,21 @@ export const styles = StyleSheet.create({
   breakdownXPText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#14B8A6',
+  },
+  breakdownItemContainer: {
+    marginTop: 8,
+  },
+  breakdownProgressBar: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 2,
+    marginTop: 6,
+    marginHorizontal: 12,
+    overflow: 'hidden',
+  },
+  breakdownProgressFill: {
+    height: '100%',
+    borderRadius: 2,
   },
   milestoneContainer: {
     marginTop: 12,

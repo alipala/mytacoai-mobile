@@ -172,26 +172,25 @@ export default function ComprehensiveCarousel({
 
             <Text style={styles.questSubtitle}>Pick your learning adventure!</Text>
 
-            {/* Master Your Plans Option */}
+            {/* Master Your Plans Option - DISABLED (Coming Soon) */}
             <TouchableOpacity
-              style={[
-                styles.questButton,
-                completedPlansCount === 0 && styles.questButtonDisabled,
-              ]}
-              onPress={onMasterPlansPress}
-              activeOpacity={0.8}
-              disabled={completedPlansCount === 0}
+              style={[styles.questButton, styles.questButtonDisabled]}
+              activeOpacity={1}
+              disabled={true}
             >
               <View style={styles.questButtonContent}>
                 <View style={styles.questIcon}>
                   <Text style={styles.questIconEmoji}>👑</Text>
                 </View>
                 <View style={styles.questInfo}>
-                  <Text style={styles.questButtonTitle}>📚 Master Your Plans</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={styles.questButtonTitle}>📚 Master Your Plans</Text>
+                    <View style={styles.comingSoonBadge}>
+                      <Text style={styles.comingSoonText}>COMING SOON</Text>
+                    </View>
+                  </View>
                   <Text style={styles.questButtonSubtitle}>
-                    {completedPlansCount > 0
-                      ? `${completedPlansCount} plan${completedPlansCount > 1 ? 's' : ''} available`
-                      : 'No completed plans yet'}
+                    Practice your completed learning plans
                   </Text>
                 </View>
               </View>

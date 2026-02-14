@@ -33,19 +33,11 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
   const { t } = useTranslation();
   const { daily, isLoading, error, refetchDaily } = useDailyStats(true);
 
-  // Expandable sections state
-  const [expandedSection, setExpandedSection] = useState<'language' | 'type' | 'level' | null>(null);
-
   // Animation values
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const progressBarAnim = useRef(new Animated.Value(0)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
-  const expansionAnims = useRef({
-    language: new Animated.Value(0),
-    type: new Animated.Value(0),
-    level: new Animated.Value(0),
-  }).current;
 
   useEffect(() => {
     // Entry animation
@@ -132,9 +124,26 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     onRefresh?.();
   };
 
+  // Determine what to render (all hooks must be called before this)
+  let contentToRender: 'loading' | 'error' | 'empty' | 'emptyToday' | 'data' = 'data';
+  let isNotFoundError = false;
+
+  if (isLoading && !daily) {
+    contentToRender = 'loading';
+  } else if (error && !daily) {
+    isNotFoundError =
+      error.message.includes('not found') ||
+      error.message.includes('404') ||
+      error.message.includes('Statistics not found');
+    contentToRender = isNotFoundError ? 'empty' : 'error';
+  } else if (!daily) {
+    contentToRender = 'empty';
+  } else if (daily.overall.total_challenges === 0) {
+    contentToRender = 'emptyToday';
+  }
 
   // Loading state
-  if (isLoading && !daily) {
+  if (contentToRender === 'loading') {
     return (
       <View style={styles.container}>
         <View style={styles.whiteCard}>
@@ -147,14 +156,8 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     );
   }
 
-  // Error state (but show empty state for "not found" errors)
-  if (error && !daily) {
-    // Check if it's a "not found" error (new user with no stats)
-    const isNotFoundError =
-      error.message.includes('not found') ||
-      error.message.includes('404') ||
-      error.message.includes('Statistics not found');
-
+  // Empty state for new users
+  if (contentToRender === 'empty') {
     if (isNotFoundError) {
       // Show motivational banner for new users
       return (
@@ -224,14 +227,19 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
       );
     }
 
-    // Show error state for actual errors
+    // No data fallback
+    return null;
+  }
+
+  // Error state
+  if (contentToRender === 'error') {
     return (
       <View style={styles.container}>
         <View style={styles.whiteCard}>
           <View style={styles.errorContainer}>
             <Text style={styles.errorEmoji}>⚠️</Text>
             <Text style={styles.errorTitle}>Could not load stats</Text>
-            <Text style={styles.errorMessage}>{error.message}</Text>
+            <Text style={styles.errorMessage}>{error?.message}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
@@ -241,13 +249,8 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
     );
   }
 
-  // No data state
-  if (!daily) {
-    return null;
-  }
-
   // Empty state (no activity today) - Motivational banner with streak urgency
-  if (daily.overall.total_challenges === 0) {
+  if (contentToRender === 'emptyToday') {
     const hasStreak = daily.streak.current > 0;
 
     return (
@@ -379,11 +382,11 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           {/* Challenges Completed */}
-          <View style={[styles.statBox, { backgroundColor: 'rgba(20, 184, 166, 0.15)', borderColor: '#14B8A6' }]}>
-            <Text style={[styles.statValue, { color: '#14B8A6' }]}>
+          <View style={[styles.statBox, { backgroundColor: '#10B981', borderWidth: 0 }]}>
+            <Text style={[styles.statValue, { color: '#FFFFFF' }]}>
               {daily.overall.total_challenges}
             </Text>
-            <Text style={[styles.statLabel, { color: '#14B8A6' }]}>Completed</Text>
+            <Text style={[styles.statLabel, { color: '#FFFFFF' }]}>Completed</Text>
           </View>
 
           {/* Accuracy */}
@@ -391,33 +394,28 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
             style={[
               styles.statBox,
               {
-                backgroundColor:
-                  accuracyColor === '#10B981'
-                    ? 'rgba(16, 185, 129, 0.15)'
-                    : accuracyColor === '#F59E0B'
-                    ? 'rgba(245, 158, 11, 0.15)'
-                    : 'rgba(239, 68, 68, 0.15)',
-                borderColor: accuracyColor,
+                backgroundColor: '#8B5CF6',
+                borderWidth: 0,
               },
             ]}
           >
-            <Text style={[styles.statValue, { color: accuracyColor }]}>
+            <Text style={[styles.statValue, { color: '#FFFFFF' }]}>
               {Math.round(daily.overall.accuracy)}%
             </Text>
-            <Text style={[styles.statLabel, { color: accuracyColor }]}>Accuracy</Text>
+            <Text style={[styles.statLabel, { color: '#FFFFFF' }]}>Accuracy</Text>
           </View>
 
           {/* Streak */}
-          <View style={[styles.statBox, { backgroundColor: 'rgba(251, 191, 36, 0.15)', borderColor: '#FCD34D' }]}>
+          <View style={[styles.statBox, { backgroundColor: '#FFD63A', borderWidth: 0 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               {Array.from({ length: streakIcon.count }).map((_, i) => (
-                <Ionicons key={i} name={streakIcon.name as any} size={16} color="#FCD34D" />
+                <Ionicons key={i} name={streakIcon.name as any} size={16} color="#0F1B2D" />
               ))}
-              <Text style={[styles.statValue, { color: '#FCD34D' }]}>
+              <Text style={[styles.statValue, { color: '#0F1B2D' }]}>
                 {daily.streak.current}
               </Text>
             </View>
-            <Text style={[styles.statLabel, { color: '#FCD34D' }]}>Day Streak</Text>
+            <Text style={[styles.statLabel, { color: '#0F1B2D' }]}>Day Streak</Text>
           </View>
         </View>
 
@@ -442,41 +440,6 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
           </Text>
         </View>
 
-        {/* Expandable Breakdowns */}
-        {Object.keys(daily.by_language).length > 0 && (
-          <ExpandableSection
-            title="By Language"
-            iconName="globe-outline"
-            items={daily.by_language}
-            expanded={expandedSection === 'language'}
-            onToggle={() => toggleSection('language')}
-            animValue={expansionAnims.language}
-          />
-        )}
-
-        {Object.keys(daily.by_type).length > 0 && (
-          <ExpandableSection
-            title="By Challenge Type"
-            iconName="trophy-outline"
-            items={daily.by_type}
-            expanded={expandedSection === 'type'}
-            onToggle={() => toggleSection('type')}
-            animValue={expansionAnims.type}
-            formatKey={formatChallengeType}
-          />
-        )}
-
-        {Object.keys(daily.by_level).length > 0 && (
-          <ExpandableSection
-            title="By CEFR Level"
-            iconName="bar-chart-outline"
-            items={daily.by_level}
-            expanded={expandedSection === 'level'}
-            onToggle={() => toggleSection('level')}
-            animValue={expansionAnims.level}
-          />
-        )}
-
         {/* Streak Milestone */}
         {daily.streak.next_milestone && (
           <View style={styles.milestoneContainer}>
@@ -491,99 +454,5 @@ export default function EnhancedTodaysProgressCard({ onRefresh }: EnhancedTodays
       </View>
     </Animated.View>
   );
-}
-
-// Expandable Section Component
-interface ExpandableSectionProps {
-  title: string;
-  iconName: string;
-  items: Record<string, DailyStatsBreakdown>;
-  expanded: boolean;
-  onToggle: () => void;
-  animValue: Animated.Value;
-  formatKey?: (key: string) => string;
-}
-
-function ExpandableSection({
-  title,
-  iconName,
-  items,
-  expanded,
-  onToggle,
-  animValue,
-  formatKey = (k) => k.charAt(0).toUpperCase() + k.slice(1),
-}: ExpandableSectionProps) {
-  const maxHeight = animValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 250],
-  });
-
-  const getAccuracyColor = (accuracy: number): string => {
-    if (accuracy >= 85) return '#10B981';
-    if (accuracy >= 70) return '#F59E0B';
-    return '#EF4444';
-  };
-
-  return (
-    <View style={styles.expandableSection}>
-      <TouchableOpacity style={styles.sectionHeader} onPress={onToggle}>
-        <View style={styles.sectionHeaderLeft}>
-          <Ionicons name={iconName as any} size={18} color="#14B8A6" style={{ marginRight: 8 }} />
-          <Text style={styles.sectionTitle}>{title}</Text>
-        </View>
-        <Ionicons name={expanded ? "chevron-down" : "chevron-forward"} size={16} color="#9CA3AF" />
-      </TouchableOpacity>
-
-      <Animated.View style={[{ maxHeight, overflow: 'hidden' }]}>
-        <ScrollView
-          style={styles.sectionContent}
-          nestedScrollEnabled={true}
-          showsVerticalScrollIndicator={false}
-        >
-        {Object.entries(items)
-          .filter(([key]) => key !== 'unknown') // Filter out "unknown" entries
-          .map(([key, data]) => {
-          // Safety check: ensure data object exists and has required fields
-          if (!data || typeof data !== 'object') {
-            return null;
-          }
-
-          const accuracy = data.accuracy ?? 0;
-          const correct = data.correct ?? 0;
-          const challenges = data.challenges ?? 0;
-          const xp = data.xp ?? 0;
-          const accuracyColor = getAccuracyColor(accuracy);
-
-          return (
-            <View key={key} style={styles.breakdownItem}>
-              <View style={styles.breakdownLeft}>
-                <Text style={styles.breakdownKey}>{formatKey(key)}</Text>
-                <Text style={styles.breakdownDetail}>
-                  {correct}/{challenges} correct
-                </Text>
-              </View>
-              <View style={styles.breakdownRight}>
-                <Text style={[styles.breakdownAccuracy, { color: accuracyColor }]}>
-                  {Math.round(accuracy)}%
-                </Text>
-                <View style={styles.breakdownXP}>
-                  <Text style={styles.breakdownXPText}>{xp} XP</Text>
-                </View>
-              </View>
-            </View>
-          );
-        })}
-        </ScrollView>
-      </Animated.View>
-    </View>
-  );
-}
-
-// Helper function to format challenge type names
-function formatChallengeType(type: string): string {
-  return type
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
 }
 

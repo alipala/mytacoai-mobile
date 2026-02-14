@@ -40,6 +40,7 @@ import { useChallengeSession } from '../../../contexts/ChallengeSessionContext';
 import { calculateXP } from '../../../services/xpCalculator';
 import { createBreathingAnimation } from '../../../animations/UniversalFeedback';
 import { useAudio } from '../../../hooks/useAudio';
+import FullScreenCelebration from '../../../components/FullScreenCelebration';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -64,6 +65,7 @@ export default function MicroQuizScreen({
   const [xpValue, setXPValue] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(0);
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const { session } = useChallengeSession();
   const { characterState, reactToAnswer, reactToSelection } = useCharacterState();
@@ -87,6 +89,7 @@ export default function MicroQuizScreen({
     setShowFeedback(false);
     setShowXPAnimation(false);
     setIsAdvancing(false);
+    setShowCelebration(false);
     backgroundOpacity.value = 0;
   }, [challenge.id]);
 
@@ -141,6 +144,9 @@ export default function MicroQuizScreen({
 
         // Show XP animation
         setShowXPAnimation(true);
+
+        // Show full-screen celebration animation
+        setShowCelebration(true);
 
         // Background success glow
         backgroundOpacity.value = withSequence(
@@ -211,14 +217,7 @@ export default function MicroQuizScreen({
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        {/* Learning Companion - always visible */}
-        <View style={styles.companionContainer}>
-          <LearningCompanion
-            state={characterState}
-            combo={session?.currentCombo || 1}
-            size={showFeedback ? 64 : 80}
-          />
-        </View>
+        {/* Learning Companion - removed, now using full-screen celebration */}
 
         {/* Question container - always visible */}
         {!showFeedback && (
@@ -329,6 +328,12 @@ export default function MicroQuizScreen({
           delay={0}
         />
       )}
+
+      {/* Full Screen Celebration Animation */}
+      <FullScreenCelebration
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+      />
     </View>
   );
 }
@@ -432,17 +437,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   questionContainer: {
-    backgroundColor: 'rgba(139, 92, 246, 0.15)', // Purple tint
-    padding: 20,
+    backgroundColor: '#1F2937', // Solid dark gray background
+    padding: 24,
     borderRadius: 20,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: '#8B5CF6', // Solid purple border
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   question: {
     fontSize: 20,
@@ -456,72 +461,83 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   optionButton: {
-    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card background
+    backgroundColor: '#1F2937', // Solid dark gray
     padding: 18,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: 'rgba(107, 114, 128, 0.3)',
+    borderWidth: 2,
+    borderColor: '#374151', // Visible medium gray border
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 4,
       },
       android: {
-        elevation: 1,
+        elevation: 2,
       },
     }),
   },
   optionSelected: {
-    borderColor: '#14B8A6',
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    borderWidth: 1.5,
+    backgroundColor: '#065F46', // Solid dark teal background
+    borderColor: '#14B8A6', // Bright teal border
+    borderWidth: 2.5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   optionWrong: {
-    borderColor: '#F87171',
-    borderWidth: 2,
-    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    backgroundColor: '#7F1D1D', // Solid dark red background
+    borderColor: '#EF4444', // Bright red border
+    borderWidth: 3,
     ...Platform.select({
       ios: {
         shadowColor: '#DC2626',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.6,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 2,
+        elevation: 6,
       },
     }),
   },
   optionCorrect: {
-    borderColor: '#34D399',
-    borderWidth: 2,
-    backgroundColor: 'rgba(52, 211, 153, 0.15)',
+    backgroundColor: '#064E3B', // Solid dark green background
+    borderColor: '#10B981', // Bright green border
+    borderWidth: 3,
     ...Platform.select({
       ios: {
         shadowColor: '#059669',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.6,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 2,
+        elevation: 6,
       },
     }),
   },
   optionText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#E5E7EB',
+    color: '#F9FAFB', // Bright white for better contrast
     textAlign: 'center',
     lineHeight: 24,
   },
   optionTextWrong: {
-    color: '#FCA5A5',
+    color: '#FECACA', // Lighter red for contrast on dark red background
   },
   optionTextCorrect: {
-    color: '#6EE7B7',
+    color: '#D1FAE5', // Lighter green for contrast on dark green background
   },
   feedbackTitle: {
     fontSize: 24,
