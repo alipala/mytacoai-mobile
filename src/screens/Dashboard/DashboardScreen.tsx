@@ -790,37 +790,32 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 {/* Free User - Action Cards Only (No Header) */}
                 {!isSubscribed && (
                   <View style={styles.freeUserContainer}>
-                    {/* SECONDARY - Quick Practice (Smaller, above primary) */}
+                    {/* SECONDARY - Freestyle Chat (Turquoise) */}
                     <TouchableOpacity
                       style={styles.secondaryCardNew}
                       onPress={handleSelectQuickPractice}
                       activeOpacity={0.9}
                     >
                       <View style={styles.secondaryCardIcon}>
-                        <Ionicons name="mic-circle" size={32} color={COLORS.turquoise} />
+                        <Ionicons name="mic-circle" size={36} color="#FFFFFF" />
                       </View>
                       <View style={styles.secondaryCardText}>
                         <Text style={styles.secondaryCardTitleNew}>{t('dashboard.quick_start.button_freestyle')}</Text>
                         <Text style={styles.secondaryCardSubtitle}>{t('practice.conversation.subtitle')}</Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                      <Ionicons name="chevron-forward" size={22} color="rgba(255, 255, 255, 0.8)" />
                     </TouchableOpacity>
 
-                    {/* PRIMARY - Create Learning Plan (Larger, Turquoise) */}
+                    {/* PRIMARY - Speaking Assessment (Coral Hero Card) */}
                     <TouchableOpacity
                       style={styles.primaryCardNew}
                       onPress={handleCreatePlan}
                       activeOpacity={0.9}
                     >
-                      <LinearGradient
-                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.primaryCardGradientNew}
-                      >
+                      <View style={styles.primaryCardGradientNew}>
                         <View style={styles.primaryCardHeaderNew}>
                           <View style={styles.primaryIconContainerNew}>
-                            <Ionicons name="pulse" size={36} color="#FFFFFF" />
+                            <Ionicons name="pulse" size={32} color="#FFFFFF" />
                           </View>
                         </View>
 
@@ -831,44 +826,48 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                         <View style={styles.primaryFeaturesNew}>
                           <View style={styles.featurePill}>
-                            <Ionicons name="person-outline" size={14} color="rgba(255,255,255,0.95)" />
+                            <Ionicons name="person-outline" size={13} color="#FFFFFF" />
                             <Text style={styles.featurePillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
                           </View>
                           <View style={styles.featurePill}>
-                            <Ionicons name="list-outline" size={14} color="rgba(255,255,255,0.95)" />
+                            <Ionicons name="list-outline" size={13} color="#FFFFFF" />
                             <Text style={styles.featurePillText}>{t('profile.dna.button_track_progress')}</Text>
                           </View>
                           <View style={styles.featurePill}>
-                            <Ionicons name="trophy-outline" size={14} color="rgba(255,255,255,0.95)" />
+                            <Ionicons name="trophy-outline" size={13} color="#FFFFFF" />
                             <Text style={styles.featurePillText}>{t('profile.progress.title')}</Text>
                           </View>
                         </View>
-                      </LinearGradient>
+                      </View>
                     </TouchableOpacity>
 
-                    {/* Usage Limits - Subtle Banner */}
+                    {/* Usage Limits - Amber Banner with Minutes */}
                     <View style={styles.usageLimitsBanner}>
-                      <Ionicons name="time-outline" size={18} color="#FFA955" />
+                      <Ionicons name="time-outline" size={20} color="#F59E0B" />
                       <Text style={styles.usageLimitsText}>
-                        {minutesRemaining > 0
-                          ? t('units.minutes_plural', { count: Math.round(minutesRemaining) })
-                          : t('units.sessions_plural', { count: sessionLimit })
-                        }
+                        {Math.round(minutesRemaining || 0)} minutes remaining
                       </Text>
                     </View>
 
-                    {/* Upgrade Link - More Noticeable */}
-                    <TouchableOpacity
+                    {/* Upgrade Link - Premium Gold Gradient */}
+                    <LinearGradient
+                      colors={['#F59E0B', '#FBBF24', '#FCD34D']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
                       style={styles.upgradeLinkContainer}
-                      onPress={handleUpgradePress}
-                      activeOpacity={0.8}
                     >
-                      <View style={styles.upgradeIconCircle}>
-                        <Ionicons name="sparkles" size={18} color="#FFD63A" />
-                      </View>
-                      <Text style={styles.upgradeLinkText}>{t('subscription.title')}</Text>
-                      <Ionicons name="arrow-forward" size={16} color="#FFD63A" />
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.upgradeLinkInner}
+                        onPress={handleUpgradePress}
+                        activeOpacity={0.8}
+                      >
+                        <View style={styles.upgradeIconCircle}>
+                          <Ionicons name="sparkles" size={20} color="#F59E0B" />
+                        </View>
+                        <Text style={styles.upgradeLinkText}>{t('subscription.title')}</Text>
+                        <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    </LinearGradient>
                   </View>
                 )}
 

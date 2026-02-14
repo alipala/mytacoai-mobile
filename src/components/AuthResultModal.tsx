@@ -80,12 +80,14 @@ export const AuthResultModal: React.FC<AuthResultModalProps> = ({
         }),
       ]).start();
 
-      // Auto-close
-      const timer = setTimeout(() => {
-        handleClose();
-      }, autoCloseDelay);
+      // Auto-close only for error state
+      if (type === 'error') {
+        const timer = setTimeout(() => {
+          handleClose();
+        }, autoCloseDelay);
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+      }
     } else {
       // Reset animations
       fadeAnim.setValue(0);
@@ -136,7 +138,7 @@ export const AuthResultModal: React.FC<AuthResultModalProps> = ({
           <View style={styles.floatingAnimationContainer}>
             {type === 'success' ? (
               <LottieView
-                source={require('../assets/lottie/success_login.json')}
+                source={require('../assets/lottie/Welcome.json')}
                 autoPlay
                 loop={false}
                 style={styles.largeLottie}
@@ -151,18 +153,22 @@ export const AuthResultModal: React.FC<AuthResultModalProps> = ({
             )}
           </View>
 
-          {/* Floating Title */}
-          <Text style={[styles.floatingTitle, { color: type === 'success' ? '#10B981' : '#EF4444' }]}>
-            {title}
-          </Text>
-
-          {/* Welcome Name - Directly on blur background */}
+          {/* Welcome Name - Under animation with consistent design */}
           {userName && type === 'success' && (
-            <Text style={styles.welcomeName}>Welcome, {userName}! 👋</Text>
+            <Text style={styles.welcomeName}>Welcome, {userName}!</Text>
           )}
 
-          {/* Message - Directly on blur background */}
-          <Text style={styles.floatingMessage}>{message}</Text>
+          {/* Floating Title - Only show if not empty */}
+          {title && (
+            <Text style={[styles.floatingTitle, { color: type === 'success' ? '#10B981' : '#EF4444' }]}>
+              {title}
+            </Text>
+          )}
+
+          {/* Message - Directly on blur background - Only show if not empty */}
+          {message && (
+            <Text style={styles.floatingMessage}>{message}</Text>
+          )}
 
           {/* Try Again Button - Only for error state */}
           {type === 'error' && (
@@ -192,15 +198,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   floatingAnimationContainer: {
-    width: 200,
-    height: 200,
+    width: 350,
+    height: 350,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
   largeLottie: {
-    width: 200,
-    height: 200,
+    width: 350,
+    height: 350,
   },
   floatingTitle: {
     fontSize: 36,
@@ -213,15 +219,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   welcomeName: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 12,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    marginTop: 0,
+    marginBottom: 0,
+    textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
+    textShadowRadius: 8,
     paddingHorizontal: 20,
+    letterSpacing: 0.5,
   },
   floatingMessage: {
     fontSize: 18,
