@@ -237,14 +237,18 @@ export const LoginScreen = ({ navigation }: any) => {
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('auth_provider', 'email');
 
-      // Show beautiful success modal
+      // Show beautiful success modal (just animation and userName)
+      const firstName = user.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'User';
       setAuthModalType('success');
-      setAuthModalTitle(t('auth.login.success_welcome_back'));
-      setAuthModalMessage(t('auth.login.success_welcome_back_message'));
-      setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
+      setAuthModalTitle('');
+      setAuthModalMessage('');
+      setAuthModalUserName(firstName);
       setShowAuthModal(true);
 
+      console.log('✅ Showing welcome animation (3s)...');
       setTimeout(() => {
+        console.log('🧭 Navigating to Main screen...');
+        setShowAuthModal(false);
         navigation.replace('Main');
       }, 3000);
 
@@ -411,6 +415,15 @@ export const LoginScreen = ({ navigation }: any) => {
         throw new Error(t('auth.login.error_google_token'));
       }
 
+      // Show welcome animation IMMEDIATELY (before backend calls)
+      setAuthModalType('success');
+      setAuthModalTitle('');
+      setAuthModalMessage('');
+      setAuthModalUserName('');
+      setShowAuthModal(true);
+      console.log('🎬 Showing welcome animation immediately...');
+
+      // Backend calls happen in parallel with animation
       console.log('📡 Calling backend API...');
       const response = await AuthenticationService.googleLoginApiAuthGoogleLoginPost({
         token: userInfo.idToken,
@@ -427,15 +440,16 @@ export const LoginScreen = ({ navigation }: any) => {
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('auth_provider', 'google');
 
-      // Show beautiful success modal
-      setAuthModalType('success');
-      setAuthModalTitle(t('auth.login.success_welcome'));
-      setAuthModalMessage(t('auth.login.success_google_signin'));
-      setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
-      setShowAuthModal(true);
+      // Update modal with user's first name
+      const firstName = user.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'User';
+      setAuthModalUserName(firstName);
+      console.log('✅ Updated welcome name:', firstName);
 
-      console.log('🧭 Navigating to Main screen...');
+      console.log('✅ Backend setup complete, waiting for animation...');
+      // Navigate after animation completes (3s total from when modal showed)
       setTimeout(() => {
+        console.log('🧭 Navigating to Main screen...');
+        setShowAuthModal(false);
         navigation.replace('Main');
         console.log('✅ Navigation complete');
       }, 3000);
@@ -491,6 +505,15 @@ export const LoginScreen = ({ navigation }: any) => {
       const fullName = credential.fullName;
       const name = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : null;
 
+      // Show welcome animation IMMEDIATELY (before backend calls)
+      setAuthModalType('success');
+      setAuthModalTitle('');
+      setAuthModalMessage('');
+      setAuthModalUserName('');
+      setShowAuthModal(true);
+      console.log('🎬 Showing welcome animation immediately...');
+
+      // Backend calls happen in parallel with animation
       console.log('📡 Calling backend API...');
 
       // Send to backend
@@ -514,15 +537,17 @@ export const LoginScreen = ({ navigation }: any) => {
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('auth_provider', 'apple');
 
-      // Show beautiful success modal
-      setAuthModalType('success');
-      setAuthModalTitle(t('auth.login.success_welcome'));
-      setAuthModalMessage(t('auth.login.success_apple_signin'));
-      setAuthModalUserName(user.name || user.email?.split('@')[0] || '');
-      setShowAuthModal(true);
+      // Update modal with user's first name
+      const firstName = user.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'User';
+      setAuthModalUserName(firstName);
+      console.log('✅ Updated welcome name:', firstName);
 
-      console.log('🧭 Navigating to Main screen...');
+      console.log('✅ Backend setup complete, waiting for animation...');
+
+      console.log('✅ Showing welcome animation (3s)...');
       setTimeout(() => {
+        console.log('🧭 Navigating to Main screen...');
+        setShowAuthModal(false);
         navigation.replace('Main');
         console.log('✅ Navigation complete');
       }, 3000);
