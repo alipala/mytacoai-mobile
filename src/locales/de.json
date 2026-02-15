@@ -159,7 +159,7 @@
       "days_plural": "{{count}} Tage Serie"
     },
     "new_user": {
-      "subtitle": "Beginnen wir deine {{language}}-Reise",
+      "subtitle": "Deine Sprechreise beginnt hier",
       "assessment_title": "Mach deine Sprechbewertung",
       "assessment_subtitle": "Führe ein 5-minütiges KI-Gespräch und entdecke dein Sprachniveau",
       "assessment_button": "Jetzt starten",
@@ -168,11 +168,11 @@
       "badge_ai": "KI-gestützt",
       "how_it_works_title": "So funktioniert's",
       "step1_title": "Sprich",
-      "step1_desc": "Chatte mit KI auf {{language}}",
+      "step1_desc": "Führe echte Gespräche mit KI",
       "step2_title": "Feedback",
-      "step2_desc": "Sieh deine Stärken und Verbesserungsbereiche",
+      "step2_desc": "Entdecke deine Stärken & Wachstumsbereiche",
       "step3_title": "Verbessere dich",
-      "step3_desc": "Erhalte einen persönlichen Lernplan",
+      "step3_desc": "Folge deinem persönlichen Lernplan",
       "quick_practice_link": "Oder starte direkt ein freies Gespräch",
       "upgrade_banner": "Unbegrenzt üben — Teste Premium 7 Tage kostenlos"
     }

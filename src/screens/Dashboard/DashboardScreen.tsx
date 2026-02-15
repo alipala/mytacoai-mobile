@@ -779,9 +779,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   {getTimeBasedGreeting()}
                 </Text>
                 <Text style={styles.newUserSubtitle}>
-                  {t('dashboard.new_user.subtitle', {
-                    language: t(`practice.conversation.languages.${userLanguage}`, { defaultValue: userLanguage })
-                  })}
+                  {t('dashboard.new_user.subtitle')}
                 </Text>
               </View>
 
@@ -841,59 +839,82 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </LinearGradient>
               </TouchableOpacity>
 
-              {/* Section 3: How It Works - 3-Step Guide */}
+              {/* Section 3: How It Works - Horizontal Colored Cards */}
               <View style={styles.newUserHowItWorks}>
                 <Text style={styles.newUserHowItWorksTitle}>
                   {t('dashboard.new_user.how_it_works_title')}
                 </Text>
-                <View style={styles.newUserStepsContainer}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.newUserStepsScroll}
+                  decelerationRate="fast"
+                  snapToInterval={156}
+                  snapToAlignment="start"
+                >
                   {/* Step 1: Speak */}
-                  <View style={styles.newUserStep}>
-                    <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(78, 207, 191, 0.15)' }]}>
-                      <Ionicons name="mic" size={24} color="#4ECFBF" />
+                  <LinearGradient
+                    colors={['#0D9488', '#0F766E']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.newUserStepCard}
+                  >
+                    <View style={styles.newUserStepCardNumber}>
+                      <Text style={styles.newUserStepCardNumberText}>1</Text>
                     </View>
-                    <View style={styles.newUserStepTextContainer}>
-                      <Text style={styles.newUserStepTitle}>
-                        {t('dashboard.new_user.step1_title')}
-                      </Text>
-                      <Text style={styles.newUserStepDesc}>
-                        {t('dashboard.new_user.step1_desc', {
-                          language: t(`practice.conversation.languages.${userLanguage}`, { defaultValue: userLanguage })
-                        })}
-                      </Text>
+                    <View style={styles.newUserStepCardIconWrap}>
+                      <Ionicons name="mic" size={28} color="#FFFFFF" />
                     </View>
-                  </View>
+                    <Text style={styles.newUserStepCardTitle}>
+                      {t('dashboard.new_user.step1_title')}
+                    </Text>
+                    <Text style={styles.newUserStepCardDesc}>
+                      {t('dashboard.new_user.step1_desc')}
+                    </Text>
+                  </LinearGradient>
 
                   {/* Step 2: Get Feedback */}
-                  <View style={styles.newUserStep}>
-                    <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(255, 214, 58, 0.15)' }]}>
-                      <Ionicons name="analytics" size={24} color="#FFD63A" />
+                  <LinearGradient
+                    colors={['#D97706', '#B45309']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.newUserStepCard}
+                  >
+                    <View style={styles.newUserStepCardNumber}>
+                      <Text style={styles.newUserStepCardNumberText}>2</Text>
                     </View>
-                    <View style={styles.newUserStepTextContainer}>
-                      <Text style={styles.newUserStepTitle}>
-                        {t('dashboard.new_user.step2_title')}
-                      </Text>
-                      <Text style={styles.newUserStepDesc}>
-                        {t('dashboard.new_user.step2_desc')}
-                      </Text>
+                    <View style={styles.newUserStepCardIconWrap}>
+                      <Ionicons name="analytics" size={28} color="#FFFFFF" />
                     </View>
-                  </View>
+                    <Text style={styles.newUserStepCardTitle}>
+                      {t('dashboard.new_user.step2_title')}
+                    </Text>
+                    <Text style={styles.newUserStepCardDesc}>
+                      {t('dashboard.new_user.step2_desc')}
+                    </Text>
+                  </LinearGradient>
 
                   {/* Step 3: Improve */}
-                  <View style={styles.newUserStep}>
-                    <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(255, 169, 85, 0.15)' }]}>
-                      <Ionicons name="rocket" size={24} color="#FFA955" />
+                  <LinearGradient
+                    colors={['#7C3AED', '#6D28D9']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.newUserStepCard}
+                  >
+                    <View style={styles.newUserStepCardNumber}>
+                      <Text style={styles.newUserStepCardNumberText}>3</Text>
                     </View>
-                    <View style={styles.newUserStepTextContainer}>
-                      <Text style={styles.newUserStepTitle}>
-                        {t('dashboard.new_user.step3_title')}
-                      </Text>
-                      <Text style={styles.newUserStepDesc}>
-                        {t('dashboard.new_user.step3_desc')}
-                      </Text>
+                    <View style={styles.newUserStepCardIconWrap}>
+                      <Ionicons name="rocket" size={28} color="#FFFFFF" />
                     </View>
-                  </View>
-                </View>
+                    <Text style={styles.newUserStepCardTitle}>
+                      {t('dashboard.new_user.step3_title')}
+                    </Text>
+                    <Text style={styles.newUserStepCardDesc}>
+                      {t('dashboard.new_user.step3_desc')}
+                    </Text>
+                  </LinearGradient>
+                </ScrollView>
               </View>
 
               {/* Section 4: Secondary Option - Quick Practice Link */}

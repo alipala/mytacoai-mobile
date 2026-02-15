@@ -159,7 +159,7 @@
       "days_plural": "{{count}} días de racha"
     },
     "new_user": {
-      "subtitle": "Comencemos tu viaje en {{language}}",
+      "subtitle": "Tu viaje de conversación empieza aquí",
       "assessment_title": "Realiza tu evaluación oral",
       "assessment_subtitle": "Ten una conversación de 5 minutos con IA y descubre tu nivel",
       "assessment_button": "Comenzar ahora",
@@ -168,11 +168,11 @@
       "badge_ai": "Con IA",
       "how_it_works_title": "Cómo funciona",
       "step1_title": "Habla",
-      "step1_desc": "Chatea con IA en {{language}}",
+      "step1_desc": "Ten conversaciones reales con IA",
       "step2_title": "Recibe feedback",
       "step2_desc": "Descubre tus fortalezas y áreas de mejora",
       "step3_title": "Mejora",
-      "step3_desc": "Obtén un plan de aprendizaje personalizado",
+      "step3_desc": "Sigue tu plan de aprendizaje personalizado",
       "quick_practice_link": "O inicia directamente una conversación libre",
       "upgrade_banner": "Desbloquea práctica ilimitada — Prueba Premium gratis por 7 días"
     }

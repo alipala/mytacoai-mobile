@@ -159,7 +159,7 @@
       "days_plural": "{{count}} days streak"
     },
     "new_user": {
-      "subtitle": "Let's start your {{language}} journey",
+      "subtitle": "Your speaking journey starts here",
       "assessment_title": "Take Your Speaking Assessment",
       "assessment_subtitle": "Have a 5-minute AI conversation and discover your speaking level",
       "assessment_button": "Start Now",
@@ -168,11 +168,11 @@
       "badge_ai": "AI-powered",
       "how_it_works_title": "How It Works",
       "step1_title": "Speak",
-      "step1_desc": "Chat with AI in {{language}}",
+      "step1_desc": "Have real conversations with AI",
       "step2_title": "Get Feedback",
-      "step2_desc": "See your strengths and areas to grow",
+      "step2_desc": "Discover your strengths & growth areas",
       "step3_title": "Improve",
-      "step3_desc": "Get a personal learning plan",
+      "step3_desc": "Follow your personal learning plan",
       "quick_practice_link": "Or jump straight into a free conversation",
       "upgrade_banner": "Unlock unlimited practice — Try Premium free for 7 days"
     }

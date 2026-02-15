@@ -1466,10 +1466,9 @@ export const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
   },
 
-  // How It Works Section — Horizontal row of cards
+  // How It Works Section — Horizontal scrollable colored cards
   newUserHowItWorks: {
     marginTop: 28,
-    paddingHorizontal: 20,
     width: '100%',
   },
   newUserHowItWorksTitle: {
@@ -1478,42 +1477,52 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
+    paddingHorizontal: 20,
   },
-  newUserStepsContainer: {
+  newUserStepsScroll: {
+    paddingHorizontal: 20,
     gap: 12,
   },
-  newUserStep: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(20, 184, 166, 0.06)',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.15)',
-    gap: 14,
+  newUserStepCard: {
+    width: 144,
+    borderRadius: 20,
+    padding: 16,
+    justifyContent: 'flex-start',
   },
-  newUserStepIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+  newUserStepCardNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 12,
   },
-  newUserStepTextContainer: {
-    flex: 1,
-  },
-  newUserStepTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  newUserStepDesc: {
+  newUserStepCardNumberText: {
     fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  newUserStepCardIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  newUserStepCardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  newUserStepCardDesc: {
+    fontSize: 12,
     fontWeight: '500',
-    color: '#9CA3AF',
-    lineHeight: 18,
+    color: 'rgba(255, 255, 255, 0.85)',
+    lineHeight: 16,
   },
 
   // Secondary Link
