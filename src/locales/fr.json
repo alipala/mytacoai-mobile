@@ -160,8 +160,8 @@
     },
     "new_user": {
       "subtitle": "Votre parcours oral commence ici",
-      "assessment_title": "Passez votre évaluation orale",
-      "assessment_subtitle": "Ayez une conversation de 5 minutes avec l'IA et découvrez votre niveau",
+      "assessment_title": "Découvrez votre niveau",
+      "assessment_subtitle": "Conversation de 5 min avec l'IA pour évaluer votre oral",
       "assessment_button": "Commencer",
       "badge_speaking": "Oral",
       "badge_duration": "~5 min",

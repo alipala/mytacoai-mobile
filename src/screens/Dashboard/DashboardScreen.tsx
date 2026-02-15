@@ -45,6 +45,7 @@ import { DNAAnalysisCard } from '../../components/DNAAnalysisCard';
 import { PracticeSessionDetailsModal } from '../../components/PracticeSessionDetailsModal';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { API_BASE_URL } from '../../api/config';
+import LottieView from 'lottie-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -783,14 +784,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 activeOpacity={0.9}
               >
                 <LinearGradient
-                  colors={['#14B8A6', '#0D9488', '#1F2937']}
-                  start={{ x: 0.5, y: 0 }}
-                  end={{ x: 0.5, y: 1 }}
+                  colors={['#1A103C', '#0F1B2E', '#0B1420']}
+                  start={{ x: 0.2, y: 0 }}
+                  end={{ x: 0.8, y: 1 }}
                   style={styles.newUserPrimaryGradient}
                 >
-                  <View style={styles.newUserPrimaryIconContainer}>
-                    <Ionicons name="chatbubble-ellipses" size={36} color="#FFFFFF" />
-                  </View>
+                  <LottieView
+                    source={require('../../assets/lottie/companion_idle2.json')}
+                    autoPlay
+                    loop
+                    style={styles.newUserPrimaryLottie}
+                  />
                   <Text style={styles.newUserPrimaryTitle}>
                     {t('dashboard.new_user.assessment_title')}
                   </Text>
@@ -807,28 +811,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       {t('dashboard.new_user.assessment_button')} →
                     </Text>
                   </TouchableOpacity>
-
-                  {/* Bottom metadata row */}
-                  <View style={styles.newUserPrimaryMeta}>
-                    <View style={styles.newUserMetaBadge}>
-                      <Ionicons name="mic-outline" size={13} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.newUserMetaText}>
-                        {t('dashboard.new_user.badge_speaking')}
-                      </Text>
-                    </View>
-                    <View style={styles.newUserMetaBadge}>
-                      <Ionicons name="time-outline" size={13} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.newUserMetaText}>
-                        {t('dashboard.new_user.badge_duration')}
-                      </Text>
-                    </View>
-                    <View style={styles.newUserMetaBadge}>
-                      <Ionicons name="sparkles-outline" size={13} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.newUserMetaText}>
-                        {t('dashboard.new_user.badge_ai')}
-                      </Text>
-                    </View>
-                  </View>
                 </LinearGradient>
               </TouchableOpacity>
 

@@ -160,8 +160,8 @@
     },
     "new_user": {
       "subtitle": "Konuşma yolculuğun burada başlıyor",
-      "assessment_title": "Konuşma Değerlendirmeni Yap",
-      "assessment_subtitle": "5 dakikalık bir yapay zeka sohbeti yap ve konuşma seviyeni keşfet",
+      "assessment_title": "Seviyeni Keşfet",
+      "assessment_subtitle": "Konuşmanı değerlendirmek için 5 dk yapay zeka sohbeti",
       "assessment_button": "Şimdi Başla",
       "badge_speaking": "Konuşma",
       "badge_duration": "~5 dk",

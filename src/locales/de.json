@@ -160,8 +160,8 @@
     },
     "new_user": {
       "subtitle": "Deine Sprechreise beginnt hier",
-      "assessment_title": "Mach deine Sprechbewertung",
-      "assessment_subtitle": "Führe ein 5-minütiges KI-Gespräch und entdecke dein Sprachniveau",
+      "assessment_title": "Entdecke dein Niveau",
+      "assessment_subtitle": "5-min KI-Gespräch zur Bewertung deines Sprechens",
       "assessment_button": "Jetzt starten",
       "badge_speaking": "Sprechen",
       "badge_duration": "~5 Min",

@@ -160,8 +160,8 @@
     },
     "new_user": {
       "subtitle": "Je spreekreis begint hier",
-      "assessment_title": "Doe je spreekbeoordeling",
-      "assessment_subtitle": "Voer een 5-minuten AI-gesprek en ontdek je spreekvaardigheidsniveau",
+      "assessment_title": "Ontdek je niveau",
+      "assessment_subtitle": "5 min AI-gesprek om je spreekniveau te bepalen",
       "assessment_button": "Nu starten",
       "badge_speaking": "Spreken",
       "badge_duration": "~5 min",

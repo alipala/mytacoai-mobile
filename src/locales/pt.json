@@ -160,8 +160,8 @@
     },
     "new_user": {
       "subtitle": "Sua jornada de conversação começa aqui",
-      "assessment_title": "Faça sua avaliação oral",
-      "assessment_subtitle": "Tenha uma conversa de 5 minutos com IA e descubra seu nível",
+      "assessment_title": "Descubra seu nível",
+      "assessment_subtitle": "Conversa de 5 min com IA para avaliar sua fala",
       "assessment_button": "Começar agora",
       "badge_speaking": "Fala",
       "badge_duration": "~5 min",

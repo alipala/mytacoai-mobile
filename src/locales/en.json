@@ -160,8 +160,8 @@
     },
     "new_user": {
       "subtitle": "Your speaking journey starts here",
-      "assessment_title": "Take Your Speaking Assessment",
-      "assessment_subtitle": "Have a 5-minute AI conversation and discover your speaking level",
+      "assessment_title": "Discover Your Level",
+      "assessment_subtitle": "5-min AI conversation to assess your speaking",
       "assessment_button": "Start Now",
       "badge_speaking": "Speaking",
       "badge_duration": "~5 min",
