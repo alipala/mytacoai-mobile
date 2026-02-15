@@ -45,7 +45,6 @@ import { DNAAnalysisCard } from '../../components/DNAAnalysisCard';
 import { PracticeSessionDetailsModal } from '../../components/PracticeSessionDetailsModal';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { API_BASE_URL } from '../../api/config';
-import LottieView from 'lottie-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -769,12 +768,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
               {/* Section 1: Personalized Welcome */}
               <View style={styles.newUserWelcomeSection}>
-                <LottieView
-                  source={require('../../assets/lottie/companion_idle.json')}
-                  autoPlay
-                  loop
-                  style={styles.newUserLottie}
-                />
                 <Text style={styles.newUserGreeting}>
                   {getTimeBasedGreeting()}
                 </Text>

@@ -1362,10 +1362,6 @@ export const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 8,
   },
-  newUserLottie: {
-    width: 160,
-    height: 160,
-  },
   newUserGreeting: {
     fontSize: 28,
     fontWeight: '800',
