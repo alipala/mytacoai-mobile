@@ -1510,11 +1510,6 @@ export const styles = StyleSheet.create({
   fuelGaugeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  fuelGaugeHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 6,
   },
   fuelGaugeMinutesText: {
@@ -1523,11 +1518,6 @@ export const styles = StyleSheet.create({
     color: '#14B8A6',
     letterSpacing: 0.1,
   },
-  fuelGaugeFractionText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.35)',
-  },
   fuelGaugeBarTrack: {
     width: '100%',
     height: 8,
@@ -1535,6 +1525,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   fuelGaugeBarFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     height: 8,
     borderRadius: 4,
   },

@@ -929,23 +929,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     onPress={handleUpgradePress}
                     activeOpacity={0.8}
                   >
-                    {/* Header row: icon + status left, fraction right */}
+                    {/* Status line */}
                     <View style={styles.fuelGaugeHeader}>
-                      <View style={styles.fuelGaugeHeaderLeft}>
-                        <Ionicons
-                          name={isEmpty ? 'alert-circle' : isLow ? 'flash' : 'time-outline'}
-                          size={15}
-                          color={barColor}
-                        />
-                        <Text style={[styles.fuelGaugeMinutesText, { color: barColor }]}>
-                          {minutesText}
-                        </Text>
-                      </View>
-                      {!isEmpty && (
-                        <Text style={styles.fuelGaugeFractionText}>
-                          {minutesLeft}/{totalMinutes}
-                        </Text>
-                      )}
+                      <Ionicons
+                        name={isEmpty ? 'alert-circle' : isLow ? 'flash' : 'time-outline'}
+                        size={15}
+                        color={barColor}
+                      />
+                      <Text style={[styles.fuelGaugeMinutesText, { color: barColor }]}>
+                        {minutesText}
+                      </Text>
                     </View>
 
                     {/* Progress bar — pixel-based width for reliability */}
