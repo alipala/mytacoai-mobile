@@ -790,13 +790,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 activeOpacity={0.9}
               >
                 <LinearGradient
-                  colors={['#F75A5A', '#FFA955']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  colors={['#14B8A6', '#0D9488', '#1F2937']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
                   style={styles.newUserPrimaryGradient}
                 >
                   <View style={styles.newUserPrimaryIconContainer}>
-                    <Ionicons name="analytics" size={36} color="#FFFFFF" />
+                    <Ionicons name="chatbubble-ellipses" size={36} color="#FFFFFF" />
                   </View>
                   <Text style={styles.newUserPrimaryTitle}>
                     {t('dashboard.new_user.assessment_title')}

@@ -1387,7 +1387,7 @@ export const styles = StyleSheet.create({
     marginTop: 20,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#F75A5A',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
     shadowRadius: 16,
@@ -1441,7 +1441,7 @@ export const styles = StyleSheet.create({
   newUserPrimaryButtonText: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#F75A5A',
+    color: '#0D9488',
     letterSpacing: 0.3,
   },
   newUserPrimaryMeta: {
