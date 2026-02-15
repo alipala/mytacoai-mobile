@@ -1428,23 +1428,6 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 10,
   },
-  newUserButtonContainer: {
-    alignSelf: 'stretch',
-    // Same glow as bottom tab bar
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  newUserPrimaryButton: {
-    backgroundColor: 'rgba(11, 26, 31, 0.95)',
-    paddingVertical: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
-    alignItems: 'center',
-  },
   newUserPrimaryButtonText: {
     fontSize: 17,
     fontWeight: '800',
