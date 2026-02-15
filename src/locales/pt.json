@@ -157,6 +157,24 @@
     "streak": {
       "days": "{{count}} dia de sequência",
       "days_plural": "{{count}} dias de sequência"
+    },
+    "new_user": {
+      "subtitle": "Vamos começar sua jornada em {{language}}",
+      "assessment_title": "Faça sua avaliação oral",
+      "assessment_subtitle": "Tenha uma conversa de 5 minutos com IA e descubra seu nível",
+      "assessment_button": "Começar agora",
+      "badge_speaking": "Fala",
+      "badge_duration": "~5 min",
+      "badge_ai": "Com IA",
+      "how_it_works_title": "Como funciona",
+      "step1_title": "Fale",
+      "step1_desc": "Converse com IA em {{language}}",
+      "step2_title": "Receba feedback",
+      "step2_desc": "Veja seus pontos fortes e áreas para melhorar",
+      "step3_title": "Melhore",
+      "step3_desc": "Receba um plano de aprendizado personalizado",
+      "quick_practice_link": "Ou inicie diretamente uma conversa livre",
+      "upgrade_banner": "Desbloqueie prática ilimitada — Experimente o Premium grátis por 7 dias"
     }
   },
   "practice": {

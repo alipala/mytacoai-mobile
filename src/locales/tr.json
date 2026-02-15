@@ -157,6 +157,24 @@
     "streak": {
       "days": "{{count}} günlük seri",
       "days_plural": "{{count}} günlük seri"
+    },
+    "new_user": {
+      "subtitle": "{{language}} yolculuğunuza başlayalım",
+      "assessment_title": "Konuşma Değerlendirmeni Yap",
+      "assessment_subtitle": "5 dakikalık bir yapay zeka sohbeti yap ve konuşma seviyeni keşfet",
+      "assessment_button": "Şimdi Başla",
+      "badge_speaking": "Konuşma",
+      "badge_duration": "~5 dk",
+      "badge_ai": "Yapay zeka",
+      "how_it_works_title": "Nasıl Çalışır",
+      "step1_title": "Konuş",
+      "step1_desc": "{{language}} dilinde yapay zeka ile sohbet et",
+      "step2_title": "Geri Bildirim Al",
+      "step2_desc": "Güçlü yönlerini ve gelişim alanlarını gör",
+      "step3_title": "Gelişim",
+      "step3_desc": "Kişisel bir öğrenme planı al",
+      "quick_practice_link": "Veya doğrudan serbest bir sohbete başla",
+      "upgrade_banner": "Sınırsız pratik aç — Premium'u 7 gün ücretsiz dene"
     }
   },
   "practice": {
