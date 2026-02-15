@@ -1522,7 +1522,7 @@ export const styles = StyleSheet.create({
     width: '100%',
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: '#1E2E35',
   },
   fuelGaugeBarFill: {
     position: 'absolute',
