@@ -793,6 +793,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     source={require('../../assets/lottie/companion_idle2.json')}
                     autoPlay
                     loop
+                    resizeMode="contain"
+                    renderMode="AUTOMATIC"
                     style={styles.newUserPrimaryLottie}
                   />
                   <Text style={styles.newUserPrimaryTitle}>
@@ -923,16 +925,23 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     onPress={handleUpgradePress}
                     activeOpacity={0.8}
                   >
-                    {/* Minutes status line */}
+                    {/* Header row: status left, fraction right */}
                     <View style={styles.fuelGaugeHeader}>
-                      <Ionicons
-                        name={isEmpty ? 'alert-circle' : isLow ? 'flash' : 'time-outline'}
-                        size={14}
-                        color={barColor}
-                      />
-                      <Text style={[styles.fuelGaugeMinutesText, { color: barColor }]}>
-                        {minutesText}
-                      </Text>
+                      <View style={styles.fuelGaugeHeaderLeft}>
+                        <Ionicons
+                          name={isEmpty ? 'alert-circle' : isLow ? 'flash' : 'time-outline'}
+                          size={14}
+                          color={barColor}
+                        />
+                        <Text style={[styles.fuelGaugeMinutesText, { color: barColor }]}>
+                          {minutesText}
+                        </Text>
+                      </View>
+                      {!isEmpty && (
+                        <Text style={styles.fuelGaugeFractionText}>
+                          {minutesLeft}/{totalMinutes}
+                        </Text>
+                      )}
                     </View>
 
                     {/* Progress bar */}
@@ -943,6 +952,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           {
                             width: `${Math.max(fraction * 100, 2)}%`,
                             backgroundColor: barColor,
+                            shadowColor: barColor,
+                            shadowOffset: { width: 0, height: 0 },
+                            shadowOpacity: 0.6,
+                            shadowRadius: 4,
+                            elevation: 3,
                           },
                         ]}
                       />
