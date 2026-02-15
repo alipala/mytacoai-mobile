@@ -807,21 +807,27 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   style={[
                     styles.newUserButtonContainer,
                     {
-                      opacity: glowAnim.interpolate({
+                      shadowOpacity: glowAnim.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [0.6, 1],
+                        outputRange: [0.3, 0.8],
                       }),
                     },
                   ]}
                 >
                   <TouchableOpacity
-                    style={styles.newUserPrimaryButton}
                     onPress={handleCreatePlan}
-                    activeOpacity={0.8}
+                    activeOpacity={0.85}
                   >
-                    <Text style={styles.newUserPrimaryButtonText}>
-                      {t('dashboard.new_user.assessment_button')} →
-                    </Text>
+                    <LinearGradient
+                      colors={['#5EEAD4', '#14B8A6', '#0D9488']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.newUserPrimaryButton}
+                    >
+                      <Text style={styles.newUserPrimaryButtonText}>
+                        {t('dashboard.new_user.assessment_button')} →
+                      </Text>
+                    </LinearGradient>
                   </TouchableOpacity>
                 </Animated.View>
               </View>

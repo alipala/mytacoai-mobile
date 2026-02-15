@@ -1430,19 +1430,17 @@ export const styles = StyleSheet.create({
   },
   newUserButtonContainer: {
     alignSelf: 'stretch',
-    // Same glow as bottom tab bar
+    // Pulsing teal glow (shadowOpacity animated 0.3 → 0.8)
     shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
+    shadowRadius: 16,
     elevation: 12,
+    borderRadius: 14,
   },
   newUserPrimaryButton: {
-    backgroundColor: 'rgba(11, 26, 31, 0.95)',
     paddingVertical: 16,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
     alignItems: 'center',
   },
   newUserPrimaryButtonText: {
