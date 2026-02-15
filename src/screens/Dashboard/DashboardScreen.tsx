@@ -767,17 +767,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <>
               {/* ========== NEW USER GUIDED ACTIVATION ========== */}
 
-              {/* Section 1: Personalized Welcome */}
-              <View style={styles.newUserWelcomeSection}>
-                <Text style={styles.newUserGreeting}>
-                  {getTimeBasedGreeting()}
-                </Text>
-                <Text style={styles.newUserSubtitle}>
-                  {t('dashboard.new_user.subtitle')}
-                </Text>
-              </View>
-
-              {/* Section 2: Primary CTA - Speaking Assessment */}
+              {/* Section 1: Primary CTA - Speaking Assessment */}
               <TouchableOpacity
                 style={styles.newUserPrimaryCard}
                 onPress={handleCreatePlan}
