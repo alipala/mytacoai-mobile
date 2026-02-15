@@ -1466,10 +1466,11 @@ export const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
   },
 
-  // How It Works Section — Horizontal scrollable colored cards
+  // How It Works Section — 3 cards in a row, all visible
   newUserHowItWorks: {
     marginTop: 28,
     width: '100%',
+    paddingHorizontal: 20,
   },
   newUserHowItWorksTitle: {
     fontSize: 18,
@@ -1477,52 +1478,51 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
-    paddingHorizontal: 20,
   },
-  newUserStepsScroll: {
-    paddingHorizontal: 20,
-    gap: 12,
+  newUserStepsRow: {
+    flexDirection: 'row',
+    gap: 10,
   },
   newUserStepCard: {
-    width: 144,
-    borderRadius: 20,
-    padding: 16,
+    flex: 1,
+    borderRadius: 18,
+    padding: 14,
     justifyContent: 'flex-start',
   },
   newUserStepCardNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   newUserStepCardNumberText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
     color: '#FFFFFF',
   },
   newUserStepCardIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   newUserStepCardTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   newUserStepCardDesc: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.85)',
-    lineHeight: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 15,
   },
 
   // Secondary Link

@@ -844,17 +844,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 <Text style={styles.newUserHowItWorksTitle}>
                   {t('dashboard.new_user.how_it_works_title')}
                 </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.newUserStepsScroll}
-                  decelerationRate="fast"
-                  snapToInterval={156}
-                  snapToAlignment="start"
-                >
+                <View style={styles.newUserStepsRow}>
                   {/* Step 1: Speak */}
                   <LinearGradient
-                    colors={['#0D9488', '#0F766E']}
+                    colors={['#4338CA', '#3730A3']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.newUserStepCard}
@@ -875,7 +868,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                   {/* Step 2: Get Feedback */}
                   <LinearGradient
-                    colors={['#D97706', '#B45309']}
+                    colors={['#BE123C', '#9F1239']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.newUserStepCard}
@@ -914,7 +907,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       {t('dashboard.new_user.step3_desc')}
                     </Text>
                   </LinearGradient>
-                </ScrollView>
+                </View>
               </View>
 
               {/* Section 4: Secondary Option - Quick Practice Link */}
