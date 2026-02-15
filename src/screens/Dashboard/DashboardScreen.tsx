@@ -804,20 +804,39 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </Text>
 
                 <View style={styles.newUserButtonContainer}>
+                  {/* Outer glow — wide, very soft ambient spread */}
                   <Animated.View
                     style={[
-                      styles.newUserButtonGlow,
+                      styles.newUserGlowOuter,
                       {
                         opacity: glowAnim.interpolate({
                           inputRange: [0, 1],
-                          outputRange: [0.35, 1],
+                          outputRange: [0.0, 0.5],
                         }),
-                        transform: [{
-                          scale: glowAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [1, 1.06],
-                          }),
-                        }],
+                      },
+                    ]}
+                  />
+                  {/* Middle glow — medium spread */}
+                  <Animated.View
+                    style={[
+                      styles.newUserGlowMiddle,
+                      {
+                        opacity: glowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.0, 0.7],
+                        }),
+                      },
+                    ]}
+                  />
+                  {/* Inner glow — tight to button edge, brightest */}
+                  <Animated.View
+                    style={[
+                      styles.newUserGlowInner,
+                      {
+                        opacity: glowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.1, 1.0],
+                        }),
                       },
                     ]}
                   />
