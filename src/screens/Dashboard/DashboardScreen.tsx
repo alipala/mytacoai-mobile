@@ -847,16 +847,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 <View style={styles.newUserStepsRow}>
                   {/* Step 1: Speak */}
                   <LinearGradient
-                    colors={['#4338CA', '#3730A3']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                    colors={['#F59E0B', '#D97706', '#1F2937']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
                     style={styles.newUserStepCard}
                   >
-                    <View style={styles.newUserStepCardNumber}>
-                      <Text style={styles.newUserStepCardNumberText}>1</Text>
-                    </View>
                     <View style={styles.newUserStepCardIconWrap}>
-                      <Ionicons name="mic" size={28} color="#FFFFFF" />
+                      <Ionicons name="mic" size={26} color="#FFFFFF" />
                     </View>
                     <Text style={styles.newUserStepCardTitle}>
                       {t('dashboard.new_user.step1_title')}
@@ -868,16 +865,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                   {/* Step 2: Get Feedback */}
                   <LinearGradient
-                    colors={['#BE123C', '#9F1239']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                    colors={['#EF4444', '#DC2626', '#1F2937']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
                     style={styles.newUserStepCard}
                   >
-                    <View style={styles.newUserStepCardNumber}>
-                      <Text style={styles.newUserStepCardNumberText}>2</Text>
-                    </View>
                     <View style={styles.newUserStepCardIconWrap}>
-                      <Ionicons name="analytics" size={28} color="#FFFFFF" />
+                      <Ionicons name="analytics" size={26} color="#FFFFFF" />
                     </View>
                     <Text style={styles.newUserStepCardTitle}>
                       {t('dashboard.new_user.step2_title')}
@@ -889,16 +883,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                   {/* Step 3: Improve */}
                   <LinearGradient
-                    colors={['#7C3AED', '#6D28D9']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                    colors={['#3B82F6', '#2563EB', '#1F2937']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
                     style={styles.newUserStepCard}
                   >
-                    <View style={styles.newUserStepCardNumber}>
-                      <Text style={styles.newUserStepCardNumberText}>3</Text>
-                    </View>
                     <View style={styles.newUserStepCardIconWrap}>
-                      <Ionicons name="rocket" size={28} color="#FFFFFF" />
+                      <Ionicons name="rocket" size={26} color="#FFFFFF" />
                     </View>
                     <Text style={styles.newUserStepCardTitle}>
                       {t('dashboard.new_user.step3_title')}
