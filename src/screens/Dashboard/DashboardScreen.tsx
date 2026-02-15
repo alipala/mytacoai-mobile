@@ -803,43 +803,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   {t('dashboard.new_user.assessment_subtitle')}
                 </Text>
 
-                <View style={styles.newUserButtonContainer}>
-                  {/* Outer glow — wide, very soft ambient spread */}
-                  <Animated.View
-                    style={[
-                      styles.newUserGlowOuter,
-                      {
-                        opacity: glowAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.0, 0.5],
-                        }),
-                      },
-                    ]}
-                  />
-                  {/* Middle glow — medium spread */}
-                  <Animated.View
-                    style={[
-                      styles.newUserGlowMiddle,
-                      {
-                        opacity: glowAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.0, 0.7],
-                        }),
-                      },
-                    ]}
-                  />
-                  {/* Inner glow — tight to button edge, brightest */}
-                  <Animated.View
-                    style={[
-                      styles.newUserGlowInner,
-                      {
-                        opacity: glowAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.1, 1.0],
-                        }),
-                      },
-                    ]}
-                  />
+                <Animated.View
+                  style={[
+                    styles.newUserButtonContainer,
+                    {
+                      opacity: glowAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.6, 1],
+                      }),
+                    },
+                  ]}
+                >
                   <TouchableOpacity
                     style={styles.newUserPrimaryButton}
                     onPress={handleCreatePlan}
@@ -849,7 +823,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       {t('dashboard.new_user.assessment_button')} →
                     </Text>
                   </TouchableOpacity>
-                </View>
+                </Animated.View>
               </View>
 
               {/* Section 3: How It Works - Horizontal Colored Cards */}
