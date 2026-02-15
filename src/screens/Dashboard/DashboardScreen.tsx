@@ -770,9 +770,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* Section 1: Personalized Welcome */}
               <View style={styles.newUserWelcomeSection}>
                 <LottieView
-                  source={require('../../assets/lottie/Welcome.json')}
+                  source={require('../../assets/lottie/companion_idle.json')}
                   autoPlay
-                  loop={false}
+                  loop
                   style={styles.newUserLottie}
                 />
                 <Text style={styles.newUserGreeting}>
@@ -780,7 +780,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </Text>
                 <Text style={styles.newUserSubtitle}>
                   {t('dashboard.new_user.subtitle', {
-                    language: t('practice.conversation.languages.' + userLanguage)
+                    language: t(`practice.conversation.languages.${userLanguage}`, { defaultValue: userLanguage })
                   })}
                 </Text>
               </View>
@@ -792,7 +792,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 activeOpacity={0.9}
               >
                 <LinearGradient
-                  colors={['#14B8A6', '#0D9488']}
+                  colors={['#F75A5A', '#FFA955']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.newUserPrimaryGradient}
@@ -849,17 +849,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 <View style={styles.newUserStepsContainer}>
                   {/* Step 1: Speak */}
                   <View style={styles.newUserStep}>
-                    <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(20, 184, 166, 0.15)' }]}>
-                      <Ionicons name="mic" size={24} color="#14B8A6" />
+                    <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(78, 207, 191, 0.15)' }]}>
+                      <Ionicons name="mic" size={24} color="#4ECFBF" />
                     </View>
-                    <Text style={styles.newUserStepTitle}>
-                      {t('dashboard.new_user.step1_title')}
-                    </Text>
-                    <Text style={styles.newUserStepDesc}>
-                      {t('dashboard.new_user.step1_desc', {
-                        language: t('practice.conversation.languages.' + userLanguage)
-                      })}
-                    </Text>
+                    <View style={styles.newUserStepTextContainer}>
+                      <Text style={styles.newUserStepTitle}>
+                        {t('dashboard.new_user.step1_title')}
+                      </Text>
+                      <Text style={styles.newUserStepDesc}>
+                        {t('dashboard.new_user.step1_desc', {
+                          language: t(`practice.conversation.languages.${userLanguage}`, { defaultValue: userLanguage })
+                        })}
+                      </Text>
+                    </View>
                   </View>
 
                   {/* Step 2: Get Feedback */}
@@ -867,25 +869,29 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(255, 214, 58, 0.15)' }]}>
                       <Ionicons name="analytics" size={24} color="#FFD63A" />
                     </View>
-                    <Text style={styles.newUserStepTitle}>
-                      {t('dashboard.new_user.step2_title')}
-                    </Text>
-                    <Text style={styles.newUserStepDesc}>
-                      {t('dashboard.new_user.step2_desc')}
-                    </Text>
+                    <View style={styles.newUserStepTextContainer}>
+                      <Text style={styles.newUserStepTitle}>
+                        {t('dashboard.new_user.step2_title')}
+                      </Text>
+                      <Text style={styles.newUserStepDesc}>
+                        {t('dashboard.new_user.step2_desc')}
+                      </Text>
+                    </View>
                   </View>
 
                   {/* Step 3: Improve */}
                   <View style={styles.newUserStep}>
-                    <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(139, 92, 246, 0.15)' }]}>
-                      <Ionicons name="rocket" size={24} color="#8B5CF6" />
+                    <View style={[styles.newUserStepIcon, { backgroundColor: 'rgba(255, 169, 85, 0.15)' }]}>
+                      <Ionicons name="rocket" size={24} color="#FFA955" />
                     </View>
-                    <Text style={styles.newUserStepTitle}>
-                      {t('dashboard.new_user.step3_title')}
-                    </Text>
-                    <Text style={styles.newUserStepDesc}>
-                      {t('dashboard.new_user.step3_desc')}
-                    </Text>
+                    <View style={styles.newUserStepTextContainer}>
+                      <Text style={styles.newUserStepTitle}>
+                        {t('dashboard.new_user.step3_title')}
+                      </Text>
+                      <Text style={styles.newUserStepDesc}>
+                        {t('dashboard.new_user.step3_desc')}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>

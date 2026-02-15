@@ -1363,8 +1363,8 @@ export const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   newUserLottie: {
-    width: 180,
-    height: 180,
+    width: 160,
+    height: 160,
   },
   newUserGreeting: {
     fontSize: 28,
@@ -1381,15 +1381,15 @@ export const styles = StyleSheet.create({
     marginTop: 6,
   },
 
-  // Primary CTA Card
+  // Primary CTA Card — Coral → Orange gradient
   newUserPrimaryCard: {
     marginHorizontal: 20,
     marginTop: 20,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#14B8A6',
+    shadowColor: '#F75A5A',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 10,
   },
@@ -1441,7 +1441,7 @@ export const styles = StyleSheet.create({
   newUserPrimaryButtonText: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#0D9488',
+    color: '#F75A5A',
     letterSpacing: 0.3,
   },
   newUserPrimaryMeta: {
@@ -1466,7 +1466,7 @@ export const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
   },
 
-  // How It Works Section
+  // How It Works Section — Horizontal row of cards
   newUserHowItWorks: {
     marginTop: 28,
     paddingHorizontal: 20,
@@ -1476,22 +1476,21 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 18,
+    marginBottom: 16,
   },
   newUserStepsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 12,
   },
   newUserStep: {
-    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(20, 184, 166, 0.06)',
     borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: 'rgba(20, 184, 166, 0.15)',
+    gap: 14,
   },
   newUserStepIcon: {
     width: 48,
@@ -1499,21 +1498,21 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+  },
+  newUserStepTextContainer: {
+    flex: 1,
   },
   newUserStepTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   newUserStepDesc: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '500',
     color: '#9CA3AF',
-    textAlign: 'center',
-    lineHeight: 15,
+    lineHeight: 18,
   },
 
   // Secondary Link
@@ -1525,7 +1524,7 @@ export const styles = StyleSheet.create({
   newUserSecondaryLinkText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#14B8A6',
+    color: '#4ECFBF',
   },
 
   // Soft Upgrade Banner
@@ -1536,15 +1535,15 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
-    backgroundColor: 'rgba(251, 191, 36, 0.08)',
+    backgroundColor: 'rgba(255, 214, 58, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.2)',
+    borderColor: 'rgba(255, 214, 58, 0.2)',
     alignItems: 'center',
   },
   newUserUpgradeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FBBF24',
+    color: '#FFD63A',
     textAlign: 'center',
   },
   // ========== END NEW USER ONBOARDING EMPTY STATE ==========
