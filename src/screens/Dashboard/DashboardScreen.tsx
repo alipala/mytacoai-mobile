@@ -887,16 +887,74 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
 
-              {/* Section 5: Soft Upgrade Banner */}
-              <TouchableOpacity
-                style={styles.newUserUpgradeBanner}
-                onPress={handleUpgradePress}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.newUserUpgradeText}>
-                  {t('dashboard.new_user.upgrade_banner')} →
-                </Text>
-              </TouchableOpacity>
+              {/* Section 5: Minutes Fuel Gauge + Upgrade CTA */}
+              {(() => {
+                const totalMinutes = 15;
+                const minutesLeft = subscriptionStatus?.limits?.minutes_remaining ?? totalMinutes;
+                const fraction = Math.max(0, Math.min(1, minutesLeft / totalMinutes));
+                const isLow = minutesLeft <= 5 && minutesLeft > 0;
+                const isEmpty = minutesLeft <= 0;
+
+                const barColor = isEmpty
+                  ? '#EF4444'
+                  : isLow
+                    ? '#F59E0B'
+                    : '#14B8A6';
+                const borderColor = isEmpty
+                  ? 'rgba(239, 68, 68, 0.25)'
+                  : isLow
+                    ? 'rgba(245, 158, 11, 0.25)'
+                    : 'rgba(20, 184, 166, 0.15)';
+                const bgColor = isEmpty
+                  ? 'rgba(239, 68, 68, 0.06)'
+                  : isLow
+                    ? 'rgba(245, 158, 11, 0.06)'
+                    : 'rgba(20, 184, 166, 0.05)';
+
+                const minutesText = isEmpty
+                  ? t('dashboard.new_user.minutes_empty')
+                  : isLow
+                    ? t('dashboard.new_user.minutes_low', { minutes: minutesLeft })
+                    : t('dashboard.new_user.minutes_gauge', { minutes: minutesLeft });
+
+                return (
+                  <TouchableOpacity
+                    style={[styles.newUserUpgradeBanner, { backgroundColor: bgColor, borderColor }]}
+                    onPress={handleUpgradePress}
+                    activeOpacity={0.8}
+                  >
+                    {/* Minutes status line */}
+                    <View style={styles.fuelGaugeHeader}>
+                      <Ionicons
+                        name={isEmpty ? 'alert-circle' : isLow ? 'flash' : 'time-outline'}
+                        size={14}
+                        color={barColor}
+                      />
+                      <Text style={[styles.fuelGaugeMinutesText, { color: barColor }]}>
+                        {minutesText}
+                      </Text>
+                    </View>
+
+                    {/* Progress bar */}
+                    <View style={styles.fuelGaugeBarTrack}>
+                      <View
+                        style={[
+                          styles.fuelGaugeBarFill,
+                          {
+                            width: `${Math.max(fraction * 100, 2)}%`,
+                            backgroundColor: barColor,
+                          },
+                        ]}
+                      />
+                    </View>
+
+                    {/* CTA text */}
+                    <Text style={styles.newUserUpgradeText}>
+                      {t('dashboard.new_user.upgrade_banner')} →
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })()}
             </>
           ) : (
             <>

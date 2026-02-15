@@ -174,7 +174,10 @@
       "step3_title": "Mejora",
       "step3_desc": "Sigue tu plan de aprendizaje personalizado",
       "quick_practice_link": "O inicia directamente una conversación libre",
-      "upgrade_banner": "Comienza tu prueba gratuita de 7 días"
+      "upgrade_banner": "Comienza tu prueba gratuita de 7 días",
+      "minutes_gauge": "{{minutes}} min restantes este mes",
+      "minutes_low": "{{minutes}} min restantes — se acaban pronto",
+      "minutes_empty": "Has agotado todos tus minutos gratuitos"
     }
   },
   "practice": {

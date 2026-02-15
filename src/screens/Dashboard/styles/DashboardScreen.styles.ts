@@ -1493,24 +1493,48 @@ export const styles = StyleSheet.create({
     color: '#4ECFBF',
   },
 
-  // Soft Upgrade Banner
+  // Minutes Fuel Gauge + Upgrade Banner
   newUserUpgradeBanner: {
-    marginTop: 20,
+    marginTop: 24,
     marginHorizontal: 20,
     marginBottom: 30,
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 214, 58, 0.08)',
+    borderRadius: 16,
+    backgroundColor: 'rgba(20, 184, 166, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 214, 58, 0.2)',
+    borderColor: 'rgba(20, 184, 166, 0.15)',
     alignItems: 'center',
+    gap: 12,
+  },
+  fuelGaugeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  fuelGaugeMinutesText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#14B8A6',
+    letterSpacing: 0.1,
+  },
+  fuelGaugeBarTrack: {
+    width: '100%',
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
+  },
+  fuelGaugeBarFill: {
+    height: '100%',
+    borderRadius: 2,
   },
   newUserUpgradeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFD63A',
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
   // ========== END NEW USER ONBOARDING EMPTY STATE ==========
 });

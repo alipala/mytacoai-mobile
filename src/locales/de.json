@@ -174,7 +174,10 @@
       "step3_title": "Verbessere dich",
       "step3_desc": "Folge deinem persönlichen Lernplan",
       "quick_practice_link": "Oder starte direkt ein freies Gespräch",
-      "upgrade_banner": "Starte deine kostenlose 7-Tage-Testphase"
+      "upgrade_banner": "Starte deine kostenlose 7-Tage-Testphase",
+      "minutes_gauge": "{{minutes}} Min. übrig diesen Monat",
+      "minutes_low": "{{minutes}} Min. übrig — bald aufgebraucht",
+      "minutes_empty": "Deine kostenlosen Minuten sind aufgebraucht"
     }
   },
   "practice": {

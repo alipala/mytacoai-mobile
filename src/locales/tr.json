@@ -174,7 +174,10 @@
       "step3_title": "Gelişim",
       "step3_desc": "Kişisel öğrenme planını takip et",
       "quick_practice_link": "Veya doğrudan serbest bir sohbete başla",
-      "upgrade_banner": "7 günlük ücretsiz denemenizi başlatın"
+      "upgrade_banner": "7 günlük ücretsiz denemenizi başlatın",
+      "minutes_gauge": "Bu ay {{minutes}} dk kaldı",
+      "minutes_low": "{{minutes}} dk kaldı — yakında bitiyor",
+      "minutes_empty": "Ücretsiz dakikalarınız bitti"
     }
   },
   "practice": {
