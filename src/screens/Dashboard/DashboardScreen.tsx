@@ -32,7 +32,6 @@ import { SubscriptionBanner } from '../../components/SubscriptionBanner';
 import { PricingModal } from '../../components/PricingModal';
 import { SessionTypeModal } from '../../components/SessionTypeModal';
 import TransitionWrapper from '../../components/TransitionWrapper';
-import SpinningGlowButton from '../../components/SpinningGlowButton';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles/DashboardScreen.styles';
 import { DNAProfileWidget } from '../../components/SpeakingDNA/DNAProfileWidget';
@@ -107,7 +106,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Animation refs for Start New Session button
   const buttonFloatAnim = useRef(new Animated.Value(0)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
-
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   // Masonry grid doesn't need expanded language state
 
@@ -148,6 +147,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         Animated.timing(buttonScaleAnim, {
           toValue: 1,
           duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Glow pulse for new-user CTA button
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 2500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 2500,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -786,11 +803,27 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   {t('dashboard.new_user.assessment_subtitle')}
                 </Text>
 
-                <SpinningGlowButton onPress={handleCreatePlan}>
-                  <Text style={styles.newUserPrimaryButtonText}>
-                    {t('dashboard.new_user.assessment_button')} →
-                  </Text>
-                </SpinningGlowButton>
+                <Animated.View
+                  style={[
+                    styles.newUserButtonContainer,
+                    {
+                      opacity: glowAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.6, 1],
+                      }),
+                    },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={styles.newUserPrimaryButton}
+                    onPress={handleCreatePlan}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.newUserPrimaryButtonText}>
+                      {t('dashboard.new_user.assessment_button')} →
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
 
               {/* Section 3: How It Works - Horizontal Colored Cards */}
