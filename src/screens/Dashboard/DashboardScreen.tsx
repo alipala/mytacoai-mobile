@@ -106,6 +106,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Animation refs for Start New Session button
   const buttonFloatAnim = useRef(new Animated.Value(0)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   // Masonry grid doesn't need expanded language state
 
@@ -146,6 +147,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         Animated.timing(buttonScaleAnim, {
           toValue: 1,
           duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Glow pulse for new-user CTA button
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 2500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 2500,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -776,22 +795,43 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 renderMode="AUTOMATIC"
                 style={styles.newUserLottieStandalone}
               />
-              <Text style={styles.newUserPrimaryTitle}>
-                {t('dashboard.new_user.assessment_title')}
-              </Text>
-              <Text style={styles.newUserPrimarySubtitle}>
-                {t('dashboard.new_user.assessment_subtitle')}
-              </Text>
-
-              <TouchableOpacity
-                style={styles.newUserPrimaryButton}
-                onPress={handleCreatePlan}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.newUserPrimaryButtonText}>
-                  {t('dashboard.new_user.assessment_button')} →
+              <View style={styles.newUserCTAGroup}>
+                <Text style={styles.newUserPrimaryTitle}>
+                  {t('dashboard.new_user.assessment_title')}
                 </Text>
-              </TouchableOpacity>
+                <Text style={styles.newUserPrimarySubtitle}>
+                  {t('dashboard.new_user.assessment_subtitle')}
+                </Text>
+
+                <View style={styles.newUserButtonContainer}>
+                  <Animated.View
+                    style={[
+                      styles.newUserButtonGlow,
+                      {
+                        opacity: glowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.35, 1],
+                        }),
+                        transform: [{
+                          scale: glowAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [1, 1.06],
+                          }),
+                        }],
+                      },
+                    ]}
+                  />
+                  <TouchableOpacity
+                    style={styles.newUserPrimaryButton}
+                    onPress={handleCreatePlan}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.newUserPrimaryButtonText}>
+                      {t('dashboard.new_user.assessment_button')} →
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
 
               {/* Section 3: How It Works - Horizontal Colored Cards */}
               <View style={styles.newUserHowItWorks}>
