@@ -768,42 +768,29 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* ========== NEW USER GUIDED ACTIVATION ========== */}
 
               {/* Section 1: Primary CTA - Speaking Assessment */}
-              <TouchableOpacity
-                style={styles.newUserPrimaryCard}
-                onPress={handleCreatePlan}
-                activeOpacity={0.9}
-              >
-                <LinearGradient
-                  colors={['#1A103C', '#0F1B2E', '#0B1420']}
-                  start={{ x: 0.2, y: 0 }}
-                  end={{ x: 0.8, y: 1 }}
-                  style={styles.newUserPrimaryGradient}
-                >
-                  <LottieView
-                    source={require('../../assets/lottie/companion_idle2.json')}
-                    autoPlay
-                    loop
-                    resizeMode="contain"
-                    renderMode="AUTOMATIC"
-                    style={styles.newUserPrimaryLottie}
-                  />
-                  <Text style={styles.newUserPrimaryTitle}>
-                    {t('dashboard.new_user.assessment_title')}
-                  </Text>
-                  <Text style={styles.newUserPrimarySubtitle}>
-                    {t('dashboard.new_user.assessment_subtitle')}
-                  </Text>
+              <LottieView
+                source={require('../../assets/lottie/companion_idle2.json')}
+                autoPlay
+                loop
+                resizeMode="contain"
+                renderMode="AUTOMATIC"
+                style={styles.newUserLottieStandalone}
+              />
+              <Text style={styles.newUserPrimaryTitle}>
+                {t('dashboard.new_user.assessment_title')}
+              </Text>
+              <Text style={styles.newUserPrimarySubtitle}>
+                {t('dashboard.new_user.assessment_subtitle')}
+              </Text>
 
-                  <TouchableOpacity
-                    style={styles.newUserPrimaryButton}
-                    onPress={handleCreatePlan}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.newUserPrimaryButtonText}>
-                      {t('dashboard.new_user.assessment_button')} →
-                    </Text>
-                  </TouchableOpacity>
-                </LinearGradient>
+              <TouchableOpacity
+                style={styles.newUserPrimaryButton}
+                onPress={handleCreatePlan}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.newUserPrimaryButtonText}>
+                  {t('dashboard.new_user.assessment_button')} →
+                </Text>
               </TouchableOpacity>
 
               {/* Section 3: How It Works - Horizontal Colored Cards */}

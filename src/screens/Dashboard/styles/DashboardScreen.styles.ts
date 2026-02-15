@@ -1400,6 +1400,13 @@ export const styles = StyleSheet.create({
     height: 200,
     marginBottom: -8,
   },
+  newUserLottieStandalone: {
+    width: 180,
+    height: 180,
+    alignSelf: 'center',
+    marginTop: -10,
+    marginBottom: -4,
+  },
   newUserPrimaryTitle: {
     fontSize: 22,
     fontWeight: '800',
@@ -1407,6 +1414,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 6,
     letterSpacing: 0.2,
+    paddingHorizontal: 20,
   },
   newUserPrimarySubtitle: {
     fontSize: 14,
@@ -1415,15 +1423,16 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 18,
-    paddingHorizontal: 20,
+    paddingHorizontal: 40,
   },
   newUserPrimaryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     paddingVertical: 14,
     paddingHorizontal: 40,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    alignSelf: 'center',
   },
   newUserPrimaryButtonText: {
     fontSize: 17,
