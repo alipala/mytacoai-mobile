@@ -897,21 +897,25 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 const isLow = minutesLeft <= 5 && minutesLeft > 0;
                 const isEmpty = minutesLeft <= 0;
 
+                // Bar width in pixels: screen - margins(40) - padding(40) - 2 border
+                const barMaxWidth = SCREEN_WIDTH - 82;
+                const barFillWidth = Math.max(fraction * barMaxWidth, 4);
+
                 const barColor = isEmpty
                   ? '#EF4444'
                   : isLow
                     ? '#F59E0B'
                     : '#14B8A6';
                 const borderColor = isEmpty
-                  ? 'rgba(239, 68, 68, 0.25)'
+                  ? 'rgba(239, 68, 68, 0.3)'
                   : isLow
-                    ? 'rgba(245, 158, 11, 0.25)'
-                    : 'rgba(20, 184, 166, 0.15)';
+                    ? 'rgba(245, 158, 11, 0.3)'
+                    : 'rgba(20, 184, 166, 0.2)';
                 const bgColor = isEmpty
-                  ? 'rgba(239, 68, 68, 0.06)'
+                  ? 'rgba(239, 68, 68, 0.08)'
                   : isLow
-                    ? 'rgba(245, 158, 11, 0.06)'
-                    : 'rgba(20, 184, 166, 0.05)';
+                    ? 'rgba(245, 158, 11, 0.08)'
+                    : 'rgba(20, 184, 166, 0.06)';
 
                 const minutesText = isEmpty
                   ? t('dashboard.new_user.minutes_empty')
@@ -925,12 +929,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     onPress={handleUpgradePress}
                     activeOpacity={0.8}
                   >
-                    {/* Header row: status left, fraction right */}
+                    {/* Header row: icon + status left, fraction right */}
                     <View style={styles.fuelGaugeHeader}>
                       <View style={styles.fuelGaugeHeaderLeft}>
                         <Ionicons
                           name={isEmpty ? 'alert-circle' : isLow ? 'flash' : 'time-outline'}
-                          size={14}
+                          size={15}
                           color={barColor}
                         />
                         <Text style={[styles.fuelGaugeMinutesText, { color: barColor }]}>
@@ -944,25 +948,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       )}
                     </View>
 
-                    {/* Progress bar */}
+                    {/* Progress bar — pixel-based width for reliability */}
                     <View style={styles.fuelGaugeBarTrack}>
                       <View
                         style={[
                           styles.fuelGaugeBarFill,
-                          {
-                            width: `${Math.max(fraction * 100, 2)}%`,
-                            backgroundColor: barColor,
-                            shadowColor: barColor,
-                            shadowOffset: { width: 0, height: 0 },
-                            shadowOpacity: 0.6,
-                            shadowRadius: 4,
-                            elevation: 3,
-                          },
+                          { width: barFillWidth, backgroundColor: barColor },
                         ]}
                       />
                     </View>
 
-                    {/* CTA text */}
+                    {/* CTA */}
                     <Text style={styles.newUserUpgradeText}>
                       {t('dashboard.new_user.upgrade_banner')} →
                     </Text>

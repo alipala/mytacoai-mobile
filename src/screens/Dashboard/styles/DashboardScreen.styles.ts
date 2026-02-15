@@ -1530,13 +1530,12 @@ export const styles = StyleSheet.create({
   },
   fuelGaugeBarTrack: {
     width: '100%',
-    height: 7,
+    height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   fuelGaugeBarFill: {
-    height: '100%',
+    height: 8,
     borderRadius: 4,
   },
   newUserUpgradeText: {
