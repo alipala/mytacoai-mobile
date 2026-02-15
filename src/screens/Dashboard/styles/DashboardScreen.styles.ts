@@ -1524,15 +1524,12 @@ export const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     overflow: 'hidden',
-    gap: 3,
   },
   fuelGaugeBarFilled: {
     height: 10,
-    borderRadius: 5,
   },
   fuelGaugeBarEmpty: {
     height: 10,
-    borderRadius: 5,
   },
   newUserUpgradeText: {
     fontSize: 14,
