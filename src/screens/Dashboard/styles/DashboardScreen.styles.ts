@@ -1470,6 +1470,7 @@ export const styles = StyleSheet.create({
   newUserHowItWorks: {
     marginTop: 28,
     paddingHorizontal: 20,
+    width: '100%',
   },
   newUserHowItWorksTitle: {
     fontSize: 18,
