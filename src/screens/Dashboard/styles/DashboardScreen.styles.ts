@@ -1518,18 +1518,21 @@ export const styles = StyleSheet.create({
     color: '#14B8A6',
     letterSpacing: 0.1,
   },
-  fuelGaugeBarTrack: {
+  fuelGaugeBarRow: {
+    flexDirection: 'row',
     width: '100%',
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#1E2E35',
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    gap: 3,
   },
-  fuelGaugeBarFill: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    height: 8,
-    borderRadius: 4,
+  fuelGaugeBarFilled: {
+    height: 10,
+    borderRadius: 5,
+  },
+  fuelGaugeBarEmpty: {
+    height: 10,
+    borderRadius: 5,
   },
   newUserUpgradeText: {
     fontSize: 14,

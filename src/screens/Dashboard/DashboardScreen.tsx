@@ -941,12 +941,30 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       </Text>
                     </View>
 
-                    {/* Progress bar — pixel-based width for reliability */}
-                    <View style={styles.fuelGaugeBarTrack}>
+                    {/* Progress bar — two segments side by side */}
+                    <View style={styles.fuelGaugeBarRow}>
+                      {/* Filled: minutes remaining */}
                       <View
                         style={[
-                          styles.fuelGaugeBarFill,
-                          { width: barFillWidth, backgroundColor: barColor },
+                          styles.fuelGaugeBarFilled,
+                          {
+                            width: barFillWidth,
+                            backgroundColor: barColor,
+                          },
+                        ]}
+                      />
+                      {/* Empty: minutes used */}
+                      <View
+                        style={[
+                          styles.fuelGaugeBarEmpty,
+                          {
+                            flex: 1,
+                            backgroundColor: isEmpty
+                              ? 'rgba(239, 68, 68, 0.15)'
+                              : isLow
+                                ? 'rgba(245, 158, 11, 0.15)'
+                                : 'rgba(20, 184, 166, 0.15)',
+                          },
                         ]}
                       />
                     </View>
