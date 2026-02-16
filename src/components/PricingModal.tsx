@@ -44,6 +44,8 @@ interface PricingModalProps {
   onSelectPlan: (planId: string, period: 'monthly' | 'annual') => void;
   currentPlan?: string; // Current subscription plan (e.g., 'fluency_builder', 'language_mastery')
   currentPeriod?: string; // Current subscription period (e.g., 'monthly', 'annual')
+  isInTrial?: boolean; // Whether user is currently in trial
+  subscriptionProvider?: string; // Current provider (stripe, apple, google_play)
 }
 
 const PRICING_PLANS: PricingPlan[] = [
@@ -106,6 +108,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   onSelectPlan,
   currentPlan,
   currentPeriod,
+  isInTrial,
+  subscriptionProvider,
 }) => {
   // Use dynamic dimensions hook (updates on rotation/resize)
   const { width: SCREEN_WIDTH } = useWindowDimensions();
@@ -743,6 +747,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               currentPlan === plan.id &&
               ((isAnnual && currentPeriod === 'annual') || (!isAnnual && currentPeriod === 'monthly'));
 
+            // Determine if trial should be shown
+            // Only show trial for NEW users (no current subscription) or users actively in trial
+            const hasActiveSubscription = currentPlan && !['try_learn', 'free'].includes(currentPlan);
+            const showTrial = !hasActiveSubscription || isInTrial;
+
             return (
               <View
                 key={plan.id}
@@ -780,8 +789,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   </Text>
                 </View>
 
-                {/* Highlight */}
-                {plan.highlight && (
+                {/* Highlight - Only show trial text for eligible users */}
+                {plan.highlight && showTrial && (
                   <View style={styles.highlightContainer}>
                     <Text style={styles.highlightText}>{plan.highlight}</Text>
                   </View>

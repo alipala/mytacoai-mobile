@@ -680,6 +680,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectPlan={handleSelectPlan}
           currentPlan={subscriptionStatus?.plan}
           currentPeriod={subscriptionStatus?.period}
+          isInTrial={subscriptionStatus?.is_in_trial}
+          subscriptionProvider={subscriptionStatus?.provider}
         />
 
         {/* Session Type Modal */}
@@ -1229,6 +1231,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectPlan={handleSelectPlan}
           currentPlan={subscriptionStatus?.plan}
           currentPeriod={subscriptionStatus?.period}
+          isInTrial={subscriptionStatus?.is_in_trial}
+          subscriptionProvider={subscriptionStatus?.provider}
         />
 
         {/* Session Type Modal */}
@@ -1619,6 +1623,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         onSelectPlan={handleSelectPlan}
         currentPlan={subscriptionStatus?.plan}
         currentPeriod={subscriptionStatus?.period}
+        isInTrial={subscriptionStatus?.is_in_trial}
+        subscriptionProvider={subscriptionStatus?.provider}
       />
 
       {/* Premium Benefits Modal */}
