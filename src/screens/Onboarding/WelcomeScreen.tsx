@@ -1,392 +1,570 @@
 /**
  * WelcomeScreen.tsx
  *
- * Final screen after onboarding completion.
- * Provides options to login or create a new account.
+ * Immersive welcome experience after onboarding completion.
+ * Features the companion mascot surrounded by floating multilingual
+ * greeting bubbles, with choreographed staggered entrance animations.
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  Animated,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../../constants/colors';
+import LottieView from 'lottie-react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withDelay,
+  withRepeat,
+  withSequence,
+  Easing,
+  interpolate,
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+} from 'react-native-reanimated';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+// Language greeting bubbles with their brand gradient colors
+const LANGUAGE_BUBBLES = [
+  { text: 'Hello!',    colors: ['#FF6B9D', '#C239B3'], angle: -55, distance: 135 },  // English (Pink → Purple)
+  { text: '¡Hola!',    colors: ['#FFD63A', '#FFA955'], angle: -10, distance: 148 },  // Spanish (Yellow → Orange)
+  { text: 'Bonjour!',  colors: ['#3B82F6', '#60A5FA'], angle: 35,  distance: 140 },  // French (Blue)
+  { text: 'Olá!',      colors: ['#4ECFBF', '#00D4AA'], angle: 80,  distance: 130 },  // Portuguese (Teal → Emerald)
+  { text: 'Hallo!',    colors: ['#F75A5A', '#FFA955'], angle: 145, distance: 142 },  // German (Coral → Orange)
+  { text: 'Hoi!',      colors: ['#FFA955', '#FF7B7B'], angle: 190, distance: 136 },  // Dutch (Orange → Coral)
+  { text: 'Merhaba!',  colors: ['#E74C3C', '#C0392B'], angle: 240, distance: 144 },  // Turkish (Red)
+];
+
+// Ambient floating particle positions (decorative depth)
+const PARTICLES = [
+  { x: 0.12, y: 0.08, size: 3, opacity: 0.25, delay: 0 },
+  { x: 0.85, y: 0.12, size: 2.5, opacity: 0.2, delay: 400 },
+  { x: 0.08, y: 0.35, size: 2, opacity: 0.15, delay: 800 },
+  { x: 0.92, y: 0.38, size: 3.5, opacity: 0.2, delay: 200 },
+  { x: 0.25, y: 0.55, size: 2, opacity: 0.12, delay: 600 },
+  { x: 0.78, y: 0.58, size: 2.5, opacity: 0.18, delay: 1000 },
+  { x: 0.15, y: 0.72, size: 2, opacity: 0.1, delay: 300 },
+  { x: 0.88, y: 0.75, size: 3, opacity: 0.15, delay: 700 },
+];
 
 interface WelcomeScreenProps {
   navigation: any;
 }
 
-export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
-  const { t } = useTranslation();
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const textFadeAnim = useRef(new Animated.Value(1)).current;
+// ─────────────────────────────────────────────────────
+// Floating Language Bubble Component
+// ─────────────────────────────────────────────────────
+function FloatingBubble({
+  text,
+  colors,
+  angle,
+  distance,
+  index,
+}: {
+  text: string;
+  colors: string[];
+  angle: number;
+  distance: number;
+  index: number;
+}) {
+  const entranceDelay = 600 + index * 120; // Stagger after companion
+  const floatOffset = useSharedValue(0);
+  const bubbleScale = useSharedValue(0);
+  const bubbleOpacity = useSharedValue(0);
 
-  const [currentPairIndex, setCurrentPairIndex] = useState(0);
-
-  // Greeting pairs for 6 languages
-  const greetingPairs = [
-    { first: 'Hello!', second: '¡Hola!' },      // English / Spanish
-    { first: 'Bonjour!', second: 'Olá!' },      // French / Portuguese
-    { first: 'Hallo!', second: 'Hoi!' },        // German / Dutch
-  ];
+  // Convert polar to cartesian for positioning
+  const radians = (angle * Math.PI) / 180;
+  const x = Math.cos(radians) * distance;
+  const y = Math.sin(radians) * distance;
 
   useEffect(() => {
-    // Pulse animation for hero icon
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.15,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // Pop-in entrance
+    bubbleScale.value = withDelay(
+      entranceDelay,
+      withSpring(1, { damping: 12, stiffness: 120 })
+    );
+    bubbleOpacity.value = withDelay(
+      entranceDelay,
+      withTiming(1, { duration: 400 })
+    );
 
-    // Scale in animation on mount
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 8,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-
-    // Cycle through greeting pairs
-    const interval = setInterval(() => {
-      // Fade out
-      Animated.timing(textFadeAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }).start(() => {
-        // Change text
-        setCurrentPairIndex((prev) => (prev + 1) % greetingPairs.length);
-
-        // Fade in
-        Animated.timing(textFadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }).start();
-      });
-    }, 2500);
-
-    return () => clearInterval(interval);
+    // Gentle continuous float (each bubble has unique rhythm)
+    const floatDuration = 2200 + index * 300;
+    floatOffset.value = withDelay(
+      entranceDelay + 200,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: floatDuration, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: floatDuration, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
   }, []);
 
-  /**
-   * Navigate to Login screen with smooth cross-fade transition
-   */
-  const handleLogin = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      navigation.replace('Login');
-    });
-  };
+  const animatedStyle = useAnimatedStyle(() => {
+    const floatY = interpolate(floatOffset.value, [0, 1], [0, -8]);
+    const floatX = interpolate(floatOffset.value, [0, 1], [0, index % 2 === 0 ? 3 : -3]);
+    return {
+      transform: [
+        { translateX: x + floatX },
+        { translateY: y + floatY },
+        { scale: bubbleScale.value },
+      ],
+      opacity: bubbleOpacity.value,
+    };
+  });
 
-  /**
-   * Navigate to Signup (Login screen with signup tab active) with smooth cross-fade transition
-   */
-  const handleCreateAccount = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      navigation.replace('Login');
-    });
-  };
+  return (
+    <Animated.View style={[styles.bubbleWrapper, animatedStyle]}>
+      <LinearGradient
+        colors={colors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.bubbleGradient}
+      >
+        <Text style={styles.bubbleText}>{text}</Text>
+      </LinearGradient>
+    </Animated.View>
+  );
+}
 
-  /**
-   * Start practice session as guest (no login required)
-   */
-  const handleTryAsGuest = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      // Navigate to language selection to start practice flow
-      navigation.replace('LanguageSelection');
+// ─────────────────────────────────────────────────────
+// Ambient Floating Particle
+// ─────────────────────────────────────────────────────
+function FloatingParticle({
+  x, y, size, opacity: baseOpacity, delay,
+}: {
+  x: number; y: number; size: number; opacity: number; delay: number;
+}) {
+  const floatY = useSharedValue(0);
+  const particleOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    particleOpacity.value = withDelay(
+      delay + 400,
+      withTiming(baseOpacity, { duration: 1200 })
+    );
+    floatY.value = withDelay(
+      delay + 400,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 3000 + delay, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 3000 + delay, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    position: 'absolute',
+    left: x * SCREEN_WIDTH,
+    top: y * SCREEN_HEIGHT,
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    backgroundColor: '#14B8A6',
+    opacity: particleOpacity.value,
+    transform: [{ translateY: interpolate(floatY.value, [0, 1], [0, -12]) }],
+  }));
+
+  return <Animated.View style={animStyle} />;
+}
+
+// ─────────────────────────────────────────────────────
+// Main WelcomeScreen
+// ─────────────────────────────────────────────────────
+export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
+
+  // Companion entrance animations
+  const companionScale = useSharedValue(0);
+  const companionOpacity = useSharedValue(0);
+  const glowPulse = useSharedValue(0);
+  const exitOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    // 1. Companion scales in with spring physics
+    companionScale.value = withDelay(200, withSpring(1, { damping: 10, stiffness: 80 }));
+    companionOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
+
+    // 2. Continuous glow pulse around companion
+    glowPulse.value = withDelay(
+      800,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 2000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
+  }, []);
+
+  const companionAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: companionScale.value }],
+    opacity: companionOpacity.value,
+  }));
+
+  const glowAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(glowPulse.value, [0, 1], [0.15, 0.4]),
+    transform: [{ scale: interpolate(glowPulse.value, [0, 1], [0.9, 1.1]) }],
+  }));
+
+  const exitStyle = useAnimatedStyle(() => ({
+    opacity: exitOpacity.value,
+  }));
+
+  // Navigation handlers with exit animation
+  const animateOut = useCallback((callback: () => void) => {
+    exitOpacity.value = withTiming(0, { duration: 250 }, () => {
+      // Run on JS thread after animation completes
     });
-  };
+    // Use setTimeout to match the animation duration
+    setTimeout(callback, 260);
+  }, []);
+
+  const handleCreateAccount = useCallback(() => {
+    animateOut(() => navigation.replace('Login'));
+  }, [navigation]);
+
+  const handleTryAsGuest = useCallback(() => {
+    animateOut(() => navigation.replace('LanguageSelection'));
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#FFFFFF', '#F0FDFC']}
+        colors={['#0B1A1F', '#0D2832', '#102B36', '#0D2832', '#0B1A1F']}
+        locations={[0, 0.25, 0.5, 0.75, 1]}
         style={styles.gradient}
       >
-        <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
-          {/* Content */}
-          <View style={styles.content}>
-            {/* Hero Icon Section */}
-            <View style={styles.heroSection}>
-              <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }] }]}>
-                <Animated.View style={[styles.iconPulse, { transform: [{ scale: pulseAnim }] }]}>
-                  <View style={styles.iconCircle}>
-                    {/* Chat Bubbles */}
-                    <View style={styles.chatBubblesContainer}>
-                      {/* First bubble - cycling greeting */}
-                      <Animated.View style={[styles.chatBubble, styles.chatBubble1, { opacity: textFadeAnim }]}>
-                        <Text style={styles.chatBubbleText}>{greetingPairs[currentPairIndex].first}</Text>
-                      </Animated.View>
-                      {/* Second bubble - cycling greeting */}
-                      <Animated.View style={[styles.chatBubble, styles.chatBubble2, { opacity: textFadeAnim }]}>
-                        <Text style={styles.chatBubbleText}>{greetingPairs[currentPairIndex].second}</Text>
-                      </Animated.View>
-                    </View>
-                  </View>
-                </Animated.View>
-              </Animated.View>
-            </View>
+        <Animated.View style={[styles.screenWrapper, exitStyle]}>
+          {/* ── Ambient floating particles ── */}
+          {PARTICLES.map((p, i) => (
+            <FloatingParticle key={i} {...p} />
+          ))}
 
-            {/* Text Content */}
-            <View style={styles.textContent}>
-              {/* Tagline */}
-              <Text style={styles.tagline}>{t('onboarding.welcome.tagline')}</Text>
+          {/* ══════════ HERO SECTION ══════════ */}
+          <View style={styles.heroSection}>
+            {/* Pulsing glow ring behind companion */}
+            <Animated.View style={[styles.glowRing, glowAnimatedStyle]} />
+            <Animated.View style={[styles.glowRingInner, glowAnimatedStyle]} />
 
-              {/* Title */}
-              <Text style={styles.title}>{t('onboarding.welcome.title')}</Text>
+            {/* Companion mascot */}
+            <Animated.View style={[styles.companionContainer, companionAnimatedStyle]}>
+              <LottieView
+                source={require('../../assets/lottie/companion_idle2.json')}
+                autoPlay
+                loop
+                resizeMode="contain"
+                style={styles.companionLottie}
+              />
+            </Animated.View>
 
-              {/* Benefit Pills */}
-              <View style={styles.benefitsContainer}>
-                <View style={styles.benefitPill}>
-                  <Ionicons name="albums-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_smart_flashcards')}</Text>
-                </View>
-                <View style={styles.benefitPill}>
-                  <Ionicons name="ribbon-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_personalised_learning')}</Text>
-                </View>
-                <View style={styles.benefitPill}>
-                  <Ionicons name="analytics-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_adaptive_ai')}</Text>
-                </View>
-                <View style={styles.benefitPill}>
-                  <Ionicons name="list-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_custom_topics')}</Text>
-                </View>
-                <View style={styles.benefitPill}>
-                  <Ionicons name="trending-up-outline" size={16} color="#4ECFBF" />
-                  <Text style={styles.benefitText}>{t('onboarding.benefits.pill_progress_tracking')}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Spacer */}
-            <View style={styles.spacer} />
-
-            {/* Buttons Container */}
-            <View style={styles.buttonContainer}>
-              {/* Try as Guest Button */}
-              <TouchableOpacity style={styles.guestButton} onPress={handleTryAsGuest}>
-                <Ionicons name="play-circle" size={24} color={COLORS.white} style={styles.buttonIcon} />
-                <Text style={styles.guestButtonText}>{t('onboarding.welcome.button_start_free_practice')}</Text>
-              </TouchableOpacity>
-
-              {/* Login Button */}
-              <TouchableOpacity
-                style={styles.createAccountButton}
-                onPress={handleCreateAccount}
-              >
-                <Text style={styles.createAccountButtonText}>{t('onboarding.welcome.button_login')}</Text>
-              </TouchableOpacity>
-
-              {/* Reassurance Text */}
-              <Text style={styles.reassurance}>{t('onboarding.welcome.reassurance')}</Text>
+            {/* Floating language bubbles orbiting around companion */}
+            <View style={styles.bubblesOrbit}>
+              {LANGUAGE_BUBBLES.map((bubble, i) => (
+                <FloatingBubble key={i} index={i} {...bubble} />
+              ))}
             </View>
           </View>
+
+          {/* ══════════ TEXT CONTENT ══════════ */}
+          <Animated.View
+            entering={FadeInUp.delay(1400).duration(600).springify()}
+            style={styles.textSection}
+          >
+            <Text style={styles.tagline}>{t('onboarding.welcome.tagline')}</Text>
+            <Text style={styles.title}>{t('onboarding.welcome.title')}</Text>
+
+            {/* Benefit pills row */}
+            <Animated.View
+              entering={FadeIn.delay(1700).duration(500)}
+              style={styles.benefitsContainer}
+            >
+              <View style={styles.benefitPill}>
+                <Ionicons name="mic-outline" size={14} color="#5EEAD4" />
+                <Text style={styles.benefitText}>{t('onboarding.benefits.pill_adaptive_ai')}</Text>
+              </View>
+              <View style={styles.benefitPill}>
+                <Ionicons name="albums-outline" size={14} color="#FFD63A" />
+                <Text style={styles.benefitText}>{t('onboarding.benefits.pill_smart_flashcards')}</Text>
+              </View>
+              <View style={styles.benefitPill}>
+                <Ionicons name="trending-up-outline" size={14} color="#FF6B9D" />
+                <Text style={styles.benefitText}>{t('onboarding.benefits.pill_progress_tracking')}</Text>
+              </View>
+              <View style={styles.benefitPill}>
+                <Ionicons name="ribbon-outline" size={14} color="#FFA955" />
+                <Text style={styles.benefitText}>{t('onboarding.benefits.pill_personalised_learning')}</Text>
+              </View>
+              <View style={styles.benefitPill}>
+                <Ionicons name="list-outline" size={14} color="#4ECFBF" />
+                <Text style={styles.benefitText}>{t('onboarding.benefits.pill_custom_topics')}</Text>
+              </View>
+            </Animated.View>
+          </Animated.View>
+
+          {/* ══════════ CTA SECTION ══════════ */}
+          <Animated.View
+            entering={FadeInDown.delay(2000).duration(600).springify()}
+            style={styles.ctaSection}
+          >
+            {/* Primary CTA — Gradient with glow */}
+            <AnimatedTouchable
+              style={styles.primaryButton}
+              onPress={handleTryAsGuest}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={['#5EEAD4', '#14B8A6', '#0D9488']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.primaryButtonGradient}
+              >
+                <Ionicons name="chatbubbles" size={22} color="#FFFFFF" style={{ marginRight: 10 }} />
+                <Text style={styles.primaryButtonText}>
+                  {t('onboarding.welcome.button_start_free_practice')}
+                </Text>
+              </LinearGradient>
+            </AnimatedTouchable>
+
+            {/* Secondary CTA — Glass login */}
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleCreateAccount}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.secondaryButtonText}>{t('onboarding.welcome.button_login')}</Text>
+            </TouchableOpacity>
+
+            {/* Reassurance */}
+            <Text style={styles.reassurance}>{t('onboarding.welcome.reassurance')}</Text>
+          </Animated.View>
         </Animated.View>
       </LinearGradient>
     </SafeAreaView>
   );
 };
 
+// ─────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: '#0B1A1F',
   },
   gradient: {
     flex: 1,
   },
-  animatedContainer: {
+  screenWrapper: {
     flex: 1,
+    overflow: 'hidden',
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
+
+  // ── Hero Section (companion + bubbles) ──
   heroSection: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  iconContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: SCREEN_HEIGHT * 0.42,
   },
-  iconPulse: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#E6FFFA',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#4ECFBF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  chatBubblesContainer: {
-    width: 80,
-    height: 60,
-    position: 'relative',
-  },
-  chatBubble: {
+
+  // Pulsing teal glow rings behind companion
+  glowRing: {
     position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 30,
+    elevation: 0,
   },
-  chatBubble1: {
-    top: 0,
-    left: 0,
-    transform: [{ rotate: '-5deg' }],
+  glowRingInner: {
+    position: 'absolute',
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: 'rgba(20, 184, 166, 0.06)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 0,
   },
-  chatBubble2: {
-    bottom: 0,
-    right: 0,
-    transform: [{ rotate: '5deg' }],
+
+  // Companion character
+  companionContainer: {
+    zIndex: 10,
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
-  chatBubbleText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#4ECFBF',
+  companionLottie: {
+    width: 160,
+    height: 160,
   },
-  textContent: {
+
+  // Bubble orbit container (centered on companion)
+  bubblesOrbit: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Individual floating bubble
+  bubbleWrapper: {
+    position: 'absolute',
+  },
+  bubbleGradient: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  bubbleText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+
+  // ── Text Content ──
+  textSection: {
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    marginTop: -8,
   },
   tagline: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4ECFBF',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#14B8A6',
     textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: 0.5,
+    marginBottom: 6,
+    letterSpacing: 2,
     textTransform: 'uppercase',
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontWeight: '800',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 18,
     lineHeight: 36,
+    textShadowColor: 'rgba(20, 184, 166, 0.15)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
+
+  // Benefit pills
   benefitsContainer: {
     flexDirection: 'row',
-    gap: 8,
     flexWrap: 'wrap',
     justifyContent: 'center',
+    gap: 8,
     maxWidth: '100%',
   },
   benefitPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 16,
     gap: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   benefitText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#1F2937',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
-  spacer: {
-    flex: 1,
+
+  // ── CTA Section ──
+  ctaSection: {
+    paddingHorizontal: 28,
+    paddingTop: 24,
+    paddingBottom: Platform.OS === 'ios' ? 16 : 28,
+    gap: 12,
   },
-  buttonContainer: {
+  primaryButton: {
     width: '100%',
-    gap: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  guestButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: '#4ECFBF',
-    borderRadius: 12,
+  primaryButtonGradient: {
+    height: 58,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    shadowColor: '#4ECFBF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
-  guestButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
+  primaryButtonText: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
-  buttonIcon: {
-    marginRight: 8,
-  },
-  createAccountButton: {
+  secondaryButton: {
     width: '100%',
-    height: 56,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#4ECFBF',
+    height: 54,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  createAccountButtonText: {
+  secondaryButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#4ECFBF',
+    color: '#14B8A6',
   },
   reassurance: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.35)',
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
 });

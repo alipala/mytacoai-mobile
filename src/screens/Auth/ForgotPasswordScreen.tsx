@@ -1,7 +1,7 @@
 /**
  * ForgotPasswordScreen.tsx
  * Password reset request screen
- * 
+ *
  * Features:
  * - Email input for password reset
  * - Send reset link to email
@@ -21,6 +21,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { AuthenticationService } from '../../api/generated';
 import { Ionicons } from '@expo/vector-icons';
@@ -60,13 +61,13 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
     } catch (error: any) {
       console.error('Forgot password error:', error);
-      
+
       // Show generic message for security (don't reveal if email exists)
       Alert.alert(
         t('auth.forgot_password.alert_submitted_title'),
         t('auth.forgot_password.alert_submitted_message')
       );
-      
+
       setEmailSent(true); // Still show success screen for security
     } finally {
       setLoading(false);
@@ -79,14 +80,21 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
   if (emailSent) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
         <View style={styles.successContainer}>
-          {/* White Card Container */}
-          <View style={styles.successCard}>
+          {/* Teal Glowing Success Card */}
+          <View style={styles.successCardGlow}>
+            <LinearGradient
+              colors={['#0F3D3A', '#0B2E30', '#091F24']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.successCardGradient}
+            >
             {/* Success Icon */}
             <View style={styles.successIconContainer}>
               <View style={styles.successIconCircle}>
-                <Ionicons name="checkmark" size={48} color="#4ECFBF" />
+                <Ionicons name="checkmark" size={48} color="#14B8A6" />
               </View>
             </View>
 
@@ -124,14 +132,17 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             >
               <Text style={styles.resendButtonText}>{t('auth.forgot_password.button_resend')}</Text>
             </TouchableOpacity>
+            </LinearGradient>
           </View>
         </View>
       </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -141,14 +152,14 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
           style={styles.backButton}
           onPress={handleBackToLogin}
         >
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           <Text style={styles.backButtonText}>{t('auth.forgot_password.button_back')}</Text>
         </TouchableOpacity>
 
         <View style={styles.content}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            <Ionicons name="lock-closed-outline" size={64} color="#FFFFFF" />
+            <Ionicons name="lock-closed-outline" size={64} color="#14B8A6" />
           </View>
 
           {/* Title */}
@@ -157,15 +168,21 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             {t('auth.forgot_password.subtitle')}
           </Text>
 
-          {/* White Card Container */}
-          <View style={styles.card}>
+          {/* Teal Glowing Card */}
+          <View style={styles.cardGlow}>
+            <LinearGradient
+              colors={['#0F3D3A', '#0B2E30', '#091F24']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardGradient}
+            >
             {/* Email Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('auth.forgot_password.label_email')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder={t('auth.forgot_password.placeholder_email')}
-                placeholderTextColor="#A0AEC0"
+                placeholderTextColor="rgba(255,255,255,0.4)"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -191,7 +208,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
             {/* Help Text */}
             <View style={styles.helpContainer}>
-              <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+              <Ionicons name="information-circle-outline" size={20} color="rgba(255,255,255,0.5)" />
               <Text style={styles.helpText}>
                 {t('auth.forgot_password.help_text')}{' '}
                 <Text style={styles.loginLink} onPress={handleBackToLogin}>
@@ -199,10 +216,12 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
                 </Text>
               </Text>
             </View>
+            </LinearGradient>
           </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </View>
   );
 };
 

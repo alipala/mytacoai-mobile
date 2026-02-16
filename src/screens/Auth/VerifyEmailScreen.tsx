@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthenticationService } from '../../api/generated';
@@ -74,7 +75,8 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -82,12 +84,18 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
         {/* Email Icon */}
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
-            <Ionicons name="mail-outline" size={64} color="#4FD1C5" />
+            <Ionicons name="mail-outline" size={64} color="#14B8A6" />
           </View>
         </View>
 
-        {/* Main Content Card */}
-        <View style={styles.card}>
+        {/* Teal Glowing Card */}
+        <View style={styles.cardGlow}>
+          <LinearGradient
+            colors={['#0F3D3A', '#0B2E30', '#091F24']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.cardGradient}
+          >
           <Text style={styles.title}>{t('auth.verification.title')}</Text>
 
           <Text style={styles.message}>
@@ -124,9 +132,11 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
               {t('auth.verification.tip_text')}
             </Text>
           </View>
+          </LinearGradient>
         </View>
       </ScrollView>
     </SafeAreaView>
+    </View>
   );
 };
 

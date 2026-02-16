@@ -1,11 +1,11 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4ECFBF', // Solid turquoise background
+    backgroundColor: '#0B1A1F',
   },
   safeArea: {
     flex: 1,
@@ -23,30 +23,42 @@ export const styles = StyleSheet.create({
   // Logo Section
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 36,
   },
   logoImage: {
     width: Math.min(320, SCREEN_WIDTH * 0.85),
     height: Math.min(101, (SCREEN_WIDTH * 0.85) * 0.315),
   },
 
-  // Card Design - Clean White with Strong Shadow
-  card: {
-    backgroundColor: '#FFFFFF', // Solid white
+  // ── Card Glow Wrapper — Outer view that emits teal glow ──
+  cardGlow: {
     borderRadius: 24,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.55,
+        shadowRadius: 30,
+      },
+      android: {
+        elevation: 16,
+      },
+    }),
   },
 
-  // Tab Navigation
+  // ── Card Gradient — Teal gradient surface with border ──
+  cardGradient: {
+    borderRadius: 24,
+    padding: 28,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+  },
+
+  // ── Tab Navigation ──
   tabContainer: {
     flexDirection: 'row',
-    borderBottomWidth: 2,
-    borderBottomColor: '#E5E7EB',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
     marginBottom: 28,
   },
   tab: {
@@ -55,7 +67,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
-    marginBottom: -2,
+    marginBottom: -1,
   },
   activeTab: {
     borderBottomColor: '#4ECFBF',
@@ -64,15 +76,15 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_500Medium',
     fontSize: 17,
     fontWeight: '500',
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.4)',
   },
   activeTabText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#4ECFBF',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
 
-  // Form Content
+  // ── Form Content ──
   formContainer: {
     // Container for form elements
   },
@@ -80,13 +92,13 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 28,
   },
 
-  // Modern Input Styling
+  // ── Input Fields — Recessed dark surface on teal card ──
   inputContainer: {
     marginBottom: 20,
   },
@@ -94,15 +106,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 56,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.25)',
+    borderRadius: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   inputError: {
     borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
   inputIcon: {
     marginRight: 12,
@@ -111,14 +123,14 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     flex: 1,
     fontSize: 16,
-    color: '#1F2937',
+    color: '#FFFFFF',
     fontWeight: '400',
   },
   eyeIcon: {
     padding: 4,
   },
 
-  // Error Messaging
+  // ── Error Messaging ──
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,7 +145,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Forgot Password
+  // ── Forgot Password ──
   forgotPasswordContainer: {
     alignItems: 'flex-end',
     marginBottom: 24,
@@ -146,24 +158,30 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Primary Button
+  // ── Primary Action Button — Bright teal, prominent on the teal card ──
   button: {
-    backgroundColor: '#4ECFBF',
+    backgroundColor: '#14B8A6',
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#4ECFBF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
     gap: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   buttonText: {
     fontFamily: 'Inter_600SemiBold',
@@ -172,7 +190,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Divider
+  // ── Divider ──
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -181,77 +199,96 @@ export const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
   },
   dividerText: {
     fontFamily: 'Inter_500Medium',
     marginHorizontal: 16,
     fontSize: 14,
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.4)',
     fontWeight: '500',
   },
 
-  // Apple Sign-In Button
+  // ── Apple Sign-In Button — White per Apple HIG ──
   appleButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderRadius: 14,
     height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#FFFFFF',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   appleButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#1F2937',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '600',
   },
 
-  // Google Sign-In Button
+  // ── Google Sign-In Button — Google red with white icon ──
   googleButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+    backgroundColor: '#DB4437',
+    borderRadius: 14,
     height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#DB4437',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   googleButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#1F2937',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
 
-  // Email Button (Outlined)
+  // ── Email Button — Bright teal outline on teal card ──
   emailButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#4ECFBF',
-    borderRadius: 12,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.5)',
+    borderRadius: 14,
     height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
     marginTop: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   emailButtonText: {
     fontFamily: 'Inter_600SemiBold',
@@ -260,7 +297,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Sign Up Link Container
+  // ── Sign Up / Sign In Link ──
   signupLinkContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -270,7 +307,7 @@ export const styles = StyleSheet.create({
   signupLinkText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 15,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.5)',
   },
   signupLink: {
     fontFamily: 'Inter_600SemiBold',
@@ -279,7 +316,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Back Button
+  // ── Back Button ──
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -290,11 +327,11 @@ export const styles = StyleSheet.create({
   backButtonText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
-    color: '#4ECFBF',
+    color: '#14B8A6',
     fontWeight: '600',
   },
 
-  // Compact Social Buttons (Horizontal)
+  // ── Compact Social Buttons (inline, after email form) ──
   compactSocialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -303,32 +340,40 @@ export const styles = StyleSheet.create({
   },
   compactAppleButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#FFFFFF',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   compactGoogleButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#DB4437',
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#DB4437',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
 });
