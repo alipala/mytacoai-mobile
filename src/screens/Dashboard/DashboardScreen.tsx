@@ -787,14 +787,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* ========== NEW USER GUIDED ACTIVATION ========== */}
 
               {/* Section 1: Primary CTA - Speaking Assessment */}
-              <LottieView
-                source={require('../../assets/lottie/companion_idle2.json')}
-                autoPlay
-                loop
-                resizeMode="contain"
-                renderMode="AUTOMATIC"
-                style={styles.newUserLottieStandalone}
-              />
+              <View style={styles.newUserLottieGlow}>
+                <LottieView
+                  source={require('../../assets/lottie/companion_idle2.json')}
+                  autoPlay
+                  loop
+                  resizeMode="contain"
+                  renderMode="AUTOMATIC"
+                  style={styles.newUserLottieStandalone}
+                />
+              </View>
               <View style={styles.newUserCTAGroup}>
                 <Text style={styles.newUserPrimaryTitle}>
                   {t('dashboard.new_user.assessment_title')}

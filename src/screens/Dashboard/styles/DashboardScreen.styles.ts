@@ -1400,6 +1400,15 @@ export const styles = StyleSheet.create({
     height: 200,
     marginBottom: -8,
   },
+  newUserLottieGlow: {
+    alignSelf: 'center',
+    // Same teal glow as tab bar and CTA button
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 12,
+  },
   newUserLottieStandalone: {
     width: 180,
     height: 180,
