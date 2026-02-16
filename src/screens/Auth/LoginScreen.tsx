@@ -763,11 +763,11 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Email Input */}
                         <View style={styles.inputContainer}>
                           <View style={[styles.inputWrapper, emailError && styles.inputError]}>
-                            <Ionicons name="mail-outline" size={20} color={emailError ? '#EF4444' : 'rgba(255,255,255,0.35)'} style={styles.inputIcon} />
+                            <Ionicons name="mail-outline" size={20} color={emailError ? '#EF4444' : 'rgba(255,255,255,0.5)'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
                               placeholder={t('auth.login.label_email')}
-                              placeholderTextColor="rgba(255,255,255,0.3)"
+                              placeholderTextColor="rgba(255,255,255,0.4)"
                               value={email}
                               onChangeText={(text) => {
                                 setEmail(text);
@@ -791,11 +791,11 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Password Input */}
                         <View style={styles.inputContainer}>
                           <View style={[styles.inputWrapper, passwordError && styles.inputError]}>
-                            <Ionicons name="lock-closed-outline" size={20} color={passwordError ? '#EF4444' : 'rgba(255,255,255,0.35)'} style={styles.inputIcon} />
+                            <Ionicons name="lock-closed-outline" size={20} color={passwordError ? '#EF4444' : 'rgba(255,255,255,0.5)'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
                               placeholder={t('auth.login.label_password')}
-                              placeholderTextColor="rgba(255,255,255,0.3)"
+                              placeholderTextColor="rgba(255,255,255,0.4)"
                               value={password}
                               onChangeText={(text) => {
                                 setPassword(text);
@@ -815,7 +815,7 @@ export const LoginScreen = ({ navigation }: any) => {
                               <Ionicons
                                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                                 size={20}
-                                color="rgba(255,255,255,0.35)"
+                                color="rgba(255,255,255,0.5)"
                               />
                             </TouchableOpacity>
                           </View>
@@ -953,11 +953,11 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Full Name Input */}
                         <View style={styles.inputContainer}>
                           <View style={[styles.inputWrapper, fullNameError && styles.inputError]}>
-                            <Ionicons name="person-outline" size={20} color={fullNameError ? '#EF4444' : 'rgba(255,255,255,0.35)'} style={styles.inputIcon} />
+                            <Ionicons name="person-outline" size={20} color={fullNameError ? '#EF4444' : 'rgba(255,255,255,0.5)'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
                               placeholder={t('auth.login.label_name')}
-                              placeholderTextColor="rgba(255,255,255,0.3)"
+                              placeholderTextColor="rgba(255,255,255,0.4)"
                               value={fullName}
                               onChangeText={(text) => {
                                 setFullName(text);
@@ -978,11 +978,11 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Email Input */}
                         <View style={styles.inputContainer}>
                           <View style={[styles.inputWrapper, signupEmailError && styles.inputError]}>
-                            <Ionicons name="mail-outline" size={20} color={signupEmailError ? '#EF4444' : 'rgba(255,255,255,0.35)'} style={styles.inputIcon} />
+                            <Ionicons name="mail-outline" size={20} color={signupEmailError ? '#EF4444' : 'rgba(255,255,255,0.5)'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
                               placeholder={t('auth.login.label_email')}
-                              placeholderTextColor="rgba(255,255,255,0.3)"
+                              placeholderTextColor="rgba(255,255,255,0.4)"
                               value={signupEmail}
                               onChangeText={(text) => {
                                 setSignupEmail(text);
@@ -1006,11 +1006,11 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Password Input */}
                         <View style={styles.inputContainer}>
                           <View style={[styles.inputWrapper, signupPasswordError && styles.inputError]}>
-                            <Ionicons name="lock-closed-outline" size={20} color={signupPasswordError ? '#EF4444' : 'rgba(255,255,255,0.35)'} style={styles.inputIcon} />
+                            <Ionicons name="lock-closed-outline" size={20} color={signupPasswordError ? '#EF4444' : 'rgba(255,255,255,0.5)'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
                               placeholder={t('auth.login.placeholder_password_min')}
-                              placeholderTextColor="rgba(255,255,255,0.3)"
+                              placeholderTextColor="rgba(255,255,255,0.4)"
                               value={signupPassword}
                               onChangeText={(text) => {
                                 setSignupPassword(text);
@@ -1029,7 +1029,7 @@ export const LoginScreen = ({ navigation }: any) => {
                               <Ionicons
                                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                                 size={20}
-                                color="rgba(255,255,255,0.35)"
+                                color="rgba(255,255,255,0.5)"
                               />
                             </TouchableOpacity>
                           </View>
@@ -1044,11 +1044,11 @@ export const LoginScreen = ({ navigation }: any) => {
                         {/* Confirm Password Input */}
                         <View style={styles.inputContainer}>
                           <View style={[styles.inputWrapper, confirmPasswordError && styles.inputError]}>
-                            <Ionicons name="lock-closed-outline" size={20} color={confirmPasswordError ? '#EF4444' : 'rgba(255,255,255,0.35)'} style={styles.inputIcon} />
+                            <Ionicons name="lock-closed-outline" size={20} color={confirmPasswordError ? '#EF4444' : 'rgba(255,255,255,0.5)'} style={styles.inputIcon} />
                             <TextInput
                               style={styles.input}
                               placeholder={t('auth.login.label_confirm_password')}
-                              placeholderTextColor="rgba(255,255,255,0.3)"
+                              placeholderTextColor="rgba(255,255,255,0.4)"
                               value={confirmPassword}
                               onChangeText={(text) => {
                                 setConfirmPassword(text);
@@ -1067,7 +1067,7 @@ export const LoginScreen = ({ navigation }: any) => {
                               <Ionicons
                                 name={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
                                 size={20}
-                                color="rgba(255,255,255,0.35)"
+                                color="rgba(255,255,255,0.5)"
                               />
                             </TouchableOpacity>
                           </View>

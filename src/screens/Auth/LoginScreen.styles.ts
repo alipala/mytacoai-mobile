@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,23 +23,34 @@ export const styles = StyleSheet.create({
   // Logo Section
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 36,
   },
   logoImage: {
     width: Math.min(320, SCREEN_WIDTH * 0.85),
     height: Math.min(101, (SCREEN_WIDTH * 0.85) * 0.315),
   },
 
-  // Card — Dark glassmorphic surface
+  // ── Card — Teal-tinted glass with glow ──
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderRadius: 24,
     padding: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
 
-  // Tab Navigation
+  // ── Tab Navigation ──
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
@@ -61,15 +72,15 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_500Medium',
     fontSize: 17,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.35)',
+    color: 'rgba(255, 255, 255, 0.4)',
   },
   activeTabText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#14B8A6',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
 
-  // Form Content
+  // ── Form Content ──
   formContainer: {
     // Container for form elements
   },
@@ -83,7 +94,7 @@ export const styles = StyleSheet.create({
     lineHeight: 28,
   },
 
-  // Input Styling — Dark glass fields
+  // ── Input Fields — Lifted dark surface ──
   inputContainer: {
     marginBottom: 20,
   },
@@ -91,15 +102,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 56,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 14,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   inputError: {
     borderColor: '#EF4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
   },
   inputIcon: {
     marginRight: 12,
@@ -115,7 +126,7 @@ export const styles = StyleSheet.create({
     padding: 4,
   },
 
-  // Error Messaging
+  // ── Error Messaging ──
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,7 +141,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Forgot Password
+  // ── Forgot Password ──
   forgotPasswordContainer: {
     alignItems: 'flex-end',
     marginBottom: 24,
@@ -143,7 +154,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Primary Action Button — Teal with glow
+  // ── Primary Action Button — Teal with prominent glow ──
   button: {
     backgroundColor: '#14B8A6',
     height: 56,
@@ -152,12 +163,18 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6,
     gap: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -169,7 +186,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Divider
+  // ── Divider ──
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -178,17 +195,17 @@ export const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   dividerText: {
     fontFamily: 'Inter_500Medium',
     marginHorizontal: 16,
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.3)',
+    color: 'rgba(255, 255, 255, 0.35)',
     fontWeight: '500',
   },
 
-  // Apple Sign-In Button — White per Apple HIG
+  // ── Apple Sign-In Button — White per Apple HIG ──
   appleButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
@@ -198,6 +215,17 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     marginBottom: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#FFFFFF',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   appleButtonText: {
     fontFamily: 'Inter_600SemiBold',
@@ -206,11 +234,11 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Google Sign-In Button — Dark glass
+  // ── Google Sign-In Button — Lifted dark surface ──
   googleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     borderRadius: 14,
     height: 56,
     flexDirection: 'row',
@@ -225,9 +253,9 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Email Button — Teal outlined
+  // ── Email Button — Teal outlined with glow ──
   emailButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
     borderWidth: 1.5,
     borderColor: 'rgba(20, 184, 166, 0.4)',
     borderRadius: 14,
@@ -237,6 +265,17 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     marginTop: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   emailButtonText: {
     fontFamily: 'Inter_600SemiBold',
@@ -245,7 +284,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Sign Up / Sign In Link
+  // ── Sign Up / Sign In Link ──
   signupLinkContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -255,7 +294,7 @@ export const styles = StyleSheet.create({
   signupLinkText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: 'rgba(255, 255, 255, 0.5)',
   },
   signupLink: {
     fontFamily: 'Inter_600SemiBold',
@@ -264,7 +303,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Back Button
+  // ── Back Button ──
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -279,7 +318,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Compact Social Buttons (inline, after email form)
+  // ── Compact Social Buttons (inline, after email form) ──
   compactSocialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -293,11 +332,22 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#FFFFFF',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   compactGoogleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     width: 56,
     height: 56,
     borderRadius: 14,

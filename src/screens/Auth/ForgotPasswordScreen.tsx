@@ -165,7 +165,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
               <TextInput
                 style={styles.input}
                 placeholder={t('auth.forgot_password.placeholder_email')}
-                placeholderTextColor="rgba(255,255,255,0.3)"
+                placeholderTextColor="rgba(255,255,255,0.4)"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -191,7 +191,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
             {/* Help Text */}
             <View style={styles.helpContainer}>
-              <Ionicons name="information-circle-outline" size={20} color="rgba(255,255,255,0.35)" />
+              <Ionicons name="information-circle-outline" size={20} color="rgba(255,255,255,0.5)" />
               <Text style={styles.helpText}>
                 {t('auth.forgot_password.help_text')}{' '}
                 <Text style={styles.loginLink} onPress={handleBackToLogin}>

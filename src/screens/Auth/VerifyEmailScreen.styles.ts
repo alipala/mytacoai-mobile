@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -20,25 +20,42 @@ export const styles = StyleSheet.create({
     width: SCREEN_WIDTH < 400 ? Math.min(100, SCREEN_WIDTH * 0.27) : 120,
     height: SCREEN_WIDTH < 400 ? Math.min(100, SCREEN_WIDTH * 0.27) : 120,
     borderRadius: SCREEN_WIDTH < 400 ? Math.min(50, SCREEN_WIDTH * 0.135) : 60,
-    backgroundColor: 'rgba(20, 184, 166, 0.12)',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.25)',
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 0,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.35,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
 
-  // Dark glassmorphic card
+  // ── Card — Teal-tinted glass with glow ──
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderRadius: 20,
     padding: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   title: {
     fontSize: 28,
@@ -49,7 +66,7 @@ export const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.55)',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
@@ -58,6 +75,8 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+
+  // ── Button — Teal with glow ──
   button: {
     backgroundColor: '#14B8A6',
     height: 50,
@@ -65,11 +84,17 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -90,14 +115,18 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Tip box — dark glass with teal accent
+  // ── Tip box — Teal-tinted glass with accent border ──
   tipContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
     borderLeftColor: '#14B8A6',
+    borderWidth: 1,
+    borderTopColor: 'rgba(20, 184, 166, 0.15)',
+    borderRightColor: 'rgba(20, 184, 166, 0.15)',
+    borderBottomColor: 'rgba(20, 184, 166, 0.15)',
   },
   tipLabel: {
     fontSize: 14,
@@ -107,7 +136,7 @@ export const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.55)',
     lineHeight: 20,
   },
 });

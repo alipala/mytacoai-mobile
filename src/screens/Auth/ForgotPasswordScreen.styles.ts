@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
@@ -25,14 +25,25 @@ export const styles = StyleSheet.create({
     padding: 20,
   },
 
-  // Dark glassmorphic card
+  // ── Card — Teal-tinted glass with glow ──
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderRadius: 24,
     padding: 28,
     marginTop: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   iconContainer: {
     alignItems: 'center',
@@ -60,16 +71,20 @@ export const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 8,
   },
+
+  // ── Input — Lifted dark surface ──
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     color: '#FFFFFF',
   },
+
+  // ── Primary Button — Teal with glow ──
   primaryButton: {
     backgroundColor: '#14B8A6',
     borderRadius: 14,
@@ -77,11 +92,17 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -100,14 +121,14 @@ export const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: 'rgba(255, 255, 255, 0.45)',
   },
   loginLink: {
     color: '#14B8A6',
     fontWeight: '700',
   },
 
-  // Success State Styles
+  // ── Success State ──
   successContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -115,12 +136,23 @@ export const styles = StyleSheet.create({
     padding: 20,
   },
   successCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
     borderRadius: 24,
     padding: 32,
     width: '100%',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   successIconContainer: {
     alignItems: 'center',
@@ -130,16 +162,22 @@ export const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: 'rgba(20, 184, 166, 0.12)',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.25)',
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 0,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.35,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
   successTitle: {
     fontSize: 24,
@@ -150,7 +188,7 @@ export const styles = StyleSheet.create({
   },
   successMessage: {
     fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.55)',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -163,7 +201,7 @@ export const styles = StyleSheet.create({
   },
   instructionsText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: 'rgba(255, 255, 255, 0.45)',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 32,
