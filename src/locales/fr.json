@@ -157,6 +157,27 @@
     "streak": {
       "days": "{{count}} jour de série",
       "days_plural": "{{count}} jours de série"
+    },
+    "new_user": {
+      "subtitle": "Votre parcours oral commence ici",
+      "assessment_title": "Découvrez votre niveau",
+      "assessment_subtitle": "Conversation de 5 min avec l'IA pour évaluer votre oral",
+      "assessment_button": "Commencer",
+      "badge_speaking": "Oral",
+      "badge_duration": "~5 min",
+      "badge_ai": "Propulsé par IA",
+      "how_it_works_title": "Comment ça marche",
+      "step1_title": "Parlez",
+      "step1_desc": "Ayez de vraies conversations avec l'IA",
+      "step2_title": "Feedback",
+      "step2_desc": "Découvrez vos forces & axes de progrès",
+      "step3_title": "Progressez",
+      "step3_desc": "Suivez votre plan d'apprentissage personnalisé",
+      "quick_practice_link": "Ou lancez directement une conversation libre",
+      "upgrade_banner": "Commencez votre essai gratuit de 7 jours",
+      "minutes_gauge": "{{minutes}} min restantes ce mois",
+      "minutes_low": "{{minutes}} min restantes — bientôt épuisées",
+      "minutes_empty": "Vous avez utilisé tous vos minutes gratuites"
     }
   },
   "practice": {

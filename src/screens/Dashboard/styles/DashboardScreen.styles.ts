@@ -1353,4 +1353,217 @@ export const styles = StyleSheet.create({
     color: '#9CA3AF',
     fontSize: 14,
   },
+
+  // ========== NEW USER ONBOARDING EMPTY STATE ==========
+  newUserWelcomeSection: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
+  newUserGreeting: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  newUserSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#B4E4DD',
+    textAlign: 'center',
+    marginTop: 6,
+  },
+
+  // Primary CTA Card — Deep indigo → dark gradient with Lottie animation
+  newUserPrimaryCard: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  newUserPrimaryGradient: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+  newUserPrimaryLottie: {
+    width: 200,
+    height: 200,
+    marginBottom: -8,
+  },
+  newUserLottieGlow: {
+    alignSelf: 'center',
+    // Same teal glow as tab bar and CTA button
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  newUserLottieStandalone: {
+    width: 180,
+    height: 180,
+    alignSelf: 'center',
+    marginTop: -10,
+    marginBottom: -4,
+  },
+  newUserCTAGroup: {
+    alignSelf: 'center',
+    alignItems: 'stretch',
+  },
+  newUserPrimaryTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 2,
+    letterSpacing: 0.2,
+  },
+  newUserPrimarySubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(200, 210, 235, 0.85)',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+    paddingHorizontal: 10,
+  },
+  newUserButtonContainer: {
+    alignSelf: 'stretch',
+    // Pulsing teal glow (shadowOpacity animated 0.3 → 0.8)
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+    borderRadius: 14,
+  },
+  newUserPrimaryButton: {
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  newUserPrimaryButtonText: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+
+  // How It Works Section — 3 cards in a row, all visible
+  newUserHowItWorks: {
+    marginTop: 28,
+    width: '100%',
+    paddingHorizontal: 20,
+  },
+  newUserHowItWorksTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  newUserStepsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  newUserStepCard: {
+    flex: 1,
+    borderRadius: 18,
+    paddingTop: 18,
+    paddingBottom: 16,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  newUserStepCardIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  newUserStepCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  newUserStepCardDesc: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.85)',
+    textAlign: 'center',
+    lineHeight: 15,
+  },
+
+  // Secondary Link
+  newUserSecondaryLink: {
+    marginTop: 24,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  newUserSecondaryLinkText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#4ECFBF',
+  },
+
+  // Minutes Fuel Gauge + Upgrade Banner
+  newUserUpgradeBanner: {
+    marginTop: 24,
+    marginHorizontal: 20,
+    marginBottom: 30,
+    paddingTop: 18,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: 'rgba(20, 184, 166, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.15)',
+    gap: 14,
+  },
+  fuelGaugeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  fuelGaugeMinutesText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#14B8A6',
+    letterSpacing: 0.1,
+  },
+  fuelGaugeBarRow: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  fuelGaugeBarFilled: {
+    height: 10,
+  },
+  fuelGaugeBarEmpty: {
+    height: 10,
+  },
+  newUserUpgradeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+  // ========== END NEW USER ONBOARDING EMPTY STATE ==========
 });

@@ -27,7 +27,7 @@ interface LearningCompanionProps {
 
 // Lottie animation sources
 const COMPANION_ANIMATIONS: Record<CharacterState, any> = {
-  idle: require('../assets/lottie/companion_idle.json'),
+  idle: require('../assets/lottie/companion_idle2.json'),
   anticipation: require('../assets/lottie/companion_anticipation.json'),
   celebrate: require('../assets/lottie/companion_celebrate.json'),
   disappointed: require('../assets/lottie/companion_disappointed.json'),

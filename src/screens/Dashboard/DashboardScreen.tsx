@@ -45,6 +45,7 @@ import { DNAAnalysisCard } from '../../components/DNAAnalysisCard';
 import { PracticeSessionDetailsModal } from '../../components/PracticeSessionDetailsModal';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { API_BASE_URL } from '../../api/config';
+import LottieView from 'lottie-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -105,6 +106,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Animation refs for Start New Session button
   const buttonFloatAnim = useRef(new Animated.Value(0)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   // Masonry grid doesn't need expanded language state
 
@@ -145,6 +147,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         Animated.timing(buttonScaleAnim, {
           toValue: 1,
           duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Glow pulse for new-user CTA button
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 2500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 2500,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -658,6 +678,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   // Empty State
   if (learningPlans.length === 0) {
+    // True new user: no plans AND no practice sessions
+    const isNewUser = practiceSessions.length === 0;
+
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
@@ -670,58 +693,63 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           />
 
           <View style={styles.headerActions}>
-            {/* Free User Badge - Show for non-premium users */}
-            {subscriptionStatus && ['try_learn', 'free'].includes(subscriptionStatus.plan) && (
-              <TouchableOpacity
-                style={styles.freeBadgeCompact}
-                onPress={handleUpgradePress}
-                activeOpacity={0.8}
-              >
-                <View style={styles.badgeGlowFree} />
-                <Ionicons name="sparkles-outline" size={16} color="#6B8A84" />
-                <View>
-                  <Text style={styles.freeTextCompact}>{t('profile.settings.subscription.free_badge')}</Text>
-                  <Text style={styles.freeMinutesCompact}>
-                    {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+            {/* Hide badges and streak for brand-new users — show after first session */}
+            {!isNewUser && (
+              <>
+                {/* Free User Badge - Show for non-premium users */}
+                {subscriptionStatus && ['try_learn', 'free'].includes(subscriptionStatus.plan) && (
+                  <TouchableOpacity
+                    style={styles.freeBadgeCompact}
+                    onPress={handleUpgradePress}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.badgeGlowFree} />
+                    <Ionicons name="sparkles-outline" size={16} color="#6B8A84" />
+                    <View>
+                      <Text style={styles.freeTextCompact}>{t('profile.settings.subscription.free_badge')}</Text>
+                      <Text style={styles.freeMinutesCompact}>
+                        {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+
+                {/* Premium Badge - Show for premium users */}
+                {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
+                  <TouchableOpacity
+                    style={styles.premiumBadgeCompact}
+                    onPress={handleUpgradePress}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.badgeGlowPremium} />
+                    <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
+                    <View>
+                      <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
+                      <Text style={styles.premiumMinutesCompact}>
+                        {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+
+                {/* Streak Badge */}
+                {progressStats && (
+                  <TouchableOpacity
+                    style={styles.streakBadgeCompact}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.badgeGlowStreak} />
+                    <Ionicons name="flame-outline" size={18} color="#EF4444" />
+                    <View>
+                      <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
+                      <Text style={styles.streakLabelCompact}>{t('units.days_plural', { count: progressStats.current_streak || 0 })}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              </>
             )}
 
-            {/* Premium Badge - Show for premium users */}
-            {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
-              <TouchableOpacity
-                style={styles.premiumBadgeCompact}
-                onPress={handleUpgradePress}
-                activeOpacity={0.8}
-              >
-                <View style={styles.badgeGlowPremium} />
-                <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
-                <View>
-                  <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
-                  <Text style={styles.premiumMinutesCompact}>
-                    {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-
-            {/* Streak Badge */}
-            {progressStats && (
-              <TouchableOpacity
-                style={styles.streakBadgeCompact}
-                activeOpacity={0.8}
-              >
-                <View style={styles.badgeGlowStreak} />
-                <Ionicons name="flame-outline" size={18} color="#EF4444" />
-                <View>
-                  <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
-                  <Text style={styles.streakLabelCompact}>{t('units.days_plural', { count: progressStats.current_streak || 0 })}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-
-            {/* Notifications Bell */}
+            {/* Notifications Bell - always visible */}
             <TouchableOpacity
               style={styles.notificationBell}
               activeOpacity={0.8}
@@ -754,209 +782,424 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          {/* Determine if user is subscribed */}
-          {(() => {
-            // Premium plans: fluency_builder, language_mastery (formerly team_mastery)
-            // Free plan: try_learn, free
-            const isSubscribed = subscriptionStatus &&
-              !['try_learn', 'free'].includes(subscriptionStatus.plan);
-            const sessionLimit = subscriptionStatus?.limits?.sessions_remaining || 0;
-            const minutesRemaining = subscriptionStatus?.limits?.minutes_remaining || 0;
+          {isNewUser ? (
+            <>
+              {/* ========== NEW USER GUIDED ACTIVATION ========== */}
 
-            return (
-              <>
-                {/* Premium User - Clear Status Badge */}
-                {isSubscribed && (
-                  <View style={styles.premiumStatusBadgeContainer}>
+              {/* Section 1: Primary CTA - Speaking Assessment */}
+              <View style={styles.newUserLottieGlow}>
+                <LottieView
+                  source={require('../../assets/lottie/companion_idle2.json')}
+                  autoPlay
+                  loop
+                  resizeMode="contain"
+                  renderMode="AUTOMATIC"
+                  style={styles.newUserLottieStandalone}
+                />
+              </View>
+              <View style={styles.newUserCTAGroup}>
+                <Text style={styles.newUserPrimaryTitle}>
+                  {t('dashboard.new_user.assessment_title')}
+                </Text>
+                <Text style={styles.newUserPrimarySubtitle}>
+                  {t('dashboard.new_user.assessment_subtitle')}
+                </Text>
+
+                <Animated.View
+                  style={[
+                    styles.newUserButtonContainer,
+                    {
+                      shadowOpacity: glowAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.3, 0.8],
+                      }),
+                    },
+                  ]}
+                >
+                  <TouchableOpacity
+                    onPress={handleCreatePlan}
+                    activeOpacity={0.85}
+                  >
                     <LinearGradient
-                      colors={['rgba(255, 214, 58, 0.15)', 'rgba(255, 214, 58, 0.08)']}
+                      colors={['#5EEAD4', '#14B8A6', '#0D9488']}
                       start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.premiumStatusBadge}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.newUserPrimaryButton}
                     >
-                      <View style={styles.premiumStatusIconCircle}>
-                        <Text style={styles.crownEmoji}>👑</Text>
-                      </View>
-                      <View style={styles.premiumStatusTextContainer}>
-                        <Text style={styles.premiumStatusTitle}>{t('dashboard.header.premium_badge')}</Text>
-                        <Text style={styles.premiumStatusSubtitle}>
-                          {t('dashboard.header.minutes_remaining', { minutes: minutesRemaining })}
-                        </Text>
-                      </View>
+                      <Text style={styles.newUserPrimaryButtonText}>
+                        {t('dashboard.new_user.assessment_button')} →
+                      </Text>
                     </LinearGradient>
-                  </View>
-                )}
+                  </TouchableOpacity>
+                </Animated.View>
+              </View>
 
-                {/* Free User - Action Cards Only (No Header) */}
-                {!isSubscribed && (
-                  <View style={styles.freeUserContainer}>
-                    {/* SECONDARY - Freestyle Chat (Turquoise) */}
-                    <TouchableOpacity
-                      style={styles.secondaryCardNew}
-                      onPress={handleSelectQuickPractice}
-                      activeOpacity={0.9}
-                    >
-                      <View style={styles.secondaryCardIcon}>
-                        <Ionicons name="mic-circle" size={36} color="#FFFFFF" />
-                      </View>
-                      <View style={styles.secondaryCardText}>
-                        <Text style={styles.secondaryCardTitleNew}>{t('dashboard.quick_start.button_freestyle')}</Text>
-                        <Text style={styles.secondaryCardSubtitle}>{t('practice.conversation.subtitle')}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={22} color="rgba(255, 255, 255, 0.8)" />
-                    </TouchableOpacity>
+              {/* Section 3: How It Works - Horizontal Colored Cards */}
+              <View style={styles.newUserHowItWorks}>
+                <Text style={styles.newUserHowItWorksTitle}>
+                  {t('dashboard.new_user.how_it_works_title')}
+                </Text>
+                <View style={styles.newUserStepsRow}>
+                  {/* Step 1: Speak */}
+                  <LinearGradient
+                    colors={['#F59E0B', '#D97706', '#1F2937']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={styles.newUserStepCard}
+                  >
+                    <View style={styles.newUserStepCardIconWrap}>
+                      <Ionicons name="mic" size={26} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.newUserStepCardTitle}>
+                      {t('dashboard.new_user.step1_title')}
+                    </Text>
+                    <Text style={styles.newUserStepCardDesc}>
+                      {t('dashboard.new_user.step1_desc')}
+                    </Text>
+                  </LinearGradient>
 
-                    {/* PRIMARY - Speaking Assessment (Coral Hero Card) */}
-                    <TouchableOpacity
-                      style={styles.primaryCardNew}
-                      onPress={handleCreatePlan}
-                      activeOpacity={0.9}
-                    >
-                      <View style={styles.primaryCardGradientNew}>
-                        <View style={styles.primaryCardHeaderNew}>
-                          <View style={styles.primaryIconContainerNew}>
-                            <Ionicons name="pulse" size={32} color="#FFFFFF" />
-                          </View>
-                        </View>
+                  {/* Step 2: Get Feedback */}
+                  <LinearGradient
+                    colors={['#EF4444', '#DC2626', '#1F2937']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={styles.newUserStepCard}
+                  >
+                    <View style={styles.newUserStepCardIconWrap}>
+                      <Ionicons name="analytics" size={26} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.newUserStepCardTitle}>
+                      {t('dashboard.new_user.step2_title')}
+                    </Text>
+                    <Text style={styles.newUserStepCardDesc}>
+                      {t('dashboard.new_user.step2_desc')}
+                    </Text>
+                  </LinearGradient>
 
-                        <Text style={styles.primaryCardTitleNew}>{t('assessment.speaking.title')}</Text>
-                        <Text style={styles.primaryCardDescriptionNew}>
-                          {t('assessment.speaking.subtitle')}
-                        </Text>
+                  {/* Step 3: Improve */}
+                  <LinearGradient
+                    colors={['#3B82F6', '#2563EB', '#1F2937']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={styles.newUserStepCard}
+                  >
+                    <View style={styles.newUserStepCardIconWrap}>
+                      <Ionicons name="rocket" size={26} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.newUserStepCardTitle}>
+                      {t('dashboard.new_user.step3_title')}
+                    </Text>
+                    <Text style={styles.newUserStepCardDesc}>
+                      {t('dashboard.new_user.step3_desc')}
+                    </Text>
+                  </LinearGradient>
+                </View>
+              </View>
 
-                        <View style={styles.primaryFeaturesNew}>
-                          <View style={styles.featurePill}>
-                            <Ionicons name="person-outline" size={13} color="#FFFFFF" />
-                            <Text style={styles.featurePillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
-                          </View>
-                          <View style={styles.featurePill}>
-                            <Ionicons name="list-outline" size={13} color="#FFFFFF" />
-                            <Text style={styles.featurePillText}>{t('profile.dna.button_track_progress')}</Text>
-                          </View>
-                          <View style={styles.featurePill}>
-                            <Ionicons name="trophy-outline" size={13} color="#FFFFFF" />
-                            <Text style={styles.featurePillText}>{t('profile.progress.title')}</Text>
-                          </View>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
+              {/* Section 4: Secondary Option - Quick Practice Link */}
+              <TouchableOpacity
+                style={styles.newUserSecondaryLink}
+                onPress={handleSelectQuickPractice}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.newUserSecondaryLinkText}>
+                  {t('dashboard.new_user.quick_practice_link')} →
+                </Text>
+              </TouchableOpacity>
 
-                    {/* Usage Limits - Amber Banner with Minutes */}
-                    <View style={styles.usageLimitsBanner}>
-                      <Ionicons name="time-outline" size={20} color="#F59E0B" />
-                      <Text style={styles.usageLimitsText}>
-                        {Math.round(minutesRemaining || 0)} minutes remaining
+              {/* Section 5: Minutes Fuel Gauge + Upgrade CTA */}
+              {(() => {
+                const totalMinutes = 15;
+                const minutesLeft = subscriptionStatus?.limits?.minutes_remaining ?? totalMinutes;
+                const fraction = Math.max(0, Math.min(1, minutesLeft / totalMinutes));
+                const isLow = minutesLeft <= 5 && minutesLeft > 0;
+                const isEmpty = minutesLeft <= 0;
+
+                // Bar width in pixels: screen - margins(40) - padding(40) - 2 border
+                const barMaxWidth = SCREEN_WIDTH - 82;
+                const barFillWidth = Math.max(fraction * barMaxWidth, 4);
+
+                const barColor = isEmpty
+                  ? '#EF4444'
+                  : isLow
+                    ? '#F59E0B'
+                    : '#14B8A6';
+                const borderColor = isEmpty
+                  ? 'rgba(239, 68, 68, 0.3)'
+                  : isLow
+                    ? 'rgba(245, 158, 11, 0.3)'
+                    : 'rgba(20, 184, 166, 0.2)';
+                const bgColor = isEmpty
+                  ? 'rgba(239, 68, 68, 0.08)'
+                  : isLow
+                    ? 'rgba(245, 158, 11, 0.08)'
+                    : 'rgba(20, 184, 166, 0.06)';
+
+                const minutesText = isEmpty
+                  ? t('dashboard.new_user.minutes_empty')
+                  : isLow
+                    ? t('dashboard.new_user.minutes_low', { minutes: minutesLeft })
+                    : t('dashboard.new_user.minutes_gauge', { minutes: minutesLeft });
+
+                return (
+                  <TouchableOpacity
+                    style={[styles.newUserUpgradeBanner, { backgroundColor: bgColor, borderColor }]}
+                    onPress={handleUpgradePress}
+                    activeOpacity={0.8}
+                  >
+                    {/* Status line */}
+                    <View style={styles.fuelGaugeHeader}>
+                      <Ionicons
+                        name={isEmpty ? 'alert-circle' : isLow ? 'flash' : 'time-outline'}
+                        size={15}
+                        color={barColor}
+                      />
+                      <Text style={[styles.fuelGaugeMinutesText, { color: barColor }]}>
+                        {minutesText}
                       </Text>
                     </View>
 
-                    {/* Upgrade Link - Premium Gold Gradient */}
-                    <LinearGradient
-                      colors={['#F59E0B', '#FBBF24', '#FCD34D']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.upgradeLinkContainer}
-                    >
-                      <TouchableOpacity
-                        style={styles.upgradeLinkInner}
-                        onPress={handleUpgradePress}
-                        activeOpacity={0.8}
-                      >
-                        <View style={styles.upgradeIconCircle}>
-                          <Ionicons name="sparkles" size={20} color="#F59E0B" />
-                        </View>
-                        <Text style={styles.upgradeLinkText}>{t('subscription.title')}</Text>
-                        <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-                      </TouchableOpacity>
-                    </LinearGradient>
-                  </View>
-                )}
-
-                {/* Premium User - Focused Activation Flow */}
-                {isSubscribed && (
-                  <View style={styles.premiumUserContainer}>
-                    {/* PRIMARY CTA - Speaking Assessment (Dominant, Full Focus) */}
-                    <TouchableOpacity
-                      style={styles.premiumPrimaryCard}
-                      onPress={handleCreatePlan}
-                      activeOpacity={0.9}
-                    >
-                      <LinearGradient
-                        colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.premiumPrimaryGradient}
-                      >
-                        <View style={styles.premiumPrimaryIconContainer}>
-                          <Ionicons name="analytics" size={40} color="#FFFFFF" />
-                        </View>
-
-                        <Text style={styles.premiumPrimaryTitle}>{t('assessment.speaking.title')}</Text>
-                        <Text style={styles.premiumPrimarySubtitle}>
-                          {t('assessment.speaking.subtitle')}
-                        </Text>
-
-                        <View style={styles.premiumFeaturePills}>
-                          <View style={styles.premiumPill}>
-                            <Ionicons name="person-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
-                          </View>
-                          <View style={styles.premiumPill}>
-                            <Ionicons name="list-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>{t('profile.dna.button_track_progress')}</Text>
-                          </View>
-                          <View style={styles.premiumPill}>
-                            <Ionicons name="trophy-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>{t('profile.progress.title')}</Text>
-                          </View>
-                          <View style={styles.premiumPill}>
-                            <Ionicons name="fitness-outline" size={13} color="rgba(255,255,255,0.95)" />
-                            <Text style={styles.premiumPillText}>{t('profile.dna.title')}</Text>
-                          </View>
-                        </View>
-                      </LinearGradient>
-                    </TouchableOpacity>
-
-                    {/* Reassurance Section */}
-                    <View style={styles.reassuranceSection}>
-                      <View style={styles.reassuranceItem}>
-                        <Ionicons name="time-outline" size={16} color="#6B7280" />
-                        <Text style={styles.reassuranceText}>{t('units.minutes', { count: 5 })}</Text>
-                      </View>
-                      <View style={styles.reassuranceItem}>
-                        <Ionicons name="chatbubble-ellipses-outline" size={16} color="#6B7280" />
-                        <Text style={styles.reassuranceText}>{t('practice.conversation.title')}</Text>
-                      </View>
-                      <View style={styles.reassuranceItem}>
-                        <Ionicons name="shield-checkmark-outline" size={16} color="#6B7280" />
-                        <Text style={styles.reassuranceText}>{t('common.please_wait')}</Text>
-                      </View>
+                    {/* Progress bar — two segments side by side */}
+                    <View style={styles.fuelGaugeBarRow}>
+                      {/* Filled: minutes remaining */}
+                      <View
+                        style={[
+                          styles.fuelGaugeBarFilled,
+                          {
+                            width: barFillWidth,
+                            backgroundColor: barColor,
+                          },
+                        ]}
+                      />
+                      {/* Empty: minutes used */}
+                      <View
+                        style={[
+                          styles.fuelGaugeBarEmpty,
+                          {
+                            flex: 1,
+                            backgroundColor: isEmpty
+                              ? 'rgba(239, 68, 68, 0.15)'
+                              : isLow
+                                ? 'rgba(245, 158, 11, 0.15)'
+                                : 'rgba(20, 184, 166, 0.15)',
+                          },
+                        ]}
+                      />
                     </View>
 
-                    {/* SECONDARY CTA - Quick Practice (Optional, Clearly Secondary) */}
-                    <TouchableOpacity
-                      style={styles.premiumSecondaryCard}
-                      onPress={handleSelectQuickPractice}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="mic-circle-outline" size={24} color="#4ECFBF" />
-                      <Text style={styles.premiumSecondaryText}>{t('dashboard.quick_start.button_freestyle')}</Text>
-                      <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                {/* Tip for Premium Users */}
-                {isSubscribed && (
-                  <View style={styles.tipContainer}>
-                    <Ionicons name="bulb-outline" size={16} color="#F59E0B" />
-                    <Text style={styles.tipText}>
-                      {t('toasts.info_coming_soon')}
+                    {/* CTA */}
+                    <Text style={styles.newUserUpgradeText}>
+                      {t('dashboard.new_user.upgrade_banner')} →
                     </Text>
-                  </View>
-                )}
-              </>
-            );
-          })()}
+                  </TouchableOpacity>
+                );
+              })()}
+            </>
+          ) : (
+            <>
+              {/* ========== RETURNING USER EMPTY STATE (has sessions but no plans) ========== */}
+              {(() => {
+                const isSubscribed = subscriptionStatus &&
+                  !['try_learn', 'free'].includes(subscriptionStatus.plan);
+                const sessionLimit = subscriptionStatus?.limits?.sessions_remaining || 0;
+                const minutesRemaining = subscriptionStatus?.limits?.minutes_remaining || 0;
+
+                return (
+                  <>
+                    {/* Premium User - Clear Status Badge */}
+                    {isSubscribed && (
+                      <View style={styles.premiumStatusBadgeContainer}>
+                        <LinearGradient
+                          colors={['rgba(255, 214, 58, 0.15)', 'rgba(255, 214, 58, 0.08)']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.premiumStatusBadge}
+                        >
+                          <View style={styles.premiumStatusIconCircle}>
+                            <Text style={styles.crownEmoji}>👑</Text>
+                          </View>
+                          <View style={styles.premiumStatusTextContainer}>
+                            <Text style={styles.premiumStatusTitle}>{t('dashboard.header.premium_badge')}</Text>
+                            <Text style={styles.premiumStatusSubtitle}>
+                              {t('dashboard.header.minutes_remaining', { minutes: minutesRemaining })}
+                            </Text>
+                          </View>
+                        </LinearGradient>
+                      </View>
+                    )}
+
+                    {/* Free User - Action Cards Only (No Header) */}
+                    {!isSubscribed && (
+                      <View style={styles.freeUserContainer}>
+                        {/* SECONDARY - Freestyle Chat (Turquoise) */}
+                        <TouchableOpacity
+                          style={styles.secondaryCardNew}
+                          onPress={handleSelectQuickPractice}
+                          activeOpacity={0.9}
+                        >
+                          <View style={styles.secondaryCardIcon}>
+                            <Ionicons name="mic-circle" size={36} color="#FFFFFF" />
+                          </View>
+                          <View style={styles.secondaryCardText}>
+                            <Text style={styles.secondaryCardTitleNew}>{t('dashboard.quick_start.button_freestyle')}</Text>
+                            <Text style={styles.secondaryCardSubtitle}>{t('practice.conversation.subtitle')}</Text>
+                          </View>
+                          <Ionicons name="chevron-forward" size={22} color="rgba(255, 255, 255, 0.8)" />
+                        </TouchableOpacity>
+
+                        {/* PRIMARY - Speaking Assessment (Coral Hero Card) */}
+                        <TouchableOpacity
+                          style={styles.primaryCardNew}
+                          onPress={handleCreatePlan}
+                          activeOpacity={0.9}
+                        >
+                          <View style={styles.primaryCardGradientNew}>
+                            <View style={styles.primaryCardHeaderNew}>
+                              <View style={styles.primaryIconContainerNew}>
+                                <Ionicons name="pulse" size={32} color="#FFFFFF" />
+                              </View>
+                            </View>
+
+                            <Text style={styles.primaryCardTitleNew}>{t('assessment.speaking.title')}</Text>
+                            <Text style={styles.primaryCardDescriptionNew}>
+                              {t('assessment.speaking.subtitle')}
+                            </Text>
+
+                            <View style={styles.primaryFeaturesNew}>
+                              <View style={styles.featurePill}>
+                                <Ionicons name="person-outline" size={13} color="#FFFFFF" />
+                                <Text style={styles.featurePillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
+                              </View>
+                              <View style={styles.featurePill}>
+                                <Ionicons name="list-outline" size={13} color="#FFFFFF" />
+                                <Text style={styles.featurePillText}>{t('profile.dna.button_track_progress')}</Text>
+                              </View>
+                              <View style={styles.featurePill}>
+                                <Ionicons name="trophy-outline" size={13} color="#FFFFFF" />
+                                <Text style={styles.featurePillText}>{t('profile.progress.title')}</Text>
+                              </View>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+
+                        {/* Usage Limits - Amber Banner with Minutes */}
+                        <View style={styles.usageLimitsBanner}>
+                          <Ionicons name="time-outline" size={20} color="#F59E0B" />
+                          <Text style={styles.usageLimitsText}>
+                            {Math.round(minutesRemaining || 0)} minutes remaining
+                          </Text>
+                        </View>
+
+                        {/* Upgrade Link - Premium Gold Gradient */}
+                        <LinearGradient
+                          colors={['#F59E0B', '#FBBF24', '#FCD34D']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.upgradeLinkContainer}
+                        >
+                          <TouchableOpacity
+                            style={styles.upgradeLinkInner}
+                            onPress={handleUpgradePress}
+                            activeOpacity={0.8}
+                          >
+                            <View style={styles.upgradeIconCircle}>
+                              <Ionicons name="sparkles" size={20} color="#F59E0B" />
+                            </View>
+                            <Text style={styles.upgradeLinkText}>{t('subscription.title')}</Text>
+                            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                          </TouchableOpacity>
+                        </LinearGradient>
+                      </View>
+                    )}
+
+                    {/* Premium User - Focused Activation Flow */}
+                    {isSubscribed && (
+                      <View style={styles.premiumUserContainer}>
+                        {/* PRIMARY CTA - Speaking Assessment (Dominant, Full Focus) */}
+                        <TouchableOpacity
+                          style={styles.premiumPrimaryCard}
+                          onPress={handleCreatePlan}
+                          activeOpacity={0.9}
+                        >
+                          <LinearGradient
+                            colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.premiumPrimaryGradient}
+                          >
+                            <View style={styles.premiumPrimaryIconContainer}>
+                              <Ionicons name="analytics" size={40} color="#FFFFFF" />
+                            </View>
+
+                            <Text style={styles.premiumPrimaryTitle}>{t('assessment.speaking.title')}</Text>
+                            <Text style={styles.premiumPrimarySubtitle}>
+                              {t('assessment.speaking.subtitle')}
+                            </Text>
+
+                            <View style={styles.premiumFeaturePills}>
+                              <View style={styles.premiumPill}>
+                                <Ionicons name="person-outline" size={13} color="rgba(255,255,255,0.95)" />
+                                <Text style={styles.premiumPillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
+                              </View>
+                              <View style={styles.premiumPill}>
+                                <Ionicons name="list-outline" size={13} color="rgba(255,255,255,0.95)" />
+                                <Text style={styles.premiumPillText}>{t('profile.dna.button_track_progress')}</Text>
+                              </View>
+                              <View style={styles.premiumPill}>
+                                <Ionicons name="trophy-outline" size={13} color="rgba(255,255,255,0.95)" />
+                                <Text style={styles.premiumPillText}>{t('profile.progress.title')}</Text>
+                              </View>
+                              <View style={styles.premiumPill}>
+                                <Ionicons name="fitness-outline" size={13} color="rgba(255,255,255,0.95)" />
+                                <Text style={styles.premiumPillText}>{t('profile.dna.title')}</Text>
+                              </View>
+                            </View>
+                          </LinearGradient>
+                        </TouchableOpacity>
+
+                        {/* Reassurance Section */}
+                        <View style={styles.reassuranceSection}>
+                          <View style={styles.reassuranceItem}>
+                            <Ionicons name="time-outline" size={16} color="#6B7280" />
+                            <Text style={styles.reassuranceText}>{t('units.minutes', { count: 5 })}</Text>
+                          </View>
+                          <View style={styles.reassuranceItem}>
+                            <Ionicons name="chatbubble-ellipses-outline" size={16} color="#6B7280" />
+                            <Text style={styles.reassuranceText}>{t('practice.conversation.title')}</Text>
+                          </View>
+                          <View style={styles.reassuranceItem}>
+                            <Ionicons name="shield-checkmark-outline" size={16} color="#6B7280" />
+                            <Text style={styles.reassuranceText}>{t('common.please_wait')}</Text>
+                          </View>
+                        </View>
+
+                        {/* SECONDARY CTA - Quick Practice (Optional, Clearly Secondary) */}
+                        <TouchableOpacity
+                          style={styles.premiumSecondaryCard}
+                          onPress={handleSelectQuickPractice}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="mic-circle-outline" size={24} color="#4ECFBF" />
+                          <Text style={styles.premiumSecondaryText}>{t('dashboard.quick_start.button_freestyle')}</Text>
+                          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
+                    {/* Tip for Premium Users */}
+                    {isSubscribed && (
+                      <View style={styles.tipContainer}>
+                        <Ionicons name="bulb-outline" size={16} color="#F59E0B" />
+                        <Text style={styles.tipText}>
+                          {t('toasts.info_coming_soon')}
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                );
+              })()}
+            </>
+          )}
         </ScrollView>
 
         {/* Pricing Modal */}

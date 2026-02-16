@@ -157,6 +157,27 @@
     "streak": {
       "days": "{{count}} day streak",
       "days_plural": "{{count}} days streak"
+    },
+    "new_user": {
+      "subtitle": "Your speaking journey starts here",
+      "assessment_title": "Discover Your Level",
+      "assessment_subtitle": "5-min AI conversation to assess your speaking",
+      "assessment_button": "Start Now",
+      "badge_speaking": "Speaking",
+      "badge_duration": "~5 min",
+      "badge_ai": "AI-powered",
+      "how_it_works_title": "How It Works",
+      "step1_title": "Speak",
+      "step1_desc": "Have real conversations with AI",
+      "step2_title": "Get Feedback",
+      "step2_desc": "Discover your strengths & growth areas",
+      "step3_title": "Improve",
+      "step3_desc": "Follow your personal learning plan",
+      "quick_practice_link": "Or jump straight into a free conversation",
+      "upgrade_banner": "Start your free 7-day trial",
+      "minutes_gauge": "{{minutes}} min left this month",
+      "minutes_low": "{{minutes}} min left — running out soon",
+      "minutes_empty": "You've used all your free minutes"
     }
   },
   "practice": {

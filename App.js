@@ -106,22 +106,23 @@ function MainTabs() {
         },
         tabBarIcon: ({ focused, color }) => {
           let iconName;
-          const iconSize = 26; // Consistent size for all icons
+          const iconSize = 26;
 
           if (route.name === 'Dashboard') {
-            // Conversation bubbles - modern, immersive, represents speaking/dialogue
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           } else if (route.name === 'Explore') {
-            // Trophy icon for Challenges
             iconName = focused ? 'trophy' : 'trophy-outline';
           } else if (route.name === 'News') {
-            // Calendar/Today icon - emphasizes daily fresh content
             iconName = focused ? 'today' : 'today-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={iconSize} color={color} />;
+          return (
+            <View style={focused ? tabIconStyles.activeWrap : tabIconStyles.inactiveWrap}>
+              <Ionicons name={iconName} size={iconSize} color={color} />
+            </View>
+          );
         },
       })}
     >
@@ -485,6 +486,25 @@ export default function App() {
 }
 
 // Styles for Loading Screen
+const tabIconStyles = StyleSheet.create({
+  inactiveWrap: {
+    // Subtle teal glow on inactive icons — consistent with tab bar edge glow
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  activeWrap: {
+    // Brighter glow for active icon
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+});
+
 const styles = StyleSheet.create({
   // No custom styles needed - using Expo's native splash screen
 });

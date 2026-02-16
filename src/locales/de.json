@@ -157,6 +157,27 @@
     "streak": {
       "days": "{{count}} Tag Serie",
       "days_plural": "{{count}} Tage Serie"
+    },
+    "new_user": {
+      "subtitle": "Deine Sprechreise beginnt hier",
+      "assessment_title": "Entdecke dein Niveau",
+      "assessment_subtitle": "5-min KI-Gespräch zur Bewertung deines Sprechens",
+      "assessment_button": "Jetzt starten",
+      "badge_speaking": "Sprechen",
+      "badge_duration": "~5 Min",
+      "badge_ai": "KI-gestützt",
+      "how_it_works_title": "So funktioniert's",
+      "step1_title": "Sprich",
+      "step1_desc": "Führe echte Gespräche mit KI",
+      "step2_title": "Feedback",
+      "step2_desc": "Entdecke deine Stärken & Wachstumsbereiche",
+      "step3_title": "Verbessere dich",
+      "step3_desc": "Folge deinem persönlichen Lernplan",
+      "quick_practice_link": "Oder starte direkt ein freies Gespräch",
+      "upgrade_banner": "Starte deine kostenlose 7-Tage-Testphase",
+      "minutes_gauge": "{{minutes}} Min. übrig diesen Monat",
+      "minutes_low": "{{minutes}} Min. übrig — bald aufgebraucht",
+      "minutes_empty": "Deine kostenlosen Minuten sind aufgebraucht"
     }
   },
   "practice": {

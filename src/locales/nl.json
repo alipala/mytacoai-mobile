@@ -157,6 +157,27 @@
     "streak": {
       "days": "{{count}} dag streak",
       "days_plural": "{{count}} dagen streak"
+    },
+    "new_user": {
+      "subtitle": "Je spreekreis begint hier",
+      "assessment_title": "Ontdek je niveau",
+      "assessment_subtitle": "5 min AI-gesprek om je spreekniveau te bepalen",
+      "assessment_button": "Nu starten",
+      "badge_speaking": "Spreken",
+      "badge_duration": "~5 min",
+      "badge_ai": "AI-gestuurd",
+      "how_it_works_title": "Hoe het werkt",
+      "step1_title": "Spreek",
+      "step1_desc": "Voer echte gesprekken met AI",
+      "step2_title": "Feedback",
+      "step2_desc": "Ontdek je sterke punten & groeikansen",
+      "step3_title": "Verbeter",
+      "step3_desc": "Volg je persoonlijke leerplan",
+      "quick_practice_link": "Of start direct een vrij gesprek",
+      "upgrade_banner": "Start je gratis proefperiode van 7 dagen",
+      "minutes_gauge": "{{minutes}} min over deze maand",
+      "minutes_low": "{{minutes}} min over — bijna op",
+      "minutes_empty": "Je gratis minuten zijn op"
     }
   },
   "practice": {
