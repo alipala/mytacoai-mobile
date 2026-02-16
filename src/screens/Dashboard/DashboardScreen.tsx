@@ -678,6 +678,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+          currentPlan={subscriptionStatus?.plan}
         />
 
         {/* Session Type Modal */}
@@ -1243,6 +1244,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+          currentPlan={subscriptionStatus?.plan}
         />
 
         {/* Session Type Modal */}
@@ -1629,6 +1631,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showPricingModal}
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
+        currentPlan={subscriptionStatus?.plan}
       />
 
       {/* Premium Benefits Modal */}

@@ -42,6 +42,7 @@ interface PricingModalProps {
   visible: boolean;
   onClose: () => void;
   onSelectPlan: (planId: string, period: 'monthly' | 'annual') => void;
+  currentPlan?: string; // Current subscription plan (e.g., 'fluency_builder', 'language_mastery')
 }
 
 const PRICING_PLANS: PricingPlan[] = [
@@ -102,6 +103,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   visible,
   onClose,
   onSelectPlan,
+  currentPlan,
 }) => {
   // Use dynamic dimensions hook (updates on rotation/resize)
   const { width: SCREEN_WIDTH } = useWindowDimensions();
@@ -120,6 +122,27 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const styles = createStyles(SCREEN_WIDTH, isTablet);
 
   console.log('🔍 [PricingModal] Dynamic - Width:', SCREEN_WIDTH, 'isTablet:', isTablet);
+
+  // Filter plans based on current subscription
+  const availablePlans = React.useMemo(() => {
+    // Free users: Show all plans
+    if (!currentPlan || ['try_learn', 'free'].includes(currentPlan)) {
+      return PRICING_PLANS;
+    }
+
+    // Fluency Builder users: Show only Language Mastery as upgrade option
+    if (currentPlan === 'fluency_builder') {
+      return PRICING_PLANS.filter(plan => plan.id === 'language_mastery');
+    }
+
+    // Language Mastery users: Already have top tier, show all to view benefits
+    if (currentPlan === 'language_mastery' || currentPlan === 'team_mastery') {
+      return PRICING_PLANS;
+    }
+
+    // Fallback: Show all plans
+    return PRICING_PLANS;
+  }, [currentPlan]);
 
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -690,7 +713,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           onScroll={!isTablet ? handleScroll : undefined}
           scrollEventThrottle={16}
         >
-          {PRICING_PLANS.map((plan, index) => {
+          {availablePlans.map((plan, index) => {
             const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
             const monthlyEquivalent = isAnnual
               ? `€${(parseFloat(plan.annualPrice.slice(1)) / 12).toFixed(2)}/mo`
@@ -703,7 +726,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 style={[
                   styles.planCard,
                   !isTablet && index === 0 && { marginLeft: CARD_MARGIN },
-                  !isTablet && index === PRICING_PLANS.length - 1 && { marginRight: CARD_MARGIN },
+                  !isTablet && index === availablePlans.length - 1 && { marginRight: CARD_MARGIN },
                   isTablet && { marginHorizontal: CARD_SPACING / 2 },
                   plan.isPopular && styles.planCardPopular,
                 ]}
@@ -853,7 +876,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         {/* Pagination Dots - Hidden on iPad */}
         {!isTablet && (
           <View style={styles.paginationContainer}>
-            {PRICING_PLANS.map((_, index) => (
+            {availablePlans.map((_, index) => (
               <View
                 key={index}
                 style={[
