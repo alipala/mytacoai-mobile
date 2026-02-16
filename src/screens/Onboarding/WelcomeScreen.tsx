@@ -130,10 +130,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#FFFFFF', '#F0FDFC']}
+        colors={['#0B1A1F', '#0D2832', '#0B1A1F']}
+        locations={[0, 0.5, 1]}
         style={styles.gradient}
       >
         <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
+          {/* Ambient glow — teal radial behind hero */}
+          <View style={styles.ambientGlow} />
+
           {/* Content */}
           <View style={styles.content}>
             {/* Hero Icon Section */}
@@ -168,23 +172,23 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
               {/* Benefit Pills */}
               <View style={styles.benefitsContainer}>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="albums-outline" size={16} color="#4ECFBF" />
+                  <Ionicons name="albums-outline" size={16} color="#14B8A6" />
                   <Text style={styles.benefitText}>{t('onboarding.benefits.pill_smart_flashcards')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="ribbon-outline" size={16} color="#4ECFBF" />
+                  <Ionicons name="ribbon-outline" size={16} color="#14B8A6" />
                   <Text style={styles.benefitText}>{t('onboarding.benefits.pill_personalised_learning')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="analytics-outline" size={16} color="#4ECFBF" />
+                  <Ionicons name="analytics-outline" size={16} color="#14B8A6" />
                   <Text style={styles.benefitText}>{t('onboarding.benefits.pill_adaptive_ai')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="list-outline" size={16} color="#4ECFBF" />
+                  <Ionicons name="list-outline" size={16} color="#14B8A6" />
                   <Text style={styles.benefitText}>{t('onboarding.benefits.pill_custom_topics')}</Text>
                 </View>
                 <View style={styles.benefitPill}>
-                  <Ionicons name="trending-up-outline" size={16} color="#4ECFBF" />
+                  <Ionicons name="trending-up-outline" size={16} color="#14B8A6" />
                   <Text style={styles.benefitText}>{t('onboarding.benefits.pill_progress_tracking')}</Text>
                 </View>
               </View>
@@ -195,16 +199,24 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
             {/* Buttons Container */}
             <View style={styles.buttonContainer}>
-              {/* Try as Guest Button */}
-              <TouchableOpacity style={styles.guestButton} onPress={handleTryAsGuest}>
-                <Ionicons name="play-circle" size={24} color={COLORS.white} style={styles.buttonIcon} />
-                <Text style={styles.guestButtonText}>{t('onboarding.welcome.button_start_free_practice')}</Text>
+              {/* Start Free Practice Button — Teal gradient with glow */}
+              <TouchableOpacity style={styles.guestButton} onPress={handleTryAsGuest} activeOpacity={0.85}>
+                <LinearGradient
+                  colors={['#5EEAD4', '#14B8A6', '#0D9488']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.guestButtonGradient}
+                >
+                  <Ionicons name="play-circle" size={24} color="#FFFFFF" style={styles.buttonIcon} />
+                  <Text style={styles.guestButtonText}>{t('onboarding.welcome.button_start_free_practice')}</Text>
+                </LinearGradient>
               </TouchableOpacity>
 
-              {/* Login Button */}
+              {/* Login Button — Dark glass with teal border */}
               <TouchableOpacity
                 style={styles.createAccountButton}
                 onPress={handleCreateAccount}
+                activeOpacity={0.8}
               >
                 <Text style={styles.createAccountButtonText}>{t('onboarding.welcome.button_login')}</Text>
               </TouchableOpacity>
@@ -222,13 +234,30 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: '#0B1A1F',
   },
   gradient: {
     flex: 1,
   },
   animatedContainer: {
     flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  // Ambient teal glow behind hero — atmospheric depth
+  ambientGlow: {
+    position: 'absolute',
+    top: 20,
+    alignSelf: 'center',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 50,
+    elevation: 0,
   },
   content: {
     flex: 1,
@@ -252,14 +281,16 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#4ECFBF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.25)',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 10,
   },
   chatBubblesContainer: {
     width: 80,
@@ -268,15 +299,17 @@ const styles = StyleSheet.create({
   },
   chatBubble: {
     position: 'absolute',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   chatBubble1: {
     top: 0,
@@ -291,24 +324,24 @@ const styles = StyleSheet.create({
   chatBubbleText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#4ECFBF',
+    color: '#5EEAD4',
   },
   textContent: {
     alignItems: 'center',
   },
   tagline: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#4ECFBF',
+    fontWeight: '700',
+    color: '#14B8A6',
     textAlign: 'center',
     marginBottom: 8,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontWeight: '800',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 36,
@@ -323,69 +356,73 @@ const styles = StyleSheet.create({
   benefitPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   benefitText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#B4E4DD',
   },
   spacer: {
     flex: 1,
   },
   buttonContainer: {
     width: '100%',
-    gap: 16,
+    gap: 14,
   },
+  // Outer wrapper with teal glow shadow
   guestButton: {
     width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  // Inner gradient fill
+  guestButtonGradient: {
     height: 56,
-    backgroundColor: '#4ECFBF',
-    borderRadius: 12,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    shadowColor: '#4ECFBF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   guestButtonText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   buttonIcon: {
     marginRight: 8,
   },
+  // Login button — dark glassmorphic with teal border
   createAccountButton: {
     width: '100%',
     height: 56,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#4ECFBF',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   createAccountButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#4ECFBF',
+    color: '#14B8A6',
   },
   reassurance: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#6B8A84',
     textAlign: 'center',
     marginTop: 4,
   },
