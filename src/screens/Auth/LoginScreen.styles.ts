@@ -5,7 +5,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4ECFBF', // Solid turquoise background
+    backgroundColor: '#0B1A1F',
   },
   safeArea: {
     flex: 1,
@@ -30,23 +30,20 @@ export const styles = StyleSheet.create({
     height: Math.min(101, (SCREEN_WIDTH * 0.85) * 0.315),
   },
 
-  // Card Design - Clean White with Strong Shadow
+  // Card — Dark glassmorphic surface
   card: {
-    backgroundColor: '#FFFFFF', // Solid white
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 24,
     padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
 
   // Tab Navigation
   tabContainer: {
     flexDirection: 'row',
-    borderBottomWidth: 2,
-    borderBottomColor: '#E5E7EB',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     marginBottom: 28,
   },
   tab: {
@@ -55,20 +52,20 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
-    marginBottom: -2,
+    marginBottom: -1,
   },
   activeTab: {
-    borderBottomColor: '#4ECFBF',
+    borderBottomColor: '#14B8A6',
   },
   tabText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 17,
     fontWeight: '500',
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.35)',
   },
   activeTabText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#4ECFBF',
+    color: '#14B8A6',
     fontWeight: '600',
   },
 
@@ -80,13 +77,13 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 28,
   },
 
-  // Modern Input Styling
+  // Input Styling — Dark glass fields
   inputContainer: {
     marginBottom: 20,
   },
@@ -94,15 +91,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 56,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   inputError: {
     borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
   },
   inputIcon: {
     marginRight: 12,
@@ -111,7 +108,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     flex: 1,
     fontSize: 16,
-    color: '#1F2937',
+    color: '#FFFFFF',
     fontWeight: '400',
   },
   eyeIcon: {
@@ -142,28 +139,28 @@ export const styles = StyleSheet.create({
   forgotPasswordText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: '#4ECFBF',
+    color: '#14B8A6',
     fontWeight: '600',
   },
 
-  // Primary Button
+  // Primary Action Button — Teal with glow
   button: {
-    backgroundColor: '#4ECFBF',
+    backgroundColor: '#14B8A6',
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#4ECFBF',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
     gap: 8,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   buttonText: {
     fontFamily: 'Inter_600SemiBold',
@@ -181,71 +178,59 @@ export const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   dividerText: {
     fontFamily: 'Inter_500Medium',
     marginHorizontal: 16,
     fontSize: 14,
-    color: '#9CA3AF',
+    color: 'rgba(255, 255, 255, 0.3)',
     fontWeight: '500',
   },
 
-  // Apple Sign-In Button
+  // Apple Sign-In Button — White per Apple HIG
   appleButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderRadius: 14,
     height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   appleButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#1F2937',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '600',
   },
 
-  // Google Sign-In Button
+  // Google Sign-In Button — Dark glass
   googleButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 14,
     height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   googleButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#1F2937',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
 
-  // Email Button (Outlined)
+  // Email Button — Teal outlined
   emailButton: {
     backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#4ECFBF',
-    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+    borderRadius: 14,
     height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -255,12 +240,12 @@ export const styles = StyleSheet.create({
   },
   emailButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#4ECFBF',
+    color: '#14B8A6',
     fontSize: 16,
     fontWeight: '600',
   },
 
-  // Sign Up Link Container
+  // Sign Up / Sign In Link
   signupLinkContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -270,12 +255,12 @@ export const styles = StyleSheet.create({
   signupLinkText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 15,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.45)',
   },
   signupLink: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
-    color: '#4ECFBF',
+    color: '#14B8A6',
     fontWeight: '600',
   },
 
@@ -290,11 +275,11 @@ export const styles = StyleSheet.create({
   backButtonText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
-    color: '#4ECFBF',
+    color: '#14B8A6',
     fontWeight: '600',
   },
 
-  // Compact Social Buttons (Horizontal)
+  // Compact Social Buttons (inline, after email form)
   compactSocialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -303,32 +288,20 @@ export const styles = StyleSheet.create({
   },
   compactAppleButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   compactGoogleButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
 });

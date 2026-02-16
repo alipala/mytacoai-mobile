@@ -86,7 +86,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             {/* Success Icon */}
             <View style={styles.successIconContainer}>
               <View style={styles.successIconCircle}>
-                <Ionicons name="checkmark" size={48} color="#4ECFBF" />
+                <Ionicons name="checkmark" size={48} color="#14B8A6" />
               </View>
             </View>
 
@@ -141,14 +141,14 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
           style={styles.backButton}
           onPress={handleBackToLogin}
         >
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          <Ionicons name="arrow-back" size={24} color="#14B8A6" />
           <Text style={styles.backButtonText}>{t('auth.forgot_password.button_back')}</Text>
         </TouchableOpacity>
 
         <View style={styles.content}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            <Ionicons name="lock-closed-outline" size={64} color="#FFFFFF" />
+            <Ionicons name="lock-closed-outline" size={64} color="#14B8A6" />
           </View>
 
           {/* Title */}
@@ -165,7 +165,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
               <TextInput
                 style={styles.input}
                 placeholder={t('auth.forgot_password.placeholder_email')}
-                placeholderTextColor="#A0AEC0"
+                placeholderTextColor="rgba(255,255,255,0.3)"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -191,7 +191,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
             {/* Help Text */}
             <View style={styles.helpContainer}>
-              <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+              <Ionicons name="information-circle-outline" size={20} color="rgba(255,255,255,0.35)" />
               <Text style={styles.helpText}>
                 {t('auth.forgot_password.help_text')}{' '}
                 <Text style={styles.loginLink} onPress={handleBackToLogin}>

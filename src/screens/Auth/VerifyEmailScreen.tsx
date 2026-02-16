@@ -82,7 +82,7 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
         {/* Email Icon */}
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
-            <Ionicons name="mail-outline" size={64} color="#4FD1C5" />
+            <Ionicons name="mail-outline" size={64} color="#14B8A6" />
           </View>
         </View>
 
