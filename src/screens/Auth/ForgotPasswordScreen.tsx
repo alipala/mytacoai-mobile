@@ -1,7 +1,7 @@
 /**
  * ForgotPasswordScreen.tsx
  * Password reset request screen
- * 
+ *
  * Features:
  * - Email input for password reset
  * - Send reset link to email
@@ -20,7 +20,6 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  StyleSheet,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -62,13 +61,13 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
     } catch (error: any) {
       console.error('Forgot password error:', error);
-      
+
       // Show generic message for security (don't reveal if email exists)
       Alert.alert(
         t('auth.forgot_password.alert_submitted_title'),
         t('auth.forgot_password.alert_submitted_message')
       );
-      
+
       setEmailSent(true); // Still show success screen for security
     } finally {
       setLoading(false);
@@ -82,17 +81,16 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
   if (emailSent) {
     return (
       <View style={styles.container}>
-        <LinearGradient
-          colors={['#0F2B3C', '#0E2233', '#12182B', '#161530', '#0D1117']}
-          locations={[0, 0.25, 0.5, 0.75, 1]}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <View style={styles.orbTeal} />
-        <View style={styles.orbIndigo} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.successContainer}>
-          {/* White Card Container */}
-          <View style={styles.successCard}>
+          {/* Teal Glowing Success Card */}
+          <View style={styles.successCardGlow}>
+            <LinearGradient
+              colors={['#0F3D3A', '#0B2E30', '#091F24']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.successCardGradient}
+            >
             {/* Success Icon */}
             <View style={styles.successIconContainer}>
               <View style={styles.successIconCircle}>
@@ -134,6 +132,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             >
               <Text style={styles.resendButtonText}>{t('auth.forgot_password.button_resend')}</Text>
             </TouchableOpacity>
+            </LinearGradient>
           </View>
         </View>
       </SafeAreaView>
@@ -143,13 +142,6 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F2B3C', '#0E2233', '#12182B', '#161530', '#0D1117']}
-        locations={[0, 0.25, 0.5, 0.75, 1]}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <View style={styles.orbTeal} />
-      <View style={styles.orbIndigo} />
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -176,8 +168,14 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
             {t('auth.forgot_password.subtitle')}
           </Text>
 
-          {/* White Card Container */}
-          <View style={styles.card}>
+          {/* Teal Glowing Card */}
+          <View style={styles.cardGlow}>
+            <LinearGradient
+              colors={['#0F3D3A', '#0B2E30', '#091F24']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardGradient}
+            >
             {/* Email Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('auth.forgot_password.label_email')}</Text>
@@ -218,6 +216,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
                 </Text>
               </Text>
             </View>
+            </LinearGradient>
           </View>
         </View>
       </KeyboardAvoidingView>

@@ -1,52 +1,14 @@
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1117',
+    backgroundColor: '#0B1A1F',
   },
   safeArea: {
     flex: 1,
-  },
-
-  // ── Ambient color orbs ──
-  orbTeal: {
-    position: 'absolute',
-    top: SCREEN_HEIGHT * 0.06,
-    right: -30,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(20, 184, 166, 0.1)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.35,
-        shadowRadius: 50,
-      },
-      android: { elevation: 0 },
-    }),
-  },
-  orbIndigo: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.12,
-    left: -50,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(99, 102, 241, 0.07)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.25,
-        shadowRadius: 40,
-      },
-      android: { elevation: 0 },
-    }),
   },
   scrollContent: {
     flexGrow: 1,
@@ -61,16 +23,16 @@ export const styles = StyleSheet.create({
     width: SCREEN_WIDTH < 400 ? Math.min(100, SCREEN_WIDTH * 0.27) : 120,
     height: SCREEN_WIDTH < 400 ? Math.min(100, SCREEN_WIDTH * 0.27) : 120,
     borderRadius: SCREEN_WIDTH < 400 ? Math.min(50, SCREEN_WIDTH * 0.135) : 60,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    borderColor: 'rgba(20, 184, 166, 0.4)',
     ...Platform.select({
       ios: {
         shadowColor: '#14B8A6',
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.35,
+        shadowOpacity: 0.4,
         shadowRadius: 16,
       },
       android: {
@@ -79,25 +41,30 @@ export const styles = StyleSheet.create({
     }),
   },
 
-  // ── Card — Solid elevated dark surface ──
-  card: {
-    backgroundColor: 'rgba(8, 18, 27, 0.85)',
+  // ── Card Glow Wrapper — Outer view that emits teal glow ──
+  cardGlow: {
     borderRadius: 20,
-    padding: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 24,
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.55,
+        shadowRadius: 30,
       },
       android: {
-        elevation: 12,
+        elevation: 16,
       },
     }),
   },
+
+  // ── Card Gradient — Teal gradient surface with border ──
+  cardGradient: {
+    borderRadius: 20,
+    padding: 32,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+  },
+
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -117,7 +84,7 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // ── Button — Teal with glow ──
+  // ── Button — Bright teal with glow ──
   button: {
     backgroundColor: '#14B8A6',
     height: 50,
@@ -152,22 +119,22 @@ export const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 16,
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontWeight: '600',
   },
 
   // ── Tip box — Teal-tinted glass with accent border ──
   tipContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(20, 184, 166, 0.1)',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
     borderLeftColor: '#14B8A6',
     borderWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.15)',
-    borderRightColor: 'rgba(20, 184, 166, 0.15)',
-    borderBottomColor: 'rgba(20, 184, 166, 0.15)',
+    borderTopColor: 'rgba(20, 184, 166, 0.2)',
+    borderRightColor: 'rgba(20, 184, 166, 0.2)',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
   },
   tipLabel: {
     fontSize: 14,

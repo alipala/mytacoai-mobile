@@ -1,55 +1,15 @@
-import { StyleSheet, Dimensions, Platform } from 'react-native';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { StyleSheet, Platform } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1117',
+    backgroundColor: '#0B1A1F',
   },
   safeArea: {
     flex: 1,
   },
   keyboardView: {
     flex: 1,
-  },
-
-  // ── Ambient color orbs ──
-  orbTeal: {
-    position: 'absolute',
-    top: SCREEN_HEIGHT * 0.08,
-    right: -40,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(20, 184, 166, 0.1)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.35,
-        shadowRadius: 50,
-      },
-      android: { elevation: 0 },
-    }),
-  },
-  orbIndigo: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.15,
-    left: -50,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(99, 102, 241, 0.07)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.25,
-        shadowRadius: 40,
-      },
-      android: { elevation: 0 },
-    }),
   },
   backButton: {
     flexDirection: 'row',
@@ -68,26 +28,31 @@ export const styles = StyleSheet.create({
     padding: 20,
   },
 
-  // ── Card — Solid elevated dark surface ──
-  card: {
-    backgroundColor: 'rgba(8, 18, 27, 0.85)',
+  // ── Card Glow Wrapper — Outer view that emits teal glow ──
+  cardGlow: {
     borderRadius: 24,
-    padding: 28,
     marginTop: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 24,
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.55,
+        shadowRadius: 30,
       },
       android: {
-        elevation: 12,
+        elevation: 16,
       },
     }),
   },
+
+  // ── Card Gradient — Teal gradient surface with border ──
+  cardGradient: {
+    borderRadius: 24,
+    padding: 28,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+  },
+
   iconContainer: {
     alignItems: 'center',
     marginBottom: 24,
@@ -115,11 +80,11 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // ── Input — Lifted dark surface ──
+  // ── Input — Recessed dark surface on teal card ──
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(20, 184, 166, 0.25)',
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -127,7 +92,7 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // ── Primary Button — Teal with glow ──
+  // ── Primary Button — Bright teal with glow ──
   primaryButton: {
     backgroundColor: '#14B8A6',
     borderRadius: 14,
@@ -167,7 +132,7 @@ export const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.45)',
   },
   loginLink: {
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontWeight: '700',
   },
 
@@ -178,25 +143,32 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  successCard: {
-    backgroundColor: 'rgba(8, 18, 27, 0.85)',
+
+  // ── Success Card Glow ──
+  successCardGlow: {
     borderRadius: 24,
-    padding: 32,
     width: '100%',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 24,
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.55,
+        shadowRadius: 30,
       },
       android: {
-        elevation: 12,
+        elevation: 16,
       },
     }),
   },
+
+  // ── Success Card Gradient ──
+  successCardGradient: {
+    borderRadius: 24,
+    padding: 32,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+  },
+
   successIconContainer: {
     alignItems: 'center',
     marginBottom: 24,
@@ -205,16 +177,16 @@ export const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: 'rgba(20, 184, 166, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    borderColor: 'rgba(20, 184, 166, 0.4)',
     ...Platform.select({
       ios: {
         shadowColor: '#14B8A6',
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.35,
+        shadowOpacity: 0.4,
         shadowRadius: 16,
       },
       android: {
@@ -255,7 +227,7 @@ export const styles = StyleSheet.create({
   },
   resendButtonText: {
     fontSize: 14,
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontWeight: '600',
     textAlign: 'center',
     textDecorationLine: 'underline',

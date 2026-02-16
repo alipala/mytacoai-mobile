@@ -1,11 +1,11 @@
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1117',
+    backgroundColor: '#0B1A1F',
   },
   safeArea: {
     flex: 1,
@@ -20,62 +20,6 @@ export const styles = StyleSheet.create({
     paddingTop: 40,
   },
 
-  // ── Ambient color orbs — atmospheric colored blurs ──
-  orbTeal: {
-    position: 'absolute',
-    top: SCREEN_HEIGHT * 0.05,
-    right: -40,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(20, 184, 166, 0.12)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.4,
-        shadowRadius: 60,
-      },
-      android: { elevation: 0 },
-    }),
-  },
-  orbIndigo: {
-    position: 'absolute',
-    top: SCREEN_HEIGHT * 0.35,
-    left: -60,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(99, 102, 241, 0.08)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 50,
-      },
-      android: { elevation: 0 },
-    }),
-  },
-  orbCyan: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.08,
-    right: -30,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(6, 182, 212, 0.06)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#06B6D4',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.25,
-        shadowRadius: 40,
-      },
-      android: { elevation: 0 },
-    }),
-  },
-
   // Logo Section
   logoContainer: {
     alignItems: 'center',
@@ -86,32 +30,35 @@ export const styles = StyleSheet.create({
     height: Math.min(101, (SCREEN_WIDTH * 0.85) * 0.315),
   },
 
-  // ── Card — Solid elevated dark surface ──
-  // Darker than the colorful gradient background so it reads as distinct
-  card: {
-    backgroundColor: 'rgba(8, 18, 27, 0.85)',
+  // ── Card Glow Wrapper — Outer view that emits teal glow ──
+  cardGlow: {
     borderRadius: 24,
-    padding: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 24,
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.55,
+        shadowRadius: 30,
       },
       android: {
-        elevation: 12,
+        elevation: 16,
       },
     }),
+  },
+
+  // ── Card Gradient — Teal gradient surface with border ──
+  cardGradient: {
+    borderRadius: 24,
+    padding: 28,
+    borderWidth: 1.5,
+    borderColor: 'rgba(20, 184, 166, 0.4)',
   },
 
   // ── Tab Navigation ──
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
     marginBottom: 28,
   },
   tab: {
@@ -123,7 +70,7 @@ export const styles = StyleSheet.create({
     marginBottom: -1,
   },
   activeTab: {
-    borderBottomColor: '#14B8A6',
+    borderBottomColor: '#4ECFBF',
   },
   tabText: {
     fontFamily: 'Inter_500Medium',
@@ -151,7 +98,7 @@ export const styles = StyleSheet.create({
     lineHeight: 28,
   },
 
-  // ── Input Fields — Lifted dark surface ──
+  // ── Input Fields — Recessed dark surface on teal card ──
   inputContainer: {
     marginBottom: 20,
   },
@@ -160,14 +107,14 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     height: 56,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(20, 184, 166, 0.25)',
     borderRadius: 14,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   inputError: {
     borderColor: '#EF4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
   inputIcon: {
     marginRight: 12,
@@ -207,11 +154,11 @@ export const styles = StyleSheet.create({
   forgotPasswordText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontWeight: '600',
   },
 
-  // ── Primary Action Button — Teal with prominent glow ──
+  // ── Primary Action Button — Bright teal, prominent on the teal card ──
   button: {
     backgroundColor: '#14B8A6',
     height: 56,
@@ -252,13 +199,13 @@ export const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
   },
   dividerText: {
     fontFamily: 'Inter_500Medium',
     marginHorizontal: 16,
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.35)',
+    color: 'rgba(255, 255, 255, 0.4)',
     fontWeight: '500',
   },
 
@@ -291,11 +238,11 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // ── Google Sign-In Button — Lifted dark surface ──
+  // ── Google Sign-In Button — Glass surface on teal card ──
   googleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
     borderRadius: 14,
     height: 56,
     flexDirection: 'row',
@@ -310,11 +257,11 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // ── Email Button — Teal outlined with glow ──
+  // ── Email Button — Bright teal outline on teal card ──
   emailButton: {
-    backgroundColor: 'rgba(20, 184, 166, 0.1)',
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
     borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.4)',
+    borderColor: 'rgba(20, 184, 166, 0.5)',
     borderRadius: 14,
     height: 56,
     flexDirection: 'row',
@@ -326,7 +273,7 @@ export const styles = StyleSheet.create({
       ios: {
         shadowColor: '#14B8A6',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
@@ -336,7 +283,7 @@ export const styles = StyleSheet.create({
   },
   emailButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -356,7 +303,7 @@ export const styles = StyleSheet.create({
   signupLink: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
-    color: '#14B8A6',
+    color: '#4ECFBF',
     fontWeight: '600',
   },
 
@@ -402,9 +349,9 @@ export const styles = StyleSheet.create({
     }),
   },
   compactGoogleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
     width: 56,
     height: 56,
     borderRadius: 14,

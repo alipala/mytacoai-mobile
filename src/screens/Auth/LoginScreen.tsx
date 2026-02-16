@@ -22,7 +22,6 @@ import {
   SafeAreaView,
   Animated,
   Image,
-  StyleSheet,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -615,21 +614,9 @@ export const LoginScreen = ({ navigation }: any) => {
     return null;
   }
 
-  // Interpolate gradient pulse for subtle color intensity shifts
+  // Dark background with glowing teal card as focal point
   return (
     <View style={styles.container}>
-      {/* Rich colored gradient background */}
-      <LinearGradient
-        colors={['#0F2B3C', '#0E2233', '#12182B', '#161530', '#0D1117']}
-        locations={[0, 0.25, 0.5, 0.75, 1]}
-        style={StyleSheet.absoluteFillObject}
-      />
-
-      {/* Ambient color orbs for atmospheric depth */}
-      <View style={styles.orbTeal} />
-      <View style={styles.orbIndigo} />
-      <View style={styles.orbCyan} />
-
         <SafeAreaView style={styles.safeArea}>
           <Animated.View
             style={{
@@ -665,15 +652,21 @@ export const LoginScreen = ({ navigation }: any) => {
                 />
               </Animated.View>
 
-              {/* Auth Card */}
+              {/* Auth Card — Teal glowing card */}
               <Animated.View
                 style={[
-                  styles.card,
+                  styles.cardGlow,
                   {
                     transform: [{ translateY: slideAnim }]
                   }
                 ]}
               >
+                <LinearGradient
+                  colors={['#0F3D3A', '#0B2E30', '#091F24']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.cardGradient}
+                >
                 {/* Tabs */}
                 <View style={styles.tabContainer}>
                   <TouchableOpacity
@@ -1140,6 +1133,7 @@ export const LoginScreen = ({ navigation }: any) => {
                     )}
                   </View>
                 )}
+                </LinearGradient>
               </Animated.View>
             </ScrollView>
           </KeyboardAvoidingView>
