@@ -13,7 +13,9 @@ import {
   ActivityIndicator,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthenticationService } from '../../api/generated';
@@ -74,7 +76,15 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0F2B3C', '#0E2233', '#12182B', '#161530', '#0D1117']}
+        locations={[0, 0.25, 0.5, 0.75, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <View style={styles.orbTeal} />
+      <View style={styles.orbIndigo} />
+    <SafeAreaView style={styles.safeArea}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -127,6 +137,7 @@ export const VerifyEmailScreen = ({ navigation, route }: VerifyEmailScreenProps)
         </View>
       </ScrollView>
     </SafeAreaView>
+    </View>
   );
 };
 

@@ -20,7 +20,9 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { AuthenticationService } from '../../api/generated';
 import { Ionicons } from '@expo/vector-icons';
@@ -79,7 +81,15 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
   if (emailSent) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#0F2B3C', '#0E2233', '#12182B', '#161530', '#0D1117']}
+          locations={[0, 0.25, 0.5, 0.75, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.orbTeal} />
+        <View style={styles.orbIndigo} />
+      <SafeAreaView style={styles.safeArea}>
         <View style={styles.successContainer}>
           {/* White Card Container */}
           <View style={styles.successCard}>
@@ -127,11 +137,20 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
           </View>
         </View>
       </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0F2B3C', '#0E2233', '#12182B', '#161530', '#0D1117']}
+        locations={[0, 0.25, 0.5, 0.75, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <View style={styles.orbTeal} />
+      <View style={styles.orbIndigo} />
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -203,6 +222,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </View>
   );
 };
 

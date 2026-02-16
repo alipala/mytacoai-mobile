@@ -1,11 +1,11 @@
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1A1F',
+    backgroundColor: '#0B1117',
   },
   safeArea: {
     flex: 1,
@@ -20,6 +20,62 @@ export const styles = StyleSheet.create({
     paddingTop: 40,
   },
 
+  // ── Ambient color orbs — atmospheric colored blurs ──
+  orbTeal: {
+    position: 'absolute',
+    top: SCREEN_HEIGHT * 0.05,
+    right: -40,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.4,
+        shadowRadius: 60,
+      },
+      android: { elevation: 0 },
+    }),
+  },
+  orbIndigo: {
+    position: 'absolute',
+    top: SCREEN_HEIGHT * 0.35,
+    left: -60,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366F1',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 50,
+      },
+      android: { elevation: 0 },
+    }),
+  },
+  orbCyan: {
+    position: 'absolute',
+    bottom: SCREEN_HEIGHT * 0.08,
+    right: -30,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(6, 182, 212, 0.06)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#06B6D4',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.25,
+        shadowRadius: 40,
+      },
+      android: { elevation: 0 },
+    }),
+  },
+
   // Logo Section
   logoContainer: {
     alignItems: 'center',
@@ -30,22 +86,23 @@ export const styles = StyleSheet.create({
     height: Math.min(101, (SCREEN_WIDTH * 0.85) * 0.315),
   },
 
-  // ── Card — Teal-tinted glass with glow ──
+  // ── Card — Solid elevated dark surface ──
+  // Darker than the colorful gradient background so it reads as distinct
   card: {
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    backgroundColor: 'rgba(8, 18, 27, 0.85)',
     borderRadius: 24,
     padding: 28,
-    borderWidth: 1.5,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     ...Platform.select({
       ios: {
-        shadowColor: '#14B8A6',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 20,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 24,
       },
       android: {
-        elevation: 8,
+        elevation: 12,
       },
     }),
   },

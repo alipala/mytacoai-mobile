@@ -22,6 +22,7 @@ import {
   SafeAreaView,
   Animated,
   Image,
+  StyleSheet,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -617,6 +618,18 @@ export const LoginScreen = ({ navigation }: any) => {
   // Interpolate gradient pulse for subtle color intensity shifts
   return (
     <View style={styles.container}>
+      {/* Rich colored gradient background */}
+      <LinearGradient
+        colors={['#0F2B3C', '#0E2233', '#12182B', '#161530', '#0D1117']}
+        locations={[0, 0.25, 0.5, 0.75, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
+
+      {/* Ambient color orbs for atmospheric depth */}
+      <View style={styles.orbTeal} />
+      <View style={styles.orbIndigo} />
+      <View style={styles.orbCyan} />
+
         <SafeAreaView style={styles.safeArea}>
           <Animated.View
             style={{
