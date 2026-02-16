@@ -389,6 +389,84 @@ class GooglePlayBillingService {
     try {
       console.log('[GOOGLE_PLAY] Restoring purchases...');
 
+      // 🔥 NEW: Check current subscription status first to prevent conflicts
+      const token = await AsyncStorage.getItem('auth_token');
+      if (token) {
+        try {
+          const baseUrl = OpenAPI.BASE || 'http://localhost:8000';
+          const statusResponse = await fetch(`${baseUrl}/api/stripe/subscription-status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (statusResponse.ok) {
+            const status = await statusResponse.json();
+
+            // Warn if user has active subscription from different provider
+            if (status.status === 'active' && status.provider && status.provider !== 'google_play') {
+              console.log(`[GOOGLE_PLAY] ⚠️ User has active ${status.provider} subscription`);
+
+              const { Alert } = require('react-native');
+              return await new Promise((resolve) => {
+                Alert.alert(
+                  'Active Subscription Found',
+                  `You have an active ${status.provider.toUpperCase()} subscription. Restoring Google Play purchases may cause conflicts.\n\nWould you like to continue anyway?`,
+                  [
+                    {
+                      text: 'Cancel',
+                      style: 'cancel',
+                      onPress: () => {
+                        console.log('[GOOGLE_PLAY] User cancelled restore due to provider conflict');
+                        resolve({
+                          success: false,
+                          error: 'Restore cancelled - active subscription from different provider',
+                        });
+                      },
+                    },
+                    {
+                      text: 'Continue Anyway',
+                      style: 'destructive',
+                      onPress: () => {
+                        console.log('[GOOGLE_PLAY] User confirmed restore despite provider conflict');
+                        // Continue with restore (handled by then() block)
+                        resolve({ success: true });
+                      },
+                    },
+                  ],
+                  { cancelable: false }
+                );
+              }).then(async (result) => {
+                if (!result.success) {
+                  return result;
+                }
+                // User confirmed - proceed with restore
+                return await this._doRestorePurchases();
+              });
+            }
+          }
+        } catch (error) {
+          console.error('[GOOGLE_PLAY] Failed to check subscription status:', error);
+          // Continue with restore even if status check fails
+        }
+      }
+
+      // No conflict detected - proceed with restore
+      return await this._doRestorePurchases();
+    } catch (error) {
+      console.error('[GOOGLE_PLAY] Failed to restore purchases:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Restore failed',
+      };
+    }
+  }
+
+  /**
+   * Internal method to perform actual restore (separated for conflict checking)
+   */
+  private async _doRestorePurchases(): Promise<{ success: boolean; error?: string }> {
+    try {
+      console.log('[GOOGLE_PLAY] Proceeding with restore purchases...');
+
       // Get available purchase history
       const purchases = await RNIap.getAvailablePurchases();
 
