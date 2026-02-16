@@ -815,19 +815,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   ]}
                 >
                   <TouchableOpacity
+                    style={styles.newUserPrimaryButton}
                     onPress={handleCreatePlan}
                     activeOpacity={0.85}
                   >
-                    <LinearGradient
-                      colors={['#5EEAD4', '#14B8A6', '#0D9488']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.newUserPrimaryButton}
-                    >
-                      <Text style={styles.newUserPrimaryButtonText}>
-                        {t('dashboard.new_user.assessment_button')} →
-                      </Text>
-                    </LinearGradient>
+                    <Text style={styles.newUserPrimaryButtonText}>
+                      {t('dashboard.new_user.assessment_button')} →
+                    </Text>
                   </TouchableOpacity>
                 </Animated.View>
               </View>

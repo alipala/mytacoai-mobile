@@ -1439,6 +1439,7 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
   },
   newUserPrimaryButton: {
+    backgroundColor: '#14B8A6',
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
