@@ -43,6 +43,7 @@ interface PricingModalProps {
   onClose: () => void;
   onSelectPlan: (planId: string, period: 'monthly' | 'annual') => void;
   currentPlan?: string; // Current subscription plan (e.g., 'fluency_builder', 'language_mastery')
+  currentPeriod?: string; // Current subscription period (e.g., 'monthly', 'annual')
 }
 
 const PRICING_PLANS: PricingPlan[] = [
@@ -104,6 +105,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   onClose,
   onSelectPlan,
   currentPlan,
+  currentPeriod,
 }) => {
   // Use dynamic dimensions hook (updates on rotation/resize)
   const { width: SCREEN_WIDTH } = useWindowDimensions();
@@ -145,7 +147,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     return PRICING_PLANS;
   }, [currentPlan]);
 
-  const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
+  // Smart default: If user has Fluency Builder Monthly, show Annual view to highlight upgrades
+  const defaultToAnnual = currentPlan === 'fluency_builder' && currentPeriod === 'monthly';
+  const [isAnnual, setIsAnnual] = useState(defaultToAnnual);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [appleIAPAvailable, setAppleIAPAvailable] = useState(false);
   const [googlePlayAvailable, setGooglePlayAvailable] = useState(false);
@@ -160,6 +164,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   // Animation for promo banner
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  // Reset toggle to smart default when modal opens
+  useEffect(() => {
+    if (visible) {
+      setIsAnnual(defaultToAnnual);
+    }
+  }, [visible, defaultToAnnual]);
 
   // Pulse animation for promo banner
   useEffect(() => {
@@ -727,6 +738,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               : null;
             const features = isAnnual ? plan.annualFeatures : plan.monthlyFeatures;
 
+            // Check if this is the user's current plan
+            const isCurrentPlan =
+              currentPlan === plan.id &&
+              ((isAnnual && currentPeriod === 'annual') || (!isAnnual && currentPeriod === 'monthly'));
+
             return (
               <View
                 key={plan.id}
@@ -738,8 +754,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   plan.isPopular && styles.planCardPopular,
                 ]}
               >
-                {/* Popular Badge or Upgrade Badge */}
-                {currentPlan === 'fluency_builder' && plan.id === 'fluency_builder' && isAnnual ? (
+                {/* Badge: Current Plan / Save 17% / Most Popular */}
+                {isCurrentPlan ? (
+                  <View style={[styles.popularBadge, { backgroundColor: '#6B7280' }]}>
+                    <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+                    <Text style={styles.popularBadgeText}>CURRENT PLAN</Text>
+                  </View>
+                ) : currentPlan === 'fluency_builder' && plan.id === 'fluency_builder' && isAnnual ? (
                   <View style={[styles.popularBadge, { backgroundColor: '#F59E0B' }]}>
                     <Ionicons name="trending-up" size={14} color="#FFFFFF" />
                     <Text style={styles.popularBadgeText}>SAVE 17%</Text>
