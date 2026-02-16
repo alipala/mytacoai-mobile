@@ -518,16 +518,32 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    // Check if user is already premium
-    const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
+    const plan = subscriptionStatus?.plan;
 
-    if (isPremium) {
-      console.log('📱 User is premium - showing benefits modal');
-      setShowPremiumBenefitsModal(true);
-    } else {
+    // Free/Try Learn users: Show full pricing modal
+    if (!plan || ['try_learn', 'free'].includes(plan)) {
       console.log('📱 User is free - showing pricing modal');
       setShowPricingModal(true);
+      return;
     }
+
+    // Fluency Builder users: Show upgrade options (Annual + Language Mastery)
+    if (plan === 'fluency_builder') {
+      console.log('📱 User has Fluency Builder - showing upgrade options');
+      setShowPricingModal(true);  // Modal will detect current plan and show upgrades
+      return;
+    }
+
+    // Language Mastery users: No action (they have top tier)
+    if (plan === 'team_mastery' || plan === 'language_mastery') {
+      console.log('📱 User has Language Mastery - already at top tier');
+      // Could show a "You have the best plan!" toast here
+      return;
+    }
+
+    // Fallback: Show pricing modal
+    console.log('📱 Fallback - showing pricing modal');
+    setShowPricingModal(true);
   };
 
   const handleDismissBanner = () => {
@@ -989,7 +1005,27 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                     {/* CTA */}
                     <Text style={styles.newUserUpgradeText}>
-                      {t('dashboard.new_user.upgrade_banner')} →
+                      {(() => {
+                        const plan = subscriptionStatus?.plan;
+                        const isUnlimited = subscriptionStatus?.limits?.is_unlimited;
+
+                        // Free/Try Learn users: Show trial CTA
+                        if (!plan || ['try_learn', 'free'].includes(plan)) {
+                          return `${t('dashboard.new_user.upgrade_banner')} →`;
+                        }
+
+                        // Premium users
+                        if (plan === 'fluency_builder') {
+                          return 'Upgrade to Language Mastery →';
+                        }
+
+                        if (plan === 'team_mastery' || plan === 'language_mastery') {
+                          return isUnlimited ? 'Language Mastery - Unlimited ✓' : 'Language Mastery ✓';
+                        }
+
+                        // Fallback
+                        return `${t('dashboard.new_user.upgrade_banner')} →`;
+                      })()}
                     </Text>
                   </TouchableOpacity>
                 );
