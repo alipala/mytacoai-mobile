@@ -711,6 +711,26 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           />
 
           <View style={styles.headerActions}>
+            {/* Premium Badge - Always show for premium users */}
+            {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
+              <TouchableOpacity
+                style={styles.premiumBadgeCompact}
+                onPress={handleUpgradePress}
+                activeOpacity={0.8}
+              >
+                <View style={styles.badgeGlowPremium} />
+                <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
+                <View>
+                  <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
+                  <Text style={styles.premiumMinutesCompact}>
+                    {subscriptionStatus?.limits?.is_unlimited
+                      ? 'Unlimited'
+                      : t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
             {/* Hide badges and streak for brand-new users — show after first session */}
             {!isNewUser && (
               <>
@@ -726,24 +746,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <View>
                       <Text style={styles.freeTextCompact}>{t('profile.settings.subscription.free_badge')}</Text>
                       <Text style={styles.freeMinutesCompact}>
-                        {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-
-                {/* Premium Badge - Show for premium users */}
-                {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
-                  <TouchableOpacity
-                    style={styles.premiumBadgeCompact}
-                    onPress={handleUpgradePress}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.badgeGlowPremium} />
-                    <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
-                    <View>
-                      <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
-                      <Text style={styles.premiumMinutesCompact}>
                         {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
                       </Text>
                     </View>
@@ -1016,11 +1018,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                           return `${t('dashboard.new_user.upgrade_banner')} →`;
                         }
 
-                        // Premium users
+                        // Fluency Builder users: Generic upgrade text (can upgrade to Annual OR Language Mastery)
                         if (plan === 'fluency_builder') {
-                          return 'Upgrade to Language Mastery →';
+                          return 'View Upgrade Options →';
                         }
 
+                        // Language Mastery users: Already at top tier
                         if (plan === 'team_mastery' || plan === 'language_mastery') {
                           return isUnlimited ? 'Language Mastery - Unlimited ✓' : 'Language Mastery ✓';
                         }
@@ -1287,7 +1290,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               <View>
                 <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
                 <Text style={styles.premiumMinutesCompact}>
-                  {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                  {subscriptionStatus?.limits?.is_unlimited
+                    ? 'Unlimited'
+                    : t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
                 </Text>
               </View>
             </TouchableOpacity>
