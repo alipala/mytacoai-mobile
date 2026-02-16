@@ -927,8 +927,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
 
-              {/* Section 5: Minutes Fuel Gauge + Upgrade CTA */}
-              {(() => {
+              {/* Section 5: Minutes Fuel Gauge + Upgrade CTA - Only for Free/Try Learn users */}
+              {(!subscriptionStatus?.plan || ['try_learn', 'free'].includes(subscriptionStatus.plan)) && (() => {
                 const totalMinutes = 15;
                 const minutesLeft = subscriptionStatus?.limits?.minutes_remaining ?? totalMinutes;
                 const fraction = Math.max(0, Math.min(1, minutesLeft / totalMinutes));
@@ -1009,28 +1009,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
                     {/* CTA */}
                     <Text style={styles.newUserUpgradeText}>
-                      {(() => {
-                        const plan = subscriptionStatus?.plan;
-                        const isUnlimited = subscriptionStatus?.limits?.is_unlimited;
-
-                        // Free/Try Learn users: Show trial CTA
-                        if (!plan || ['try_learn', 'free'].includes(plan)) {
-                          return `${t('dashboard.new_user.upgrade_banner')} →`;
-                        }
-
-                        // Fluency Builder users: Generic upgrade text (can upgrade to Annual OR Language Mastery)
-                        if (plan === 'fluency_builder') {
-                          return 'View Upgrade Options →';
-                        }
-
-                        // Language Mastery users: Already at top tier
-                        if (plan === 'team_mastery' || plan === 'language_mastery') {
-                          return isUnlimited ? 'Language Mastery - Unlimited ✓' : 'Language Mastery ✓';
-                        }
-
-                        // Fallback
-                        return `${t('dashboard.new_user.upgrade_banner')} →`;
-                      })()}
+                      {t('dashboard.new_user.upgrade_banner')} →
                     </Text>
                   </TouchableOpacity>
                 );
