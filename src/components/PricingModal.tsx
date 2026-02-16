@@ -130,9 +130,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       return PRICING_PLANS;
     }
 
-    // Fluency Builder users: Show only Language Mastery as upgrade option
+    // Fluency Builder users: Show all plans as upgrade options
+    // They can upgrade to Annual (same tier, save money) OR Language Mastery (higher tier)
     if (currentPlan === 'fluency_builder') {
-      return PRICING_PLANS.filter(plan => plan.id === 'language_mastery');
+      return PRICING_PLANS; // Show both Fluency Builder (for annual) and Language Mastery
     }
 
     // Language Mastery users: Already have top tier, show all to view benefits
@@ -607,8 +608,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Unlock Premium Features</Text>
-            <Text style={styles.headerSubtitle}>Choose the plan that fits your goals</Text>
+            <Text style={styles.headerTitle}>
+              {currentPlan === 'fluency_builder' ? 'Upgrade Your Plan' : 'Unlock Premium Features'}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {currentPlan === 'fluency_builder'
+                ? 'Save money with Annual or get Unlimited with Language Mastery'
+                : 'Choose the plan that fits your goals'}
+            </Text>
           </View>
         </View>
 
@@ -731,8 +738,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   plan.isPopular && styles.planCardPopular,
                 ]}
               >
-                {/* Popular Badge */}
-                {plan.isPopular && (
+                {/* Popular Badge or Upgrade Badge */}
+                {currentPlan === 'fluency_builder' && plan.id === 'fluency_builder' && isAnnual ? (
+                  <View style={[styles.popularBadge, { backgroundColor: '#F59E0B' }]}>
+                    <Ionicons name="trending-up" size={14} color="#FFFFFF" />
+                    <Text style={styles.popularBadgeText}>SAVE 17%</Text>
+                  </View>
+                ) : plan.isPopular && (
                   <View style={styles.popularBadge}>
                     <Ionicons name="star" size={14} color="#FFFFFF" />
                     <Text style={styles.popularBadgeText}>MOST POPULAR</Text>
