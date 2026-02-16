@@ -238,17 +238,26 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // ── Google Sign-In Button — Glass surface on teal card ──
+  // ── Google Sign-In Button — Google red with white icon ──
   googleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: '#DB4437',
     borderRadius: 14,
     height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#DB4437',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   googleButtonText: {
     fontFamily: 'Inter_600SemiBold',
@@ -349,13 +358,22 @@ export const styles = StyleSheet.create({
     }),
   },
   compactGoogleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: '#DB4437',
     width: 56,
     height: 56,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#DB4437',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
 });

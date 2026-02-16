@@ -730,7 +730,7 @@ export const LoginScreen = ({ navigation }: any) => {
                           disabled={loading}
                           activeOpacity={0.8}
                         >
-                          <Ionicons name="logo-google" size={24} color="#DB4437" />
+                          <Ionicons name="logo-google" size={24} color="#FFFFFF" />
                           <Text style={styles.googleButtonText}>{t('auth.login.button_continue_google')}</Text>
                         </TouchableOpacity>
 
@@ -882,7 +882,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             disabled={loading}
                             activeOpacity={0.8}
                           >
-                            <Ionicons name="logo-google" size={24} color="#DB4437" />
+                            <Ionicons name="logo-google" size={24} color="#FFFFFF" />
                           </TouchableOpacity>
                         </View>
                       </>
@@ -920,7 +920,7 @@ export const LoginScreen = ({ navigation }: any) => {
                           disabled={loading}
                           activeOpacity={0.8}
                         >
-                          <Ionicons name="logo-google" size={24} color="#DB4437" />
+                          <Ionicons name="logo-google" size={24} color="#FFFFFF" />
                           <Text style={styles.googleButtonText}>{t('auth.login.button_continue_google')}</Text>
                         </TouchableOpacity>
 
@@ -1126,7 +1126,7 @@ export const LoginScreen = ({ navigation }: any) => {
                             disabled={loading}
                             activeOpacity={0.8}
                           >
-                            <Ionicons name="logo-google" size={24} color="#DB4437" />
+                            <Ionicons name="logo-google" size={24} color="#FFFFFF" />
                           </TouchableOpacity>
                         </View>
                       </>
