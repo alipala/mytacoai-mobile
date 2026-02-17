@@ -42,6 +42,10 @@ interface PricingModalProps {
   visible: boolean;
   onClose: () => void;
   onSelectPlan: (planId: string, period: 'monthly' | 'annual') => void;
+  currentPlan?: string; // Current subscription plan (e.g., 'fluency_builder', 'language_mastery')
+  currentPeriod?: string; // Current subscription period (e.g., 'monthly', 'annual')
+  isInTrial?: boolean; // Whether user is currently in trial
+  subscriptionProvider?: string; // Current provider (stripe, apple, google_play)
 }
 
 const PRICING_PLANS: PricingPlan[] = [
@@ -102,6 +106,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   visible,
   onClose,
   onSelectPlan,
+  currentPlan,
+  currentPeriod,
+  isInTrial,
+  subscriptionProvider,
 }) => {
   // Use dynamic dimensions hook (updates on rotation/resize)
   const { width: SCREEN_WIDTH } = useWindowDimensions();
@@ -121,7 +129,31 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
   console.log('🔍 [PricingModal] Dynamic - Width:', SCREEN_WIDTH, 'isTablet:', isTablet);
 
-  const [isAnnual, setIsAnnual] = useState(false); // Default to monthly
+  // Filter plans based on current subscription
+  const availablePlans = React.useMemo(() => {
+    // Free users: Show all plans
+    if (!currentPlan || ['try_learn', 'free'].includes(currentPlan)) {
+      return PRICING_PLANS;
+    }
+
+    // Fluency Builder users: Show all plans as upgrade options
+    // They can upgrade to Annual (same tier, save money) OR Language Mastery (higher tier)
+    if (currentPlan === 'fluency_builder') {
+      return PRICING_PLANS; // Show both Fluency Builder (for annual) and Language Mastery
+    }
+
+    // Language Mastery users: Already have top tier, show all to view benefits
+    if (currentPlan === 'language_mastery' || currentPlan === 'team_mastery') {
+      return PRICING_PLANS;
+    }
+
+    // Fallback: Show all plans
+    return PRICING_PLANS;
+  }, [currentPlan]);
+
+  // Smart default: If user has Fluency Builder Monthly, show Annual view to highlight upgrades
+  const defaultToAnnual = currentPlan === 'fluency_builder' && currentPeriod === 'monthly';
+  const [isAnnual, setIsAnnual] = useState(defaultToAnnual);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [appleIAPAvailable, setAppleIAPAvailable] = useState(false);
   const [googlePlayAvailable, setGooglePlayAvailable] = useState(false);
@@ -136,6 +168,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   // Animation for promo banner
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  // Reset toggle to smart default when modal opens
+  useEffect(() => {
+    if (visible) {
+      setIsAnnual(defaultToAnnual);
+    }
+  }, [visible, defaultToAnnual]);
 
   // Pulse animation for promo banner
   useEffect(() => {
@@ -584,8 +623,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Unlock Premium Features</Text>
-            <Text style={styles.headerSubtitle}>Choose the plan that fits your goals</Text>
+            <Text style={styles.headerTitle}>
+              {currentPlan === 'fluency_builder' ? 'Upgrade Your Plan' : 'Unlock Premium Features'}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {currentPlan === 'fluency_builder'
+                ? 'Save money with Annual or get Unlimited with Language Mastery'
+                : 'Choose the plan that fits your goals'}
+            </Text>
           </View>
         </View>
 
@@ -690,12 +735,22 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           onScroll={!isTablet ? handleScroll : undefined}
           scrollEventThrottle={16}
         >
-          {PRICING_PLANS.map((plan, index) => {
+          {availablePlans.map((plan, index) => {
             const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
             const monthlyEquivalent = isAnnual
               ? `€${(parseFloat(plan.annualPrice.slice(1)) / 12).toFixed(2)}/mo`
               : null;
             const features = isAnnual ? plan.annualFeatures : plan.monthlyFeatures;
+
+            // Check if this is the user's current plan
+            const isCurrentPlan =
+              currentPlan === plan.id &&
+              ((isAnnual && currentPeriod === 'annual') || (!isAnnual && currentPeriod === 'monthly'));
+
+            // Determine if trial should be shown
+            // Only show trial for NEW users (no current subscription) or users actively in trial
+            const hasActiveSubscription = currentPlan && !['try_learn', 'free'].includes(currentPlan);
+            const showTrial = !hasActiveSubscription || isInTrial;
 
             return (
               <View
@@ -703,13 +758,23 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 style={[
                   styles.planCard,
                   !isTablet && index === 0 && { marginLeft: CARD_MARGIN },
-                  !isTablet && index === PRICING_PLANS.length - 1 && { marginRight: CARD_MARGIN },
+                  !isTablet && index === availablePlans.length - 1 && { marginRight: CARD_MARGIN },
                   isTablet && { marginHorizontal: CARD_SPACING / 2 },
                   plan.isPopular && styles.planCardPopular,
                 ]}
               >
-                {/* Popular Badge */}
-                {plan.isPopular && (
+                {/* Badge: Current Plan / Save 17% / Most Popular */}
+                {isCurrentPlan ? (
+                  <View style={[styles.popularBadge, { backgroundColor: '#6B7280' }]}>
+                    <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+                    <Text style={styles.popularBadgeText}>CURRENT PLAN</Text>
+                  </View>
+                ) : currentPlan === 'fluency_builder' && plan.id === 'fluency_builder' && isAnnual ? (
+                  <View style={[styles.popularBadge, { backgroundColor: '#F59E0B' }]}>
+                    <Ionicons name="trending-up" size={14} color="#FFFFFF" />
+                    <Text style={styles.popularBadgeText}>SAVE 17%</Text>
+                  </View>
+                ) : plan.isPopular && (
                   <View style={styles.popularBadge}>
                     <Ionicons name="star" size={14} color="#FFFFFF" />
                     <Text style={styles.popularBadgeText}>MOST POPULAR</Text>
@@ -724,8 +789,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   </Text>
                 </View>
 
-                {/* Highlight */}
-                {plan.highlight && (
+                {/* Highlight - Only show trial text for eligible users */}
+                {plan.highlight && showTrial && (
                   <View style={styles.highlightContainer}>
                     <Text style={styles.highlightText}>{plan.highlight}</Text>
                   </View>
@@ -853,7 +918,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         {/* Pagination Dots - Hidden on iPad */}
         {!isTablet && (
           <View style={styles.paginationContainer}>
-            {PRICING_PLANS.map((_, index) => (
+            {availablePlans.map((_, index) => (
               <View
                 key={index}
                 style={[

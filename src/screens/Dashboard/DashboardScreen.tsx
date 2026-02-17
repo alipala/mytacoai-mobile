@@ -518,16 +518,32 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    // Check if user is already premium
-    const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
+    const plan = subscriptionStatus?.plan;
 
-    if (isPremium) {
-      console.log('📱 User is premium - showing benefits modal');
-      setShowPremiumBenefitsModal(true);
-    } else {
+    // Free/Try Learn users: Show full pricing modal
+    if (!plan || ['try_learn', 'free'].includes(plan)) {
       console.log('📱 User is free - showing pricing modal');
       setShowPricingModal(true);
+      return;
     }
+
+    // Fluency Builder users: Show upgrade options (Annual + Language Mastery)
+    if (plan === 'fluency_builder') {
+      console.log('📱 User has Fluency Builder - showing upgrade options');
+      setShowPricingModal(true);  // Modal will detect current plan and show upgrades
+      return;
+    }
+
+    // Language Mastery users: No action (they have top tier)
+    if (plan === 'team_mastery' || plan === 'language_mastery') {
+      console.log('📱 User has Language Mastery - already at top tier');
+      // Could show a "You have the best plan!" toast here
+      return;
+    }
+
+    // Fallback: Show pricing modal
+    console.log('📱 Fallback - showing pricing modal');
+    setShowPricingModal(true);
   };
 
   const handleDismissBanner = () => {
@@ -662,6 +678,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+          currentPlan={subscriptionStatus?.plan}
+          currentPeriod={subscriptionStatus?.period}
+          isInTrial={subscriptionStatus?.is_in_trial}
+          subscriptionProvider={subscriptionStatus?.provider}
         />
 
         {/* Session Type Modal */}
@@ -693,6 +713,26 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           />
 
           <View style={styles.headerActions}>
+            {/* Premium Badge - Always show for premium users */}
+            {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
+              <TouchableOpacity
+                style={styles.premiumBadgeCompact}
+                onPress={handleUpgradePress}
+                activeOpacity={0.8}
+              >
+                <View style={styles.badgeGlowPremium} />
+                <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
+                <View>
+                  <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
+                  <Text style={styles.premiumMinutesCompact}>
+                    {subscriptionStatus?.limits?.is_unlimited
+                      ? 'Unlimited'
+                      : t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
             {/* Hide badges and streak for brand-new users — show after first session */}
             {!isNewUser && (
               <>
@@ -708,24 +748,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <View>
                       <Text style={styles.freeTextCompact}>{t('profile.settings.subscription.free_badge')}</Text>
                       <Text style={styles.freeMinutesCompact}>
-                        {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-
-                {/* Premium Badge - Show for premium users */}
-                {subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan) && (
-                  <TouchableOpacity
-                    style={styles.premiumBadgeCompact}
-                    onPress={handleUpgradePress}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.badgeGlowPremium} />
-                    <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
-                    <View>
-                      <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
-                      <Text style={styles.premiumMinutesCompact}>
                         {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
                       </Text>
                     </View>
@@ -907,8 +929,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
 
-              {/* Section 5: Minutes Fuel Gauge + Upgrade CTA */}
-              {(() => {
+              {/* Section 5: Minutes Fuel Gauge + Upgrade CTA - Only for Free/Try Learn users */}
+              {(!subscriptionStatus?.plan || ['try_learn', 'free'].includes(subscriptionStatus.plan)) && (() => {
                 const totalMinutes = 15;
                 const minutesLeft = subscriptionStatus?.limits?.minutes_remaining ?? totalMinutes;
                 const fraction = Math.max(0, Math.min(1, minutesLeft / totalMinutes));
@@ -1207,6 +1229,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showPricingModal}
           onClose={() => setShowPricingModal(false)}
           onSelectPlan={handleSelectPlan}
+          currentPlan={subscriptionStatus?.plan}
+          currentPeriod={subscriptionStatus?.period}
+          isInTrial={subscriptionStatus?.is_in_trial}
+          subscriptionProvider={subscriptionStatus?.provider}
         />
 
         {/* Session Type Modal */}
@@ -1247,7 +1273,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               <View>
                 <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
                 <Text style={styles.premiumMinutesCompact}>
-                  {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                  {subscriptionStatus?.limits?.is_unlimited
+                    ? 'Unlimited'
+                    : t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -1593,6 +1621,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showPricingModal}
         onClose={() => setShowPricingModal(false)}
         onSelectPlan={handleSelectPlan}
+        currentPlan={subscriptionStatus?.plan}
+        currentPeriod={subscriptionStatus?.period}
+        isInTrial={subscriptionStatus?.is_in_trial}
+        subscriptionProvider={subscriptionStatus?.provider}
       />
 
       {/* Premium Benefits Modal */}
