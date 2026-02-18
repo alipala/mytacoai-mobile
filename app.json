@@ -2,7 +2,7 @@
   "expo": {
     "name": "MyTaco",
     "slug": "MyTacoAIMobile",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
       "supportsTablet": false,
       "requiresFullScreen": true,
       "bundleIdentifier": "com.bigdavinci.mytaco",
-      "buildNumber": "30",
+      "buildNumber": "34",
       "usesAppleSignIn": true,
       "infoPlist": {
         "UIDeviceFamily": [
@@ -56,7 +56,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.bigdavinci.MyTacoAI",
-      "versionCode": 26,
+      "versionCode": 27,
       "permissions": [
         "RECORD_AUDIO",
         "CAMERA",
