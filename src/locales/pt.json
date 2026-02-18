@@ -1763,5 +1763,32 @@
       "learning_goals": "Objetivos de Aprendizado",
       "created_prefix": "Criado em "
     }
+  },
+  "dna_scan": {
+    "title": "Digitalização de Voz ADN",
+    "subtitle": "Verificação acústica intermediária",
+    "default_prompt_title": "Vida Diária",
+    "default_prompt_text": "Conte-me sobre algo interessante que aconteceu com você recentemente.",
+    "tip_30s": "30 Segundos",
+    "tip_quick": "Verificação rápida",
+    "tip_speak": "Fale Claramente",
+    "tip_quiet": "Local silencioso",
+    "tip_natural": "Seja Natural",
+    "tip_relax": "Apenas relaxe",
+    "start_scan": "Iniciar Digitalização ADN",
+    "finish_recording": "Terminar Gravação",
+    "keep_speaking": "Continue falando... ({{seconds}}s)",
+    "seconds": "segundos",
+    "seconds_left": "segundos restantes",
+    "recording": "Gravando...",
+    "tap_to_stop": "toque no mic para parar",
+    "analyzing": "Analisando padrões acústicos...",
+    "halfway": "Na metade! Continue...",
+    "get_ready": "Prepare-se para falar...",
+    "almost_there": "Quase lá!",
+    "speak_longer": "Fale por pelo menos {{seconds}} segundos para análise precisa.",
+    "error_start": "Não foi possível iniciar a gravação",
+    "error_process": "Não foi possível processar a gravação. Tente novamente.",
+    "error_complete": "Não foi possível concluir a digitalização de voz"
   }
 }

@@ -6,10 +6,10 @@ import {
   SafeAreaView,
   Platform,
   Alert,
-  ActivityIndicator,
   Animated,
   Modal,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -364,6 +364,27 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
       console.error('Error processing recording:', error);
       setIsAnalyzing(false);
 
+      // Handle subscription limit error specifically (400 from backend)
+      const isLimitError =
+        error?.status === 400 ||
+        (typeof error?.body === 'object' && error?.body?.detail?.includes?.('assessment')) ||
+        (typeof error?.message === 'string' && error.message.toLowerCase().includes('assessment'));
+
+      if (isLimitError) {
+        const detail = error?.body?.detail || error?.message || "You've reached your monthly assessment limit.";
+        Alert.alert(
+          'Assessment Limit Reached',
+          `${detail}\n\nTo upgrade: go to Profile tab → tap Premium badge → select Language Mastery plan.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+        return;
+      }
+
       Alert.alert(
         t('modals.error.title'),
         error.message || t('assessment.recording.error_analyze'),
@@ -436,9 +457,12 @@ const SpeakingAssessmentRecordingScreen: React.FC<SpeakingAssessmentRecordingScr
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.analyzingContainer}>
-          <View style={styles.analyzingIconContainer}>
-            <ActivityIndicator size="large" color="#14B8A6" />
-          </View>
+          <LottieView
+            source={require('../../assets/lottie/loading_cat.json')}
+            autoPlay
+            loop
+            style={styles.analyzingLottie}
+          />
           <Text style={styles.analyzingTitle}>{t('assessment.recording.analyzing_title')}</Text>
           <Text style={styles.analyzingSubtitle}>
             {t('assessment.recording.analyzing_subtitle')}

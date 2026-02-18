@@ -31,8 +31,8 @@ import * as Haptics from 'expo-haptics';
 import { useVoiceCheckRecording } from '../../hooks/useVoiceCheckRecording';
 import { styles } from './VoiceCheckModal.styles';
 
-const RECORDING_DURATION = 30; // 30 seconds
-const MINIMUM_DURATION = 20; // 20 seconds minimum
+const RECORDING_DURATION = 30; // 30 seconds (intermediate check between learning plan sessions)
+const MINIMUM_DURATION = 10; // 10 seconds minimum
 const PROGRESS_MESSAGE_THRESHOLD = 15; // Show encouragement at 15s
 
 interface VoiceCheckPrompt {

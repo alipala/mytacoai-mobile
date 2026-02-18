@@ -330,6 +330,13 @@ export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
       return strandMap[label] || 'Developing';
     }
 
+    // Derive CEFR level from vocabulary complexity
+    const complexityLevel = profile.dna_strands?.vocabulary?.complexity_level;
+    const cefrLevel =
+      complexityLevel === 'advanced' ? 'C1' :
+      complexityLevel === 'intermediate' ? 'B1' :
+      complexityLevel === 'beginner' ? 'A2' : null;
+
     // Get archetype info
     const archetype = profile.overall_profile || {};
     const archetypeName =
@@ -406,7 +413,7 @@ export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{archetype.level || 'B1'}</Text>
+              <Text style={styles.statValue}>{cefrLevel || '—'}</Text>
               <Text style={styles.statLabel}>Level</Text>
             </View>
           </View>

@@ -1763,5 +1763,32 @@
       "learning_goals": "Objetivos de Aprendizaje",
       "created_prefix": "Creado "
     }
+  },
+  "dna_scan": {
+    "title": "Escaneo de Voz ADN",
+    "subtitle": "Verificación acústica intermedia",
+    "default_prompt_title": "Vida Diaria",
+    "default_prompt_text": "Cuéntame algo interesante que te haya pasado recientemente.",
+    "tip_30s": "30 Segundos",
+    "tip_quick": "Verificación rápida",
+    "tip_speak": "Habla Claro",
+    "tip_quiet": "Lugar tranquilo",
+    "tip_natural": "Sé Natural",
+    "tip_relax": "Solo relájate",
+    "start_scan": "Iniciar Escaneo ADN",
+    "finish_recording": "Terminar Grabación",
+    "keep_speaking": "Sigue hablando... ({{seconds}}s)",
+    "seconds": "segundos",
+    "seconds_left": "segundos restantes",
+    "recording": "Grabando...",
+    "tap_to_stop": "toca el micrófono para detener",
+    "analyzing": "Analizando patrones acústicos...",
+    "halfway": "¡A la mitad! Continúa...",
+    "get_ready": "Prepárate para hablar...",
+    "almost_there": "¡Casi!",
+    "speak_longer": "Habla al menos {{seconds}} segundos para un análisis preciso.",
+    "error_start": "No se pudo iniciar la grabación",
+    "error_process": "No se pudo procesar la grabación. Inténtalo de nuevo.",
+    "error_complete": "No se pudo completar el escaneo de voz"
   }
 }

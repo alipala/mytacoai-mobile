@@ -168,7 +168,7 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 
   return (
     <View style={styles.container}>
-      <View style={{ width: size, height: size }}>
+      <View style={{ width: size, height: size, overflow: 'visible' }}>
         <Svg width={size} height={size}>
         {/* Define radial gradient for immersive glow effect */}
         <Defs>
@@ -311,37 +311,37 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
           />
         );
       })}
-      </View>
 
-      {/* Legend - 3x2 Grid */}
-      <View style={styles.legendContainer}>
-        {data.map((point) => {
-          const isSelected = selectedStrand === point.strand;
-          return (
-            <Pressable
-              key={`legend-${point.strand}`}
-              onPress={() => handleStrandPress(point.strand)}
-              style={[
-                styles.legendItem,
-                isSelected && {
-                  backgroundColor: `${point.color}10`,
-                  borderColor: point.color,
-                  borderWidth: 2,
-                },
-              ]}
-            >
-              <View style={[styles.legendCircle, { backgroundColor: point.color }]} />
-              <Text
-                style={[
-                  styles.legendText,
-                  isSelected && { color: point.color, fontWeight: '700' },
-                ]}
-              >
-                {point.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+      {/* Strand labels with score — positioned at each vertex */}
+      {data.map((point, index) => {
+        const angle = index * angleStep - Math.PI / 2;
+        // Position label at the outer edge (100% radius) so it sits near the chart boundary
+        const labelRadius = maxRadius + 28;
+        const labelX = center + labelRadius * Math.cos(angle);
+        const labelY = center + labelRadius * Math.sin(angle);
+        const isSelected = selectedStrand === point.strand;
+
+        return (
+          <Pressable
+            key={`label-${point.strand}`}
+            onPress={() => handleStrandPress(point.strand)}
+            style={[
+              styles.vertexLabel,
+              {
+                left: labelX - 36,
+                top: labelY - 20,
+              },
+            ]}
+          >
+            <Text style={[styles.vertexLabelName, { color: point.color, fontWeight: isSelected ? '700' : '600' }]}>
+              {point.label}
+            </Text>
+            <Text style={[styles.vertexLabelScore, { color: point.color }]}>
+              {Math.round(point.score)}%
+            </Text>
+          </Pressable>
+        );
+      })}
       </View>
     </View>
   );
@@ -362,37 +362,23 @@ const styles = StyleSheet.create({
     height: 40,
     zIndex: 10,
   },
-  legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 24,
-    paddingHorizontal: 20,
-    width: '100%',
-  },
-  legendItem: {
-    flexDirection: 'row',
+  vertexLabel: {
+    position: 'absolute',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    width: '48%',
+    justifyContent: 'center',
+    minWidth: 64,
+    zIndex: 5,
   },
-  legendCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 14,
+  vertexLabelName: {
+    fontSize: 11,
     fontWeight: '600',
-    color: '#FFFFFF',
-    flex: 1,
+    textAlign: 'center',
+  },
+  vertexLabelScore: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 1,
   },
 });
 

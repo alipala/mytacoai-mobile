@@ -1764,5 +1764,32 @@
       "learning_goals": "Learning Goals",
       "created_prefix": "Created "
     }
+  },
+  "dna_scan": {
+    "title": "DNA Voice Scan",
+    "subtitle": "Intermediate acoustic check",
+    "default_prompt_title": "Daily Life",
+    "default_prompt_text": "Tell me about something interesting that happened to you recently.",
+    "tip_30s": "30 Seconds",
+    "tip_quick": "Quick check",
+    "tip_speak": "Speak Clearly",
+    "tip_quiet": "Quiet space",
+    "tip_natural": "Be Natural",
+    "tip_relax": "Just relax",
+    "start_scan": "Start DNA Scan",
+    "finish_recording": "Finish Recording",
+    "keep_speaking": "Keep speaking... ({{seconds}}s)",
+    "seconds": "seconds",
+    "seconds_left": "seconds left",
+    "recording": "Recording...",
+    "tap_to_stop": "tap mic to stop",
+    "analyzing": "Analyzing acoustic patterns...",
+    "halfway": "Halfway there! Keep going...",
+    "get_ready": "Get ready to speak...",
+    "almost_there": "Almost There!",
+    "speak_longer": "Speak for at least {{seconds}} seconds for accurate analysis.",
+    "error_start": "Failed to start recording",
+    "error_process": "Failed to process recording. Please try again.",
+    "error_complete": "Failed to complete voice scan"
   }
 }

@@ -608,14 +608,18 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setBreakthroughQueue(remainingQueue);
       setShowBreakthroughModal(true);
     }
-    // If no breakthroughs and voice check is due, show voice check
-    else if (breakthroughQueue.length === 0 && !showBreakthroughModal && !showVoiceCheckModal && voiceCheckPrompt) {
-      console.log('[VOICE_CHECK] No breakthroughs, showing voice check modal');
+    // If no breakthroughs and voice check is due (post-session), show voice check modal
+    else if (breakthroughQueue.length === 0 && !showBreakthroughModal && !showVoiceCheckModal && voiceCheckPrompt && sessionCompletedNaturally) {
+      console.log('[VOICE_CHECK] No breakthroughs, showing voice check modal (post-session)');
       setShowVoiceCheckModal(true);
     }
-  }, [breakthroughQueue, showBreakthroughModal, currentBreakthrough, showVoiceCheckModal, voiceCheckPrompt]);
+  }, [breakthroughQueue, showBreakthroughModal, currentBreakthrough, showVoiceCheckModal, voiceCheckPrompt, sessionCompletedNaturally]);
 
-  // 🎙️ Voice Check: Update prompt when status changes
+  // 🎙️ Voice Check: Update prompt when status changes.
+  // The status API returns is_due=true at session START when the previous completed_sessions
+  // count matches the schedule [1, 3, 6, 8]. This is intentional: the voice check is a
+  // separate 30-second standalone recording that happens BEFORE the conversation starts.
+  // handleStartPracticeConversation will show the voice check first, then start the conversation.
   useEffect(() => {
     if (voiceCheckStatus?.is_due && voiceCheckStatus.prompt && !voiceCheckPrompt) {
       console.log('[VOICE_CHECK] 🎙️ Voice check is due - setting prompt');
@@ -1145,7 +1149,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         challenges_accepted: 0,
         topics_discussed: [voiceCheckPrompt?.title || 'Voice Check'],
         audio_base64: audioBase64,
-        audio_format: 'm4a',
+        audio_format: 'wav', // useVoiceCheckRecording records .wav (LINEARPCM)
       };
 
       const targetLanguage = learningPlan?.language || language || 'english';
@@ -1160,6 +1164,12 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       console.log('[VOICE_CHECK] ✅ DNA analysis complete');
 
+      // Queue any breakthroughs detected during voice check to show after session
+      if (dnaResult?.breakthroughs && dnaResult.breakthroughs.length > 0) {
+        console.log(`[VOICE_CHECK] 🎯 ${dnaResult.breakthroughs.length} breakthrough(s) detected - queuing for display`);
+        setBreakthroughQueue(prev => [...prev, ...dnaResult.breakthroughs]);
+      }
+
       // Mark voice check as completed in learning plan
       if (voiceCheckStatus && planId) {
         await completeVoiceCheck(voiceCheckStatus.current_session);
@@ -1170,7 +1180,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setShowVoiceCheckModal(false);
       setVoiceCheckPrompt(null);
 
-      // Execute pending navigation if any
+      // Execute pending navigation if any (post-session voice check)
       const navAction = pendingNavigation;
       setPendingNavigation(null);
 
@@ -1223,7 +1233,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setShowVoiceCheckModal(false);
       setVoiceCheckPrompt(null);
 
-      // Execute pending navigation if any
+      // Execute pending navigation if any (post-session voice check)
       const navAction = pendingNavigation;
       setPendingNavigation(null);
 
@@ -1356,6 +1366,28 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               const errorText = await trackingResponse.text();
               console.error('[PARTIAL_EXIT] ❌ Failed to track partial time - Status:', trackingResponse.status);
               console.error('[PARTIAL_EXIT] ❌ Error response:', errorText);
+            }
+
+            // Update learning plan spoken time if this was a learning plan session
+            if (planId) {
+              try {
+                const durationMinutes = sessionDuration / 60;
+                const spokenTimeResponse = await fetch(
+                  `${API_BASE_URL}/api/learning/plan/${planId}/add-spoken-time?duration_minutes=${durationMinutes}`,
+                  {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                  }
+                );
+                if (spokenTimeResponse.ok) {
+                  const spokenResult = await spokenTimeResponse.json();
+                  console.log('[PARTIAL_EXIT] ✅ Learning plan spoken time updated:', spokenResult.practice_minutes_used, 'min total');
+                } else {
+                  console.error('[PARTIAL_EXIT] ❌ Failed to update learning plan spoken time:', spokenTimeResponse.status);
+                }
+              } catch (spokenTimeError) {
+                console.error('[PARTIAL_EXIT] ❌ Error updating learning plan spoken time:', spokenTimeError);
+              }
             }
           }
         } catch (trackingError) {

@@ -295,16 +295,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 40,
     backgroundColor: '#0B1A1F',
   },
-  analyzingIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+  analyzingLottie: {
+    width: 220,
+    height: 220,
+    marginBottom: 16,
   },
   analyzingTitle: {
     fontSize: 24,

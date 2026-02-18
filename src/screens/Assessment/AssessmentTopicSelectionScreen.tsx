@@ -7,10 +7,15 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  Alert,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../../api/config';
 
 interface AssessmentTopicSelectionScreenProps {
   navigation: any;
@@ -43,6 +48,8 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
 }) => {
   const { t } = useTranslation();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+  const [limitModal, setLimitModal] = useState<{ visible: boolean; message: string }>({ visible: false, message: '' });
   const { language } = route.params;
 
   const getTopics = (): Topic[] => {
@@ -65,16 +72,40 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
     setSelectedTopic(topicId);
   };
 
-  const handleContinue = () => {
-    if (!selectedTopic) return;
+  const handleContinue = async () => {
+    if (!selectedTopic || isChecking) return;
 
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    const topic = ASSESSMENT_TOPICS.find(t => t.id === selectedTopic);
+    setIsChecking(true);
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(`${API_BASE_URL}/api/speaking/can-assess`, {
+        method: 'GET',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        },
+      });
 
-    // Navigate to Recording Screen
+      if (response.ok) {
+        const data = await response.json();
+        if (!data.can_access) {
+          setLimitModal({ visible: true, message: data.message });
+          return;
+        }
+      }
+      // Proceed — either access granted or check failed (fail-open)
+    } catch (err) {
+      // Network error — proceed anyway, backend will block if needed
+      console.warn('[AssessmentCheck] Could not pre-check limit:', err);
+    } finally {
+      setIsChecking(false);
+    }
+
+    const topic = ASSESSMENT_TOPICS.find(t => t.id === selectedTopic);
     navigation.navigate('SpeakingAssessmentRecording', {
       language,
       topic: selectedTopic,
@@ -92,6 +123,60 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Assessment Limit Modal */}
+      <Modal
+        visible={limitModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLimitModal({ visible: false, message: '' })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="lock-closed" size={28} color="#F59E0B" />
+            </View>
+            <Text style={styles.modalTitle}>Assessment Limit Reached</Text>
+            <Text style={styles.modalMessage}>{limitModal.message}</Text>
+
+            {/* Upgrade path info */}
+            <View style={styles.upgradeBox}>
+              <Text style={styles.upgradeBoxTitle}>Upgrade to Language Mastery</Text>
+              <Text style={styles.upgradeBoxSubtitle}>
+                Fluency Builder (monthly &amp; annual) → Language Mastery
+              </Text>
+
+              <View style={styles.upgradeSteps}>
+                <View style={styles.upgradeStep}>
+                  <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>1</Text></View>
+                  <Text style={styles.stepText}>
+                    Go to the <Text style={styles.stepBold}>Profile</Text> tab
+                  </Text>
+                </View>
+                <View style={styles.upgradeStep}>
+                  <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>2</Text></View>
+                  <Text style={styles.stepText}>
+                    Tap your <Text style={styles.stepBold}>Premium badge</Text>
+                  </Text>
+                </View>
+                <View style={styles.upgradeStep}>
+                  <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>3</Text></View>
+                  <Text style={styles.stepText}>
+                    Select <Text style={styles.stepBold}>Language Mastery</Text> plan
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalDismissBtn}
+              onPress={() => setLimitModal({ visible: false, message: '' })}
+            >
+              <Text style={styles.modalDismissBtnText}>Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -161,14 +246,20 @@ const AssessmentTopicSelectionScreen: React.FC<AssessmentTopicSelectionScreenPro
         <TouchableOpacity
           style={[
             styles.continueButton,
-            !selectedTopic && styles.continueButtonDisabled,
+            (!selectedTopic || isChecking) && styles.continueButtonDisabled,
           ]}
           onPress={handleContinue}
-          disabled={!selectedTopic}
+          disabled={!selectedTopic || isChecking}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>{t('buttons.continue')}</Text>
-          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          {isChecking ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <Text style={styles.continueButtonText}>{t('buttons.continue')}</Text>
+              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -304,6 +395,105 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  // Limit modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    backgroundColor: '#132028',
+    borderRadius: 20,
+    padding: 28,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    width: '100%',
+  },
+  modalIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#F59E0B',
+    textAlign: 'center',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  upgradeBox: {
+    width: '100%',
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    padding: 16,
+    marginBottom: 20,
+  },
+  upgradeBoxTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#14B8A6',
+    marginBottom: 2,
+  },
+  upgradeBoxSubtitle: {
+    fontSize: 12,
+    color: '#6B8A90',
+    marginBottom: 14,
+  },
+  upgradeSteps: {
+    gap: 10,
+  },
+  upgradeStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  stepBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#14B8A6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  stepText: {
+    fontSize: 13,
+    color: '#B4E4DD',
+    flex: 1,
+  },
+  stepBold: {
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  modalDismissBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+  },
+  modalDismissBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#14B8A6',
   },
 });
 

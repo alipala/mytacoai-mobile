@@ -225,12 +225,6 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
 
               {/* Data points (vertices) with values */}
               {radarPoints.map((point, index) => {
-                // Calculate label position (slightly inside from the point)
-                const labelAngle = point.angle;
-                const labelOffset = 20; // Distance from point
-                const labelX = point.x + labelOffset * Math.cos(labelAngle);
-                const labelY = point.y + labelOffset * Math.sin(labelAngle);
-
                 return (
                   <G key={`point-${index}`}>
                     {/* Outer glow circle */}
@@ -253,18 +247,6 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
                         handleStrandTap(point.strand);
                       }}
                     />
-                    {/* Value label */}
-                    <SvgText
-                      x={labelX}
-                      y={labelY}
-                      fill={COLORS.gray[700]}
-                      fontSize="13"
-                      fontWeight="700"
-                      textAnchor="middle"
-                      alignmentBaseline="middle"
-                    >
-                      {Math.round(point.value)}%
-                    </SvgText>
                   </G>
                 );
               })}
@@ -273,7 +255,7 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
         </Animated.View>
       </GestureDetector>
 
-      {/* Labels positioned outside the chart */}
+      {/* Labels positioned outside the chart — show name + score */}
       {data.map((point, index) => {
         const angle = (index * 60 - 90) * (Math.PI / 180); // Convert to radians
         const radius = size / 2 - 15;
@@ -289,8 +271,8 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
                 position: 'absolute',
                 left: labelX,
                 top: labelY,
-                transform: [{ translateX: -30 }, { translateY: -12 }],
-                backgroundColor: `${getStrandColor(point.strand)}15`,
+                transform: [{ translateX: -32 }, { translateY: -18 }],
+                backgroundColor: `${getStrandColor(point.strand)}18`,
                 borderColor: getStrandColor(point.strand),
               },
             ]}
@@ -305,6 +287,14 @@ export const InteractiveRadarChart: React.FC<InteractiveRadarChartProps> = ({
               ]}
             >
               {point.label}
+            </Text>
+            <Text
+              style={[
+                styles.labelScore,
+                { color: getStrandColor(point.strand) },
+              ]}
+            >
+              {Math.round(point.score)}%
             </Text>
           </View>
         );
@@ -330,17 +320,23 @@ const styles = StyleSheet.create({
   },
   label: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 60,
+    minWidth: 64,
   },
   labelText: {
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  labelScore: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 1,
   },
 });
 

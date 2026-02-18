@@ -1763,5 +1763,32 @@
       "learning_goals": "Leerdoelen",
       "created_prefix": "Aangemaakt "
     }
+  },
+  "dna_scan": {
+    "title": "DNA Stembscan",
+    "subtitle": "Tussentijdse akoestische controle",
+    "default_prompt_title": "Dagelijks Leven",
+    "default_prompt_text": "Vertel me over iets interessants dat je onlangs is overkomen.",
+    "tip_30s": "30 Seconden",
+    "tip_quick": "Snelle controle",
+    "tip_speak": "Spreek Duidelijk",
+    "tip_quiet": "Rustige plek",
+    "tip_natural": "Wees Natuurlijk",
+    "tip_relax": "Ontspan gewoon",
+    "start_scan": "DNA-Scan Starten",
+    "finish_recording": "Opname Beëindigen",
+    "keep_speaking": "Blijf spreken... ({{seconds}}s)",
+    "seconds": "seconden",
+    "seconds_left": "seconden over",
+    "recording": "Opnemen...",
+    "tap_to_stop": "tik op mic om te stoppen",
+    "analyzing": "Akoestische patronen analyseren...",
+    "halfway": "Halverwege! Ga door...",
+    "get_ready": "Klaar om te spreken...",
+    "almost_there": "Bijna!",
+    "speak_longer": "Spreek minimaal {{seconds}} seconden voor nauwkeurige analyse.",
+    "error_start": "Opname kon niet worden gestart",
+    "error_process": "Opname kon niet worden verwerkt. Probeer opnieuw.",
+    "error_complete": "Stembscan kon niet worden voltooid"
   }
 }

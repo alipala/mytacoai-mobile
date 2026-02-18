@@ -35,6 +35,7 @@ interface LearningPlanDetailsModalProps {
   progressStats?: any;
   onContinueLearning: () => void;
   cardColor: string;
+  voiceCheckDue?: boolean;
 }
 
 // ==================== HELPER FUNCTIONS ====================
@@ -156,6 +157,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   progressStats,
   onContinueLearning,
   cardColor,
+  voiceCheckDue = false,
 }) => {
   const { t } = useTranslation();
   // CRITICAL: Use timing instead of spring for reliability
@@ -189,17 +191,11 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
   };
 
   // Get actual practice minutes used from the plan (tracked by backend)
-  // Fallback to estimated calculation if not available
   const actualMinutesUsed = plan?.practice_minutes_used || 0;
-  const avgMinutesPerSession = 15;
-  const estimatedMinutes = completedSessions * avgMinutesPerSession;
-  const practiceTimeMinutes = actualMinutesUsed > 0 ? actualMinutesUsed : estimatedMinutes;
 
   console.log(`📊 [LearningPlanDetailsModal] Practice time calculation:
-    - Plan has practice_minutes_used field: ${plan?.practice_minutes_used !== undefined}
     - Actual minutes from backend: ${actualMinutesUsed}
-    - Estimated (${completedSessions} sessions × 15 min): ${estimatedMinutes}
-    - Displaying: ${practiceTimeMinutes} min
+    - Completed sessions: ${completedSessions}
     - Plan ID: ${plan?.id}
     - Language: ${language} (${level})
   `);
@@ -371,11 +367,19 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                   <View style={styles.statCardLeft}>
                     <Ionicons name="time-outline" size={24} color="#FFFFFF" />
                     <Text style={[styles.statCardLabel, { color: '#FFFFFF', fontWeight: '600' }]}>
-                      {actualMinutesUsed > 0 ? t('learning_plan.details.spoken_time') : t('learning_plan.details.est_time')}
+                      {actualMinutesUsed > 0
+                        ? t('learning_plan.details.spoken_time')
+                        : completedSessions > 0
+                          ? t('learning_plan.details.est_time')
+                          : t('learning_plan.details.spoken_time')}
                     </Text>
                   </View>
                   <Text style={[styles.statCardValue, { color: '#FFFFFF', fontWeight: '800' }]}>
-                    {actualMinutesUsed > 0 ? `${Math.round(practiceTimeMinutes)} min` : `~${practiceTimeMinutes} min`}
+                    {actualMinutesUsed > 0
+                      ? `${Math.round(actualMinutesUsed)} min`
+                      : completedSessions > 0
+                        ? `~15 min`
+                        : `—`}
                   </Text>
                 </View>
 
@@ -398,7 +402,33 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 </View>
               </View>
 
-              {/* Continue Learning Button */}
+              {/* DNA Voice Scan Banner (shown when voice check is due before session) */}
+              {voiceCheckDue && !isCompleted && (
+                <View style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                  borderRadius: 14,
+                  padding: 14,
+                  marginHorizontal: 4,
+                  marginBottom: 12,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.25)',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  <Text style={{ fontSize: 24 }}>🧬</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14, marginBottom: 2 }}>
+                      DNA Voice Scan Ready
+                    </Text>
+                    <Text style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: 12, lineHeight: 16 }}>
+                      A quick 30-second voice recording will be captured before your session to track your acoustic progress.
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Continue Learning / DNA Scan Button */}
               <TouchableOpacity
                 style={[
                   styles.continueButton,
@@ -417,7 +447,7 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                 activeOpacity={0.8}
               >
                 <Ionicons
-                  name={isCompleted ? "checkmark-circle" : "play-circle"}
+                  name={isCompleted ? "checkmark-circle" : (voiceCheckDue ? "mic" : "play-circle")}
                   size={24}
                   color={accentColor}
                 />
@@ -429,7 +459,10 @@ export const LearningPlanDetailsModal: React.FC<LearningPlanDetailsModalProps> =
                     fontSize: 17,
                   }
                 ]}>
-                  {isCompleted ? t('learning_plan.details.plan_completed') : t('learning_plan.details.continue_learning')}
+                  {isCompleted
+                    ? t('learning_plan.details.plan_completed')
+                    : (voiceCheckDue ? 'Start DNA Scan + Session' : t('learning_plan.details.continue_learning'))
+                  }
                 </Text>
               </TouchableOpacity>
 

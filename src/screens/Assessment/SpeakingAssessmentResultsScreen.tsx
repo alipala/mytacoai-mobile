@@ -9,8 +9,8 @@ import {
   Platform,
   Dimensions,
   Animated,
-  ActivityIndicator,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
@@ -269,7 +269,12 @@ const SpeakingAssessmentResultsScreen: React.FC<SpeakingAssessmentResultsScreenP
                 disabled={isLoadingAudio}
               >
                 {isLoadingAudio ? (
-                  <ActivityIndicator size="large" color="#14B8A6" />
+                  <LottieView
+                    source={require('../../assets/lottie/loading_cat.json')}
+                    autoPlay
+                    loop
+                    style={{ width: 64, height: 64 }}
+                  />
                 ) : (
                   <Ionicons
                     name={isPlaying ? 'pause-circle' : 'play-circle'}

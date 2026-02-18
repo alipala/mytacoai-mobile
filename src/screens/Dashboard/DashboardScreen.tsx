@@ -47,6 +47,8 @@ import SubscriptionBenefitsModal from '../../components/SubscriptionBenefitsModa
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { API_BASE_URL } from '../../api/config';
 import LottieView from 'lottie-react-native';
+import { authService } from '../../api/services/auth';
+import axios from 'axios';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -78,6 +80,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<LearningPlan | null>(null);
   const [selectedPlanColor, setSelectedPlanColor] = useState<string>('#14B8A6');
+  const [selectedPlanVoiceCheckDue, setSelectedPlanVoiceCheckDue] = useState(false);
+  const [selectedPlanVoiceCheckStatus, setSelectedPlanVoiceCheckStatus] = useState<any>(null);
   const [showSessionTypeModal, setShowSessionTypeModal] = useState(false);
 
   // Filter state for masonry grid layout
@@ -471,13 +475,32 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     navigation.navigate('Conversation', { planId, cardColor });
   };
 
-  const handleViewDetails = (plan: LearningPlan, color: string) => {
+  const handleViewDetails = async (plan: LearningPlan, color: string) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setSelectedPlan(plan);
     setSelectedPlanColor(color);
+    setSelectedPlanVoiceCheckDue(false); // reset while fetching
+    setSelectedPlanVoiceCheckStatus(null);
     setShowDetailsModal(true);
+
+    // Fetch voice check status to inform the modal CTA
+    try {
+      const token = await authService.getToken();
+      if (token && plan.id) {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/learning/plan/${plan.id}/voice-check-status`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setSelectedPlanVoiceCheckDue(response.data?.is_due === true);
+        setSelectedPlanVoiceCheckStatus(response.data || null);
+      }
+    } catch {
+      // Non-premium or network error — treat as no voice check due
+      setSelectedPlanVoiceCheckDue(false);
+      setSelectedPlanVoiceCheckStatus(null);
+    }
   };
 
   const handleStartNewSession = () => {
@@ -509,7 +532,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const handleModalContinueLearning = () => {
     if (selectedPlan) {
       setShowDetailsModal(false);
-      navigation.navigate('Conversation', { planId: selectedPlan.id, cardColor: selectedPlanColor });
+      if (selectedPlanVoiceCheckDue && selectedPlanVoiceCheckStatus) {
+        // DNA voice scan is due — go to standalone scan screen first
+        navigation.navigate('DNAVoiceScan', {
+          planId: selectedPlan.id,
+          cardColor: selectedPlanColor,
+          language: selectedPlan.language || selectedPlan.target_language || 'english',
+          voiceCheckSession: selectedPlanVoiceCheckStatus.current_session,
+          voiceCheckPrompt: selectedPlanVoiceCheckStatus.prompt,
+        });
+      } else {
+        navigation.navigate('Conversation', { planId: selectedPlan.id, cardColor: selectedPlanColor });
+      }
     }
   };
 
@@ -1613,6 +1647,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           progressStats={progressStats}
           onContinueLearning={handleModalContinueLearning}
           cardColor={selectedPlanColor}
+          voiceCheckDue={selectedPlanVoiceCheckDue}
         />
       )}
 

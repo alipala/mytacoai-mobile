@@ -1763,5 +1763,32 @@
       "learning_goals": "Objectifs d'Apprentissage",
       "created_prefix": "Créé le "
     }
+  },
+  "dna_scan": {
+    "title": "Analyse Vocale ADN",
+    "subtitle": "Vérification acoustique intermédiaire",
+    "default_prompt_title": "Vie Quotidienne",
+    "default_prompt_text": "Parlez-moi de quelque chose d'intéressant qui vous est arrivé récemment.",
+    "tip_30s": "30 Secondes",
+    "tip_quick": "Vérification rapide",
+    "tip_speak": "Parlez Clairement",
+    "tip_quiet": "Endroit calme",
+    "tip_natural": "Soyez Naturel",
+    "tip_relax": "Détendez-vous",
+    "start_scan": "Démarrer l'Analyse ADN",
+    "finish_recording": "Terminer l'Enregistrement",
+    "keep_speaking": "Continuez à parler... ({{seconds}}s)",
+    "seconds": "secondes",
+    "seconds_left": "secondes restantes",
+    "recording": "Enregistrement...",
+    "tap_to_stop": "appuyez sur le micro pour arrêter",
+    "analyzing": "Analyse des patterns acoustiques...",
+    "halfway": "À mi-chemin! Continuez...",
+    "get_ready": "Préparez-vous à parler...",
+    "almost_there": "Presque!",
+    "speak_longer": "Parlez au moins {{seconds}} secondes pour une analyse précise.",
+    "error_start": "Impossible de démarrer l'enregistrement",
+    "error_process": "Impossible de traiter l'enregistrement. Réessayez.",
+    "error_complete": "Impossible de terminer l'analyse vocale"
   }
 }

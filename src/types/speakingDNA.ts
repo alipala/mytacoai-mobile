@@ -181,13 +181,15 @@ export interface SessionTurnData {
 
 export interface SessionAnalysisInput {
   session_id: string;
-  session_type: 'learning' | 'freestyle' | 'news';
+  session_type: 'learning' | 'freestyle' | 'news' | 'voice_check' | 'speaking_assessment';
   duration_seconds: number;
   user_turns: SessionTurnData[];
   corrections_received?: any[];
   challenges_offered?: number;
   challenges_accepted?: number;
   topics_discussed?: string[];
+  audio_base64?: string;
+  audio_format?: string;
 }
 
 export interface SessionInsights {
