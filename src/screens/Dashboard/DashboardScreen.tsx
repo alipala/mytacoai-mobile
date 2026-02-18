@@ -43,6 +43,7 @@ import { MasonrySessionCard } from '../../components/MasonrySessionCard';
 import { StartSessionCard } from '../../components/StartSessionCard';
 import { DNAAnalysisCard } from '../../components/DNAAnalysisCard';
 import { PracticeSessionDetailsModal } from '../../components/PracticeSessionDetailsModal';
+import SubscriptionBenefitsModal from '../../components/SubscriptionBenefitsModal';
 import { speakingDNAService } from '../../services/SpeakingDNAService';
 import { API_BASE_URL } from '../../api/config';
 import LottieView from 'lottie-react-native';
@@ -513,37 +514,20 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   };
 
   const handleUpgradePress = () => {
-    console.log('📱 handleUpgradePress called in DashboardScreen');
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
     const plan = subscriptionStatus?.plan;
 
-    // Free/Try Learn users: Show full pricing modal
+    // Free/Try Learn users → full pricing modal
     if (!plan || ['try_learn', 'free'].includes(plan)) {
-      console.log('📱 User is free - showing pricing modal');
       setShowPricingModal(true);
       return;
     }
 
-    // Fluency Builder users: Show upgrade options (Annual + Language Mastery)
-    if (plan === 'fluency_builder') {
-      console.log('📱 User has Fluency Builder - showing upgrade options');
-      setShowPricingModal(true);  // Modal will detect current plan and show upgrades
-      return;
-    }
-
-    // Language Mastery users: No action (they have top tier)
-    if (plan === 'team_mastery' || plan === 'language_mastery') {
-      console.log('📱 User has Language Mastery - already at top tier');
-      // Could show a "You have the best plan!" toast here
-      return;
-    }
-
-    // Fallback: Show pricing modal
-    console.log('📱 Fallback - showing pricing modal');
-    setShowPricingModal(true);
+    // Active or trialing premium users → benefits modal
+    setShowPremiumBenefitsModal(true);
   };
 
   const handleDismissBanner = () => {
@@ -682,6 +666,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           currentPeriod={subscriptionStatus?.period}
           isInTrial={subscriptionStatus?.is_in_trial}
           subscriptionProvider={subscriptionStatus?.provider}
+        />
+
+        <SubscriptionBenefitsModal
+          visible={showPremiumBenefitsModal}
+          onClose={() => setShowPremiumBenefitsModal(false)}
+          subscriptionStatus={subscriptionStatus}
+          navigation={navigation}
+          onUpgrade={() => setShowPricingModal(true)}
         />
 
         {/* Session Type Modal */}
@@ -1235,6 +1227,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           subscriptionProvider={subscriptionStatus?.provider}
         />
 
+        <SubscriptionBenefitsModal
+          visible={showPremiumBenefitsModal}
+          onClose={() => setShowPremiumBenefitsModal(false)}
+          subscriptionStatus={subscriptionStatus}
+          navigation={navigation}
+          onUpgrade={() => setShowPricingModal(true)}
+        />
+
         {/* Session Type Modal */}
         <SessionTypeModal
           visible={showSessionTypeModal}
@@ -1628,180 +1628,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       />
 
       {/* Premium Benefits Modal */}
-      <Modal
+      <SubscriptionBenefitsModal
         visible={showPremiumBenefitsModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowPremiumBenefitsModal(false)}
-      >
-        <View style={styles.premiumBenefitsContainer}>
-          <LinearGradient
-            colors={['#0B1A1F', '#1F2937']}
-            style={styles.premiumBenefitsGradient}
-          >
-            {/* Header */}
-            <View style={styles.premiumBenefitsHeader}>
-              <View style={styles.premiumBenefitsTitleRow}>
-                <Ionicons name="diamond" size={32} color="#FBBF24" />
-                <Text style={styles.premiumBenefitsTitle}>{t('dashboard.header.premium_badge')}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setShowPremiumBenefitsModal(false)}
-                style={styles.premiumBenefitsCloseButton}
-              >
-                <Ionicons name="close" size={28} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              style={styles.premiumBenefitsScroll}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Subscription Info */}
-              <View style={[styles.premiumSubscriptionCard, {
-                backgroundColor: '#FBBF24',
-                borderColor: '#F59E0B',
-              }]}>
-                <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: '#FFFFFF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 12,
-                }}>
-                  <Ionicons name="diamond" size={24} color="#FBBF24" />
-                </View>
-                <Text style={styles.premiumSubscriptionPlan}>
-                  {subscriptionStatus?.plan === 'annual_premium' ? t('subscription.plans.yearly') : t('subscription.plans.monthly')}
-                </Text>
-                <Text style={styles.premiumSubscriptionStatus}>
-                  {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
-                </Text>
-              </View>
-
-              {/* Benefits List */}
-              <View style={styles.premiumBenefitsList}>
-                <View style={[styles.premiumBenefitItem, {
-                  backgroundColor: '#14B8A6',
-                  borderColor: '#0D9488',
-                }]}>
-                  <View style={[styles.premiumBenefitIconContainer, {
-                    backgroundColor: '#FFFFFF',
-                    borderWidth: 0,
-                  }]}>
-                    <Ionicons name="infinite" size={24} color="#14B8A6" />
-                  </View>
-                  <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.unlimited_practice')}</Text>
-                    <Text style={styles.premiumBenefitDescription}>
-                      {t('onboarding.benefits.pill_unlimited_practice')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={[styles.premiumBenefitItem, {
-                  backgroundColor: '#8B5CF6',
-                  borderColor: '#7C3AED',
-                }]}>
-                  <View style={[styles.premiumBenefitIconContainer, {
-                    backgroundColor: '#FFFFFF',
-                    borderWidth: 0,
-                  }]}>
-                    <Ionicons name="mic" size={24} color="#8B5CF6" />
-                  </View>
-                  <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>{t('onboarding.benefits.pill_ai_tutor')}</Text>
-                    <Text style={styles.premiumBenefitDescription}>
-                      {t('onboarding.benefits.pill_instant_feedback')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={[styles.premiumBenefitItem, {
-                  backgroundColor: '#EF4444',
-                  borderColor: '#DC2626',
-                }]}>
-                  <View style={[styles.premiumBenefitIconContainer, {
-                    backgroundColor: '#FFFFFF',
-                    borderWidth: 0,
-                  }]}>
-                    <Ionicons name="stats-chart" size={24} color="#EF4444" />
-                  </View>
-                  <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.speaking_dna')}</Text>
-                    <Text style={styles.premiumBenefitDescription}>
-                      {t('subscription.features.advanced_feedback')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={[styles.premiumBenefitItem, {
-                  backgroundColor: '#F59E0B',
-                  borderColor: '#D97706',
-                }]}>
-                  <View style={[styles.premiumBenefitIconContainer, {
-                    backgroundColor: '#FFFFFF',
-                    borderWidth: 0,
-                  }]}>
-                    <Ionicons name="flash" size={24} color="#F59E0B" />
-                  </View>
-                  <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.priority_support')}</Text>
-                    <Text style={styles.premiumBenefitDescription}>
-                      {t('subscription.features.priority_support')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={[styles.premiumBenefitItem, {
-                  backgroundColor: '#EC4899',
-                  borderColor: '#DB2777',
-                }]}>
-                  <View style={[styles.premiumBenefitIconContainer, {
-                    backgroundColor: '#FFFFFF',
-                    borderWidth: 0,
-                  }]}>
-                    <Ionicons name="sparkles" size={24} color="#EC4899" />
-                  </View>
-                  <View style={styles.premiumBenefitTextContainer}>
-                    <Text style={styles.premiumBenefitTitle}>{t('subscription.features.custom_topics')}</Text>
-                    <Text style={styles.premiumBenefitDescription}>
-                      {t('explore.title')}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Thank You Message */}
-              <View style={[styles.premiumThankYouCard, {
-                backgroundColor: '#EF4444',
-                borderColor: '#DC2626',
-              }]}>
-                <View style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: '#FFFFFF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 12,
-                  borderWidth: 0,
-                }}>
-                  <Ionicons name="heart" size={32} color="#EF4444" />
-                </View>
-                <Text style={styles.premiumThankYouText}>
-                  Thank you for being Premium!
-                </Text>
-                <Text style={styles.premiumThankYouSubtext}>
-                  {t('subscription.subtitle')}
-                </Text>
-              </View>
-            </ScrollView>
-          </LinearGradient>
-        </View>
-      </Modal>
+        onClose={() => setShowPremiumBenefitsModal(false)}
+        subscriptionStatus={subscriptionStatus}
+        navigation={navigation}
+        onUpgrade={() => setShowPricingModal(true)}
+      />
 
       {/* Session Type Modal */}
       <SessionTypeModal
