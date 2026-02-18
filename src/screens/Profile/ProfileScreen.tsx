@@ -173,6 +173,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // DNA tab state — kept at component level to respect Rules of Hooks
+  const [selectedDNALanguage, setSelectedDNALanguage] = useState<string>('');
+  const [dnaProfile, setDnaProfile] = useState<any>(null);
+  const [loadingDNA, setLoadingDNA] = useState(false);
+  const [isDNAPremium, setIsDNAPremium] = useState<boolean | null>(null);
+  // True once fetchUserData has written fresh subscription data to AsyncStorage
+  const [userSynced, setUserSynced] = useState(false);
+
+  // Live stats state (replaces hardcoded values)
+  const [progressStats, setProgressStats] = useState<{
+    total_minutes: number;
+    total_sessions: number;
+    current_streak: number;
+    longest_streak: number;
+    total_xp: number;
+  } | null>(null);
+  const [achievementCount, setAchievementCount] = useState<number | null>(null);
+  const [challengesCompleted, setChallengesCompleted] = useState<number | null>(null);
+
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'flashcards' | 'dna'>('overview');
   const scrollViewRef = React.useRef<ScrollView>(null);
 
@@ -293,6 +312,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     try {
       const userData = await fetchWithAuth('/api/auth/me');
       setUser(userData);
+      // Grab challenge stats from the user object to avoid a duplicate API call
+      const total = userData?.challengeStats?.totalCompleted ?? 0;
+      setChallengesCompleted(total);
+      // Keep AsyncStorage in sync so subscription-gated services (e.g. hasPremiumAccess)
+      // always read the current plan/status rather than a stale cached object.
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      setUserSynced(true);
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
@@ -362,6 +388,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     }
   };
 
+  const fetchProgressStats = async () => {
+    try {
+      const [progressData, lifetimeData] = await Promise.all([
+        fetchWithAuth('/api/progress/stats'),
+        fetchWithAuth('/api/stats/lifetime').catch(() => null),
+      ]);
+      setProgressStats({
+        total_minutes: progressData.total_minutes || 0,
+        total_sessions: progressData.total_sessions || 0,
+        current_streak: progressData.current_streak || 0,
+        longest_streak: progressData.longest_streak || 0,
+        total_xp: lifetimeData?.summary?.total_xp || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching progress stats:', error);
+      setProgressStats({ total_minutes: 0, total_sessions: 0, current_streak: 0, longest_streak: 0, total_xp: 0 });
+    }
+  };
+
+  const fetchAchievements = async () => {
+    try {
+      const data = await fetchWithAuth('/api/progress/achievements');
+      setAchievementCount((data.achievements || []).length);
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+      setAchievementCount(0);
+    }
+  };
+
   const fetchAllData = async () => {
     try {
       // Check if user is authenticated (guest users shouldn't be on profile)
@@ -372,12 +427,29 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         return;
       }
 
+      // Reset all stats state before fetching to avoid showing stale data from a previous user
+      setProgressStats(null);
+      setAchievementCount(null);
+      setChallengesCompleted(null);
+      setUser(null);
+      setConversationHistory([]);
+      setLearningPlans([]);
+      setFlashcardSets([]);
+      setDueFlashcards([]);
+      setNotifications([]);
+      setUnreadCount(0);
+      setUserSynced(false);
+      setDnaProfile(null);
+      setIsDNAPremium(null);
+
       await Promise.all([
         fetchUserData(),
         fetchConversationHistory(),
         fetchLearningPlans(),
         fetchFlashcardData(),
         fetchNotifications(),
+        fetchProgressStats(),
+        fetchAchievements(),
       ]);
     } catch (error) {
       console.error('Error fetching all data:', error);
@@ -398,6 +470,60 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     await fetchAllData();
     setRefreshing(false);
   }, []);
+
+  // Derived list of unique languages from learning plans (used by DNA tab)
+  const dnaLanguages = Array.from(new Set(
+    learningPlans
+      .map(plan => plan.language)
+      .filter((lang): lang is string => lang !== null && lang !== undefined)
+  ));
+
+  // Keep selectedDNALanguage in sync when learning plans load.
+  // Only set a language when the user actually has plans — no fallback,
+  // so the DNA fetch is skipped entirely for users with no learning plans.
+  useEffect(() => {
+    if (dnaLanguages.length > 0) {
+      setSelectedDNALanguage(prev => prev && dnaLanguages.includes(prev) ? prev : dnaLanguages[0]);
+    }
+  }, [learningPlans]);
+
+  // Fetch DNA profile — at component level to respect Rules of Hooks.
+  // Only runs after userSynced=true (fresh subscription data in AsyncStorage)
+  // and only when the user actually has learning plans (real language, not a fallback).
+  useEffect(() => {
+    if (!selectedDNALanguage || !userSynced || dnaLanguages.length === 0) return;
+
+    let cancelled = false;
+    const fetchDNAProfile = async () => {
+      try {
+        setLoadingDNA(true);
+
+        // Check premium access first — avoids a 403 for free users
+        const hasPremium = await speakingDNAService.hasPremiumAccess();
+        if (cancelled) return;
+        setIsDNAPremium(hasPremium);
+
+        if (!hasPremium) {
+          setDnaProfile(null);
+          return;
+        }
+
+        const profile = await speakingDNAService.getProfile(selectedDNALanguage);
+        if (cancelled) return;
+        setDnaProfile(profile);
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Error fetching DNA profile:', error);
+          setDnaProfile(null);
+        }
+      } finally {
+        if (!cancelled) setLoadingDNA(false);
+      }
+    };
+
+    fetchDNAProfile();
+    return () => { cancelled = true; };
+  }, [selectedDNALanguage, userSynced]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -797,13 +923,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.statsRow}>
           <View style={[styles.statCardLarge, { backgroundColor: '#14B8A6' }]}>
             <Ionicons name="time" size={36} color="#FFFFFF" />
-            <Text style={styles.statLargeValue}>270</Text>
+            <Text style={styles.statLargeValue}>
+              {progressStats !== null ? Math.round(progressStats.total_minutes) : '—'}
+            </Text>
             <Text style={styles.statLargeLabel}>Minutes Practiced</Text>
           </View>
 
           <View style={[styles.statCardLarge, { backgroundColor: '#8B5CF6' }]}>
             <Ionicons name="trophy" size={36} color="#FFFFFF" />
-            <Text style={styles.statLargeValue}>236</Text>
+            <Text style={styles.statLargeValue}>
+              {challengesCompleted !== null ? challengesCompleted : '—'}
+            </Text>
             <Text style={styles.statLargeLabel}>Challenges Completed</Text>
           </View>
         </View>
@@ -812,7 +942,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         <View style={styles.statsRow}>
           <View style={[styles.statCardMedium, { backgroundColor: '#FCD34D' }]}>
             <Ionicons name="flame" size={32} color="#FFFFFF" />
-            <Text style={styles.statMediumValue}>5</Text>
+            <Text style={styles.statMediumValue}>
+              {progressStats !== null ? progressStats.current_streak : '—'}
+            </Text>
             <Text style={styles.statMediumLabel}>Day Streak</Text>
           </View>
 
@@ -824,7 +956,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
           <View style={[styles.statCardMedium, { backgroundColor: '#10B981' }]}>
             <Ionicons name="ribbon" size={32} color="#FFFFFF" />
-            <Text style={styles.statMediumValue}>3</Text>
+            <Text style={styles.statMediumValue}>
+              {achievementCount !== null ? achievementCount : '—'}
+            </Text>
             <Text style={styles.statMediumLabel}>Achievements</Text>
           </View>
         </View>
@@ -838,13 +972,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           <View style={styles.statFullWidthContent}>
             <View>
               <Text style={styles.statFullWidthValue}>
-                {conversationHistory.length > 0 ? Math.round(270 / conversationHistory.length) : 0}
+                {progressStats && progressStats.total_sessions > 0
+                  ? Math.round(progressStats.total_minutes / progressStats.total_sessions)
+                  : 0}
               </Text>
               <Text style={styles.statFullWidthSubtext}>minutes per session</Text>
-            </View>
-            <View style={styles.statFullWidthBadge}>
-              <Ionicons name="trending-up" size={16} color="#FFFFFF" />
-              <Text style={styles.statFullWidthBadgeText}>+12%</Text>
             </View>
           </View>
         </View>
@@ -891,7 +1023,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
           <View style={[styles.statCardSmall, { backgroundColor: '#FB923C' }]}>
             <Ionicons name="star" size={24} color="#FFFFFF" />
-            <Text style={styles.statSmallValue}>1250</Text>
+            <Text style={styles.statSmallValue}>
+              {progressStats !== null ? progressStats.total_xp : '—'}
+            </Text>
             <Text style={styles.statSmallLabel}>Total XP</Text>
           </View>
 
@@ -1421,45 +1555,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
   // DNA Tab - Show DNA analysis with language selector and inline visualization
   const renderDNATab = () => {
-    // Get ALL languages from learning plans (no filtering)
-    const allLanguages = Array.from(new Set(
-      learningPlans
-        .map(plan => plan.language)
-        .filter((lang): lang is string => lang !== null && lang !== undefined)
-    ));
-
-    // Default to first language or user's preferred language
-    const [selectedDNALanguage, setSelectedDNALanguage] = React.useState(
-      allLanguages.length > 0
-        ? allLanguages[0]
-        : user?.preferred_language || 'dutch'
-    );
-
-    // State for DNA profile data
-    const [dnaProfile, setDnaProfile] = React.useState<any>(null);
-    const [loadingDNA, setLoadingDNA] = React.useState(false);
-
-    // Fetch DNA profile when language changes
-    React.useEffect(() => {
-      const fetchDNAProfile = async () => {
-        try {
-          setLoadingDNA(true);
-          const profile = await speakingDNAService.getProfile(selectedDNALanguage);
-          setDnaProfile(profile);
-        } catch (error) {
-          console.error('Error fetching DNA profile:', error);
-          setDnaProfile(null);
-        } finally {
-          setLoadingDNA(false);
-        }
-      };
-
-      if (selectedDNALanguage) {
-        fetchDNAProfile();
-      }
-    }, [selectedDNALanguage]);
-
-    if (allLanguages.length === 0) {
+    if (dnaLanguages.length === 0) {
       return (
         <View style={styles.emptyState}>
           <Ionicons name="analytics-outline" size={64} color="#D1D5DB" />
@@ -1483,7 +1579,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
           gap: 10,
           backgroundColor: '#0B1A1F',
         }}>
-          {allLanguages.map((language) => {
+          {dnaLanguages.map((language) => {
             const FlagComponent = getFlagComponent(language);
             const isSelected = selectedDNALanguage === language;
 
@@ -1719,8 +1815,49 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </ScrollView>
+          ) : isDNAPremium === false ? (
+            // Free user — premium upsell
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+              <View style={{
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+                borderWidth: 2,
+                borderColor: 'rgba(139, 92, 246, 0.3)',
+              }}>
+                <Ionicons name="lock-closed" size={44} color="#8B5CF6" />
+              </View>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 8, textAlign: 'center' }}>
+                {t('profile.dna.premium_title', 'Speaking DNA')}
+              </Text>
+              <Text style={{ fontSize: 14, color: '#8CA5A0', textAlign: 'center', lineHeight: 22, marginBottom: 24 }}>
+                {t('profile.dna.premium_description', 'Unlock your personalised Speaking DNA analysis. Upgrade to a premium plan to see your pronunciation, grammar, vocabulary and fluency patterns.')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation?.navigate('Subscription')}
+                style={{
+                  backgroundColor: '#8B5CF6',
+                  paddingHorizontal: 28,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="star" size={18} color="#FFFFFF" />
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
+                  {t('profile.dna.upgrade_button', 'Upgrade to Premium')}
+                </Text>
+              </TouchableOpacity>
+            </View>
           ) : (
-            // No DNA data for selected language
+            // Premium user — no DNA data yet for this language
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
               <View style={{
                 width: 100,

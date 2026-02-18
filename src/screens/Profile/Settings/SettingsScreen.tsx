@@ -89,6 +89,26 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, navigation }) 
     await AsyncStorage.removeItem('auth_token');
     await AsyncStorage.removeItem('user');
 
+    // Clear all stats/progress cache so the next user sees their own data
+    try {
+      const allKeys = await AsyncStorage.getAllKeys();
+      const cacheKeys = allKeys.filter(
+        key =>
+          key.startsWith('stats_daily_') ||
+          key.startsWith('stats_recent_') ||
+          key.startsWith('stats_lifetime_') ||
+          key === 'daily_challenge_stats' ||
+          key === 'challenge_streak' ||
+          key.startsWith('category_stats_') ||
+          key === '@challenge_session'
+      );
+      if (cacheKeys.length > 0) {
+        await AsyncStorage.multiRemove(cacheKeys);
+      }
+    } catch (error) {
+      console.error('[Logout] Failed to clear stats cache:', error);
+    }
+
     // Close the settings modal
     onClose();
 
