@@ -73,6 +73,8 @@ import SpeakingDNAScreen from './src/screens/SpeakingDNA/SpeakingDNAScreen.tsx';
 import SpeakingDNAScreenNew from './src/screens/SpeakingDNA/SpeakingDNAScreenNew.tsx';
 import { SpeakingDNAScreenV2 } from './src/screens/SpeakingDNA/SpeakingDNAScreenV2.tsx';
 import { SpeakingDNAScreenHorizontal } from './src/screens/SpeakingDNA/SpeakingDNAScreenHorizontal.tsx';
+import { DNAVoiceScanScreen } from './src/screens/SpeakingDNA/DNAVoiceScanScreen.tsx';
+import { DNAScanResultsScreen } from './src/screens/SpeakingDNA/DNAScanResultsScreen.tsx';
 
 // API config will be loaded dynamically after initial render for better startup performance
 
@@ -476,6 +478,10 @@ export default function App() {
           <Stack.Screen name="SpeakingDNAV2" component={SpeakingDNAScreenV2} options={{ headerShown: false }} />
           <Stack.Screen name="SpeakingDNANew" component={SpeakingDNAScreenNew} />
           <Stack.Screen name="SpeakingDNAOld" component={SpeakingDNAScreen} />
+
+          {/* DNA Voice Scan Flow (intermediate acoustic checks between learning plan sessions) */}
+          <Stack.Screen name="DNAVoiceScan" component={DNAVoiceScanScreen} options={{ headerShown: false, gestureEnabled: false }} />
+          <Stack.Screen name="DNAScanResults" component={DNAScanResultsScreen} options={{ headerShown: false, gestureEnabled: false }} />
 
           {/* Main App (with tabs) */}
           <Stack.Screen name="Main" component={MainTabs} />
