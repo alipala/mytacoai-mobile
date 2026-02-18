@@ -15,9 +15,30 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as WebBrowser from 'expo-web-browser';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../api/config';
 import { createStyles } from './styles/PricingModal.styles';
+// IAP services kept for future use - currently bypassed in favour of Stripe web checkout
 import AppleIAPService, { APPLE_IAP_PRODUCTS } from '../services/AppleIAPService';
 import GooglePlayBillingService, { GOOGLE_PLAY_PRODUCTS } from '../services/GooglePlayBillingService';
+
+// Stripe Price IDs — must match backend configuration
+const STRIPE_PRICE_IDS: Record<string, Record<string, string>> = {
+  fluency_builder: {
+    monthly: 'price_1RdxNjJcquSiYwWN2XQMwwYW',
+    annual:  'price_1SoQw4JcquSiYwWNzi2zSgXt',
+  },
+  language_mastery: {
+    monthly: 'price_1RdxlGJcquSiYwWNWvyEgmgL',
+    annual:  'price_1SoQy8JcquSiYwWNalBlWPEQ',
+  },
+  team_mastery: {
+    monthly: 'price_1RdxlGJcquSiYwWNWvyEgmgL',
+    annual:  'price_1SoQy8JcquSiYwWNalBlWPEQ',
+  },
+};
 
 interface PricingPlan {
   id: string;
@@ -130,29 +151,39 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   console.log('🔍 [PricingModal] Dynamic - Width:', SCREEN_WIDTH, 'isTablet:', isTablet);
 
   // Filter plans based on current subscription
+  // For existing paid subscribers, only show plans that are actual upgrades
   const availablePlans = React.useMemo(() => {
-    // Free users: Show all plans
+    // Free users or try_learn: Show all plans
     if (!currentPlan || ['try_learn', 'free'].includes(currentPlan)) {
       return PRICING_PLANS;
     }
 
-    // Fluency Builder users: Show all plans as upgrade options
-    // They can upgrade to Annual (same tier, save money) OR Language Mastery (higher tier)
-    if (currentPlan === 'fluency_builder') {
-      return PRICING_PLANS; // Show both Fluency Builder (for annual) and Language Mastery
+    // Fluency Builder Annual: Can only upgrade to Language Mastery
+    // Hide Fluency Builder entirely (they're already on it, annual is the highest tier of FB)
+    if (currentPlan === 'fluency_builder' && currentPeriod === 'annual') {
+      return PRICING_PLANS.filter(p => p.id === 'language_mastery');
     }
 
-    // Language Mastery users: Already have top tier, show all to view benefits
+    // Fluency Builder Monthly: Can upgrade to FB Annual OR Language Mastery
+    // Hide Fluency Builder Monthly — it IS their current plan (prevent accidental same-plan tap)
+    // Show Fluency Builder (for annual toggle) + Language Mastery
+    if (currentPlan === 'fluency_builder' && currentPeriod === 'monthly') {
+      return PRICING_PLANS; // Both cards shown; isCurrentPlan guard disables the monthly FB button
+    }
+
+    // Language Mastery / Team Mastery: Already have top tier, show all to view benefits
     if (currentPlan === 'language_mastery' || currentPlan === 'team_mastery') {
       return PRICING_PLANS;
     }
 
     // Fallback: Show all plans
     return PRICING_PLANS;
-  }, [currentPlan]);
+  }, [currentPlan, currentPeriod]);
 
-  // Smart default: If user has Fluency Builder Monthly, show Annual view to highlight upgrades
-  const defaultToAnnual = currentPlan === 'fluency_builder' && currentPeriod === 'monthly';
+  // Smart default: show Annual toggle for FB monthly (highlights savings) or FB annual (they're already annual)
+  const defaultToAnnual =
+    currentPlan === 'fluency_builder' ||  // Both monthly and annual FB → default to annual tab
+    currentPeriod === 'annual';           // Any annual subscriber → stay on annual tab
   const [isAnnual, setIsAnnual] = useState(defaultToAnnual);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [appleIAPAvailable, setAppleIAPAvailable] = useState(false);
@@ -164,6 +195,18 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [productLoadError, setProductLoadError] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const upgradeConfirmCancelRef = useRef<(() => void) | null>(null);
+
+  // Stripe web checkout state
+  const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null);
+  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+  const navigation = useNavigation<any>();
+
+  // Custom upgrade confirmation dialog state
+  const [upgradeConfirm, setUpgradeConfirm] = useState<{
+    label: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   // Animation for promo banner
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -216,30 +259,31 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     return () => shimmer.stop();
   }, []);
 
-  // Initialize IAP when modal opens (iOS: Apple IAP, Android: Google Play Billing)
+  // IAP initialization kept dormant — Stripe web checkout is used instead.
+  // Re-enable this block to switch back to native Apple/Google IAP.
   useEffect(() => {
     if (visible) {
-      // Reset states before initializing
+      // Reset checkout message when modal opens
+      setCheckoutMessage(null);
+
+      /* --- NATIVE IAP INIT (dormant) ---
       setIsInitializing(false);
       setProductsLoaded(false);
       setLoadingProgress('connecting');
       setProductLoadError(null);
 
-      // Set timeout for product loading (12 seconds total: 3 retries x 2s + 6s buffer)
       const timeoutId = setTimeout(() => {
-        console.warn('[PRICING_MODAL] ⏱️ Product loading timeout reached');
         setLoadingProgress('timeout');
-        setProductLoadError('Subscriptions are taking longer than expected to load. This may be due to products being in review status.');
+        setProductLoadError('Subscriptions are taking longer than expected to load.');
       }, 12000);
-
       initTimeoutRef.current = timeoutId;
 
-      // Start initialization based on platform
       if (Platform.OS === 'ios') {
         initializeAppleIAP();
       } else if (Platform.OS === 'android') {
         initializeGooglePlayBilling();
       }
+      --- END NATIVE IAP INIT --- */
     }
 
     // Cleanup function
@@ -380,48 +424,187 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     setIsAnnual(!isAnnual);
   };
 
-  const handleSelectPlan = async (planId: string) => {
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-
-    // If timeout state, trigger retry instead of purchase
-    if ((Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'timeout') {
-      console.log('[PRICING_MODAL] Retry triggered from button tap');
-      handleRetryLoadProducts();
+  /**
+   * Opens Stripe checkout in an in-app browser sheet (SFSafariViewController on iOS,
+   * Chrome Custom Tab on Android). Awaits the result — no screen navigation required.
+   */
+  const handleStripeCheckout = async (planId: string, period: 'monthly' | 'annual') => {
+    const priceId = STRIPE_PRICE_IDS[planId]?.[period];
+    if (!priceId) {
+      Alert.alert('Error', 'Invalid plan selected. Please try again.');
       return;
     }
 
+    try {
+      setPurchasingPlanId(planId);
+      setCheckoutMessage(null);
+
+      const token = await AsyncStorage.getItem('auth_token');
+      if (!token) {
+        Alert.alert('Sign In Required', 'Please sign in to start your free trial.');
+        return;
+      }
+
+      // Create Stripe checkout session
+      const response = await fetch(`${API_BASE_URL}/api/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          price_id: priceId,
+          success_url: 'mytacoai://checkout-success',
+          cancel_url: 'mytacoai://checkout-cancel',
+          guest_checkout: false,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Could not prepare checkout. Please try again.');
+      }
+
+      const { url } = await response.json();
+
+      // Open Stripe in an in-app browser sheet — feels like a modal, not leaving the app.
+      // On iOS this is SFSafariViewController; on Android Chrome Custom Tab.
+      // The browser auto-closes when Stripe redirects to mytacoai://.
+      const result = await WebBrowser.openAuthSessionAsync(url, 'mytacoai://');
+
+      if (result.type === 'success' && result.url?.includes('checkout-success')) {
+        // Payment completed — close modal and show success screen
+        onClose();
+        navigation.navigate('CheckoutSuccess');
+      } else if (
+        result.type === 'dismiss' ||
+        result.type === 'cancel' ||
+        (result.type === 'success' && result.url?.includes('checkout-cancel'))
+      ) {
+        // User closed the browser without paying — stay on modal with gentle message
+        setCheckoutMessage('Your free trial is still here whenever you\'re ready 🎉');
+      }
+    } catch (error: any) {
+      console.error('[PRICING_MODAL] Stripe checkout error:', error);
+      Alert.alert(
+        'Checkout Error',
+        error.message || 'Something went wrong. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setPurchasingPlanId(null);
+    }
+  };
+
+  /**
+   * For users who already have an active or trialing Stripe subscription,
+   * modify the existing subscription instead of creating a new checkout session.
+   * This prevents duplicate subscriptions in Stripe.
+   */
+  const handleUpgrade = async (planId: string, period: 'monthly' | 'annual') => {
+    const priceId = STRIPE_PRICE_IDS[planId]?.[period];
+    if (!priceId) {
+      Alert.alert('Error', 'Invalid plan selected. Please try again.');
+      return;
+    }
+
+    // Determine upgrade_type for the backend
+    let upgradeType: string;
+    let upgradeLabel: string;
+    if (currentPlan === 'fluency_builder' && planId === 'fluency_builder' && period === 'annual') {
+      upgradeType = 'upgrade_to_annual';
+      upgradeLabel = 'Fluency Builder Annual (€199.99/year)';
+    } else if (planId === 'language_mastery' && period === 'annual') {
+      upgradeType = 'upgrade_to_language_mastery_annual';
+      upgradeLabel = 'Language Mastery Annual (€239.00/year)';
+    } else if (planId === 'language_mastery' && period === 'monthly') {
+      upgradeType = 'upgrade_to_language_mastery_monthly';
+      upgradeLabel = 'Language Mastery Monthly (€39.99/month)';
+    } else if (planId === 'team_mastery') {
+      upgradeType = 'upgrade_to_team_mastery';
+      upgradeLabel = `Team Mastery ${period === 'annual' ? 'Annual' : 'Monthly'}`;
+    } else {
+      // Fallback: same plan/period — nothing to upgrade
+      Alert.alert('Already subscribed', 'You are already on this plan.');
+      return;
+    }
+
+    // Show custom branded confirmation dialog before modifying existing subscription
+    const confirmed = await new Promise<boolean>((resolve) => {
+      setUpgradeConfirm({
+        label: upgradeLabel,
+        onConfirm: () => {
+          setUpgradeConfirm(null);
+          resolve(true);
+        },
+      });
+      // Store cancel resolver so the Cancel button can resolve false
+      upgradeConfirmCancelRef.current = () => {
+        setUpgradeConfirm(null);
+        resolve(false);
+      };
+    });
+
+    if (!confirmed) return;
+
+    try {
+      setPurchasingPlanId(planId);
+      setCheckoutMessage(null);
+
+      const token = await AsyncStorage.getItem('auth_token');
+      if (!token) {
+        Alert.alert('Sign In Required', 'Please sign in to continue.');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/upgrade/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ price_id: priceId, upgrade_type: upgradeType }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Upgrade failed. Please try again.');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Close modal first, then navigate after a short delay so the modal
+        // is fully dismissed before we push a new screen.
+        onClose();
+        setTimeout(() => {
+          navigation.navigate('CheckoutSuccess');
+        }, 350);
+      } else {
+        throw new Error('Upgrade failed. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('[PRICING_MODAL] Upgrade error:', error);
+      Alert.alert('Upgrade Error', error.message || 'Something went wrong. Please try again.');
+    } finally {
+      setPurchasingPlanId(null);
+    }
+  };
+
+  const handleSelectPlan = async (planId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const period = isAnnual ? 'annual' : 'monthly';
 
-    // Use Apple IAP on iOS if available AND products are loaded
-    if (Platform.OS === 'ios' && appleIAPAvailable && productsLoaded) {
-      console.log('[PRICING_MODAL] Using Apple IAP for purchase');
-      await handleAppleIAPPurchase(planId, period);
-    } else if (Platform.OS === 'ios' && appleIAPAvailable && !productsLoaded) {
-      // Products not loaded yet - should not happen due to button being disabled
-      console.error('[PRICING_MODAL] Products not loaded, cannot purchase');
-      Alert.alert(
-        'Please Wait',
-        'Products are still loading from the App Store. Please try again in a moment.',
-        [{ text: 'OK' }]
-      );
-    } else if (Platform.OS === 'android' && googlePlayAvailable && productsLoaded) {
-      // Use Google Play Billing on Android if available AND products are loaded
-      console.log('[PRICING_MODAL] Using Google Play Billing for purchase');
-      await handleGooglePlayPurchase(planId, period);
-    } else if (Platform.OS === 'android' && googlePlayAvailable && !productsLoaded) {
-      // Products not loaded yet - should not happen due to button being disabled
-      console.error('[PRICING_MODAL] Products not loaded, cannot purchase');
-      Alert.alert(
-        'Please Wait',
-        'Products are still loading from Google Play. Please try again in a moment.',
-        [{ text: 'OK' }]
-      );
+    // Existing paid/trialing Stripe subscriber → modify subscription, don't create new checkout
+    const isExistingStripeSubscriber =
+      subscriptionProvider === 'stripe' &&
+      currentPlan &&
+      !['try_learn', 'free'].includes(currentPlan);
+
+    if (isExistingStripeSubscriber) {
+      await handleUpgrade(planId, period);
     } else {
-      // Fallback to Stripe for web
-      console.log('[PRICING_MODAL] Using Stripe for purchase');
-      onSelectPlan(planId, period); // This will navigate to Stripe checkout
+      // Free user or non-Stripe → use Stripe web checkout (new subscription)
+      await handleStripeCheckout(planId, period);
     }
   };
 
@@ -624,12 +807,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>
-              {currentPlan === 'fluency_builder' ? 'Upgrade Your Plan' : 'Unlock Premium Features'}
+              {(currentPlan === 'fluency_builder' || currentPlan === 'language_mastery' || currentPlan === 'team_mastery')
+                ? 'Upgrade Your Plan'
+                : 'Unlock Premium Features'}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {currentPlan === 'fluency_builder'
-                ? 'Save money with Annual or get Unlimited with Language Mastery'
-                : 'Choose the plan that fits your goals'}
+              {currentPlan === 'fluency_builder' && currentPeriod === 'annual'
+                ? 'Upgrade to Language Mastery for unlimited practice'
+                : currentPlan === 'fluency_builder'
+                  ? 'Save money with Annual or get Unlimited with Language Mastery'
+                  : 'Choose the plan that fits your goals'}
             </Text>
           </View>
         </View>
@@ -641,11 +828,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           showsVerticalScrollIndicator={false}
           bounces={true}
         >
-          {/* Error Banner - Show when products fail to load */}
-          {(Platform.OS === 'ios' || Platform.OS === 'android') && productLoadError && loadingProgress === 'timeout' && (
-            <View style={styles.errorBanner}>
-              <Ionicons name="information-circle" size={20} color="#F59E0B" />
-              <Text style={styles.errorBannerText}>{productLoadError}</Text>
+          {/* Gentle message after user cancels/dismisses Stripe checkout */}
+          {checkoutMessage && (
+            <View style={styles.checkoutMessageBanner}>
+              <Ionicons name="heart" size={16} color="#4ECFBF" />
+              <Text style={styles.checkoutMessageText}>{checkoutMessage}</Text>
             </View>
           )}
 
@@ -832,18 +1019,19 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   ))}
                 </View>
 
-                {/* CTA Button */}
+                {/* CTA Button — always enabled, spinner per-plan while checkout loads */}
                 <TouchableOpacity
                   style={[
                     styles.ctaButton,
-                    plan.isPopular && styles.ctaButtonPopular,
-                    (Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress !== 'ready' && styles.ctaButtonDisabled,
+                    plan.isPopular && !isCurrentPlan && styles.ctaButtonPopular,
+                    (purchasingPlanId !== null && purchasingPlanId !== plan.id) && styles.ctaButtonDisabled,
+                    isCurrentPlan && styles.ctaButtonDisabled,
                   ]}
-                  onPress={() => handleSelectPlan(plan.id)}
-                  disabled={(Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress !== 'ready'}
-                  activeOpacity={0.8}
+                  onPress={() => !isCurrentPlan && handleSelectPlan(plan.id)}
+                  disabled={purchasingPlanId !== null || isCurrentPlan}
+                  activeOpacity={isCurrentPlan ? 1 : 0.85}
                 >
-                  {(Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'connecting' ? (
+                  {purchasingPlanId === plan.id ? (
                     <>
                       <ActivityIndicator
                         size="small"
@@ -853,43 +1041,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                         style={[
                           styles.ctaButtonText,
                           plan.isPopular && styles.ctaButtonTextPopular,
-                          { marginLeft: 8 }
+                          { marginLeft: 8 },
                         ]}
                       >
-                        {Platform.OS === 'ios' ? 'Connecting to App Store...' : 'Connecting to Google Play...'}
-                      </Text>
-                    </>
-                  ) : (Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'fetching' ? (
-                    <>
-                      <ActivityIndicator
-                        size="small"
-                        color={plan.isPopular ? '#FFFFFF' : '#4ECFBF'}
-                      />
-                      <Text
-                        style={[
-                          styles.ctaButtonText,
-                          plan.isPopular && styles.ctaButtonTextPopular,
-                          { marginLeft: 8 }
-                        ]}
-                      >
-                        Loading subscriptions...
-                      </Text>
-                    </>
-                  ) : (Platform.OS === 'ios' || Platform.OS === 'android') && loadingProgress === 'timeout' ? (
-                    <>
-                      <Ionicons
-                        name="refresh"
-                        size={20}
-                        color={plan.isPopular ? '#FFFFFF' : '#4ECFBF'}
-                      />
-                      <Text
-                        style={[
-                          styles.ctaButtonText,
-                          plan.isPopular && styles.ctaButtonTextPopular,
-                          { marginLeft: 8 }
-                        ]}
-                      >
-                        Tap to Retry
+                        Preparing checkout...
                       </Text>
                     </>
                   ) : (
@@ -900,7 +1055,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                           plan.isPopular && styles.ctaButtonTextPopular,
                         ]}
                       >
-                        Start Free Trial
+                        {isCurrentPlan
+                          ? 'Current Plan'
+                          : (subscriptionProvider === 'stripe' && currentPlan && !['try_learn', 'free'].includes(currentPlan))
+                            ? 'Upgrade Plan'
+                            : showTrial
+                              ? 'Start Free Trial'
+                              : 'Subscribe Now'}
                       </Text>
                       <Ionicons
                         name="arrow-forward"
@@ -963,8 +1124,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             </View>
           </View>
 
-          {/* Restore Purchases Button - Required by Apple and available on Android */}
-          {((Platform.OS === 'ios' && appleIAPAvailable) || (Platform.OS === 'android' && googlePlayAvailable)) && (
+          {/* Restore Purchases - kept for IAP future use, hidden for Stripe-only flow */}
+          {false && ((Platform.OS === 'ios' && appleIAPAvailable) || (Platform.OS === 'android' && googlePlayAvailable)) && (
             <TouchableOpacity
               style={styles.restoreButton}
               onPress={handleRestorePurchases}
@@ -994,6 +1155,108 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         </ScrollView>
         </View>
       </SafeAreaView>
+
+      {/* Custom Upgrade Confirmation Dialog - matches app branding */}
+      {upgradeConfirm && (
+        <View style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          justifyContent: 'center', alignItems: 'center',
+          zIndex: 999,
+        }}>
+          <TouchableOpacity
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            activeOpacity={1}
+            onPress={() => upgradeConfirmCancelRef.current?.()}
+          />
+          <View style={{
+            backgroundColor: '#1A1A2E',
+            borderRadius: 24,
+            marginHorizontal: 24,
+            padding: 28,
+            width: '88%',
+            borderWidth: 1.5,
+            borderColor: '#4ECFBF',
+            shadowColor: '#4ECFBF',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.25,
+            shadowRadius: 16,
+            elevation: 20,
+          }}>
+            {/* Icon */}
+            <View style={{
+              width: 56, height: 56, borderRadius: 28,
+              backgroundColor: 'rgba(78,207,191,0.15)',
+              borderWidth: 1.5, borderColor: '#4ECFBF',
+              alignSelf: 'center', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 16,
+            }}>
+              <Ionicons name="arrow-up-circle" size={28} color="#4ECFBF" />
+            </View>
+
+            {/* Title */}
+            <Text style={{
+              fontSize: 20, fontWeight: '800', color: '#FFFFFF',
+              textAlign: 'center', marginBottom: 8,
+            }}>
+              Confirm Upgrade
+            </Text>
+
+            {/* Plan label */}
+            <Text style={{
+              fontSize: 15, fontWeight: '700', color: '#4ECFBF',
+              textAlign: 'center', marginBottom: 12,
+            }}>
+              {upgradeConfirm.label}
+            </Text>
+
+            {/* Description */}
+            <Text style={{
+              fontSize: 13, fontWeight: '500', color: '#9CA3AF',
+              textAlign: 'center', lineHeight: 20, marginBottom: 24,
+            }}>
+              Your subscription will be modified immediately.{'\n'}Usage counters reset to 0.
+            </Text>
+
+            {/* Buttons */}
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1, paddingVertical: 14, borderRadius: 14,
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+                  alignItems: 'center',
+                }}
+                onPress={() => upgradeConfirmCancelRef.current?.()}
+                activeOpacity={0.8}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#9CA3AF' }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1, paddingVertical: 14, borderRadius: 14,
+                  backgroundColor: '#4ECFBF',
+                  alignItems: 'center',
+                  shadowColor: '#4ECFBF',
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 8,
+                  elevation: 6,
+                }}
+                onPress={upgradeConfirm.onConfirm}
+                activeOpacity={0.85}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>
+                  Upgrade
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </Modal>
   );
 };

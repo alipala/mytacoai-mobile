@@ -46,6 +46,28 @@ export const createStyles = (SCREEN_WIDTH: number, isTablet: boolean) => {
       marginTop: 2,
       textAlign: 'center',
     },
+    checkoutMessageBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(78, 207, 191, 0.12)',
+      borderWidth: 1,
+      borderColor: 'rgba(78, 207, 191, 0.3)',
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      marginHorizontal: SCREEN_WIDTH < 400 ? 12 : 16,
+      marginTop: 12,
+      marginBottom: 4,
+      borderRadius: 10,
+      gap: 8,
+    },
+    checkoutMessageText: {
+      flex: 1,
+      fontSize: 13,
+      lineHeight: 18,
+      color: '#4ECFBF',
+      fontWeight: '500',
+    },
+    // Legacy error banner — kept for reference
     errorBanner: {
       flexDirection: 'row',
       alignItems: 'flex-start',
