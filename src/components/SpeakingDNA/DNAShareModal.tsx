@@ -35,6 +35,7 @@ interface DNAShareModalProps {
   onClose: () => void;
   profile: SpeakingDNAProfile | null;
   language: string;
+  evolution?: any[]; // Weekly evolution data for progress
 }
 
 /**
@@ -45,6 +46,7 @@ export const DNAShareModal: React.FC<DNAShareModalProps> = ({
   onClose,
   profile,
   language,
+  evolution,
 }) => {
   console.log('[DNAShareModal] Rendered with:', { visible, hasProfile: !!profile, language });
 
@@ -162,6 +164,7 @@ export const DNAShareModal: React.FC<DNAShareModalProps> = ({
                     <DNAShareCard
                       profile={profile}
                       language={language}
+                      evolution={evolution}
                       variant="story"
                     />
                   </ViewShot>

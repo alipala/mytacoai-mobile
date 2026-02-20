@@ -33,6 +33,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 
 import { DNAStrandKey } from '../../../types/speakingDNA';
+import { TrendBadge } from './TrendBadge';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
@@ -47,6 +48,11 @@ interface RadarDataPoint {
   label: string;
   score: number;
   color: string;
+  baselineScore?: number; // Week 1 baseline score for comparison
+  trend?: {
+    delta: number; // Percentage change from previous week/baseline
+    previousScore?: number; // Optional: score from previous period
+  };
 }
 
 interface InteractiveRadarChartEnhancedProps {
@@ -54,6 +60,7 @@ interface InteractiveRadarChartEnhancedProps {
   size?: number;
   onStrandTap?: (strand: DNAStrandKey) => void;
   selectedStrand?: DNAStrandKey | null;
+  showComparison?: boolean; // Toggle to show/hide baseline comparison
 }
 
 // ============================================================================
@@ -65,6 +72,7 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
   size = SCREEN_WIDTH - 40,
   onStrandTap,
   selectedStrand,
+  showComparison = false,
 }) => {
   const animationProgress = useSharedValue(0);
   const pulseAnimation = useSharedValue(1);
@@ -76,6 +84,8 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 
   // Pre-calculate scores for animation
   const scores = useMemo(() => data.map(d => d.score), [data]);
+  const baselineScores = useMemo(() => data.map(d => d.baselineScore || d.score), [data]);
+  const hasBaseline = useMemo(() => data.some(d => d.baselineScore !== undefined && d.baselineScore !== d.score), [data]);
 
   // Animate on mount
   useEffect(() => {
@@ -215,14 +225,31 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
 
         {/* Grid level labels removed for cleaner design like share card */}
 
-        {/* HEXAGONAL FILLED AREA - Visible and connected */}
+        {/* BASELINE POLYGON - Ghost/shadow showing Week 1 state */}
+        {showComparison && hasBaseline && (
+          <Polygon
+            points={data.map((point, index) => {
+              const pos = getPointPosition(index, point.baselineScore || point.score);
+              return `${pos.x},${pos.y}`;
+            }).join(' ')}
+            fill="#9CA3AF"
+            fillOpacity={0.12}
+            stroke="#9CA3AF"
+            strokeWidth={3}
+            strokeDasharray="6,4"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        )}
+
+        {/* CURRENT POLYGON - Bright and solid showing current state */}
         <Polygon
           points={data.map((point, index) => {
             const pos = getPointPosition(index, point.score);
             return `${pos.x},${pos.y}`;
           }).join(' ')}
           fill="#14B8A6"
-          fillOpacity={0.3}
+          fillOpacity={showComparison && hasBaseline ? 0.25 : 0.3}
           stroke="#14B8A6"
           strokeWidth={6}
           strokeLinejoin="round"
@@ -312,7 +339,7 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
         );
       })}
 
-      {/* Strand labels with score — positioned at each vertex */}
+      {/* Strand labels with score (showing baseline → current if comparison enabled) */}
       {data.map((point, index) => {
         const angle = index * angleStep - Math.PI / 2;
         // Position label at the outer edge (100% radius) so it sits near the chart boundary
@@ -320,6 +347,8 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
         const labelX = center + labelRadius * Math.cos(angle);
         const labelY = center + labelRadius * Math.sin(angle);
         const isSelected = selectedStrand === point.strand;
+        const hasBaseline = showComparison && point.baselineScore !== undefined && point.baselineScore !== point.score;
+        const hasTrend = point.trend && Math.abs(point.trend.delta) > 0;
 
         return (
           <Pressable
@@ -328,17 +357,44 @@ export const InteractiveRadarChartEnhanced: React.FC<InteractiveRadarChartEnhanc
             style={[
               styles.vertexLabel,
               {
-                left: labelX - 36,
-                top: labelY - 20,
+                left: labelX - 40,
+                top: labelY - (hasBaseline ? 26 : hasTrend ? 24 : 20),
               },
             ]}
           >
             <Text style={[styles.vertexLabelName, { color: point.color, fontWeight: isSelected ? '700' : '600' }]}>
               {point.label}
             </Text>
-            <Text style={[styles.vertexLabelScore, { color: point.color }]}>
-              {Math.round(point.score)}%
-            </Text>
+
+            {/* Show baseline → current comparison */}
+            {hasBaseline ? (
+              <View style={styles.comparisonRow}>
+                <Text style={[styles.baselineScore, { color: point.color }]}>
+                  {Math.round(point.baselineScore!)}%
+                </Text>
+                <Text style={styles.arrowText}>→</Text>
+                <Text style={[styles.currentScore, { color: point.color }]}>
+                  {Math.round(point.score)}%
+                </Text>
+              </View>
+            ) : (
+              /* Show just current score (with optional trend badge) */
+              <View style={styles.scoreRow}>
+                <Text style={[styles.vertexLabelScore, { color: point.color }]}>
+                  {Math.round(point.score)}%
+                </Text>
+                {hasTrend && !showComparison && (
+                  <View style={styles.trendBadgeContainer}>
+                    <TrendBadge
+                      delta={point.trend!.delta}
+                      size="small"
+                      variant="compact"
+                      showPercentage={true}
+                    />
+                  </View>
+                )}
+              </View>
+            )}
           </Pressable>
         );
       })}
@@ -366,7 +422,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 64,
+    minWidth: 72,
     zIndex: 5,
   },
   vertexLabelName: {
@@ -374,11 +430,41 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+    gap: 4,
+  },
   vertexLabelScore: {
     fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 1,
+  },
+  trendBadgeContainer: {
+    marginTop: -1,
+  },
+  comparisonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    gap: 3,
+  },
+  baselineScore: {
+    fontSize: 10,
+    fontWeight: '600',
+    opacity: 0.6,
+  },
+  arrowText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  currentScore: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

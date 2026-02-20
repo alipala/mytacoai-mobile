@@ -2,9 +2,10 @@
  * Speaking DNA Screen - Horizontal Paging Layout
  * ==============================================
  *
- * A modern, non-scrolling design with 2 swipeable pages:
+ * A modern, non-scrolling design with swipeable pages:
  * - Page 1: Full-screen interactive radar chart (tap labels for detailed modal)
- * - Page 2: Key Insights, Strengths, Focus Areas, Breakthroughs
+ * - Page 2: Achievements (breakthroughs and milestones)
+ * - Page 3: Voice Signature (acoustic metrics with progress tracking - conditional)
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -47,6 +48,7 @@ import { InteractiveRadarChartEnhanced } from './components/InteractiveRadarChar
 import { StrandDetailModal } from './components/StrandDetailModal';
 import { DNAShareModal } from '../../components/SpeakingDNA/DNAShareModal';
 import { VoiceSignatureCarousel } from './components/VoiceSignatureCarousel';
+import { AchievementsPage } from './components/AchievementsPage';
 
 // Constants
 import { DNA_COLORS, DNA_STRAND_LABELS, THEME_COLORS, getStrandScore } from './constants.OLD';
@@ -116,21 +118,85 @@ const PageIndicator: React.FC<PageIndicatorProps> = ({ currentPage, totalPages }
 
 interface RadarPageProps {
   profile: SpeakingDNAProfile;
+  language: string;
   onStrandTapForModal: (strand: DNAStrandKey, label: string, score: number, color: string) => void;
   t: (key: string) => string;
 }
 
-const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal, t }) => {
+const RadarPage: React.FC<RadarPageProps> = ({ profile, language, onStrandTapForModal, t }) => {
   const [selectedStrand, setSelectedStrand] = useState<DNAStrandKey | null>(null);
+  const [evolution, setEvolution] = useState<any[]>([]);
+  const [showComparison, setShowComparison] = useState(true); // Toggle for baseline comparison
 
-  // Prepare radar data
+  // 🧪 TEMPORARY: Set to true to test comparison with mock baseline data
+  const TEST_MODE = false;
+
+  // Fetch evolution data for trend calculation
+  useEffect(() => {
+    async function fetchEvolution() {
+      try {
+        const data = await speakingDNAService.getEvolution(language, 12);
+        console.log('[RadarPage] Evolution data fetched:', {
+          weeksCount: data.length,
+          firstWeek: data[0]?.week_number,
+          lastWeek: data[data.length - 1]?.week_number,
+          hasData: data.length > 0,
+        });
+        setEvolution(data);
+      } catch (error) {
+        console.error('[RadarPage] Error fetching evolution:', error);
+      }
+    }
+    fetchEvolution();
+  }, [language]);
+
+  // Get Week 1 baseline scores
+  const getBaselineScore = (strand: DNAStrandKey): number | null => {
+    if (evolution.length === 0) return null;
+
+    const week1 = evolution[0]; // First week snapshot
+    if (!week1 || !week1.strand_snapshots) return null;
+
+    return getStrandScore(week1.strand_snapshots[strand]);
+  };
+
+  // Calculate trend deltas
+  const getTrendDelta = (strand: DNAStrandKey, currentScore: number): number | null => {
+    if (evolution.length < 2) return null; // Need at least 2 weeks for trend
+
+    // Get previous week's score (second to last in array)
+    const previousWeek = evolution[evolution.length - 2];
+    if (!previousWeek || !previousWeek.strand_snapshots) return null;
+
+    const previousScore = getStrandScore(previousWeek.strand_snapshots[strand]);
+    const delta = Math.round(currentScore - previousScore);
+
+    return delta;
+  };
+
+  // Prepare radar data with baseline scores and trend indicators
   const strands: DNAStrandKey[] = ['rhythm', 'confidence', 'vocabulary', 'accuracy', 'learning', 'emotional'];
-  const radarData = strands.map((strand) => ({
-    strand,
-    label: t(`profile.dna.strand_${strand}`),
-    score: getStrandScore(profile.dna_strands[strand]),
-    color: DNA_COLORS[strand],
-  }));
+  const radarData = strands.map((strand) => {
+    const currentScore = getStrandScore(profile.dna_strands[strand]);
+    const delta = getTrendDelta(strand, currentScore);
+    const baselineScore = getBaselineScore(strand);
+
+    // 🧪 TEMPORARY: Mock baseline data for testing (subtract 10-20% from current)
+    const mockBaselineScore = TEST_MODE
+      ? Math.max(0, currentScore - (Math.random() * 20 + 10))
+      : undefined;
+
+    return {
+      strand,
+      label: t(`profile.dna.strand_${strand}`),
+      score: currentScore,
+      color: DNA_COLORS[strand],
+      baselineScore: TEST_MODE
+        ? mockBaselineScore
+        : (baselineScore !== null ? baselineScore : undefined),
+      trend: delta !== null ? { delta } : undefined,
+    };
+  });
 
   const handleStrandTap = (strand: DNAStrandKey) => {
     const data = radarData.find(d => d.strand === strand);
@@ -140,6 +206,26 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal, t }
     }
   };
 
+  // Check if we have baseline data
+  const hasBaseline = evolution.length > 0 && radarData.some(d => d.baselineScore !== undefined && d.baselineScore !== d.score);
+
+  // Debug logging
+  useEffect(() => {
+    if (radarData.length > 0) {
+      console.log('[RadarPage] Baseline Check:', {
+        evolutionWeeks: evolution.length,
+        hasBaseline,
+        showComparison,
+        sampleData: radarData.slice(0, 2).map(d => ({
+          strand: d.strand,
+          current: d.score,
+          baseline: d.baselineScore,
+          different: d.baselineScore !== d.score,
+        })),
+      });
+    }
+  }, [radarData, evolution, hasBaseline]);
+
   return (
     <View style={styles.page}>
       {/* Dark gradient background matching share card */}
@@ -148,6 +234,25 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal, t }
         style={styles.radarBackground}
       />
 
+      {/* Comparison Toggle - Only show if we have baseline data */}
+      {hasBaseline && (
+        <View style={styles.comparisonToggleContainer}>
+          <TouchableOpacity
+            style={[styles.comparisonToggle, showComparison && styles.comparisonToggleActive]}
+            onPress={() => setShowComparison(!showComparison)}
+          >
+            <Ionicons
+              name={showComparison ? 'eye' : 'eye-off'}
+              size={16}
+              color={showComparison ? '#14B8A6' : '#9CA3AF'}
+            />
+            <Text style={[styles.comparisonToggleText, showComparison && styles.comparisonToggleTextActive]}>
+              {showComparison ? t('profile.dna.hide_week1_comparison') : t('profile.dna.show_week1_comparison')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Radar Chart Container - Centered */}
       <View style={styles.radarContainer}>
         <InteractiveRadarChartEnhanced
@@ -155,8 +260,23 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal, t }
           size={SCREEN_WIDTH - 40}
           onStrandTap={handleStrandTap}
           selectedStrand={selectedStrand}
+          showComparison={showComparison && hasBaseline}
         />
       </View>
+
+      {/* Legend - Only show when comparison is active */}
+      {showComparison && hasBaseline && (
+        <View style={styles.legendContainer}>
+          <View style={styles.legendItem}>
+            <View style={styles.legendDotBaseline} />
+            <Text style={styles.legendText}>{t('profile.dna.week1_baseline')}</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={styles.legendDotCurrent} />
+            <Text style={styles.legendText}>{t('profile.dna.current_state')}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Tap Hint - Redesigned */}
       <View style={styles.swipeHint}>
@@ -168,248 +288,6 @@ const RadarPage: React.FC<RadarPageProps> = ({ profile, onStrandTapForModal, t }
           <Ionicons name="chevron-forward" size={14} color="#14B8A6" />
           <Text style={styles.swipeHintText}>{t('profile.dna.hint_swipe_voice')}</Text>
         </View>
-      </View>
-    </View>
-  );
-};
-
-// ============================================================================
-// PAGE 2: INSIGHTS PAGE - HELPER FUNCTIONS
-// ============================================================================
-
-interface GrowthInsight {
-  title: string;
-  action: string;
-  icon: string;
-}
-
-interface StrengthInsight {
-  title: string;
-  description: string;
-}
-
-interface WeeklyFocus {
-  goal: string;
-  tip: string;
-}
-
-const getGrowthAreaInsights = (growthAreas: string[], strands: any, t: (key: string) => string): GrowthInsight[] => {
-  const insights: Record<string, GrowthInsight> = {
-    speaking_confidence: {
-      title: t('profile.dna.insight_build_confidence_title'),
-      action: t('profile.dna.insight_build_confidence_action'),
-      icon: 'trending-up',
-    },
-    grammar_accuracy: {
-      title: t('profile.dna.insight_improve_grammar_title'),
-      action: t('profile.dna.insight_improve_grammar_action'),
-      icon: 'checkmark-done',
-    },
-    vocabulary_variety: {
-      title: t('profile.dna.insight_expand_vocabulary_title'),
-      action: t('profile.dna.insight_expand_vocabulary_action'),
-      icon: 'book',
-    },
-    taking_challenges: {
-      title: t('profile.dna.insight_accept_challenges_title'),
-      action: t('profile.dna.insight_accept_challenges_action'),
-      icon: 'flame',
-    },
-    accuracy_focus: {
-      title: t('profile.dna.insight_balance_speed_title'),
-      action: t('profile.dna.insight_balance_speed_action'),
-      icon: 'speedometer',
-    },
-    vocabulary_exploration: {
-      title: t('profile.dna.insight_varied_vocabulary_title'),
-      action: t('profile.dna.insight_varied_vocabulary_action'),
-      icon: 'bulb',
-    },
-  };
-
-  return growthAreas.slice(0, 3).map(area =>
-    insights[area] || {
-      title: formatText(area),
-      action: t('profile.dna.insight_default_action'),
-      icon: 'arrow-up',
-    }
-  );
-};
-
-const getStrengthInsights = (strengths: string[], t: (key: string) => string): StrengthInsight[] => {
-  const insights: Record<string, StrengthInsight> = {
-    speaking_confidence: {
-      title: t('profile.dna.strength_confident_speaker_title'),
-      description: t('profile.dna.strength_confident_speaker_desc'),
-    },
-    accuracy_focus: {
-      title: t('profile.dna.strength_accuracy_master_title'),
-      description: t('profile.dna.strength_accuracy_master_desc'),
-    },
-    vocabulary_exploration: {
-      title: t('profile.dna.strength_word_explorer_title'),
-      description: t('profile.dna.strength_word_explorer_desc'),
-    },
-    challenge_acceptance: {
-      title: t('profile.dna.strength_challenge_seeker_title'),
-      description: t('profile.dna.strength_challenge_seeker_desc'),
-    },
-    consistency: {
-      title: t('profile.dna.strength_steady_learner_title'),
-      description: t('profile.dna.strength_steady_learner_desc'),
-    },
-  };
-
-  return strengths.slice(0, 3).map(strength =>
-    insights[strength] || {
-      title: formatText(strength),
-      description: t('profile.dna.strength_default_desc'),
-    }
-  );
-};
-
-const getWeeklyFocus = (growthAreas: string[], strands: any, t: (key: string) => string): WeeklyFocus | null => {
-  if (growthAreas.length === 0) return null;
-
-  const topArea = growthAreas[0];
-
-  const focuses: Record<string, WeeklyFocus> = {
-    speaking_confidence: {
-      goal: t('profile.dna.focus_reduce_hesitation_goal'),
-      tip: t('profile.dna.focus_reduce_hesitation_tip'),
-    },
-    grammar_accuracy: {
-      goal: t('profile.dna.focus_master_errors_goal'),
-      tip: strands?.accuracy?.common_errors?.[0]
-        ? `${t('profile.dna.focus_master_errors_tip_prefix')}: ${formatText(strands.accuracy.common_errors[0])}`
-        : t('profile.dna.focus_master_errors_tip_default'),
-    },
-    vocabulary_variety: {
-      goal: t('profile.dna.focus_learn_words_goal'),
-      tip: t('profile.dna.focus_learn_words_tip'),
-    },
-    taking_challenges: {
-      goal: t('profile.dna.focus_accept_challenges_goal'),
-      tip: t('profile.dna.focus_accept_challenges_tip'),
-    },
-  };
-
-  return focuses[topArea] || {
-    goal: `${t('profile.dna.focus_default_goal_prefix')} ${formatText(topArea)}`,
-    tip: t('profile.dna.focus_default_tip'),
-  };
-};
-
-// ============================================================================
-// PAGE 2: INSIGHTS PAGE
-// ============================================================================
-
-interface InsightsPageProps {
-  profile: SpeakingDNAProfile | null;
-  breakthroughs: SpeakingBreakthrough[];
-  t: (key: string) => string;
-}
-
-const InsightsPage: React.FC<InsightsPageProps> = ({ profile, breakthroughs, t }) => {
-  // Safety check - should never happen but adds protection
-  if (!profile || !profile.overall_profile || !profile.dna_strands) {
-    return (
-      <View style={styles.page}>
-        <LinearGradient colors={['#0B1A1F', '#0D2832']} style={styles.radarBackground} />
-        <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>{t('profile.dna.loading_insights')}</Text>
-        </View>
-      </View>
-    );
-  }
-
-  const { strengths, growth_areas } = profile.overall_profile;
-  const strands = profile.dna_strands;
-
-  // Get actionable insights
-  const growthInsights = getGrowthAreaInsights(growth_areas, strands, t);
-  const strengthInsights = getStrengthInsights(strengths, t);
-  const weeklyFocus = getWeeklyFocus(growth_areas, strands, t);
-
-  return (
-    <View style={styles.page}>
-      {/* Dark gradient background matching page 1 */}
-      <LinearGradient
-        colors={['#0B1A1F', '#0D2832']}
-        style={styles.radarBackground}
-      />
-      <View style={styles.insightsContainer}>
-        {/* This Week's Focus */}
-        {weeklyFocus && (
-          <View style={styles.focusBanner}>
-            <View style={styles.focusBannerHeader}>
-              <Ionicons name="rocket" size={20} color="#FFFFFF" />
-              <Text style={styles.focusBannerTitle}>{t('profile.dna.section_weekly_focus')}</Text>
-            </View>
-            <Text style={styles.focusBannerGoal}>{weeklyFocus.goal}</Text>
-            <Text style={styles.focusBannerTip}>{weeklyFocus.tip}</Text>
-          </View>
-        )}
-
-        {/* Growth Areas with Actions - Show only top 2 */}
-        {growthInsights.length > 0 && (
-          <View style={styles.insightSection}>
-            <View style={styles.insightHeader}>
-              <Ionicons name="trending-up" size={20} color="#3B82F6" />
-              <Text style={styles.insightSectionTitle}>{t('profile.dna.section_areas_to_improve')}</Text>
-            </View>
-            {growthInsights.slice(0, 2).map((insight, index) => (
-              <View key={index} style={styles.growthCard}>
-                <View style={styles.growthCardIconContainer}>
-                  <Ionicons name={insight.icon as any} size={24} color="#FFFFFF" />
-                </View>
-                <View style={styles.growthCardContent}>
-                  <Text style={styles.growthCardTitle}>{insight.title}</Text>
-                  <Text style={styles.growthCardAction}>{insight.action}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Top Strengths - Show only top 2 */}
-        {strengthInsights.length > 0 && (
-          <View style={styles.insightSection}>
-            <View style={styles.insightHeader}>
-              <Ionicons name="star" size={20} color="#F59E0B" />
-              <Text style={styles.insightSectionTitle}>{t('profile.dna.section_strengths')}</Text>
-            </View>
-            {strengthInsights.slice(0, 2).map((insight, index) => (
-              <View key={index} style={styles.strengthCard}>
-                <View style={styles.strengthIconContainer}>
-                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                </View>
-                <View style={styles.strengthContent}>
-                  <Text style={styles.strengthTitle}>{insight.title}</Text>
-                  <Text style={styles.strengthDesc}>{insight.description}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Recent Breakthrough - Show only 1 */}
-        {breakthroughs.length > 0 && breakthroughs[0] && (
-          <View style={styles.insightSection}>
-            <View style={styles.insightHeader}>
-              <Ionicons name="trophy" size={20} color="#8B5CF6" />
-              <Text style={styles.insightSectionTitle}>{t('profile.dna.section_recent_win')}</Text>
-            </View>
-            <LinearGradient
-              colors={getCategoryColors(breakthroughs[0]?.category || 'confidence')}
-              style={styles.breakthroughCard}
-            >
-              <Text style={styles.breakthroughEmoji}>{breakthroughs[0]?.emoji || '🎉'}</Text>
-              <Text style={styles.breakthroughTitle}>{breakthroughs[0]?.title || t('profile.dna.breakthrough_default_title')}</Text>
-              <Text style={styles.breakthroughDesc}>{breakthroughs[0]?.description || t('profile.dna.breakthrough_default_desc')}</Text>
-            </LinearGradient>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -454,11 +332,36 @@ const getCategoryColors = (category: string): string[] => {
 
 interface VoiceSignaturePageProps {
   profile: SpeakingDNAProfile;
+  language: string;
   t: (key: string) => string;
 }
 
-const VoiceSignaturePage: React.FC<VoiceSignaturePageProps> = ({ profile, t }) => {
+const VoiceSignaturePage: React.FC<VoiceSignaturePageProps> = ({ profile, language, t }) => {
   const acousticMetrics = profile.baseline_assessment?.acoustic_metrics;
+  const [acousticEvolution, setAcousticEvolution] = useState<any[]>([]);
+  const [isLoadingEvolution, setIsLoadingEvolution] = useState(true);
+
+  // Fetch acoustic evolution data for progress tracking
+  useEffect(() => {
+    async function fetchAcousticEvolution() {
+      try {
+        setIsLoadingEvolution(true);
+        const data = await speakingDNAService.getAcousticEvolution(language, 12);
+        console.log('[VoiceSignaturePage] Acoustic evolution data fetched:', {
+          weeksCount: data.length,
+          firstWeek: data[0]?.week_number,
+          lastWeek: data[data.length - 1]?.week_number,
+          hasData: data.length > 0,
+        });
+        setAcousticEvolution(data);
+      } catch (error) {
+        console.error('[VoiceSignaturePage] Error fetching acoustic evolution:', error);
+      } finally {
+        setIsLoadingEvolution(false);
+      }
+    }
+    fetchAcousticEvolution();
+  }, [language]);
 
   if (!acousticMetrics) {
     return (
@@ -485,7 +388,11 @@ const VoiceSignaturePage: React.FC<VoiceSignaturePageProps> = ({ profile, t }) =
         style={styles.radarBackground}
       />
       <View style={styles.voiceSignaturePageContainer}>
-        <VoiceSignatureCarousel acousticMetrics={acousticMetrics} />
+        <VoiceSignatureCarousel
+          acousticMetrics={acousticMetrics}
+          acousticEvolution={acousticEvolution}
+          isLoadingEvolution={isLoadingEvolution}
+        />
       </View>
     </View>
   );
@@ -505,6 +412,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
   // State
   const [profile, setProfile] = useState<SpeakingDNAProfile | null>(null);
   const [breakthroughs, setBreakthroughs] = useState<SpeakingBreakthrough[]>([]);
+  const [evolution, setEvolution] = useState<any[]>([]); // Evolution data for progress
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -574,13 +482,17 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
       const profileData = await speakingDNAService.getProfile(language, forceRefresh);
       setProfile(profileData);
 
-      // Load breakthroughs if profile exists
+      // Load breakthroughs and evolution if profile exists
       if (profileData) {
-        const breakthroughsData = await speakingDNAService.getBreakthroughs(language, {
-          limit: 5,
-          forceRefresh,
-        });
+        const [breakthroughsData, evolutionData] = await Promise.all([
+          speakingDNAService.getBreakthroughs(language, {
+            limit: 5,
+            forceRefresh,
+          }),
+          speakingDNAService.getEvolution(language, 12, forceRefresh),
+        ]);
         setBreakthroughs(breakthroughsData);
+        setEvolution(evolutionData);
       }
 
       setLoading(false);
@@ -610,31 +522,39 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
 
     const pagesArray = [];
 
-    // Page 1: Radar Chart
+    // Page 1: Radar Chart with Trend Indicators
     pagesArray.push(
       <View key="radar" style={styles.pageWrapper}>
-        <RadarPage profile={profile} onStrandTapForModal={handleStrandTapForModal} t={t} />
+        <RadarPage
+          profile={profile}
+          language={language}
+          onStrandTapForModal={handleStrandTapForModal}
+          t={t}
+        />
       </View>
     );
 
-    // Page 2: Voice Signature (only if acoustic metrics exist)
+    // Page 2: Achievements (Breakthroughs, Milestones)
+    pagesArray.push(
+      <View key="achievements" style={styles.pageWrapper}>
+        <AchievementsPage language={language} onShare={(breakthrough) => {
+          console.log('[DNA_HORIZONTAL] Share breakthrough:', breakthrough.title);
+          // Could open share modal with breakthrough-specific content
+        }} />
+      </View>
+    );
+
+    // Page 3: Voice Signature (only if acoustic metrics exist)
     if (profile?.baseline_assessment?.acoustic_metrics) {
       pagesArray.push(
         <View key="voice" style={styles.pageWrapper}>
-          <VoiceSignaturePage profile={profile} t={t} />
+          <VoiceSignaturePage profile={profile} language={language} t={t} />
         </View>
       );
     }
 
-    // Last Page: Insights
-    pagesArray.push(
-      <View key="insights" style={styles.pageWrapper}>
-        <InsightsPage profile={profile} breakthroughs={breakthroughs} t={t} />
-      </View>
-    );
-
     return pagesArray;
-  }, [profile, breakthroughs, t]);
+  }, [profile, breakthroughs, t, language]);
 
   // ============================================================================
   // RENDER LOADING STATE
@@ -802,6 +722,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
         }}
         profile={profile}
         language={language}
+        evolution={evolution}
       />
     </SafeAreaView>
   );
@@ -1001,11 +922,73 @@ const styles = StyleSheet.create({
   radarBackground: {
     ...StyleSheet.absoluteFillObject,
   },
+  comparisonToggleContainer: {
+    alignItems: 'center',
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  comparisonToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(156, 163, 175, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(156, 163, 175, 0.3)',
+  },
+  comparisonToggleActive: {
+    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    borderColor: 'rgba(20, 184, 166, 0.4)',
+  },
+  comparisonToggleText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  comparisonToggleTextActive: {
+    color: '#14B8A6',
+  },
   radarContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 16,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDotBaseline: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+    backgroundColor: '#9CA3AF',
+    borderWidth: 1.5,
+    borderColor: '#9CA3AF',
+    borderStyle: 'dashed',
+  },
+  legendDotCurrent: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+    backgroundColor: '#14B8A6',
+    borderWidth: 1.5,
+    borderColor: '#14B8A6',
+  },
+  legendText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#B4E4DD',
   },
   swipeHint: {
     flexDirection: 'row',
@@ -1031,157 +1014,7 @@ const styles = StyleSheet.create({
     color: '#B4E4DD',
   },
 
-  // Page 2: Insights
-  insightsContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  insightSection: {
-    marginBottom: 16,
-  },
-  insightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    gap: 8,
-  },
-  insightSectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  // Weekly Focus Banner - Dark theme
-  focusBanner: {
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
-  },
-  focusBannerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  focusBannerTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  focusBannerGoal: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 6,
-  },
-  focusBannerTip: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 18,
-  },
-
-  // Growth Cards (Areas to Improve)
-  growthCard: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    padding: 12,
-    borderRadius: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  growthCardIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#3B82F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  growthCardContent: {
-    flex: 1,
-  },
-  growthCardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 3,
-  },
-  growthCardAction: {
-    fontSize: 12,
-    color: '#B4E4DD',
-    lineHeight: 17,
-  },
-
-  // Strength Cards
-  strengthCard: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    padding: 12,
-    borderRadius: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-  },
-  strengthIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  strengthContent: {
-    flex: 1,
-  },
-  strengthTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#2ECC71',
-    marginBottom: 3,
-  },
-  strengthDesc: {
-    fontSize: 12,
-    color: '#B4E4DD',
-    lineHeight: 17,
-  },
-
-  // Breakthrough Card
-  breakthroughCard: {
-    padding: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  breakthroughEmoji: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  breakthroughTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  breakthroughDesc: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    marginTop: 3,
-  },
-
-  // Page 3: Voice Signature
+  // Page 2: Voice Signature
   voiceSignaturePageContainer: {
     flex: 1,
     paddingTop: 20,

@@ -1,16 +1,17 @@
 /**
- * Voice Signature Carousel Component - REDESIGNED
+ * Voice Signature Carousel Component - WITH PROGRESS TRACKING
  *
  * Full-screen swipeable cards showing acoustic metrics
- * with interpretations and AI tutor analysis
+ * with interpretations, AI tutor analysis, and progress tracking over time
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +23,7 @@ import Animated, {
   Extrapolate,
   runOnJS,
 } from 'react-native-reanimated';
+import Svg, { Polyline } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40; // Full width with padding
@@ -44,8 +46,16 @@ interface AcousticMetrics {
   intensity_mean?: number;
 }
 
+interface AcousticEvolutionWeek {
+  week_start: string;
+  week_number: number;
+  acoustic_metrics: AcousticMetrics;
+}
+
 interface VoiceSignatureCarouselProps {
   acousticMetrics: AcousticMetrics;
+  acousticEvolution?: AcousticEvolutionWeek[];
+  isLoadingEvolution?: boolean;
 }
 
 interface AcousticCard {
@@ -54,12 +64,14 @@ interface AcousticCard {
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   gradientColors: string[];
+  metricKey: keyof AcousticMetrics | 'combined';
   getValue: (metrics: AcousticMetrics) => {
     main: string;
     sub: string;
     interpretation: string;
     analysis: string;
     score: 'excellent' | 'good' | 'needs-work';
+    rawValue: number;
   };
 }
 
@@ -221,6 +233,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
     icon: 'musical-notes',
     color: '#8B5CF6',
     gradientColors: ['#8B5CF6', '#6D28D9'],
+    metricKey: 'pitch_mean',
     getValue: (metrics) => {
       const pitch = Math.round(metrics.pitch_mean || 0);
       const range = Math.round(metrics.pitch_std || 0);
@@ -231,6 +244,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
         interpretation,
         analysis,
         score,
+        rawValue: pitch,
       };
     },
   },
@@ -240,6 +254,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
     icon: 'radio',
     color: '#10B981',
     gradientColors: ['#10B981', '#059669'],
+    metricKey: 'voice_quality_factor',
     getValue: (metrics) => {
       const quality = (metrics.voice_quality_factor || 0) * 100;
       const jitter = metrics.jitter || 0;
@@ -250,6 +265,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
         interpretation,
         analysis,
         score,
+        rawValue: quality,
       };
     },
   },
@@ -259,6 +275,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
     icon: 'speedometer',
     color: '#F59E0B',
     gradientColors: ['#F59E0B', '#D97706'],
+    metricKey: 'words_per_minute',
     getValue: (metrics) => {
       const wpm = Math.round(metrics.words_per_minute || 0);
       const pauseRatio = metrics.pause_ratio || 0;
@@ -269,6 +286,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
         interpretation,
         analysis,
         score,
+        rawValue: wpm,
       };
     },
   },
@@ -278,6 +296,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
     icon: 'flash',
     color: '#EF4444',
     gradientColors: ['#EF4444', '#DC2626'],
+    metricKey: 'energy_mean',
     getValue: (metrics) => {
       const energy = metrics.energy_mean || 0;
       const { interpretation, analysis, score } = generateEnergyAnalysis(energy);
@@ -287,6 +306,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
         interpretation,
         analysis,
         score,
+        rawValue: energy * 1000, // Scale for visualization
       };
     },
   },
@@ -296,6 +316,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
     icon: 'chatbubbles',
     color: '#3B82F6',
     gradientColors: ['#3B82F6', '#2563EB'],
+    metricKey: 'filler_rate_per_minute',
     getValue: (metrics) => {
       const fillerRate = metrics.filler_rate_per_minute || 0;
       const articulationRate = metrics.articulation_rate || 0;
@@ -306,6 +327,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
         interpretation,
         analysis,
         score,
+        rawValue: 10 - fillerRate, // Inverse: lower filler = higher score
       };
     },
   },
@@ -315,6 +337,7 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
     icon: 'pulse',
     color: '#EC4899',
     gradientColors: ['#EC4899', '#DB2777'],
+    metricKey: 'shimmer',
     getValue: (metrics) => {
       const shimmer = (metrics.shimmer || 0) * 100;
       const { interpretation, analysis, score } = generateStabilityAnalysis(metrics.shimmer || 0);
@@ -324,21 +347,110 @@ const ACOUSTIC_CARDS: AcousticCard[] = [
         interpretation,
         analysis,
         score,
+        rawValue: 10 - shimmer, // Inverse: lower shimmer = higher score
       };
     },
   },
 ];
 
 /**
- * Individual Full-Screen Acoustic Card
+ * Mini Sparkline Component
+ */
+const MiniSparkline: React.FC<{
+  data: number[];
+  color: string;
+  width?: number;
+  height?: number;
+}> = ({ data, color, width = 80, height = 24 }) => {
+  if (data.length < 2) {
+    return (
+      <View style={[styles.sparklineContainer, { width, height }]}>
+        <Text style={styles.noDataText}>N/A</Text>
+      </View>
+    );
+  }
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+
+  const points = data
+    .map((value, index) => {
+      const x = (index / (data.length - 1)) * width;
+      const y = height - ((value - min) / range) * height;
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  return (
+    <Svg width={width} height={height} style={styles.sparkline}>
+      <Polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+};
+
+/**
+ * Trend Badge Component
+ */
+const TrendBadge: React.FC<{
+  delta: number | null;
+}> = ({ delta }) => {
+  if (delta === null || delta === 0) {
+    return null;
+  }
+
+  const isPositive = delta > 0;
+  const bgColor = isPositive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)';
+  const borderColor = isPositive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+  const textColor = isPositive ? '#10B981' : '#EF4444';
+
+  return (
+    <View style={[styles.trendBadge, { backgroundColor: bgColor, borderColor }]}>
+      <Ionicons
+        name={isPositive ? 'arrow-up' : 'arrow-down'}
+        size={12}
+        color={textColor}
+      />
+      <Text style={[styles.trendBadgeText, { color: textColor }]}>
+        {isPositive ? '+' : ''}{Math.abs(delta).toFixed(0)}%
+      </Text>
+    </View>
+  );
+};
+
+/**
+ * Individual Full-Screen Acoustic Card with Progress Tracking
  */
 const FullScreenAcousticCard: React.FC<{
   card: AcousticCard;
   metrics: AcousticMetrics;
   index: number;
   scrollX: Animated.SharedValue<number>;
-}> = ({ card, metrics, index, scrollX }) => {
+  evolution?: AcousticEvolutionWeek[];
+  isLoadingEvolution?: boolean;
+}> = ({ card, metrics, index, scrollX, evolution, isLoadingEvolution }) => {
   const values = card.getValue(metrics);
+
+  // Extract evolution data for this metric
+  const extractMetricValue = (m: AcousticMetrics): number => {
+    if (card.metricKey === 'combined') return 0;
+    return card.getValue(m).rawValue;
+  };
+
+  const evolutionData = evolution && evolution.length > 0
+    ? evolution.map(week => extractMetricValue(week.acoustic_metrics))
+    : [];
+
+  const baseline = evolutionData.length > 0 ? evolutionData[0] : null;
+  const current = values.rawValue;
+  const delta = baseline && baseline !== 0 ? ((current - baseline) / baseline) * 100 : null;
 
   /**
    * Card animation based on scroll position
@@ -384,11 +496,64 @@ const FullScreenAcousticCard: React.FC<{
           <Text style={styles.fullCardTitle}>{card.title}</Text>
         </View>
 
-        {/* Main Value Display */}
+        {/* Main Value Display with Dual Numbers */}
         <View style={styles.valueContainer}>
-          <Text style={styles.fullMainValue}>{values.main}</Text>
+          {baseline !== null ? (
+            <View style={styles.dualNumbersContainer}>
+              <Text style={styles.baselineValue}>{Math.round(baseline)}</Text>
+              <Ionicons name="arrow-forward" size={20} color="rgba(255, 255, 255, 0.6)" />
+              <Text style={styles.currentValue}>{values.main}</Text>
+            </View>
+          ) : (
+            <Text style={styles.fullMainValue}>{values.main}</Text>
+          )}
           <Text style={styles.fullSubValue}>{values.sub}</Text>
         </View>
+
+        {/* Your Progress Section */}
+        {evolution && evolution.length > 1 && !isLoadingEvolution && (
+          <View style={styles.progressSection}>
+            <View style={styles.progressHeader}>
+              <Ionicons name="trending-up" size={16} color="#14B8A6" />
+              <Text style={styles.progressTitle}>Your Progress</Text>
+            </View>
+            <View style={styles.progressContent}>
+              <View style={styles.sparklineWrapper}>
+                <MiniSparkline
+                  data={evolutionData}
+                  color={card.color}
+                  width={120}
+                  height={32}
+                />
+                <Text style={styles.sparklineLabel}>
+                  {evolutionData.length} weeks
+                </Text>
+              </View>
+              {delta !== null && <TrendBadge delta={delta} />}
+            </View>
+          </View>
+        )}
+
+        {/* No Progress Data Yet - Informative Message */}
+        {!isLoadingEvolution && (!evolution || evolution.length < 2) && (
+          <View style={styles.noProgressSection}>
+            <View style={styles.noProgressHeader}>
+              <Ionicons name="hourglass-outline" size={16} color="#9CA3AF" />
+              <Text style={styles.noProgressTitle}>Track Your Progress</Text>
+            </View>
+            <Text style={styles.noProgressText}>
+              Complete more speaking sessions to see your improvement over time with trend graphs and comparisons.
+            </Text>
+          </View>
+        )}
+
+        {/* Loading State */}
+        {isLoadingEvolution && (
+          <View style={styles.progressSection}>
+            <ActivityIndicator size="small" color="#14B8A6" />
+            <Text style={styles.loadingText}>Loading progress...</Text>
+          </View>
+        )}
 
         {/* What This Means Section */}
         <View style={styles.sectionContainer}>
@@ -435,10 +600,12 @@ const PageIndicator: React.FC<{ currentIndex: number; total: number }> = ({
 };
 
 /**
- * Voice Signature Carousel - Full Screen Cards
+ * Voice Signature Carousel - Full Screen Cards with Progress Tracking
  */
 export const VoiceSignatureCarousel: React.FC<VoiceSignatureCarouselProps> = ({
   acousticMetrics,
+  acousticEvolution,
+  isLoadingEvolution,
 }) => {
   const scrollX = useSharedValue(0);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -456,7 +623,11 @@ export const VoiceSignatureCarousel: React.FC<VoiceSignatureCarouselProps> = ({
       {/* Title */}
       <View style={styles.titleContainer}>
         <Text style={styles.mainTitle}>Your Voice Fingerprint</Text>
-        <Text style={styles.subtitle}>Swipe to explore your acoustic profile</Text>
+        <Text style={styles.subtitle}>
+          {acousticEvolution && acousticEvolution.length > 1
+            ? 'Swipe to explore progress & insights'
+            : 'Swipe to explore your acoustic profile'}
+        </Text>
       </View>
 
       {/* Full-Screen Scrolling Cards */}
@@ -478,6 +649,8 @@ export const VoiceSignatureCarousel: React.FC<VoiceSignatureCarouselProps> = ({
             metrics={acousticMetrics}
             index={index}
             scrollX={scrollX}
+            evolution={acousticEvolution}
+            isLoadingEvolution={isLoadingEvolution}
           />
         ))}
       </Animated.ScrollView>
@@ -515,7 +688,7 @@ const styles = StyleSheet.create({
   },
   fullCard: {
     width: CARD_WIDTH,
-    height: 520,
+    height: 580, // Increased from 520 to accommodate progress section
     borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -531,30 +704,45 @@ const styles = StyleSheet.create({
   },
   fullCardHeader: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   fullIconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   fullCardTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
   },
   valueContainer: {
     alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 16,
+    marginBottom: 16,
+    paddingVertical: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
+  },
+  dualNumbersContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  baselineValue: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.5)',
+  },
+  currentValue: {
+    fontSize: 40,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
   fullMainValue: {
     fontSize: 48,
@@ -567,32 +755,124 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     fontWeight: '600',
   },
+  progressSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+  },
+  progressTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  noProgressSection: {
+    backgroundColor: 'rgba(156, 163, 175, 0.08)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(156, 163, 175, 0.2)',
+    borderStyle: 'dashed',
+  },
+  noProgressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  noProgressTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  noProgressText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 16,
+    fontWeight: '500',
+  },
+  progressContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sparklineWrapper: {
+    alignItems: 'flex-start',
+  },
+  sparklineContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sparkline: {
+    marginBottom: 4,
+  },
+  sparklineLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '500',
+  },
+  noDataText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontWeight: '500',
+  },
+  loadingText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '500',
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  trendBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  trendBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
   sectionContainer: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: 6,
+    marginBottom: 6,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   interpretationText: {
-    fontSize: 14,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 20,
+    lineHeight: 18,
     fontWeight: '500',
   },
   analysisText: {
-    fontSize: 14,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.85)',
-    lineHeight: 20,
+    lineHeight: 18,
     fontWeight: '500',
     fontStyle: 'italic',
   },

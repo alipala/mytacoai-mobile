@@ -176,6 +176,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
   // DNA tab state — kept at component level to respect Rules of Hooks
   const [selectedDNALanguage, setSelectedDNALanguage] = useState<string>('');
   const [dnaProfile, setDnaProfile] = useState<any>(null);
+  const [dnaEvolution, setDnaEvolution] = useState<any[]>([]); // Week 1-12 snapshots for progress
   const [loadingDNA, setLoadingDNA] = useState(false);
   const [isDNAPremium, setIsDNAPremium] = useState<boolean | null>(null);
   // True once fetchUserData has written fresh subscription data to AsyncStorage
@@ -541,10 +542,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         const profile = await speakingDNAService.getProfile(selectedDNALanguage);
         if (cancelled) return;
         setDnaProfile(profile);
+
+        // Fetch evolution data for progress indicators
+        try {
+          const evolution = await speakingDNAService.getEvolution(selectedDNALanguage, 12);
+          console.log('[ProfileScreen] Evolution data fetched:', {
+            language: selectedDNALanguage,
+            weeksCount: evolution.length,
+            firstWeek: evolution[0]?.week_number,
+            hasData: evolution.length > 0,
+          });
+          if (!cancelled) setDnaEvolution(evolution);
+        } catch (evolutionError) {
+          console.error('[ProfileScreen] Error fetching DNA evolution:', evolutionError);
+          setDnaEvolution([]);
+        }
       } catch (error) {
         if (!cancelled) {
           console.error('Error fetching DNA profile:', error);
           setDnaProfile(null);
+          setDnaEvolution([]);
         }
       } finally {
         if (!cancelled) setLoadingDNA(false);
@@ -1773,7 +1790,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                 </View>
               </View>
 
-              {/* DNA Strands - Grid Layout 2x3 */}
+              {/* DNA Strands - Grid Layout 2x3 with Progress */}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
                 {[
                   { name: t('profile.dna.strand_confidence'), key: 'confidence', icon: 'shield-checkmark', color: '#6366F1', accessor: (p: any) => (p.dna_strands?.confidence?.score || 0) * 100 },
@@ -1783,8 +1800,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                   { name: t('profile.dna.strand_learning'), key: 'learning', icon: 'school', color: '#10B981', accessor: (p: any) => (p.dna_strands?.learning?.challenge_acceptance || 0) * 100 },
                   { name: t('profile.dna.strand_emotional'), key: 'emotional', icon: 'heart', color: '#EF4444', accessor: (p: any) => ((p.dna_strands?.emotional?.session_start_confidence || 0) + (p.dna_strands?.emotional?.session_end_confidence || 0)) / 2 * 100 },
                 ].map((strand) => {
-                  const value = strand.accessor(dnaProfile);
-                  const normalizedValue = Math.min(Math.max(value, 0), 100);
+                  const currentValue = strand.accessor(dnaProfile);
+                  const normalizedValue = Math.min(Math.max(currentValue, 0), 100);
+
+                  // Get Week 1 baseline from evolution data
+                  const getBaselineScore = () => {
+                    if (dnaEvolution.length === 0) return null;
+                    const week1 = dnaEvolution[0];
+                    if (!week1?.strand_snapshots?.[strand.key]) return null;
+                    return strand.accessor({ dna_strands: { [strand.key]: week1.strand_snapshots[strand.key] } });
+                  };
+
+                  const baselineValue = getBaselineScore();
+                  const normalizedBaseline = baselineValue !== null ? Math.min(Math.max(baselineValue, 0), 100) : null;
+                  const delta = normalizedBaseline !== null ? Math.round(normalizedValue - normalizedBaseline) : null;
+                  const hasBaseline = normalizedBaseline !== null; // Show dual view whenever we have baseline data
+
+                  // Debug logging
+                  if (normalizedBaseline !== null) {
+                    console.log(`[DNA Card ${strand.key}] Baseline: ${normalizedBaseline}, Current: ${normalizedValue}, Delta: ${delta}`);
+                  }
 
                   return (
                     <View key={strand.key} style={{
@@ -1796,8 +1831,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                       borderColor: `${strand.color}30`,
                       alignItems: 'center',
                     }}>
-                      {/* Circle Progress Ring */}
-                      <View style={{ position: 'relative', width: 70, height: 70, marginBottom: 12 }}>
+                      {/* Dual Circle Progress Rings */}
+                      <View style={{ position: 'relative', width: 70, height: 70, marginBottom: 8 }}>
+                        {/* Background track */}
                         <View style={{
                           position: 'absolute',
                           width: 70,
@@ -1806,6 +1842,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                           borderWidth: 6,
                           borderColor: `${strand.color}20`,
                         }} />
+
+                        {/* Baseline (Week 1) ghost ring */}
+                        {hasBaseline && (
+                          <View style={{
+                            position: 'absolute',
+                            width: 70,
+                            height: 70,
+                            borderRadius: 35,
+                            borderWidth: 6,
+                            borderColor: '#9CA3AF',
+                            borderRightColor: 'transparent',
+                            borderBottomColor: normalizedBaseline > 25 ? '#9CA3AF' : 'transparent',
+                            borderLeftColor: normalizedBaseline > 50 ? '#9CA3AF' : 'transparent',
+                            borderTopColor: normalizedBaseline > 75 ? '#9CA3AF' : 'transparent',
+                            transform: [{ rotate: '-90deg' }],
+                            opacity: 0.4,
+                          }} />
+                        )}
+
+                        {/* Current ring */}
                         <View style={{
                           position: 'absolute',
                           width: 70,
@@ -1819,6 +1875,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                           borderTopColor: normalizedValue > 75 ? strand.color : 'transparent',
                           transform: [{ rotate: '-90deg' }],
                         }} />
+
+                        {/* Icon */}
                         <View style={{
                           position: 'absolute',
                           width: 70,
@@ -1830,15 +1888,57 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
                         </View>
                       </View>
 
-                      {/* Score */}
-                      <Text style={{ fontSize: 24, fontWeight: '800', color: strand.color, marginBottom: 4 }}>
-                        {Math.round(normalizedValue)}
-                      </Text>
+                      {/* Score - Dual numbers if baseline exists */}
+                      {hasBaseline ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: '#9CA3AF', opacity: 0.7 }}>
+                            {Math.round(normalizedBaseline)}
+                          </Text>
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: '#9CA3AF' }}>
+                            →
+                          </Text>
+                          <Text style={{ fontSize: 22, fontWeight: '800', color: strand.color }}>
+                            {Math.round(normalizedValue)}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text style={{ fontSize: 24, fontWeight: '800', color: strand.color, marginBottom: 2 }}>
+                          {Math.round(normalizedValue)}
+                        </Text>
+                      )}
 
                       {/* Name */}
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', textAlign: 'center', marginBottom: 4 }}>
                         {strand.name}
                       </Text>
+
+                      {/* Trend Badge */}
+                      {delta !== null && delta !== 0 && (
+                        <View style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: delta > 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                          paddingHorizontal: 6,
+                          paddingVertical: 2,
+                          borderRadius: 6,
+                          gap: 2,
+                          borderWidth: 0.5,
+                          borderColor: delta > 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
+                        }}>
+                          <Ionicons
+                            name={delta > 0 ? 'arrow-up' : 'arrow-down'}
+                            size={10}
+                            color={delta > 0 ? '#10B981' : '#EF4444'}
+                          />
+                          <Text style={{
+                            fontSize: 9,
+                            fontWeight: '700',
+                            color: delta > 0 ? '#10B981' : '#EF4444',
+                          }}>
+                            {delta > 0 ? '+' : ''}{delta}%
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   );
                 })}

@@ -40,6 +40,7 @@ const API_ENDPOINTS = {
   ANALYZE_SESSION: '/api/speaking-dna/analyze-session',
   PROFILE: '/api/speaking-dna/profile',
   EVOLUTION: '/api/speaking-dna/evolution',
+  ACOUSTIC_EVOLUTION: '/api/speaking-dna/acoustic-evolution',
   BREAKTHROUGHS: '/api/speaking-dna/breakthroughs',
   CELEBRATE: '/api/speaking-dna/breakthroughs',
   COACH_INSTRUCTIONS: '/api/speaking-dna/coach-instructions',
@@ -49,6 +50,7 @@ const API_ENDPOINTS = {
 const CACHE_KEYS = {
   profile: 'dna_profile_',
   evolution: 'dna_evolution_',
+  acoustic_evolution: 'dna_acoustic_evolution_',
   breakthroughs: 'dna_breakthroughs_',
 } as const;
 
@@ -355,6 +357,65 @@ class SpeakingDNAService {
       return response.data.evolution;
     } catch (error) {
       return handleAPIError(error, 'fetching DNA evolution');
+    }
+  }
+
+  /**
+   * Get acoustic metrics evolution history for Voice Fingerprint visualization
+   *
+   * @param language - Target language
+   * @param weeks - Number of weeks to retrieve (default: 12)
+   * @param forceRefresh - Skip cache and fetch fresh data
+   * @returns Acoustic evolution history snapshots
+   */
+  async getAcousticEvolution(
+    language: string,
+    weeks: number = 12,
+    forceRefresh: boolean = false
+  ): Promise<any[]> {
+    try {
+      const userId = await getUserId();
+      const cacheKey = `${CACHE_KEYS.acoustic_evolution}${userId}_${language}_${weeks}`;
+
+      // If force refresh, invalidate cache BEFORE checking
+      if (forceRefresh) {
+        console.log('[SpeakingDNAService] Force refresh - clearing acoustic evolution cache');
+        await AsyncStorage.removeItem(cacheKey);
+      }
+
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        const cached = await getCachedData<{ evolution: any[]; weeks_tracked: number }>(
+          cacheKey,
+          CACHE_DURATIONS.evolution
+        );
+        if (cached) {
+          console.log('[SpeakingDNAService] Returning cached acoustic evolution');
+          return cached.evolution;
+        }
+      }
+
+      // Fetch from API
+      console.log(`[SpeakingDNAService] Fetching fresh acoustic evolution from API for language: ${language}, weeks: ${weeks}`);
+      const headers = await getAuthHeaders();
+      const response = await axios.get<{ evolution: any[]; weeks_tracked: number }>(
+        `${API_BASE_URL}${API_ENDPOINTS.ACOUSTIC_EVOLUTION}/${language}`,
+        {
+          params: { weeks },
+          headers,
+        }
+      );
+
+      // Cache the response
+      await setCachedData(cacheKey, response.data);
+
+      console.log(
+        `[SpeakingDNAService] Acoustic evolution fetched. Weeks tracked: ${response.data.weeks_tracked}`
+      );
+
+      return response.data.evolution;
+    } catch (error) {
+      return handleAPIError(error, 'fetching acoustic evolution');
     }
   }
 

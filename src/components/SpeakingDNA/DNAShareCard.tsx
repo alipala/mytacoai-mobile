@@ -1,8 +1,8 @@
 /**
- * DNA Share Card Component - VIRAL EDITION 🔥
+ * DNA Share Card Component - VIRAL EDITION WITH PROGRESS 🔥
  *
  * Dark, bold, Instagram-Story optimized shareable card
- * Designed for maximum visual impact and shareability
+ * Shows all 6 DNA strands with progress indicators (baseline → current)
  */
 
 import React from 'react';
@@ -71,6 +71,7 @@ const getLanguageFlagComponent = (language: string): React.FC<any> | null => {
 interface DNAShareCardProps {
   profile: SpeakingDNAProfile;
   language: string;
+  evolution?: any[]; // Weekly evolution data for progress
   variant?: 'story' | 'post' | 'wide';
 }
 
@@ -222,27 +223,77 @@ const ViralRadarChart: React.FC<{
 };
 
 /**
- * Colored DNA Strand Cards
+ * Enhanced DNA Strand Card with Progress
  */
-const StrandCard: React.FC<{
+const StrandCardWithProgress: React.FC<{
   label: string;
   value: number;
+  baseline: number | null;
   color: string;
   iconName: keyof typeof Ionicons.glyphMap;
-  description: string;
-}> = ({ label, value, color, iconName, description }) => (
-  <View style={[styles.strandCard, { backgroundColor: color + '20', borderColor: color }]}>
-    <View style={[styles.strandIconContainer, { backgroundColor: color }]}>
-      <Ionicons name={iconName} size={32} color="#FFFFFF" />
+}> = ({ label, value, baseline, color, iconName }) => {
+  const hasProgress = baseline !== null && baseline !== value;
+  const delta = hasProgress ? value - baseline : 0;
+  const deltaPercent = hasProgress && baseline > 0 ? Math.round((delta / baseline) * 100) : 0;
+  const isPositive = delta > 0;
+
+  return (
+    <View style={[styles.strandCard, { backgroundColor: color + '15', borderColor: color + '40' }]}>
+      {/* Icon */}
+      <View style={[styles.strandIconContainer, { backgroundColor: color }]}>
+        <Ionicons name={iconName} size={28} color="#FFFFFF" />
+      </View>
+
+      {/* Label */}
+      <Text style={styles.strandLabel}>{label}</Text>
+
+      {/* Progress Display */}
+      {hasProgress ? (
+        <View style={styles.progressContainer}>
+          {/* Baseline → Current */}
+          <View style={styles.progressNumbers}>
+            <Text style={styles.baselineNumber}>{baseline}</Text>
+            <Ionicons
+              name={isPositive ? "arrow-forward" : "arrow-forward"}
+              size={16}
+              color={isPositive ? VIRAL_COLORS.neon.green : VIRAL_COLORS.neon.pink}
+            />
+            <Text style={[styles.currentNumber, { color }]}>{value}</Text>
+          </View>
+
+          {/* Delta Badge */}
+          {delta !== 0 && (
+            <View style={[
+              styles.deltaBadge,
+              { backgroundColor: isPositive ? 'rgba(46, 204, 113, 0.2)' : 'rgba(233, 30, 99, 0.2)' }
+            ]}>
+              <Ionicons
+                name={isPositive ? "trending-up" : "trending-down"}
+                size={14}
+                color={isPositive ? VIRAL_COLORS.neon.green : VIRAL_COLORS.neon.pink}
+              />
+              <Text style={[
+                styles.deltaText,
+                { color: isPositive ? VIRAL_COLORS.neon.green : VIRAL_COLORS.neon.pink }
+              ]}>
+                {isPositive ? '+' : ''}{delta}
+              </Text>
+            </View>
+          )}
+        </View>
+      ) : (
+        // No progress data - just show current value
+        <View style={styles.noProgressContainer}>
+          <Text style={[styles.currentValueOnly, { color }]}>{value}</Text>
+          <Text style={styles.noProgressLabel}>Current</Text>
+        </View>
+      )}
     </View>
-    <Text style={styles.strandLabel}>{label}</Text>
-    <Text style={styles.strandDescription}>{description}</Text>
-  </View>
-);
+  );
+};
 
 /**
  * Extract numeric score (0-100) from DNA strand object
- * Same logic as main DNA screen for consistency
  */
 const getStrandScore = (strand: any): number => {
   if (!strand) return 0;
@@ -259,83 +310,71 @@ const getStrandScore = (strand: any): number => {
 };
 
 /**
- * Main Share Card Component - VIRAL EDITION
+ * Main Share Card Component - WITH PROGRESS
  */
 export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
-  ({ profile, language }, ref) => {
-    console.log('[DNAShareCard] Rendering VIRAL card for language:', language);
+  ({ profile, language, evolution }, ref) => {
+    console.log('[DNAShareCard] Rendering card with progress for language:', language);
 
-    // Extract strand data using same logic as main screen
+    // Get Week 1 baseline scores if evolution data exists
+    const getBaselineScore = (strandKey: string): number | null => {
+      if (!evolution || evolution.length === 0) return null;
+      const week1 = evolution[0];
+      if (!week1?.strand_snapshots?.[strandKey]) return null;
+      return getStrandScore(week1.strand_snapshots[strandKey]);
+    };
+
+    // Extract strand data with baselines
     const strandData = [
       {
+        key: 'rhythm',
         label: 'Rhythm',
         value: getStrandScore(profile.dna_strands.rhythm),
+        baseline: getBaselineScore('rhythm'),
         color: VIRAL_COLORS.strand.rhythm,
         iconName: 'water' as const,
       },
       {
+        key: 'confidence',
         label: 'Confidence',
         value: getStrandScore(profile.dna_strands.confidence),
+        baseline: getBaselineScore('confidence'),
         color: VIRAL_COLORS.strand.confidence,
         iconName: 'flame' as const,
       },
       {
+        key: 'vocabulary',
         label: 'Vocab',
         value: getStrandScore(profile.dna_strands.vocabulary),
+        baseline: getBaselineScore('vocabulary'),
         color: VIRAL_COLORS.strand.vocabulary,
         iconName: 'library' as const,
       },
       {
+        key: 'accuracy',
         label: 'Accuracy',
         value: getStrandScore(profile.dna_strands.accuracy),
+        baseline: getBaselineScore('accuracy'),
         color: VIRAL_COLORS.strand.accuracy,
         iconName: 'checkmark-circle' as const,
       },
       {
+        key: 'learning',
         label: 'Learning',
         value: getStrandScore(profile.dna_strands.learning),
+        baseline: getBaselineScore('learning'),
         color: VIRAL_COLORS.strand.learning,
         iconName: 'rocket' as const,
       },
       {
+        key: 'emotional',
         label: 'Emotional',
         value: getStrandScore(profile.dna_strands.emotional),
+        baseline: getBaselineScore('emotional'),
         color: VIRAL_COLORS.strand.emotional,
         iconName: 'heart' as const,
       },
     ];
-
-    // Featured strands: Rhythm, Emotional, Confidence (most interesting for sharing)
-    const featuredStrands = [
-      strandData.find(s => s.label === 'Rhythm'),
-      strandData.find(s => s.label === 'Emotional'),
-      strandData.find(s => s.label === 'Confidence'),
-    ]
-      .filter(Boolean)
-      .map(strand => ({
-        ...strand!,
-        description: getStrandDescription(strand!.label, profile.dna_strands),
-      }));
-
-    // Helper to get strand description from profile
-    function getStrandDescription(label: string, strands: any): string {
-      const strandMap: Record<string, string> = {
-        'Rhythm': strands.rhythm?.pattern?.replace(/_/g, ' ') || strands.rhythm?.type?.replace(/_/g, ' ') || 'Natural flow',
-        'Confidence': strands.confidence?.level?.replace(/_/g, ' ') || 'Building strong',
-        'Vocab': strands.vocabulary?.style?.replace(/_/g, ' ') || 'Expanding',
-        'Accuracy': strands.accuracy?.pattern || 'Improving',
-        'Learning': strands.learning?.type || 'Growing',
-        'Emotional': strands.emotional?.pattern?.replace(/_/g, ' ') || strands.emotional?.trend?.replace(/_/g, ' ') || 'Growing resilience',
-      };
-      return strandMap[label] || 'Developing';
-    }
-
-    // Derive CEFR level from vocabulary complexity
-    const complexityLevel = profile.dna_strands?.vocabulary?.complexity_level;
-    const cefrLevel =
-      complexityLevel === 'advanced' ? 'C1' :
-      complexityLevel === 'intermediate' ? 'B1' :
-      complexityLevel === 'beginner' ? 'A2' : null;
 
     // Get archetype info
     const archetype = profile.overall_profile || {};
@@ -383,52 +422,29 @@ export const DNAShareCard = React.forwardRef<View, DNAShareCardProps>(
 
           {/* Radar Chart Section */}
           <View style={styles.radarSection}>
-            <ViralRadarChart data={strandData} size={650} />
+            <ViralRadarChart
+              data={strandData.map(s => ({ label: s.label, value: s.value, color: s.color }))}
+              size={638}
+            />
           </View>
 
-          {/* Featured Strand Cards: Rhythm, Emotional, Confidence */}
+          {/* All 6 Strand Cards with Progress - 2x3 Grid */}
           <View style={styles.strandsGrid}>
-            {featuredStrands.map((strand, index) => (
-              <StrandCard
-                key={strand.label}
+            {strandData.map((strand) => (
+              <StrandCardWithProgress
+                key={strand.key}
                 label={strand.label}
-                value={Math.round(strand.value)}
+                value={strand.value}
+                baseline={strand.baseline}
                 color={strand.color}
                 iconName={strand.iconName}
-                description={strand.description}
               />
             ))}
           </View>
 
-          {/* Stats Bar */}
-          <View style={styles.statsBar}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{profile.sessions_analyzed}</Text>
-              <Text style={styles.statLabel}>Sessions</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{Math.round(profile.total_speaking_minutes)}</Text>
-              <Text style={styles.statLabel}>Minutes</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{cefrLevel || '—'}</Text>
-              <Text style={styles.statLabel}>Level</Text>
-            </View>
-          </View>
-
           {/* Footer CTA */}
           <View style={styles.footer}>
-            <LinearGradient
-              colors={[VIRAL_COLORS.neon.cyan, VIRAL_COLORS.neon.purple]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.ctaBadge}
-            >
-              <Text style={styles.ctaText}>Discover Your Speaking DNA</Text>
-            </LinearGradient>
-            <Text style={styles.footerSubtext}>mytaco.ai</Text>
+            <Text style={styles.footerText}>Download MyTacoAI for Your Voice DNA</Text>
           </View>
         </LinearGradient>
       </View>
@@ -446,21 +462,21 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    padding: 60,
-    paddingTop: 80,
-    paddingBottom: 80,
+    padding: 50,
+    paddingTop: 70,
+    paddingBottom: 70,
   },
   // Header
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 25,
   },
   title: {
-    fontSize: 68,
+    fontSize: 64,
     fontWeight: '900',
     color: VIRAL_COLORS.text.primary,
     letterSpacing: 2,
-    marginBottom: 20,
+    marginBottom: 18,
     textShadowColor: VIRAL_COLORS.neon.cyan,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
@@ -469,12 +485,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
     borderRadius: 40,
     borderWidth: 2,
     borderColor: 'rgba(20, 184, 166, 0.3)',
-    gap: 12,
+    gap: 10,
   },
   flagWrapper: {
     width: 32,
@@ -485,7 +501,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   languageText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
     color: VIRAL_COLORS.text.primary,
     letterSpacing: 2,
@@ -493,13 +509,13 @@ const styles = StyleSheet.create({
   // Archetype Hero
   archetypeHero: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 35,
   },
   archetypeBadge: {
-    paddingHorizontal: 40,
-    paddingVertical: 24,
-    borderRadius: 35,
-    marginBottom: 20,
+    paddingHorizontal: 35,
+    paddingVertical: 20,
+    borderRadius: 32,
+    marginBottom: 16,
     shadowColor: VIRAL_COLORS.neon.pink,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
@@ -507,90 +523,99 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   archetypeName: {
-    fontSize: 48,
+    fontSize: 42,
     fontWeight: '900',
     color: '#FFFFFF',
     textAlign: 'center',
   },
   archetypeSummary: {
-    fontSize: 28,
+    fontSize: 25,
     fontWeight: '500',
     color: VIRAL_COLORS.text.secondary,
     textAlign: 'center',
     fontStyle: 'italic',
-    lineHeight: 38,
-    paddingHorizontal: 40,
+    lineHeight: 34,
+    paddingHorizontal: 35,
   },
   // Radar
   radarSection: {
     alignItems: 'center',
-    marginVertical: 30,
+    marginTop: 20,
+    marginBottom: 45,
   },
-  // Strand Cards
+  // Strand Cards - 2x3 Grid
   strandsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 40,
-    gap: 16,
+    marginBottom: 35,
+    gap: 14,
   },
   strandCard: {
-    flex: 1,
+    width: '31%', // 3 cards per row with gaps
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 24,
+    borderRadius: 20,
     borderWidth: 2,
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
   },
   strandIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   strandLabel: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: VIRAL_COLORS.text.primary,
-    marginBottom: 8,
-  },
-  strandDescription: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: VIRAL_COLORS.text.secondary,
+    marginBottom: 10,
     textAlign: 'center',
-    textTransform: 'capitalize',
   },
-  // Stats Bar
-  statsBar: {
+  // Progress Display
+  progressContainer: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressNumbers: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 25,
-    padding: 24,
-    marginBottom: 40,
     alignItems: 'center',
-    justifyContent: 'space-around',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 8,
   },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
+  baselineNumber: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.5)',
   },
-  statDivider: {
-    width: 2,
-    height: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  statValue: {
-    fontSize: 44,
+  currentNumber: {
+    fontSize: 26,
     fontWeight: '900',
-    color: VIRAL_COLORS.neon.cyan,
+  },
+  deltaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  deltaText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  // No Progress Display
+  noProgressContainer: {
+    alignItems: 'center',
+  },
+  currentValueOnly: {
+    fontSize: 32,
+    fontWeight: '900',
     marginBottom: 4,
   },
-  statLabel: {
-    fontSize: 20,
+  noProgressLabel: {
+    fontSize: 14,
     fontWeight: '600',
     color: VIRAL_COLORS.text.tertiary,
   },
@@ -598,20 +623,10 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
   },
-  ctaBadge: {
-    paddingHorizontal: 32,
-    paddingVertical: 20,
-    borderRadius: 30,
-    marginBottom: 16,
-  },
-  ctaText: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  footerSubtext: {
+  footerText: {
     fontSize: 24,
-    fontWeight: '600',
-    color: VIRAL_COLORS.text.tertiary,
+    fontWeight: '700',
+    color: VIRAL_COLORS.text.secondary,
+    textAlign: 'center',
   },
 });
