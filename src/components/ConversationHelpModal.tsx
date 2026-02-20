@@ -51,12 +51,27 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(20));
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['responses']));
+  const [visibleTranslations, setVisibleTranslations] = useState<Set<number>>(new Set()); // Track which translations are visible
   const dotAnimations = useRef([
     new Animated.Value(0),
     new Animated.Value(0),
     new Animated.Value(0),
   ]).current;
   const micPulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Debug helpData changes (one-time log per data update)
+  useEffect(() => {
+    if (helpData && helpData.suggested_responses) {
+      console.log('[CONVERSATION_HELP_MODAL] Help data updated:');
+      helpData.suggested_responses.forEach((response, index) => {
+        console.log(`  Response ${index}:`, {
+          text: response.text,
+          translation: response.translation,
+          hasTranslation: !!response.translation
+        });
+      });
+    }
+  }, [helpData]);
 
   // Entrance and exit animations
   useEffect(() => {
@@ -193,6 +208,21 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
     onClose();
   };
 
+  const toggleTranslation = (index: number) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setVisibleTranslations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
   // Content component (can be wrapped in Modal or rendered inline)
   const HelpContent = (
     <Animated.View
@@ -282,25 +312,40 @@ const ConversationHelpModal: React.FC<ConversationHelpModalProps> = ({
 
                     {expandedSections.has('responses') && (
                       <View style={styles.responsesContainer}>
-                        {helpData.suggested_responses?.map((response, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            style={[
-                              styles.responseCard,
-                              index === 0 && styles.responseCardFirst,
-                            ]}
-                            onPress={() => handleSelectResponse(response.text || '')}
-                            activeOpacity={0.8}
-                          >
-                            <View style={[
-                              styles.responseNumberBadge,
-                              index === 0 && styles.responseNumberBadgeFirst,
-                            ]}>
-                              <Text style={styles.responseNumberText}>{index + 1}</Text>
+                        {helpData.suggested_responses?.map((response, index) => {
+                          return (
+                            <View key={index}>
+                              <View style={styles.responseCard}>
+                                <View style={styles.responseCardContent}>
+                                  <Text style={styles.responseText}>{response.text}</Text>
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      console.log('[TRANSLATION_BUTTON] Tapped! Translation:', response.translation);
+                                      toggleTranslation(index);
+                                    }}
+                                    style={styles.translateIconButton}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                  >
+                                    <Ionicons
+                                      name={visibleTranslations.has(index) ? "language" : "language-outline"}
+                                      size={22}
+                                      color={visibleTranslations.has(index) ? "#8B5CF6" : "#94A3B8"}
+                                    />
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                              {response.translation && visibleTranslations.has(index) && (
+                                <View style={styles.translationContainer}>
+                                  <View style={styles.translationBadge}>
+                                    <Ionicons name="language" size={12} color="#8B5CF6" />
+                                    <Text style={styles.translationLabel}>{t('practice.conversation.help.translation')}</Text>
+                                  </View>
+                                  <Text style={styles.translationText}>{response.translation}</Text>
+                                </View>
+                              )}
                             </View>
-                            <Text style={styles.responseText}>{response.text}</Text>
-                          </TouchableOpacity>
-                        ))}
+                          );
+                        })}
                       </View>
                     )}
                   </View>

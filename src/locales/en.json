@@ -1005,7 +1005,8 @@
         "label_smooth": "Smooth",
         "label_low": "Low"
       }
-    }
+    },
+    "remainingAssessments": "Remaining Assessments"
   },
   "explore": {
     "title": "Daily Challenges",

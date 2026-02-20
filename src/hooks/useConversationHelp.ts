@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import {
   ConversationHelpService,
   ConversationHelpRequest,
@@ -29,6 +30,20 @@ interface HelpState {
   isModalVisible: boolean;
 }
 
+// Helper function to map i18n language codes to backend format
+const mapLanguageCodeToBackend = (i18nCode: string): string => {
+  const mapping: { [key: string]: string } = {
+    'en': 'english',
+    'es': 'spanish',
+    'fr': 'french',
+    'de': 'german',
+    'nl': 'dutch',
+    'pt': 'portuguese',
+    'tr': 'turkish',
+  };
+  return mapping[i18nCode] || 'english';
+};
+
 export const useConversationHelp = (options: UseConversationHelpOptions) => {
   const {
     targetLanguage,
@@ -37,14 +52,19 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     enabled = true,
   } = options;
 
+  const { i18n } = useTranslation();
+
   // Keep track of the enabled prop to use during settings load
   const enabledRef = useRef(enabled);
   enabledRef.current = enabled;
 
+  // Get user's app language from i18n
+  const userAppLanguage = mapLanguageCodeToBackend(i18n.language);
+
   // State for help settings
   const [helpSettings, setHelpSettings] = useState<UserHelpSettings>({
     help_enabled: enabled,
-    help_language: 'english',
+    help_language: userAppLanguage,  // Use app language instead of hardcoded 'english'
     show_pronunciation: true,
     show_grammar_tips: true,
     show_cultural_notes: true,
@@ -65,11 +85,12 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
   const lastProcessedMessageRef = useRef<string>('');
   const helpGenerationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load help settings on mount
+  // Load help settings on mount and when app language changes
   useEffect(() => {
-    console.log('[CONVERSATION_HELP] 🚀 Hook mounted, loading settings...');
+    console.log('[CONVERSATION_HELP] 🚀 Hook mounted or language changed, loading settings...');
+    console.log('[CONVERSATION_HELP] 🌍 Current app language:', userAppLanguage);
     loadHelpSettings();
-  }, []);
+  }, [userAppLanguage]);
 
   // Log when help settings change
   useEffect(() => {
@@ -111,7 +132,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
         const mergedSettings = {
           ...settings,
           help_enabled: enabledRef.current, // ALWAYS use options.enabled, ignore API setting
-          help_language: settings.help_language || 'english',
+          help_language: settings.help_language || userAppLanguage,  // Use app language instead of 'english'
           show_pronunciation: settings.show_pronunciation !== false,
           show_grammar_tips: settings.show_grammar_tips !== false,
           show_cultural_notes: settings.show_cultural_notes !== false,
@@ -128,7 +149,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     } catch (error) {
       console.error('[CONVERSATION_HELP] ❌ Error loading settings:', error);
     }
-  }, []); // Empty deps - only uses refs and setters which don't change
+  }, [userAppLanguage]); // Reload when app language changes
 
   /**
    * Update help settings locally and on server
@@ -195,11 +216,12 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
           content: msg.content,
         })),
         target_language: targetLanguage,
-        user_language: helpSettings.help_language || 'english',
+        user_language: helpSettings.help_language || userAppLanguage,
         proficiency_level: proficiencyLevel,
         topic: topic || undefined,
       };
 
+      console.log('[CONVERSATION_HELP] 🌍 Translation language:', helpSettings.help_language || userAppLanguage);
       console.log('[CONVERSATION_HELP] 📤 Sending API request with data:', JSON.stringify(requestData, null, 2));
 
       const helpContent = await ConversationHelpService.generateHelpContentApiConversationHelpGeneratePost(requestData);
@@ -259,7 +281,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
 
       return null;
     }
-  }, [targetLanguage, proficiencyLevel, topic, helpSettings.help_enabled, helpSettings.help_language]);
+  }, [targetLanguage, proficiencyLevel, topic, helpSettings.help_enabled, helpSettings.help_language, userAppLanguage]);
 
   /**
    * Show help modal

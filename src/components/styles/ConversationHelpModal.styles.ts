@@ -186,16 +186,14 @@ export const styles = StyleSheet.create({
   },
   responseCard: {
     backgroundColor: 'rgba(16, 185, 129, 0.20)',
-    padding: 14, // Reduced from 20
-    paddingTop: 12, // Reduced from 16
-    paddingLeft: 18, // Reduced from 22
-    borderRadius: 14, // Reduced from 16
+    padding: 16,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: 'rgba(16, 185, 129, 0.5)',
-    minHeight: 60, // Reduced from 85
+    minHeight: 60,
     justifyContent: 'center',
     position: 'relative',
-    marginBottom: 2, // Reduced from 4
+    marginBottom: 2,
     ...Platform.select({
       ios: {
         shadowColor: '#10B981',
@@ -256,6 +254,60 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     lineHeight: 22,
     letterSpacing: 0.2,
+    flex: 1,
+  },
+  responseCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  translateIconButton: {
+    padding: 8,
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#8B5CF6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  translationContainer: {
+    backgroundColor: 'rgba(139, 92, 246, 0.12)',
+    padding: 12,
+    paddingTop: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(139, 92, 246, 0.25)',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  translationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 6,
+  },
+  translationLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#C4B5FD',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  translationText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#E9D5FF',
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
   pronunciationButton: {
     padding: 6,

@@ -188,9 +188,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     current_streak: number;
     longest_streak: number;
     total_xp: number;
+    average_minutes_per_day?: number;
+    days_since_first_practice?: number;
+    first_practice_date?: string;
   } | null>(null);
   const [achievementCount, setAchievementCount] = useState<number | null>(null);
   const [challengesCompleted, setChallengesCompleted] = useState<number | null>(null);
+  const [todaysChallenges, setTodaysChallenges] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'flashcards' | 'dna'>('overview');
   const scrollViewRef = React.useRef<ScrollView>(null);
@@ -312,9 +316,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     try {
       const userData = await fetchWithAuth('/api/auth/me');
       setUser(userData);
-      // Grab challenge stats from the user object to avoid a duplicate API call
-      const total = userData?.challengeStats?.totalCompleted ?? 0;
-      setChallengesCompleted(total);
+      // Grab lifetime challenge stats from the user's embedded stats field
+      const lifetimeTotal = userData?.stats?.lifetime?.total_challenges ?? 0;
+      setChallengesCompleted(lifetimeTotal);
       // Keep AsyncStorage in sync so subscription-gated services (e.g. hasPremiumAccess)
       // always read the current plan/status rather than a stale cached object.
       await AsyncStorage.setItem('user', JSON.stringify(userData));
@@ -400,10 +404,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         current_streak: progressData.current_streak || 0,
         longest_streak: progressData.longest_streak || 0,
         total_xp: lifetimeData?.summary?.total_xp || 0,
+        average_minutes_per_day: progressData.average_minutes_per_day || 0,
+        days_since_first_practice: progressData.days_since_first_practice || 0,
+        first_practice_date: progressData.first_practice_date || null,
       });
     } catch (error) {
       console.error('Error fetching progress stats:', error);
-      setProgressStats({ total_minutes: 0, total_sessions: 0, current_streak: 0, longest_streak: 0, total_xp: 0 });
+      setProgressStats({
+        total_minutes: 0,
+        total_sessions: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        total_xp: 0,
+        average_minutes_per_day: 0,
+        days_since_first_practice: 0,
+        first_practice_date: null
+      });
     }
   };
 
@@ -414,6 +430,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
     } catch (error) {
       console.error('Error fetching achievements:', error);
       setAchievementCount(0);
+    }
+  };
+
+  const fetchTodaysChallenges = async () => {
+    try {
+      // Fetch today's challenge count from daily stats API
+      const data = await fetchWithAuth('/api/stats/daily');
+      const todaysCount = data?.overall?.total_challenges ?? 0;
+      setTodaysChallenges(todaysCount);
+    } catch (error) {
+      console.error('Error fetching todays challenges:', error);
+      setTodaysChallenges(0);
     }
   };
 
@@ -431,6 +459,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
       setProgressStats(null);
       setAchievementCount(null);
       setChallengesCompleted(null);
+      setTodaysChallenges(null);
       setUser(null);
       setConversationHistory([]);
       setLearningPlans([]);
@@ -450,6 +479,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         fetchNotifications(),
         fetchProgressStats(),
         fetchAchievements(),
+        fetchTodaysChallenges(),
       ]);
     } catch (error) {
       console.error('Error fetching all data:', error);
@@ -929,12 +959,37 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
             <Text style={styles.statLargeLabel}>Minutes Practiced</Text>
           </View>
 
-          <View style={[styles.statCardLarge, { backgroundColor: '#8B5CF6' }]}>
+          <View style={[styles.statCardLarge, { backgroundColor: '#8B5CF6', position: 'relative' }]}>
+            {/* Today's Badge */}
+            {todaysChallenges !== null && todaysChallenges > 0 && (
+              <View style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.4)',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+              }}>
+                <Ionicons name="flame" size={14} color="#FFFFFF" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
+                  +{todaysChallenges} today
+                </Text>
+              </View>
+            )}
             <Ionicons name="trophy" size={36} color="#FFFFFF" />
             <Text style={styles.statLargeValue}>
-              {challengesCompleted !== null ? challengesCompleted : '—'}
+              {challengesCompleted !== null ? challengesCompleted.toLocaleString() : '—'}
             </Text>
             <Text style={styles.statLargeLabel}>Challenges Completed</Text>
+            <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', marginTop: 4, fontWeight: '600' }}>
+              All Time
+            </Text>
           </View>
         </View>
 
@@ -966,17 +1021,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
         {/* Full-Width Card: Average Practice Time */}
         <View style={[styles.statCardFullWidth, { backgroundColor: '#3B82F6' }]}>
           <View style={styles.statFullWidthHeader}>
-            <Text style={styles.statFullWidthTitle}>Average Practice Time</Text>
+            <Text style={styles.statFullWidthTitle}>Average Daily Practice</Text>
             <Ionicons name="analytics" size={24} color="#FFFFFF" />
           </View>
           <View style={styles.statFullWidthContent}>
             <View>
               <Text style={styles.statFullWidthValue}>
-                {progressStats && progressStats.total_sessions > 0
-                  ? Math.round(progressStats.total_minutes / progressStats.total_sessions)
+                {progressStats && progressStats.average_minutes_per_day
+                  ? Math.round(progressStats.average_minutes_per_day)
                   : 0}
               </Text>
-              <Text style={styles.statFullWidthSubtext}>minutes per session</Text>
+              <Text style={styles.statFullWidthSubtext}>minutes per day</Text>
             </View>
           </View>
         </View>
@@ -1031,8 +1086,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ route, navigation }) => {
 
           <View style={[styles.statCardSmall, { backgroundColor: '#A855F7' }]}>
             <Ionicons name="checkbox" size={24} color="#FFFFFF" />
-            <Text style={styles.statSmallValue}>{user?.assessments_used || 0}</Text>
-            <Text style={styles.statSmallLabel}>Assessments</Text>
+            <Text style={styles.statSmallValue}>
+              {(() => {
+                const assessmentsLimit = (user as any)?.assessments_limit || 1;
+                const assessmentsUsed = (user as any)?.assessments_used || 0;
+                return Math.max(0, assessmentsLimit - assessmentsUsed);
+              })()}
+            </Text>
+            <Text style={styles.statSmallLabel}>{t('profile.remainingAssessments')}</Text>
           </View>
         </View>
       </View>

@@ -1004,7 +1004,8 @@
         "label_smooth": "Glatt",
         "label_low": "Niedrig"
       }
-    }
+    },
+    "remainingAssessments": "Verbleibende Bewertungen"
   },
   "explore": {
     "title": "Tägliche Herausforderungen",

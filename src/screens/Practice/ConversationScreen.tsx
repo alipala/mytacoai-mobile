@@ -30,6 +30,7 @@ import ConversationHelpButton from '../../components/ConversationHelpButton';
 import { useConversationHelp } from '../../hooks/useConversationHelp';
 import { API_BASE_URL } from '../../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { EmojiText } from '../../components/EmojiText';
 
 // New state-driven animation components
 import { useConversationState } from '../../hooks/useConversationState';
@@ -137,9 +138,11 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message, voiceName = 
           <Animated.View
             style={[styles.messageBubble, styles.messageBubbleUser]}
           >
-            <Text style={[styles.messageText, styles.messageTextUser]}>
-              {message.content}
-            </Text>
+            <EmojiText
+              text={message.content}
+              style={[styles.messageText, styles.messageTextUser]}
+              emojiSize={20}
+            />
           </Animated.View>
         </View>
       ) : (
@@ -163,9 +166,11 @@ const AnimatedMessage: React.FC<AnimatedMessageProps> = ({ message, voiceName = 
               },
             ]}
           >
-            <Text style={[styles.messageText, styles.messageTextAssistant]}>
-              {message.content}
-            </Text>
+            <EmojiText
+              text={message.content}
+              style={[styles.messageText, styles.messageTextAssistant]}
+              emojiSize={20}
+            />
           </Animated.View>
         </>
       )}

@@ -1004,7 +1004,8 @@
         "label_smooth": "Fluide",
         "label_low": "Faible"
       }
-    }
+    },
+    "remainingAssessments": "Évaluations Restantes"
   },
   "explore": {
     "title": "Défis quotidiens",

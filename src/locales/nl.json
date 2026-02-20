@@ -1004,7 +1004,8 @@
         "label_smooth": "Soepel",
         "label_low": "Laag"
       }
-    }
+    },
+    "remainingAssessments": "Resterende Beoordelingen"
   },
   "explore": {
     "title": "Dagelijkse Uitdagingen",

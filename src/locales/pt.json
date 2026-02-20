@@ -1004,7 +1004,8 @@
         "label_smooth": "Suave",
         "label_low": "Baixo"
       }
-    }
+    },
+    "remainingAssessments": "Avaliações Restantes"
   },
   "explore": {
     "title": "Desafios Diários",

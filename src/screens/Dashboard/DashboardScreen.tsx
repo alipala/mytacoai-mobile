@@ -1414,13 +1414,29 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             return dateB - dateA;
           });
 
-          // Filter practice sessions by language if selected
-          const filteredSessions = selectedLanguageFilter
-            ? practiceSessions.filter(session => {
-                const sessionLang = (session.language || session.target_language || 'english').toLowerCase();
-                return sessionLang === selectedLanguageFilter.toLowerCase();
-              })
-            : practiceSessions;
+          // Filter practice sessions by language AND status filter
+          const filteredSessions = practiceSessions.filter(session => {
+            // Language filter
+            if (selectedLanguageFilter) {
+              const sessionLang = (session.language || session.target_language || 'english').toLowerCase();
+              if (sessionLang !== selectedLanguageFilter.toLowerCase()) {
+                return false;
+              }
+            }
+
+            // Status filter - ONLY show practice sessions in "completed" filter
+            // This keeps Learn tab clean and focused on active learning plans
+            if (selectedFilter === 'all' || selectedFilter === 'new' || selectedFilter === 'in_progress') {
+              return false; // Exclude practice sessions from these filters
+            }
+
+            // For "completed" filter, show all practice sessions (they're all completed by definition)
+            if (selectedFilter === 'completed') {
+              return true;
+            }
+
+            return false;
+          });
 
           // Build masonry grid items array with intelligent mixing
           const gridItems: React.ReactNode[] = [];

@@ -1004,7 +1004,8 @@
         "label_smooth": "Fluido",
         "label_low": "Bajo"
       }
-    }
+    },
+    "remainingAssessments": "Evaluaciones Restantes"
   },
   "explore": {
     "title": "Desafíos Diarios",

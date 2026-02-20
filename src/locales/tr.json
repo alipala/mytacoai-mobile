@@ -1004,7 +1004,8 @@
         "label_smooth": "Akıcı",
         "label_low": "Düşük"
       }
-    }
+    },
+    "remainingAssessments": "Kalan Değerlendirmeler"
   },
   "explore": {
     "title": "Günlük Görevler",
