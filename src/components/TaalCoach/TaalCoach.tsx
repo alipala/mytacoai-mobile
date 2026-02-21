@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    zIndex: 1000,
+    zIndex: 9999,
   },
   buttonWrapper: {
     position: 'relative',

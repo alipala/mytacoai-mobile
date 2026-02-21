@@ -723,6 +723,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectAssessment={handleSelectAssessment}
         />
 
+        {/* Taal Coach - AI Learning Assistant */}
+        <TaalCoach
+          onPress={() => setShowCoachModal(true)}
+          visible={true}
+        />
+
+        {/* Coach Modal */}
+        <CoachModal
+          visible={showCoachModal}
+          onClose={() => setShowCoachModal(false)}
+          language={userLanguage}
+        />
+
       </SafeAreaView>
     );
   }
@@ -1280,6 +1293,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onClose={() => setShowSessionTypeModal(false)}
           onSelectQuickPractice={handleSelectQuickPractice}
           onSelectAssessment={handleSelectAssessment}
+        />
+
+        {/* Taal Coach - AI Learning Assistant */}
+        <TaalCoach
+          onPress={() => setShowCoachModal(true)}
+          visible={true}
+        />
+
+        {/* Coach Modal */}
+        <CoachModal
+          visible={showCoachModal}
+          onClose={() => setShowCoachModal(false)}
+          language={userLanguage}
         />
 
       </SafeAreaView>

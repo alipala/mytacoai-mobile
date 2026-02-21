@@ -37,8 +37,9 @@ import LottieView from 'lottie-react-native';
 // Import service and types
 import coachService, { ChatMessage, RichMessage, QuickReply } from '../../services/CoachService';
 
-// Import Lottie animation
+// Import Lottie animations
 const CompanionIdle = require('../../assets/lottie/companion_idle2.json');
+const LoadingCat = require('../../assets/lottie/loading_cat.json');
 
 // Import message components
 import { EmojiText } from '../EmojiText';
@@ -318,6 +319,11 @@ export const CoachModal: React.FC<CoachModalProps> = ({
         }));
         setMessages(restoredMessages);
         console.log('[CoachModal] Restored conversation from cache');
+
+        // Scroll to bottom after restoring messages
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: false });
+        }, 100);
       } else if (messages.length === 0) {
         // No cache and no messages - load initial greeting
         loadInitialGreeting();
@@ -342,6 +348,15 @@ export const CoachModal: React.FC<CoachModalProps> = ({
       return () => clearTimeout(saveTimeout);
     }
   }, [messages, language]);
+
+  // Auto-scroll to bottom when new messages arrive and modal is visible
+  useEffect(() => {
+    if (visible && messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages, visible]);
 
   // Keyboard listeners for better UX
   useEffect(() => {
@@ -610,8 +625,12 @@ export const CoachModal: React.FC<CoachModalProps> = ({
           >
             {isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#14B8A6" />
-                <Text style={styles.loadingText}>Loading your coach...</Text>
+                <LottieView
+                  source={LoadingCat}
+                  autoPlay
+                  loop
+                  style={styles.loadingCatAnimation}
+                />
               </View>
             ) : (
               <>
@@ -794,6 +813,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 100,
+  },
+  loadingCatAnimation: {
+    width: 200,
+    height: 200,
   },
   loadingText: {
     marginTop: 16,
