@@ -49,6 +49,8 @@ import { API_BASE_URL } from '../../api/config';
 import LottieView from 'lottie-react-native';
 import { authService } from '../../api/services/auth';
 import axios from 'axios';
+import { TaalCoach } from '../../components/TaalCoach/TaalCoach';
+import { CoachModal } from '../../components/TaalCoach/CoachModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -98,6 +100,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Taal Coach state
+  const [showCoachModal, setShowCoachModal] = useState(false);
   const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
 
   // Create next plan modal state
@@ -718,6 +723,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectAssessment={handleSelectAssessment}
         />
 
+        {/* Taal Coach - AI Learning Assistant */}
+        <TaalCoach
+          onPress={() => setShowCoachModal(true)}
+          visible={true}
+        />
+
+        {/* Coach Modal */}
+        <CoachModal
+          visible={showCoachModal}
+          onClose={() => setShowCoachModal(false)}
+          language={userLanguage}
+        />
+
       </SafeAreaView>
     );
   }
@@ -1275,6 +1293,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onClose={() => setShowSessionTypeModal(false)}
           onSelectQuickPractice={handleSelectQuickPractice}
           onSelectAssessment={handleSelectAssessment}
+        />
+
+        {/* Taal Coach - AI Learning Assistant */}
+        <TaalCoach
+          onPress={() => setShowCoachModal(true)}
+          visible={true}
+        />
+
+        {/* Coach Modal */}
+        <CoachModal
+          visible={showCoachModal}
+          onClose={() => setShowCoachModal(false)}
+          language={userLanguage}
         />
 
       </SafeAreaView>
@@ -2323,6 +2354,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Taal Coach - AI Learning Assistant */}
+      <TaalCoach
+        onPress={() => setShowCoachModal(true)}
+        visible={true}
+      />
+
+      {/* Coach Modal */}
+      <CoachModal
+        visible={showCoachModal}
+        onClose={() => setShowCoachModal(false)}
+        language={userLanguage}
+      />
     </SafeAreaView>
     );
   };
