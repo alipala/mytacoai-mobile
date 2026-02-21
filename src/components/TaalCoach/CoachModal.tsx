@@ -978,7 +978,7 @@ const styles = StyleSheet.create({
   },
   scrollToBottomButton: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 140,
     left: '50%',
     marginLeft: -20, // Half of width to center
     width: 40,
