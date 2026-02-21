@@ -1916,7 +1916,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       {/* Full-Screen Gradient Background - Extends to status bar */}
       <LinearGradient
-        colors={['#0B1A1F', '#0D2832', '#0F2C38', '#112E3C']}
+        colors={['#0A1628', '#0D2832', '#1A3A42', '#2D4A54']}
         locations={[0, 0.3, 0.6, 1]}
         style={styles.absoluteGradient}
       >

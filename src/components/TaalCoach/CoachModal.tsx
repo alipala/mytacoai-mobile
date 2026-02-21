@@ -570,7 +570,7 @@ export const CoachModal: React.FC<CoachModalProps> = ({
       onRequestClose={handleClose}
     >
       <LinearGradient
-        colors={['#0B1A1F', '#0D2832', '#0F2C38', '#112E3C']}
+        colors={['#0A1628', '#0D2832', '#1A3A42', '#2D4A54']}
         locations={[0, 0.3, 0.6, 1]}
         style={styles.container}
       >
@@ -745,7 +745,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(20, 184, 166, 0.2)',
+    borderBottomColor: 'rgba(20, 184, 166, 0.25)',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -844,25 +844,25 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   userBubble: {
-    backgroundColor: 'rgba(20, 184, 166, 0.25)',
+    backgroundColor: 'rgba(20, 184, 166, 0.45)',
     borderBottomRightRadius: 6,
     borderWidth: 2,
-    borderColor: 'rgba(20, 184, 166, 0.4)',
+    borderColor: 'rgba(78, 207, 191, 0.8)',
     shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
     elevation: 6,
   },
   assistantBubble: {
-    backgroundColor: 'rgba(139, 92, 246, 0.25)',
+    backgroundColor: 'rgba(139, 92, 246, 0.40)',
     borderBottomLeftRadius: 6,
     borderWidth: 2,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderColor: 'rgba(167, 139, 250, 0.7)',
     shadowColor: '#8B5CF6',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
     elevation: 6,
   },
   userMessageText: {
@@ -915,8 +915,8 @@ const styles = StyleSheet.create({
   quickRepliesContainer: {
     maxHeight: 70,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.2)',
-    backgroundColor: 'rgba(11, 26, 31, 0.95)',
+    borderTopColor: 'rgba(20, 184, 166, 0.25)',
+    backgroundColor: 'rgba(10, 22, 40, 0.95)',
   },
   quickRepliesContent: {
     paddingHorizontal: 16,
@@ -928,9 +928,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 18,
-    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+    backgroundColor: 'rgba(20, 184, 166, 0.30)',
     borderWidth: 1.5,
-    borderColor: '#14B8A6',
+    borderColor: 'rgba(78, 207, 191, 0.7)',
     marginRight: 8,
     minHeight: 36,
     justifyContent: 'center',
@@ -948,8 +948,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(20, 184, 166, 0.2)',
-    backgroundColor: 'rgba(11, 26, 31, 0.95)',
+    borderTopColor: 'rgba(20, 184, 166, 0.25)',
+    backgroundColor: 'rgba(10, 22, 40, 0.95)',
     gap: 12,
   },
   input: {
@@ -959,9 +959,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     color: '#FFFFFF',
     fontSize: 16,
   },
@@ -975,8 +975,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
     elevation: 4,
   },
   sendButtonDisabled: {
