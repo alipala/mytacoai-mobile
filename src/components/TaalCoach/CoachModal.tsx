@@ -41,7 +41,7 @@ import coachService, { ChatMessage, RichMessage, QuickReply } from '../../servic
 const CompanionIdle = require('../../assets/lottie/companion_idle2.json');
 
 // Import message components
-import { TypedMessage } from './TypedMessage';
+import { EmojiText } from '../EmojiText';
 import { ProgressCard } from './ProgressCard';
 import { DNACard } from './DNACard';
 
@@ -148,6 +148,125 @@ const TypingIndicator: React.FC = () => {
   );
 };
 
+// Animated Message Bubble Component
+interface AnimatedMessageBubbleProps {
+  isUser: boolean;
+  richMessages: RichMessage[];
+  timestamp: Date;
+  index: number;
+}
+
+const AnimatedMessageBubble: React.FC<AnimatedMessageBubbleProps> = ({
+  isUser,
+  richMessages,
+  timestamp,
+  index,
+}) => {
+  // Create animated values for fade, slide, and glow effects
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  // Trigger animation on mount
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Subtle glow effect for assistant messages
+    if (!isUser) {
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: false, // shadowOpacity doesn't support native driver
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  }, []);
+
+  return (
+    <Animated.View
+      key={index}
+      style={[
+        styles.messageContainer,
+        isUser ? styles.userMessageContainer : styles.assistantMessageContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
+      {/* Render each rich message */}
+      {richMessages.map((richMsg, idx) => {
+        switch (richMsg.type) {
+          case 'text':
+            return (
+              <Animated.View
+                key={idx}
+                style={[
+                  styles.messageBubble,
+                  isUser ? styles.userBubble : styles.assistantBubble,
+                  !isUser && {
+                    shadowOpacity: glowAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.25, 0.45], // Glow effect on assistant messages
+                    }),
+                  },
+                ]}
+              >
+                <EmojiText
+                  text={richMsg.content || ''}
+                  style={isUser ? styles.userMessageText : styles.assistantMessageText}
+                  emojiSize={20}
+                />
+              </Animated.View>
+            );
+
+          case 'progress_card':
+            return <ProgressCard key={idx} data={richMsg.data} />;
+
+          case 'dna_card':
+            return <DNACard key={idx} data={richMsg.data} />;
+
+          case 'celebration':
+            return (
+              <View key={idx} style={styles.celebrationContainer}>
+                <Text style={styles.celebrationEmoji}>🎉</Text>
+                <Text style={styles.celebrationText}>{richMsg.content}</Text>
+              </View>
+            );
+
+          default:
+            return null;
+        }
+      })}
+
+      {/* Timestamp */}
+      <Text style={styles.timestamp}>
+        {timestamp.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
+      </Text>
+    </Animated.View>
+  );
+};
+
 export const CoachModal: React.FC<CoachModalProps> = ({
   visible,
   onClose,
@@ -173,6 +292,12 @@ export const CoachModal: React.FC<CoachModalProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
+
+  // Scroll button states
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [scrollViewHeight, setScrollViewHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
 
   // Load conversation from cache when modal opens
   useEffect(() => {
@@ -372,6 +497,37 @@ export const CoachModal: React.FC<CoachModalProps> = ({
     onClose();
   };
 
+  // Handle scroll event to show/hide scroll buttons
+  const handleScroll = (event: any) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const scrollY = contentOffset.y;
+    const viewHeight = layoutMeasurement.height;
+    const contentHeight = contentSize.height;
+
+    // Show "scroll to top" if scrolled down more than 200px
+    setShowScrollToTop(scrollY > 200);
+
+    // Show "scroll to bottom" if not at the bottom (with 100px threshold)
+    const isAtBottom = scrollY + viewHeight >= contentHeight - 100;
+    setShowScrollToBottom(!isAtBottom && contentHeight > viewHeight);
+  };
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  };
+
   const renderMessage = (message: {
     role: 'user' | 'assistant';
     richMessages: RichMessage[];
@@ -379,63 +535,15 @@ export const CoachModal: React.FC<CoachModalProps> = ({
     animated?: boolean;
   }, index: number) => {
     const isUser = message.role === 'user';
-    const shouldAnimate = !message.animated && !isUser; // Only animate new AI messages
 
     return (
-      <View
+      <AnimatedMessageBubble
         key={index}
-        style={[
-          styles.messageContainer,
-          isUser ? styles.userMessageContainer : styles.assistantMessageContainer,
-        ]}
-      >
-        {/* Render each rich message */}
-        {message.richMessages.map((richMsg, idx) => {
-          switch (richMsg.type) {
-            case 'text':
-              return (
-                <View
-                  key={idx}
-                  style={[
-                    styles.messageBubble,
-                    isUser ? styles.userBubble : styles.assistantBubble,
-                  ]}
-                >
-                  <TypedMessage
-                    text={richMsg.content || ''}
-                    speed={shouldAnimate ? 20 : 0} // Only animate if new AI message
-                    style={isUser ? styles.userMessageText : styles.assistantMessageText}
-                  />
-                </View>
-              );
-
-            case 'progress_card':
-              return <ProgressCard key={idx} data={richMsg.data} />;
-
-            case 'dna_card':
-              return <DNACard key={idx} data={richMsg.data} />;
-
-            case 'celebration':
-              return (
-                <View key={idx} style={styles.celebrationContainer}>
-                  <Text style={styles.celebrationEmoji}>🎉</Text>
-                  <Text style={styles.celebrationText}>{richMsg.content}</Text>
-                </View>
-              );
-
-            default:
-              return null;
-          }
-        })}
-
-        {/* Timestamp */}
-        <Text style={styles.timestamp}>
-          {message.timestamp.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </Text>
-      </View>
+        isUser={isUser}
+        richMessages={message.richMessages}
+        timestamp={message.timestamp}
+        index={index}
+      />
     );
   };
 
@@ -497,6 +605,8 @@ export const CoachModal: React.FC<CoachModalProps> = ({
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
           >
             {isLoading ? (
               <View style={styles.loadingContainer}>
@@ -531,6 +641,42 @@ export const CoachModal: React.FC<CoachModalProps> = ({
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          )}
+
+          {/* Scroll to Top Button - Center Top */}
+          {showScrollToTop && (
+            <TouchableOpacity
+              style={styles.scrollToTopButton}
+              onPress={scrollToTop}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['rgba(20, 184, 166, 0.92)', 'rgba(16, 146, 130, 0.92)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.scrollButtonGradient}
+              >
+                <Ionicons name="chevron-up" size={20} color="#FFFFFF" />
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {/* Scroll to Bottom Button - Center Bottom */}
+          {showScrollToBottom && (
+            <TouchableOpacity
+              style={styles.scrollToBottomButton}
+              onPress={scrollToBottom}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['rgba(20, 184, 166, 0.92)', 'rgba(16, 146, 130, 0.92)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.scrollButtonGradient}
+              >
+                <Ionicons name="chevron-down" size={20} color="#FFFFFF" />
+              </LinearGradient>
+            </TouchableOpacity>
           )}
 
           {/* Input */}
@@ -657,7 +803,7 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     marginBottom: 16,
-    maxWidth: '80%',
+    maxWidth: '85%',
   },
   userMessageContainer: {
     alignSelf: 'flex-end',
@@ -668,11 +814,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   messageBubble: {
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 18,
     marginBottom: 4,
-    maxWidth: '80%',
+    maxWidth: '100%',
   },
   userBubble: {
     backgroundColor: 'rgba(20, 184, 166, 0.25)',
@@ -814,6 +960,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#CBD5E1',
     shadowOpacity: 0,
     elevation: 0,
+  },
+  scrollToTopButton: {
+    position: 'absolute',
+    top: 120,
+    left: '50%',
+    marginLeft: -20, // Half of width to center
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  scrollToBottomButton: {
+    position: 'absolute',
+    bottom: 100,
+    left: '50%',
+    marginLeft: -20, // Half of width to center
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  scrollButtonGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
 });
 
