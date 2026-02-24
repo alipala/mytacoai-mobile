@@ -103,6 +103,7 @@ export class RealtimeService {
         assessment_data: this.config.assessmentData,
         research_data: this.config.researchData,
         news_context: this.config.newsContext ? JSON.stringify(this.config.newsContext) : undefined,
+        selected_duration: this.config.selectedDuration || 5, // Default to 5 minutes
       });
 
       console.log('[RealtimeService] ✅ Session created, checking if news context was sent...');
