@@ -46,6 +46,7 @@ export interface RealtimeServiceConfig {
   assessmentData?: any;
   researchData?: string;
   newsContext?: any; // News article context for news conversations
+  selectedDuration?: number; // 3 or 5 minutes (A1/A2 can choose, B1+ only 5)
   onEvent?: (event: RealtimeEvent) => void;
   onTranscript?: (transcript: string, role: 'user' | 'assistant') => void;
   onError?: (error: Error) => void;

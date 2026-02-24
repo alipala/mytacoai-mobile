@@ -313,9 +313,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   }, [learningPlan]);
 
   // Modal states
-  // Show modal immediately for both modes
-  const [showInfoModal, setShowInfoModal] = useState(true);
+  // Show modal after a tiny delay to prevent color clipping during animation
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
+
+  // Session duration selection state (smart default based on level)
+  const [sessionDurationMinutes, setSessionDurationMinutes] = useState(() => {
+    // A1/A2 default to 3 minutes, B1+ default to 5 minutes
+    const defaultDuration = (level === 'A1' || level === 'A2') ? 3 : 5;
+    console.log(`[DURATION] 🕐 Initializing duration: level=${level}, defaultDuration=${defaultDuration}`);
+    return defaultDuration;
+  });
 
   // Conversation states
   const [messages, setMessages] = useState<Message[]>([]);
@@ -326,7 +334,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false); // Control spinner via events only
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
-  const [maxDuration, setMaxDuration] = useState(300); // Default 5 minutes, backend will override
+  const [maxDuration, setMaxDuration] = useState((level === 'A1' || level === 'A2') ? 180 : 300); // 3min for A1/A2, 5min for B1+
   const [userVoice, setUserVoice] = useState<string>('alloy'); // Track user's selected voice
 
   // Session saving states
@@ -467,6 +475,32 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   useEffect(() => {
     sessionMetricsRef.current = sessionMetrics;
   }, [sessionMetrics]);
+
+  // Update sessionDurationMinutes when learning plan is loaded (for A1/A2 plans)
+  useEffect(() => {
+    if (learningPlan && learningPlan.proficiency_level) {
+      const planLevel = learningPlan.proficiency_level;
+      const defaultForLevel = (planLevel === 'A1' || planLevel === 'A2') ? 3 : 5;
+      console.log(`[DURATION] 📚 Learning plan loaded: level=${planLevel}, setting duration to ${defaultForLevel} minutes`);
+      setSessionDurationMinutes(defaultForLevel);
+    }
+  }, [learningPlan]);
+
+  // Show modal after a brief delay to ensure smooth color rendering
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInfoModal(true);
+    }, 300); // 300ms delay for smooth, polished transition with all colors ready
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Update maxDuration when user changes session duration selection
+  useEffect(() => {
+    const newMaxDuration = sessionDurationMinutes * 60;
+    setMaxDuration(newMaxDuration);
+    console.log(`[DURATION] 🕐 Max duration updated to ${sessionDurationMinutes} minutes (${newMaxDuration} seconds)`);
+  }, [sessionDurationMinutes]);
 
   // Log when conversation help options change
   useEffect(() => {
@@ -878,6 +912,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         userPrompt: topic === 'custom' ? customTopicText : undefined,
         researchData: topic === 'custom' && researchData ? JSON.stringify(researchData) : undefined,
         newsContext: sessionType === 'news' ? newsContext : undefined, // Pass news context for news conversations
+        selectedDuration: sessionDurationMinutes, // Pass selected duration (3 or 5 minutes)
         onTranscript: (transcript: string, role: 'user' | 'assistant') => {
           console.log('[CONVERSATION] Transcript received:', role, transcript);
           addMessage(role, transcript);
@@ -1579,6 +1614,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 timestamp: msg.timestamp,
               })),
               duration_minutes: sessionDuration / 60,
+              selected_duration: sessionDurationMinutes, // Pass selected duration (3 or 5 minutes)
               language: learningPlan?.language || language,
               level: learningPlan?.proficiency_level || level,
               sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : null,
@@ -1605,6 +1641,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               timestamp: msg.timestamp,
             })),
             duration_minutes: sessionDuration / 60,
+            selected_duration: sessionDurationMinutes, // Pass selected duration (3 or 5 minutes)
             learning_plan_id: null,
             conversation_type: sessionType || 'practice', // Use sessionType if available (e.g., 'news')
             sentences_for_analysis: collectedSentences.length > 0 ? collectedSentences : [],
@@ -2135,60 +2172,42 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             borderColor: 'rgba(255, 255, 255, 0.2)',
             shadowColor: modalColor,
           }]}>
-            <View style={styles.modalHeader}>
-              <Ionicons name="information-circle" size={32} color="#FFFFFF" />
+            <View style={styles.modalHeaderInline}>
+              <Ionicons name="information-circle-outline" size={28} color="#FFFFFF" style={{ marginRight: 10 }} />
               <Text style={styles.modalTitle}>{t('practice.conversation.modal_info_title')}</Text>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
-                <Ionicons name="volume-high" size={24} color="#FFFFFF" />
+              <View style={[styles.infoCardCompact, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="volume-high" size={22} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_headphones_title')}</Text>
-                  <Text style={styles.infoText}>
-                    {t('practice.conversation.modal_info_headphones_text')}
-                  </Text>
+                  <Text style={styles.infoTextCompact}>Use headphones for best experience and to prevent audio feedback</Text>
                 </View>
               </View>
 
-              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
-                <Ionicons name="mic" size={24} color="#FFFFFF" />
+              <View style={[styles.infoCardCompact, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="mic" size={22} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_speak_title')}</Text>
-                  <Text style={styles.infoText}>
-                    {t('practice.conversation.modal_info_speak_text')}
-                  </Text>
+                  <Text style={styles.infoTextCompact}>Speak clearly at normal pace and volume for accurate recognition</Text>
                 </View>
               </View>
 
-              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
-                <Ionicons name="time" size={24} color="#FFFFFF" />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_time_title')}</Text>
-                  <Text style={styles.infoText}>
-                    {t('practice.conversation.modal_info_time_text')}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.infoCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
-                <Ionicons name="chatbubbles" size={24} color="#FFFFFF" />
+              <View style={[styles.infoCardCompact, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="chatbubbles" size={22} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_conversation_title')}</Text>
-                  <Text style={styles.infoText}>
-                    {t('practice.conversation.modal_info_conversation_text')}
-                  </Text>
+                  <Text style={styles.infoTextCompact}>Engage in natural conversation as you would with a real person</Text>
                 </View>
               </View>
 
               {/* Conversation Help Toggle */}
-              <View style={[styles.infoCard, styles.helpToggleCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
-                <Ionicons name="help-circle" size={24} color="#FFFFFF" />
+              <View style={[styles.infoCardCompact, styles.helpToggleCard, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                <Ionicons name="help-circle" size={22} color="#FFFFFF" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoTitle}>{t('practice.conversation.modal_info_help_title')}</Text>
-                  <Text style={styles.infoText}>
-                    {t('practice.conversation.modal_info_help_text')}
-                  </Text>
+                  <Text style={styles.infoTextCompact}>Toggle AI suggestions and guidance during conversations</Text>
                 </View>
                 <Switch
                   value={conversationHelp.helpSettings.help_enabled}
@@ -2203,6 +2222,72 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                   ios_backgroundColor="rgba(255, 255, 255, 0.3)"
                 />
               </View>
+
+              {/* Duration Selection - Only for A1/A2 users (both practice and learning plan) */}
+              {((level === 'A1' || level === 'A2') || (learningPlan?.proficiency_level === 'A1' || learningPlan?.proficiency_level === 'A2')) && (
+                <View style={[styles.durationSelectionCardCompact, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.25)' }]}>
+                  {/* Segmented Control Style - No header, just the control */}
+                  <View style={styles.segmentedControl}>
+                    <TouchableOpacity
+                      style={[
+                        styles.segmentButton,
+                        sessionDurationMinutes === 3 && styles.segmentButtonActive,
+                      ]}
+                      onPress={() => {
+                        if (Platform.OS === 'ios') {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        }
+                        setSessionDurationMinutes(3);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.segmentContent}>
+                        <Text style={[
+                          styles.segmentNumber,
+                          sessionDurationMinutes === 3 && { color: modalColor }
+                        ]}>3</Text>
+                        <Text style={[
+                          styles.segmentLabel,
+                          sessionDurationMinutes === 3 && styles.segmentLabelActive
+                        ]}>minutes</Text>
+                        <Text style={[
+                          styles.segmentBadge,
+                          sessionDurationMinutes === 3 && { color: modalColor }
+                        ]}>Quick</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.segmentButton,
+                        sessionDurationMinutes === 5 && styles.segmentButtonActive,
+                      ]}
+                      onPress={() => {
+                        if (Platform.OS === 'ios') {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        }
+                        setSessionDurationMinutes(5);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.segmentContent}>
+                        <Text style={[
+                          styles.segmentNumber,
+                          sessionDurationMinutes === 5 && { color: modalColor }
+                        ]}>5</Text>
+                        <Text style={[
+                          styles.segmentLabel,
+                          sessionDurationMinutes === 5 && styles.segmentLabelActive
+                        ]}>minutes</Text>
+                        <Text style={[
+                          styles.segmentBadge,
+                          sessionDurationMinutes === 5 && { color: modalColor }
+                        ]}>Standard</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </ScrollView>
 
             <View style={styles.modalButtonRow}>

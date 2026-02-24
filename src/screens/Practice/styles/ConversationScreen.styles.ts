@@ -489,11 +489,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  modalHeaderInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
   modalTitle: {
     fontSize: 22,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginTop: 8,
     letterSpacing: -0.5,
   },
   modalBody: {
@@ -524,6 +529,20 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 18,
+    fontWeight: '500',
+  },
+  infoCardCompact: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 11,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1.5,
+  },
+  infoTextCompact: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 16,
     fontWeight: '500',
   },
   modalButtonRow: {
@@ -717,5 +736,80 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     opacity: 0.95,
     letterSpacing: 0.5,
+  },
+  // Duration Selection Styles (Segmented Control)
+  durationSelectionCardCompact: {
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1.5,
+  },
+  durationHeaderCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  durationTitleCompact: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  // Segmented Control (iOS-style)
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 10,
+    padding: 3,
+    gap: 3,
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentButtonActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  segmentContent: {
+    alignItems: 'center',
+  },
+  segmentNumber: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: 'rgba(255, 255, 255, 0.6)',
+    letterSpacing: -1,
+  },
+  segmentNumberActive: {
+    color: '#14B8A6',
+  },
+  segmentLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginTop: 2,
+  },
+  segmentLabelActive: {
+    color: '#64748B',
+  },
+  segmentBadge: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
+  },
+  segmentBadgeActive: {
+    color: '#14B8A6',
   },
 });

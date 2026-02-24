@@ -23,6 +23,18 @@ export const styles = StyleSheet.create({
     width: SCREEN_WIDTH < 400 ? 140 : 180, // Optimized size for transparent logo
     height: SCREEN_WIDTH < 400 ? 45 : 58, // Maintain aspect ratio
   },
+  logoGlowContainer: {
+    width: 75,
+    height: 75,
+    borderRadius: 37.5, // Perfect circle
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B6B', // Soft coral glow matching the sunglasses
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
   logoMinimal: {
     width: 75, // Compact bear face logo (50% larger)
     height: 75,
@@ -59,6 +71,8 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(251, 191, 36, 0.4)',
+    maxWidth: 110, // Prevent overflow for large minute counts
+    minHeight: 44, // Consistent height with streak badge
     shadowColor: '#FBBF24',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
@@ -80,6 +94,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FCD34D', // Lighter gold
     lineHeight: 10,
+    flexShrink: 1, // Allow text to shrink if needed
   },
   // Compact Free Badge in Header - Dark Theme with Muted Feel
   freeBadgeCompact: {
@@ -92,6 +107,8 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(107, 138, 132, 0.4)',
+    maxWidth: 95, // Prevent overflow for large minute counts
+    minHeight: 44, // Consistent height with other badges
     shadowColor: '#6B8A84',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -110,6 +127,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6B8A84', // Slightly muted
     lineHeight: 10,
+    flexShrink: 1, // Allow text to shrink if needed
   },
   // Compact Streak Badge in Header - Dark Theme with Glow
   streakBadgeCompact: {
@@ -122,6 +140,8 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.4)',
+    maxWidth: 95, // Prevent overflow for large streaks
+    minHeight: 44, // Consistent height with premium badge
     shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
@@ -136,6 +156,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#EF4444', // Bright red
     lineHeight: 14,
+    flexShrink: 1, // Allow text to shrink if needed
   },
   streakLabelCompact: {
     fontSize: 9,
@@ -145,8 +166,8 @@ export const styles = StyleSheet.create({
   },
   // Notification Bell Badge - Dark Theme with Turquoise Glow
   notificationBell: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -120,6 +120,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   // Masonry grid doesn't need expanded language state
 
+  // Format streak for compact display
+  const formatStreakDisplay = (streak: number): string => {
+    if (streak >= 1000) {
+      return `${(streak / 1000).toFixed(1)}K`; // e.g., "1.5K days"
+    } else if (streak >= 100) {
+      return `${streak}`; // Show full number up to 999
+    }
+    return `${streak}`;
+  };
+
+  // Format minutes for compact display
+  const formatMinutesDisplay = (minutes: number): string => {
+    if (minutes >= 1000) {
+      return `${(minutes / 1000).toFixed(1)}K`; // e.g., "1.5K min"
+    }
+    return `${minutes}`;
+  };
+
   useEffect(() => {
     loadDashboardData();
 
@@ -750,11 +768,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
         {/* iOS-Native Header - Consistent with main dashboard */}
         <View style={styles.header}>
-          <Image
-            source={require('../../assets/logo-minimal-transparent.png')}
-            style={styles.logoMinimal}
-            resizeMode="contain"
-          />
+          <View style={styles.logoGlowContainer}>
+            <Image
+              source={require('../../assets/logo-minimal-transparent.png')}
+              style={styles.logoMinimal}
+              resizeMode="contain"
+            />
+          </View>
 
           <View style={styles.headerActions}>
             {/* Premium Badge - Always show for premium users */}
@@ -766,12 +786,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               >
                 <View style={styles.badgeGlowPremium} />
                 <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
-                <View>
+                <View style={{ flexShrink: 1 }}>
                   <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
-                  <Text style={styles.premiumMinutesCompact}>
+                  <Text style={styles.premiumMinutesCompact} numberOfLines={1}>
                     {subscriptionStatus?.limits?.is_unlimited
                       ? 'Unlimited'
-                      : t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                      : `${formatMinutesDisplay(subscriptionStatus?.limits?.minutes_remaining || 0)} min`}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -789,10 +809,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   >
                     <View style={styles.badgeGlowFree} />
                     <Ionicons name="sparkles-outline" size={16} color="#6B8A84" />
-                    <View>
+                    <View style={{ flexShrink: 1 }}>
                       <Text style={styles.freeTextCompact}>{t('profile.settings.subscription.free_badge')}</Text>
-                      <Text style={styles.freeMinutesCompact}>
-                        {t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                      <Text style={styles.freeMinutesCompact} numberOfLines={1}>
+                        {formatMinutesDisplay(subscriptionStatus?.limits?.minutes_remaining || 0)} min
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -806,10 +826,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   >
                     <View style={styles.badgeGlowStreak} />
                     <Ionicons name="flame-outline" size={18} color="#EF4444" />
-                    <View>
-                      <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
-                      <Text style={styles.streakLabelCompact}>{t('units.days_plural', { count: progressStats.current_streak || 0 })}</Text>
-                    </View>
+                    <Text style={styles.streakNumberCompact} numberOfLines={1}>
+                      {formatStreakDisplay(progressStats.current_streak || 0)} {t('units.days', { count: progressStats.current_streak || 0 }).replace(/^\d+\s*/, '')}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </>
@@ -1318,11 +1337,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <StatusBar backgroundColor={COLORS.turquoise} barStyle="light-content" />
       {/* Header with Logo + Premium Badge + Streak Badge + Notifications */}
       <View style={styles.header}>
-        <Image
-          source={require('../../assets/logo-minimal-transparent.png')}
-          style={styles.logoMinimal}
-          resizeMode="contain"
-        />
+        <View style={styles.logoGlowContainer}>
+          <Image
+            source={require('../../assets/logo-minimal-transparent.png')}
+            style={styles.logoMinimal}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={styles.headerActions}>
           {/* Premium Badge */}
@@ -1335,12 +1356,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* Outer glow for premium feel */}
               <View style={styles.badgeGlowPremium} />
               <Ionicons name="diamond-outline" size={16} color="#FBBF24" />
-              <View>
+              <View style={{ flexShrink: 1 }}>
                 <Text style={styles.premiumTextCompact}>{t('dashboard.header.premium_badge')}</Text>
-                <Text style={styles.premiumMinutesCompact}>
+                <Text style={styles.premiumMinutesCompact} numberOfLines={1}>
                   {subscriptionStatus?.limits?.is_unlimited
                     ? 'Unlimited'
-                    : t('dashboard.header.minutes_remaining', { minutes: subscriptionStatus?.limits?.minutes_remaining || 0 })}
+                    : `${formatMinutesDisplay(subscriptionStatus?.limits?.minutes_remaining || 0)} min`}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -1355,10 +1376,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               {/* Outer glow for streak */}
               <View style={styles.badgeGlowStreak} />
               <Ionicons name="flame-outline" size={18} color="#EF4444" />
-              <View>
-                <Text style={styles.streakNumberCompact}>{progressStats.current_streak || 0}</Text>
-                <Text style={styles.streakLabelCompact}>{t('units.days_plural', { count: progressStats.current_streak || 0 })}</Text>
-              </View>
+              <Text style={styles.streakNumberCompact} numberOfLines={1}>
+                {formatStreakDisplay(progressStats.current_streak || 0)} {t('units.days', { count: progressStats.current_streak || 0 }).replace(/^\d+\s*/, '')}
+              </Text>
             </TouchableOpacity>
           )}
 
