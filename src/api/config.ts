@@ -33,13 +33,9 @@ OpenAPI.TOKEN = async () => {
 
 // For debugging in dev mode
 if (__DEV__) {
-  console.log('🌐 API Base URL:', API_BASE_URL);
-
-  // 🧪 TESTING: Enable Challenge API for localhost testing
-  // Comment out these lines to disable API testing
+  // Enable Challenge API for localhost testing
   setFeatureFlag('USE_CHALLENGE_API', true);
   setFeatureFlag('SHOW_API_STATUS_INDICATOR', true);
-  console.log('🧪 Challenge API enabled for testing');
 }
 
 export default OpenAPI;

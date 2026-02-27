@@ -100,18 +100,6 @@ export default function ByCEFRLevelTodayCard({ onRefresh }: ByCEFRLevelTodayCard
     return descMap[level.toLowerCase()] || '';
   };
 
-  // Debug logging - MUST be called before any early returns
-  useEffect(() => {
-    if (daily) {
-      console.log('[ByCEFRLevelTodayCard] Daily data:', {
-        total_challenges: daily.overall?.total_challenges,
-        by_level_exists: !!daily.by_level,
-        by_level_keys: daily.by_level ? Object.keys(daily.by_level) : [],
-        by_level_data: daily.by_level,
-      });
-    }
-  }, [daily]);
-
   // Determine what to render (all hooks must be called before this)
   let contentToRender: 'loading' | 'empty' | 'emptyToday' | 'data' = 'data';
 

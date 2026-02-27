@@ -70,17 +70,6 @@ export default function TopLanguagesCard({ onRefresh }: TopLanguagesCardProps) {
     );
   }
 
-  // Debug logging
-  useEffect(() => {
-    if (lifetime) {
-      console.log('[TopLanguagesCard] Lifetime data:', {
-        language_progress_exists: !!lifetime.language_progress,
-        language_progress_keys: lifetime.language_progress ? Object.keys(lifetime.language_progress) : [],
-        language_progress_data: lifetime.language_progress,
-      });
-    }
-  }, [lifetime]);
-
   // No data state
   if (!lifetime || !lifetime.language_progress) {
     return null;

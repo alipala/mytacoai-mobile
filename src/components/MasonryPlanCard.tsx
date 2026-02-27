@@ -50,16 +50,6 @@ export const MasonryPlanCard: React.FC<MasonryPlanCardProps> = ({
   colorIndex = 0,
   size = 'medium',
 }) => {
-  // Debug log to see what data we have
-  console.log('📝 MasonryPlanCard - Plan data:', {
-    id: plan.id,
-    language: plan.language,
-    learning_goal: plan.learning_goal,
-    goal: plan.goal,
-    goals: plan.goals,
-    custom_goal: plan.custom_goal,
-  });
-
   // Use colorIndex for varied colors, fallback to goal-based color
   const goalType = plan.learning_goal?.toLowerCase() || 'default';
   const goalColor = GOAL_COLORS[goalType] || GOAL_COLORS.default;

@@ -49,6 +49,9 @@ import { SpeakingBreakthrough } from '../../types/speakingDNA';
 import { useVoiceCheckSchedule } from '../../hooks/useVoiceCheckSchedule';
 import { VoiceCheckModal } from '../../components/VoiceCheckModal';
 
+// Smart cache integration
+import { cacheEvents } from '../../services/smartCache';
+
 interface ConversationScreenProps {
   navigation: any;
   route: any;
@@ -1649,6 +1652,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
 
         console.log('[AUTO_END] Session saved successfully:', result);
+
+        // Invalidate caches after session completion
+        console.log('[CACHE] Emitting session_completed event');
+        cacheEvents.emit('session_completed');
 
         // 🔥 CRITICAL: Track speaking time for subscription/billing
         let minuteTrackingSuccess = false;

@@ -781,11 +781,6 @@ export default function ExploreScreenRedesigned({ navigation, route }: ExploreSc
           const hasLifetimeData = lifetime && lifetime.summary && lifetime.summary.total_challenges > 0;
           const showPlaceholder = !hasLifetimeData;
 
-          console.log('[ExploreScreen] Daily challenges:', daily?.overall?.total_challenges);
-          console.log('[ExploreScreen] Recent total challenges:', recent?.summary?.total_challenges);
-          console.log('[ExploreScreen] Lifetime total challenges:', lifetime?.summary?.total_challenges);
-          console.log('[ExploreScreen] Show placeholder:', showPlaceholder);
-
           return showPlaceholder ? <PlaceholderStatsCard /> : <HorizontalStatsCarousel onRefresh={reloadDailyStats} />;
         })()}
 

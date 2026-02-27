@@ -25,10 +25,12 @@ export const EmojiText: React.FC<EmojiTextProps> = ({
   // Parse text and split by emoji markers
   const parseTextWithEmojis = () => {
     // Normalize all emoji formats to {{emoji:name}}
-    // Handle: {{emoji:name}}, {{{emoji:name}}}, {{{{emoji:name}}}}
+    // Handle: {{emoji:name}}, {{{emoji:name}}}, {{{{emoji:name}}}}, {emoji:name}
+    // Also strip out any unicode emojis that appear before "emoji:"
     let normalizedText = text
       .replace(/\{\{\s*\{\{\s*emoji:(\w+)\s*\}\}\s*\}\}/g, '{{emoji:$1}}') // {{{{emoji:name}}}} -> {{emoji:name}}
-      .replace(/\{\{\s*\{\s*emoji:(\w+)\s*\}\s*\}\}/g, '{{emoji:$1}}');     // {{{emoji:name}}} -> {{emoji:name}}
+      .replace(/\{\{\s*\{\s*emoji:(\w+)\s*\}\s*\}\}/g, '{{emoji:$1}}')     // {{{emoji:name}}} -> {{emoji:name}}
+      .replace(/\{[^\}]*emoji:(\w+)\}/g, '{{emoji:$1}}');                   // {🛤️emoji:name} or {emoji:name} -> {{emoji:name}}
 
     const parts = normalizedText.split(/({{emoji:\w+}})/g);
 

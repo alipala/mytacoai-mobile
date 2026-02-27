@@ -97,17 +97,6 @@ export default function TopChallengeTypesCard({ onRefresh }: TopChallengeTypesCa
     );
   }
 
-  // Debug logging
-  useEffect(() => {
-    if (lifetime) {
-      console.log('[TopChallengeTypesCard] Lifetime data:', {
-        challenge_type_mastery_exists: !!lifetime.challenge_type_mastery,
-        challenge_type_mastery_keys: lifetime.challenge_type_mastery ? Object.keys(lifetime.challenge_type_mastery) : [],
-        challenge_type_mastery_data: lifetime.challenge_type_mastery,
-      });
-    }
-  }, [lifetime]);
-
   // No data state
   if (!lifetime || !lifetime.challenge_type_mastery) {
     return null;

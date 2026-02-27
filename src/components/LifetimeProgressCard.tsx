@@ -38,18 +38,6 @@ export default function LifetimeProgressCard({ onRefresh }: LifetimeProgressCard
   const { t } = useTranslation();
   const { lifetime, isLoading, error, refetchLifetime } = useLifetimeProgress(false, true);
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log('[LifetimeProgressCard] 🔍 DEBUG - lifetime data:', JSON.stringify({
-      hasLifetime: !!lifetime,
-      summary: lifetime?.summary,
-      totalChallenges: lifetime?.summary?.total_challenges,
-      isLoading,
-      hasError: !!error,
-      errorMessage: error?.message
-    }, null, 2));
-  }, [lifetime, isLoading, error]);
-
   // Expandable sections state
   const [expandedSection, setExpandedSection] = useState<'languages' | 'types' | 'levels' | null>(null);
 

@@ -26,6 +26,7 @@ import { completeSession as completeSessionAPI } from '../services/achievementAP
 import { refreshStatsAfterSession } from '../services/statsService';
 import { heartAPI } from '../services/heartAPI';
 import { CHALLENGE_TYPE_API_NAMES } from '../types/hearts';
+import { cacheEvents } from '../services/smartCache';
 
 const SESSION_STORAGE_KEY = '@challenge_session';
 
@@ -278,6 +279,10 @@ export function ChallengeSessionProvider({ children }: { children: React.ReactNo
         // Regular Mode: Consume heart via API
         const challengeTypeAPI = CHALLENGE_TYPE_API_NAMES[currentSession.challengeType] || currentSession.challengeType;
         heartResponse = await heartAPI.consumeHeart(challengeTypeAPI, isCorrect, currentSession.id, challengeId);
+
+        // Invalidate hearts cache after consumption
+        console.log('[CACHE] Emitting hearts_consumed event');
+        cacheEvents.emit('hearts_consumed');
       }
 
       // Update session with heart response and challenge stats
