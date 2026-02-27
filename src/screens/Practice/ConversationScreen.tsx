@@ -418,8 +418,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       proficiencyLevel: profLevel || 'beginner', // Fallback to prevent undefined
       topic: planId ? undefined : topic,
       enabled: hasRequiredFields, // Disable until we have valid data
+      elapsedSeconds: sessionDuration, // 🚀 NEW: Pass elapsed time for session-end detection
+      selectedDuration: sessionDurationMinutes, // 🚀 NEW: Pass selected duration (3 or 5 minutes)
     };
-  }, [learningPlan?.language, learningPlan?.proficiency_level, language, level, planId, topic]);
+  }, [learningPlan?.language, learningPlan?.proficiency_level, language, level, planId, topic, sessionDuration, sessionDurationMinutes]);
 
   const conversationHelp = useConversationHelp(conversationHelpOptions);
 

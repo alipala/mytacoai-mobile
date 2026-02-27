@@ -20,6 +20,8 @@ interface UseConversationHelpOptions {
   proficiencyLevel: string;
   topic?: string;
   enabled?: boolean;
+  elapsedSeconds?: number;        // 🚀 NEW: Track elapsed time
+  selectedDuration?: number;      // 🚀 NEW: Track session duration (3 or 5 minutes)
 }
 
 interface HelpState {
@@ -50,6 +52,8 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     proficiencyLevel,
     topic,
     enabled = true,
+    elapsedSeconds,
+    selectedDuration,
   } = options;
 
   const { i18n } = useTranslation();
@@ -375,6 +379,19 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
       return;
     }
 
+    // 🚀 NEW: Check if session is ending soon (less than 10 seconds remaining)
+    if (elapsedSeconds !== undefined && selectedDuration !== undefined) {
+      const remainingSeconds = (selectedDuration * 60) - elapsedSeconds;
+
+      if (remainingSeconds < 10) {
+        console.log(`[CONVERSATION_HELP] ⏱️ Skipping - only ${remainingSeconds}s remaining in session`);
+        console.log('[CONVERSATION_HELP] 🚫 Session ending soon - preventing wasted API call');
+        return; // Don't generate help - session ending
+      }
+
+      console.log(`[CONVERSATION_HELP] ⏱️ Time check passed: ${remainingSeconds}s remaining`);
+    }
+
     console.log('[CONVERSATION_HELP] ✅ AI response completion detected, scheduling help generation');
 
     // Clear any existing timeout
@@ -386,7 +403,7 @@ export const useConversationHelp = (options: UseConversationHelpOptions) => {
     helpGenerationTimeoutRef.current = setTimeout(() => {
       generateHelpContent(aiResponse, conversationContext);
     }, 500);
-  }, [helpSettings.help_enabled, generateHelpContent]);
+  }, [helpSettings.help_enabled, generateHelpContent, elapsedSeconds, selectedDuration]);
 
   // Cleanup on unmount
   useEffect(() => {
