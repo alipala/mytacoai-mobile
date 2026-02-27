@@ -104,6 +104,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   // Taal Coach state
   const [showCoachModal, setShowCoachModal] = useState(false);
+  const [taalCoachBadgeSessionId, setTaalCoachBadgeSessionId] = useState<string | null>(null); // 🆕 Badge session ID
   const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
 
   // Create next plan modal state
@@ -333,6 +334,59 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
   };
 
+  // 🆕 TaalCoach Badge Functions
+  const fetchTaalCoachBadgeStatus = async () => {
+    try {
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return { has_badge: false };
+
+      const response = await fetch(`${API_BASE_URL}/api/progress/taalcoach-badge/status`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch badge status');
+      }
+
+      const data = await response.json();
+      console.log('[TAALCOACH_BADGE] Status:', data);
+      return data;
+    } catch (error) {
+      console.error('[TAALCOACH_BADGE] Error fetching status:', error);
+      return { has_badge: false };
+    }
+  };
+
+  const clearTaalCoachBadge = async () => {
+    try {
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return;
+
+      console.log('[TAALCOACH_BADGE] Clearing badge...');
+
+      const response = await fetch(`${API_BASE_URL}/api/progress/taalcoach-badge/clear`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to clear badge');
+      }
+
+      // Clear local badge state
+      setTaalCoachBadgeSessionId(null);
+      console.log('[TAALCOACH_BADGE] ✅ Badge cleared');
+    } catch (error) {
+      console.error('[TAALCOACH_BADGE] Error clearing badge:', error);
+    }
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -371,13 +425,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         }
       }
 
-      // Load learning plans, progress stats, subscription status, notifications, and DNA profiles in parallel
+      // Load learning plans, progress stats, subscription status, notifications, badge status, and DNA profiles in parallel
       // Using smartCache to prevent duplicate API calls on tab switches
-      const [plansResponse, statsResponse, subscriptionResponse, notificationsResponse] = await Promise.all([
+      const [plansResponse, statsResponse, subscriptionResponse, notificationsResponse, badgeStatusResponse] = await Promise.all([
         smartCache.get('learning_plans', () => LearningService.getUserLearningPlansApiLearningPlansGet()),
         smartCache.get('progress_stats', () => ProgressService.getProgressStatsApiProgressStatsGet()),
         smartCache.get('subscription_status', () => StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet()),
         smartCache.get('notifications', () => fetchNotifications()),
+        fetchTaalCoachBadgeStatus(), // 🆕 Check badge status
       ]);
 
       // Sort learning plans by most recently interacted (updated_at) first
@@ -397,6 +452,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
       console.log('📊 Subscription status loaded:', subscriptionResponse);
+
+      // 🆕 Set TaalCoach badge status
+      if (badgeStatusResponse && badgeStatusResponse.has_badge && badgeStatusResponse.session_id) {
+        setTaalCoachBadgeSessionId(badgeStatusResponse.session_id);
+        console.log('🔔 TaalCoach badge active for session:', badgeStatusResponse.session_id);
+      } else {
+        setTaalCoachBadgeSessionId(null);
+        console.log('⭕ No TaalCoach badge');
+      }
 
       // Check which languages have DNA profiles by calling the API
       // Get unique languages from learning plans
@@ -749,6 +813,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <TaalCoach
           onPress={() => setShowCoachModal(true)}
           visible={true}
+          hasBadge={!!taalCoachBadgeSessionId}
         />
 
         {/* Coach Modal */}
@@ -756,6 +821,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showCoachModal}
           onClose={() => setShowCoachModal(false)}
           language={userLanguage}
+          badgeSessionId={taalCoachBadgeSessionId || undefined}
+          onClearBadge={clearTaalCoachBadge}
         />
 
       </SafeAreaView>
@@ -1322,6 +1389,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <TaalCoach
           onPress={() => setShowCoachModal(true)}
           visible={true}
+          hasBadge={!!taalCoachBadgeSessionId}
         />
 
         {/* Coach Modal */}
@@ -1329,6 +1397,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showCoachModal}
           onClose={() => setShowCoachModal(false)}
           language={userLanguage}
+          badgeSessionId={taalCoachBadgeSessionId || undefined}
+          onClearBadge={clearTaalCoachBadge}
         />
 
       </SafeAreaView>
@@ -2353,6 +2423,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       <TaalCoach
         onPress={() => setShowCoachModal(true)}
         visible={true}
+        hasBadge={!!taalCoachBadgeSessionId} // 🆕 Show badge if session ID exists
       />
 
       {/* Coach Modal */}
@@ -2360,6 +2431,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showCoachModal}
         onClose={() => setShowCoachModal(false)}
         language={userLanguage}
+        badgeSessionId={taalCoachBadgeSessionId || undefined} // 🆕 Pass badge session ID
+        onClearBadge={clearTaalCoachBadge} // 🆕 Clear badge when analysis viewed
       />
     </SafeAreaView>
     );
