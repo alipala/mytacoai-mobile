@@ -2418,17 +2418,10 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         duration={formatDuration(sessionDuration)}
         messageCount={messages.filter(m => m.role === 'user').length}
         onComplete={() => setShowSavingModal(false)}
-        onViewAnalysis={() => {
-          console.log('[VIEW_ANALYSIS] 🎯 Button clicked');
-          console.log('[VIEW_ANALYSIS] 📊 Background analyses count:', backgroundAnalyses.length);
-          console.log('[VIEW_ANALYSIS] 📊 Background analyses:', backgroundAnalyses);
-          handleViewAnalysis();
-        }}
         onGoDashboard={handleGoDashboard}
         sessionStats={sessionStats}
         comparison={sessionComparison}
         overallProgress={overallProgress}
-        hasAnalyses={backgroundAnalyses.length > 0}
       />
 
       {/* 🧬 Speaking DNA: Breakthrough Celebration Modal */}

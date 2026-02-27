@@ -21,14 +21,11 @@ interface SessionSummaryModalProps {
   duration: string;
   messageCount: number;
   onComplete: () => void;
-  onViewAnalysis: () => void;
   onGoDashboard: () => void;
   // New progress tracking props
   sessionStats?: SessionStats;
   comparison?: SessionComparison;
   overallProgress?: OverallProgress;
-  // Analysis availability
-  hasAnalyses?: boolean;
 }
 
 const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
@@ -39,12 +36,10 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   duration,
   messageCount,
   onComplete,
-  onViewAnalysis,
   onGoDashboard,
   sessionStats,
   comparison,
   overallProgress,
-  hasAnalyses = true,
 }) => {
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   const [currentAnalyzingStep, setCurrentAnalyzingStep] = useState(0);
@@ -381,23 +376,12 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                 )}
 
                 <View style={styles.buttonsContainer}>
-                  {hasAnalyses && (
-                    <TouchableOpacity
-                      style={styles.primaryButton}
-                      onPress={onViewAnalysis}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="clipboard-outline" size={20} color="#FFFFFF" />
-                      <Text style={styles.primaryButtonText}>View Analysis</Text>
-                    </TouchableOpacity>
-                  )}
-
                   <TouchableOpacity
-                    style={hasAnalyses ? styles.secondaryButton : styles.primaryButton}
+                    style={styles.primaryButton}
                     onPress={onGoDashboard}
                     activeOpacity={0.8}
                   >
-                    <Text style={hasAnalyses ? styles.secondaryButtonText : styles.primaryButtonText}>
+                    <Text style={styles.primaryButtonText}>
                       Go Dashboard
                     </Text>
                   </TouchableOpacity>
