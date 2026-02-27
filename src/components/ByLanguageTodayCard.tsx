@@ -89,18 +89,6 @@ export default function ByLanguageTodayCard({ onRefresh }: ByLanguageTodayCardPr
     return language.charAt(0).toUpperCase() + language.slice(1);
   };
 
-  // Debug logging - MUST be called before any early returns
-  useEffect(() => {
-    if (daily) {
-      console.log('[ByLanguageTodayCard] Daily data:', {
-        total_challenges: daily.overall?.total_challenges,
-        by_language_exists: !!daily.by_language,
-        by_language_keys: daily.by_language ? Object.keys(daily.by_language) : [],
-        by_language_data: daily.by_language,
-      });
-    }
-  }, [daily]);
-
   // Determine what to render (all hooks must be called before this)
   let contentToRender: 'loading' | 'empty' | 'emptyToday' | 'data' = 'data';
 

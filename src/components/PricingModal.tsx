@@ -148,8 +148,6 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   // Create styles with current dimensions
   const styles = createStyles(SCREEN_WIDTH, isTablet);
 
-  console.log('🔍 [PricingModal] Dynamic - Width:', SCREEN_WIDTH, 'isTablet:', isTablet);
-
   // Filter plans based on current subscription
   // For existing paid subscribers, only show plans that are actual upgrades
   const availablePlans = React.useMemo(() => {

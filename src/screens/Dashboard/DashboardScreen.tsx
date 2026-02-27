@@ -51,6 +51,7 @@ import { authService } from '../../api/services/auth';
 import axios from 'axios';
 import { TaalCoach } from '../../components/TaalCoach/TaalCoach';
 import { CoachModal } from '../../components/TaalCoach/CoachModal';
+import { smartCache, getDNACacheKey, getConversationsCacheKey } from '../../services/smartCache';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -371,11 +372,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       }
 
       // Load learning plans, progress stats, subscription status, notifications, and DNA profiles in parallel
+      // Using smartCache to prevent duplicate API calls on tab switches
       const [plansResponse, statsResponse, subscriptionResponse, notificationsResponse] = await Promise.all([
-        LearningService.getUserLearningPlansApiLearningPlansGet(),
-        ProgressService.getProgressStatsApiProgressStatsGet(),
-        StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet(),
-        fetchNotifications(),
+        smartCache.get('learning_plans', () => LearningService.getUserLearningPlansApiLearningPlansGet()),
+        smartCache.get('progress_stats', () => ProgressService.getProgressStatsApiProgressStatsGet()),
+        smartCache.get('subscription_status', () => StripeService.getSubscriptionStatusApiStripeSubscriptionStatusGet()),
+        smartCache.get('notifications', () => fetchNotifications()),
       ]);
 
       // Sort learning plans by most recently interacted (updated_at) first
@@ -409,7 +411,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         // Check each language in parallel
         const dnaCheckPromises = uniqueLanguages.map(async (language) => {
           try {
-            const profile = await speakingDNAService.getProfile(language, true); // Force refresh to bypass cache
+            // Use smartCache for DNA profiles - no force refresh needed
+            const profile = await smartCache.get(
+              `dna_profile_${language}`,
+              () => speakingDNAService.getProfile(language, false),
+              getDNACacheKey(language)
+            );
             if (profile && profile.sessions_analyzed > 0) {
               console.log(`✅ DNA profile exists for ${language} (${profile.sessions_analyzed} sessions)`);
               return language;
@@ -434,14 +441,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       // Fetch recent practice sessions (conversation history)
       try {
         console.log('📡 Fetching conversation history...');
-        const conversationsResponse = await ProgressService.getConversationHistoryApiProgressConversationsGet(20);
-        console.log('📡 Conversation API Response:', conversationsResponse);
+        const conversationsResponse = await smartCache.get(
+          'conversations_20',
+          () => ProgressService.getConversationHistoryApiProgressConversationsGet(20),
+          getConversationsCacheKey(20)
+        );
 
         if (conversationsResponse && Array.isArray(conversationsResponse)) {
           console.log(`💬 Loaded ${conversationsResponse.length} recent practice sessions`);
-          if (conversationsResponse.length > 0) {
-            console.log('📝 First session:', conversationsResponse[0]);
-          }
+          // Conversations loaded successfully
           setPracticeSessions(conversationsResponse);
         } else if (conversationsResponse && conversationsResponse.sessions) {
           // Handle if response is wrapped in object
@@ -538,7 +546,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   };
 
   const handleSessionPress = (session: any, color: string) => {
-    console.log('🎯 handleSessionPress called with session:', JSON.stringify(session, null, 2));
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -605,8 +612,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    console.log('📝 Navigating to Speaking Assessment to create learning plan');
-
     // Navigate to speaking assessment - required to create a learning plan
     navigation.navigate('AssessmentLanguageSelection');
   };
@@ -615,7 +620,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    console.log('📝 Opening create next plan modal for plan:', plan.id);
     setSelectedCreatePlan(plan);
     setShowCreateNextPlanModal(true);
   };
@@ -1421,7 +1425,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {/* Subscription Banner - Only show for trial/expiring */}
         {subscriptionStatus && !bannerDismissed && subscriptionStatus.status === 'trialing' && (
           <>
-            {console.log('🎯 Rendering SubscriptionBanner with plan:', subscriptionStatus.plan)}
             <SubscriptionBanner
               plan={subscriptionStatus.plan}
               sessionsRemaining={subscriptionStatus.limits?.sessions_remaining || 0}
@@ -1505,12 +1508,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               timestamp: new Date(session.created_at || '').getTime(),
             })),
           ].sort((a, b) => b.timestamp - a.timestamp); // Most recent first
-
-          console.log('🎯 All Sessions Combined & Sorted:', {
-            totalSessions: allSessions.length,
-            first: allSessions[0] ? `${allSessions[0].type} at ${new Date(allSessions[0].timestamp).toISOString()}` : 'none',
-            second: allSessions[1] ? `${allSessions[1].type} at ${new Date(allSessions[1].timestamp).toISOString()}` : 'none',
-          });
 
           // First 2 cards are ALWAYS the most recent SESSIONS (practice OR plan) - LARGE (Hero cards)
           let colorIndex = 0;
@@ -1612,11 +1609,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             return !isFirst && !isSecond;
           });
 
-          console.log('🎯 Remaining Items:', {
-            remainingPlans: remainingPlans.length,
-            remainingSessions: remainingSessions.length,
-          });
-
           // Mix remaining plans and practice sessions
           let planIndex = 0;
           let sessionIndex = 0;
@@ -1650,24 +1642,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 />
               );
             }
-          }
-
-          // Debug logging
-          console.log('🎨 Masonry Grid Debug:', {
-            totalPlans: sortedPlans.length,
-            allPracticeSessions: practiceSessions.length,
-            filteredSessions: filteredSessions.length,
-            dnaLanguages: Array.from(languagesWithDNA),
-            totalGridItems: gridItems.length,
-            selectedLanguageFilter,
-            sessionSample: filteredSessions[0] || null,
-          });
-
-          // Log sessions data structure for debugging
-          if (practiceSessions.length > 0) {
-            console.log('📝 Sample Practice Session:', JSON.stringify(practiceSessions[0], null, 2));
-          } else {
-            console.log('⚠️ No practice sessions loaded - check API response');
           }
 
           return (

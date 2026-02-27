@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../api/config';
+import { cacheEvents } from '../../services/smartCache';
 
 interface CheckoutSuccessScreenProps {
   navigation: any;
@@ -95,6 +96,10 @@ const CheckoutSuccessScreen: React.FC<CheckoutSuccessScreenProps> = ({ navigatio
         const userData = await userRes.json();
         await AsyncStorage.setItem('user', JSON.stringify(userData));
       }
+
+      // Invalidate subscription and hearts caches after checkout
+      console.log('[CACHE] Emitting subscription_changed event');
+      cacheEvents.emit('subscription_changed');
     } catch {
       // Background sync — never block the UI on failure
     }

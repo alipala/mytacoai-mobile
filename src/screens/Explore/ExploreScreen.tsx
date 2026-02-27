@@ -28,6 +28,7 @@ import { LearningService } from '../../api/generated/services/LearningService';
 import type { LearningPlan } from '../../api/generated';
 import { heartAPI } from '../../services/heartAPI';
 import { AllHeartsStatus } from '../../types/hearts';
+import { smartCache } from '../../services/smartCache';
 
 // Import challenge screens (will be created next)
 import ErrorSpottingScreen from './challenges/ErrorSpottingScreen';
@@ -93,7 +94,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
   const fetchHeartsStatus = useCallback(async () => {
     try {
       console.log('🔍 Fetching hearts status from API...');
-      const status = await heartAPI.getAllHeartsStatus();
+      const status = await smartCache.get('hearts_status', () => heartAPI.getAllHeartsStatus());
       console.log('✅ Hearts status received:', JSON.stringify(status));
       setHeartsStatus(status);
       console.log('❤️  Hearts status loaded:', status);
@@ -153,7 +154,7 @@ export default function ExploreScreen({ navigation }: ExploreScreenProps) {
         if (token) {
           try {
             console.log('📡 Fetching learning plans from API...');
-            const plans = await LearningService.getUserLearningPlansApiLearningPlansGet();
+            const plans = await smartCache.get('learning_plans', () => LearningService.getUserLearningPlansApiLearningPlansGet());
             console.log(`✅ Found ${plans.length} learning plan(s) for user`);
             setUserLearningPlans(plans);
 

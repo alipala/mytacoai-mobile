@@ -105,5 +105,4 @@ export function setFeatureFlag(
   value: boolean
 ): void {
   (FeatureFlags as any)[feature] = value;
-  console.log(`🚩 Feature flag ${feature} set to ${value}`);
 }

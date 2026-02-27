@@ -28,10 +28,8 @@ async function getUserId(): Promise<string> {
     if (userStr) {
       const user = JSON.parse(userStr);
       const userId = user.id || user._id || 'unknown';
-      console.log(`[StatsService] Got user ID: ${userId}`);
       return userId;
     }
-    console.warn('[StatsService] No user found in storage');
     return 'unknown';
   } catch (error) {
     console.error('[StatsService] Failed to get user ID:', error);
@@ -203,7 +201,6 @@ export async function fetchDailyStats(
         CACHE_DURATIONS.daily
       );
       if (cached) {
-        console.log(`[StatsService] Daily stats from cache for user ${userId}`);
         return cached;
       }
     }
@@ -256,7 +253,6 @@ export async function fetchRecentPerformance(
         CACHE_DURATIONS.recent
       );
       if (cached) {
-        console.log(`[StatsService] Recent performance from cache for user ${userId}`);
         return cached;
       }
     }
@@ -318,7 +314,6 @@ export async function fetchLifetimeProgress(
         CACHE_DURATIONS.lifetime
       );
       if (cached) {
-        console.log(`[StatsService] Lifetime progress from cache for user ${userId}`);
         return cached;
       }
     }

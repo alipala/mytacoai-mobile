@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet, Alert, InteractionManager } from 'react-native';
+import { View, Text, StyleSheet, Alert, InteractionManager, AppState } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -58,6 +58,7 @@ import {
   cleanupNotifications,
   setBadgeCount,
 } from './src/services/notificationService';
+import { cacheEvents } from './src/services/smartCache';
 
 // Context Providers
 import { ChallengeSessionProvider } from './src/contexts/ChallengeSessionContext';
@@ -373,6 +374,21 @@ export default function App() {
       );
     }
   }, [isAuthenticated, isLoading]);
+
+  // AppState listener for foreground detection
+  // Invalidates all caches when app comes to foreground to ensure fresh data
+  useEffect(() => {
+    const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        console.log('[CACHE] App came to foreground');
+        cacheEvents.emit('app_foreground');
+      }
+    });
+
+    return () => {
+      appStateSubscription?.remove();
+    };
+  }, []);
 
   // Don't render anything while loading (splash screen is shown)
   if (isLoading) {

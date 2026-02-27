@@ -28,10 +28,6 @@ export const PracticeSessionDetailsModal: React.FC<PracticeSessionDetailsModalPr
 }) => {
   const { t } = useTranslation();
 
-  // Debug logging
-  console.log('🔍 PracticeSessionDetailsModal - visible:', visible);
-  console.log('🔍 PracticeSessionDetailsModal - session:', JSON.stringify(session, null, 2));
-
   const handleClose = () => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
