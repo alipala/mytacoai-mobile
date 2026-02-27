@@ -1107,11 +1107,28 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.log('[CONVERSATION_HELP] ⚙️ Proficiency level (via REF):', latestOptions.proficiencyLevel);
         console.log('[CONVERSATION_HELP] 🔍 Help settings:', latestConversationHelp.helpSettings);
 
-        // Check BOTH: user wants help AND we have valid data
+        // 🚀 Check remaining time before generating help
+        const elapsedSecs = latestOptions.elapsedSeconds || 0;
+        const durationMins = latestOptions.selectedDuration || 3;
+        const remainingSeconds = (durationMins * 60) - elapsedSecs;
+
+        console.log('[CONVERSATION_HELP] ⏱️ Time check:', {
+          elapsed: elapsedSecs,
+          duration: durationMins,
+          remaining: remainingSeconds
+        });
+
+        // Check BOTH: user wants help AND we have valid data AND enough time remaining
         const shouldGenerateHelp = content.trim().length > 0 &&
                                   latestOptions.enabled &&
-                                  latestConversationHelp.helpSettings.help_enabled;
+                                  latestConversationHelp.helpSettings.help_enabled &&
+                                  remainingSeconds >= 10; // 🚀 Skip if less than 10 seconds remaining
+
         console.log('[CONVERSATION_HELP] 🔍 Should generate help:', shouldGenerateHelp);
+
+        if (remainingSeconds < 10) {
+          console.log(`[CONVERSATION_HELP] ⏱️ ⛔ SKIPPING - Only ${remainingSeconds}s remaining in session`);
+        }
 
         if (shouldGenerateHelp) {
           console.log('[CONVERSATION_HELP] ✅ Conditions met, triggering help generation');

@@ -120,9 +120,9 @@ const handleAIResponseComplete = useCallback((
 }, [helpSettings.help_enabled, generateHelpContent, elapsedSeconds, selectedDuration]);
 ```
 
-#### 4. Updated ConversationScreen to Pass Time Parameters
+#### 4. Updated ConversationScreen to Pass Time Parameters and Add Time Check
 
-**File**: `ConversationScreen.tsx` (lines 416-424)
+**File**: `ConversationScreen.tsx` (lines 416-424, 1110-1130)
 
 ```typescript
 const conversationHelpOptions = useMemo(() => {
@@ -142,6 +142,35 @@ const conversationHelpOptions = useMemo(() => {
 ```
 
 **Note**: Added `sessionDuration` and `sessionDurationMinutes` to the dependency array to ensure the memoized value updates when time changes.
+
+**CRITICAL FIX** - Also added time check in the RealtimeService event handler (lines 1110-1130):
+
+```typescript
+// 🚀 Check remaining time before generating help
+const elapsedSecs = latestOptions.elapsedSeconds || 0;
+const durationMins = latestOptions.selectedDuration || 3;
+const remainingSeconds = (durationMins * 60) - elapsedSecs;
+
+console.log('[CONVERSATION_HELP] ⏱️ Time check:', {
+  elapsed: elapsedSecs,
+  duration: durationMins,
+  remaining: remainingSeconds
+});
+
+// Check BOTH: user wants help AND we have valid data AND enough time remaining
+const shouldGenerateHelp = content.trim().length > 0 &&
+                          latestOptions.enabled &&
+                          latestConversationHelp.helpSettings.help_enabled &&
+                          remainingSeconds >= 10; // 🚀 Skip if less than 10 seconds remaining
+
+console.log('[CONVERSATION_HELP] 🔍 Should generate help:', shouldGenerateHelp);
+
+if (remainingSeconds < 10) {
+  console.log(`[CONVERSATION_HELP] ⏱️ ⛔ SKIPPING - Only ${remainingSeconds}s remaining in session`);
+}
+```
+
+This is the ACTUAL fix - the time check must happen BEFORE calling `handleAIResponseComplete()`, not inside it!
 
 ---
 
