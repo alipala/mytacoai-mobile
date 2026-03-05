@@ -575,10 +575,11 @@ class SpeakingDNAService {
         email: user.email,
       });
 
-      // Allow access for active, trialing, and canceling (still active until period end)
+      // Allow access for active, trialing, canceling, and payment_pending_grace (SEPA/iDEAL grace period)
       const hasAccess = subscriptionStatus === 'active' ||
                         subscriptionStatus === 'trialing' ||
-                        subscriptionStatus === 'canceling';
+                        subscriptionStatus === 'canceling' ||
+                        subscriptionStatus === 'payment_pending_grace';
 
       console.log('[SpeakingDNAService] Has premium access:', hasAccess);
       return hasAccess;

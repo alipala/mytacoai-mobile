@@ -52,6 +52,9 @@ import { VoiceCheckModal } from '../../components/VoiceCheckModal';
 // Smart cache integration
 import { cacheEvents } from '../../services/smartCache';
 
+// Taal Coach notification
+import TaalCoachNotification from '../../components/TaalCoachNotification';
+
 interface ConversationScreenProps {
   navigation: any;
   route: any;
@@ -348,6 +351,11 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [sessionSummary, setSessionSummary] = useState<string>('');
   const [sessionCompletedNaturally, setSessionCompletedNaturally] = useState(false);
   const [autoSavePending, setAutoSavePending] = useState(false);
+
+  // Background sentence analysis states
+  const [analysisJobId, setAnalysisJobId] = useState<string | null>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<'none' | 'processing' | 'completed' | 'failed'>('none');
+  const [showAnalysisNotification, setShowAnalysisNotification] = useState(false);
 
   // Final assessment states
   const [assessmentResult, setAssessmentResult] = useState<any>(null);
@@ -1386,8 +1394,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           } else {
             console.log('[PARTIAL_EXIT] ✅ Auth token retrieved successfully');
 
-            // 🔥 FIX: Added /api prefix to endpoint
-            const trackingResponse = await fetch(`${API_BASE_URL}/api/stripe/track-speaking-time`, {
+            // 🔥 FIRE-AND-FORGET: Don't block exit waiting for tracking response
+            fetch(`${API_BASE_URL}/api/stripe/track-speaking-time`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1398,18 +1406,23 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
                 speaking_minutes: partialMinutes,
                 session_completed: false // Mark as incomplete
               })
-            });
+            })
+              .then(async (trackingResponse) => {
+                console.log('[PARTIAL_EXIT] 📡 Tracking API response status:', trackingResponse.status);
+                if (trackingResponse.ok) {
+                  const trackingResult = await trackingResponse.json();
+                  console.log('[PARTIAL_EXIT] ✅ Partial time tracked successfully:', trackingResult);
+                } else {
+                  const errorText = await trackingResponse.text();
+                  console.error('[PARTIAL_EXIT] ❌ Failed to track partial time - Status:', trackingResponse.status);
+                  console.error('[PARTIAL_EXIT] ❌ Error response:', errorText);
+                }
+              })
+              .catch((fetchError) => {
+                console.error('[PARTIAL_EXIT] ❌ Network error during partial tracking:', fetchError);
+              });
 
-            console.log('[PARTIAL_EXIT] 📡 Tracking API response status:', trackingResponse.status);
-
-            if (trackingResponse.ok) {
-              const trackingResult = await trackingResponse.json();
-              console.log('[PARTIAL_EXIT] ✅ Partial time tracked successfully:', trackingResult);
-            } else {
-              const errorText = await trackingResponse.text();
-              console.error('[PARTIAL_EXIT] ❌ Failed to track partial time - Status:', trackingResponse.status);
-              console.error('[PARTIAL_EXIT] ❌ Error response:', errorText);
-            }
+            console.log('[PARTIAL_EXIT] 🚀 Partial tracking request sent (non-blocking)');
 
             // Update learning plan spoken time if this was a learning plan session
             if (planId) {
@@ -1560,6 +1573,73 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
+  // Poll for sentence analysis completion
+  const startPollingAnalysisStatus = (jobId: string) => {
+    const pollInterval = 2000; // Poll every 2 seconds
+    const maxPolls = 30; // Maximum 60 seconds of polling
+    let pollCount = 0;
+
+    const pollTimer = setInterval(async () => {
+      pollCount++;
+
+      try {
+        const token = await AsyncStorage.getItem('auth_token');
+        if (!token) {
+          clearInterval(pollTimer);
+          return;
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/learning/sentence-analysis-status/${jobId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch analysis status');
+        }
+
+        const data = await response.json();
+
+        console.log(`[ANALYSIS_POLL] Poll ${pollCount}: status=${data.status}, progress=${data.progress}%`);
+
+        if (data.status === 'completed') {
+          // Analysis is ready!
+          clearInterval(pollTimer);
+          setAnalysisStatus('completed');
+          setBackgroundAnalyses(data.analyses);
+
+          // Show Taal Coach notification
+          setShowAnalysisNotification(true);
+
+          console.log('[ANALYSIS_POLL] ✅ Sentence analysis completed:', data.analyses.length, 'sentences');
+
+        } else if (data.status === 'failed') {
+          clearInterval(pollTimer);
+          setAnalysisStatus('failed');
+          console.error('[ANALYSIS_POLL] ❌ Sentence analysis failed:', data.error_message);
+
+        } else if (pollCount >= maxPolls) {
+          // Timeout after 60 seconds
+          clearInterval(pollTimer);
+          console.warn('[ANALYSIS_POLL] ⚠️ Analysis polling timeout - still processing');
+        }
+
+      } catch (error) {
+        console.error('[ANALYSIS_POLL] Error polling analysis status:', error);
+        pollCount++;
+
+        if (pollCount >= maxPolls) {
+          clearInterval(pollTimer);
+        }
+      }
+    }, pollInterval);
+  };
+
   // Automatic session end when 5 minutes completed - WITH SAVING
   const handleAutomaticSessionEnd = async () => {
     try {
@@ -1592,9 +1672,8 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       // Save conversation progress
       if (messages.length > 0) {
-        // Transition to analyzing stage
+        // No longer wait for analyzing stage - sentence analysis runs in background
         await new Promise(resolve => setTimeout(resolve, 600));
-        setSavingStage('analyzing');
 
         let result: any;
 
@@ -1679,8 +1758,9 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
           console.log('[MINUTE_TRACKING] ✅ Auth token retrieved successfully');
 
-          // Call the tracking API (🔥 FIX: Added /api prefix to endpoint)
-          const trackingResponse = await fetch(`${API_BASE_URL}/api/stripe/track-speaking-time`, {
+          // Call the tracking API (🔥 FIRE-AND-FORGET: Don't block UI waiting for response)
+          // This endpoint can take 20+ seconds, but session is already saved, so we don't need to wait
+          fetch(`${API_BASE_URL}/api/stripe/track-speaking-time`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1691,19 +1771,26 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
               speaking_minutes: durationMinutes,
               session_completed: true
             })
-          });
+          })
+            .then(async (trackingResponse) => {
+              console.log('[MINUTE_TRACKING] 📡 Tracking API response status:', trackingResponse.status);
+              if (trackingResponse.ok) {
+                const trackingResult = await trackingResponse.json();
+                console.log('[MINUTE_TRACKING] ✅ Speaking time tracked successfully:', trackingResult);
+                minuteTrackingSuccess = true;
+              } else {
+                const errorText = await trackingResponse.text();
+                console.error('[MINUTE_TRACKING] ❌ Failed to track speaking time - Status:', trackingResponse.status);
+                console.error('[MINUTE_TRACKING] ❌ Error response:', errorText);
+              }
+            })
+            .catch((fetchError) => {
+              console.error('[MINUTE_TRACKING] ❌ Network error during tracking:', fetchError);
+            });
 
-          console.log('[MINUTE_TRACKING] 📡 Tracking API response status:', trackingResponse.status);
-
-          if (trackingResponse.ok) {
-            const trackingResult = await trackingResponse.json();
-            console.log('[MINUTE_TRACKING] ✅ Speaking time tracked successfully:', trackingResult);
-            minuteTrackingSuccess = true;
-          } else {
-            const errorText = await trackingResponse.text();
-            console.error('[MINUTE_TRACKING] ❌ Failed to track speaking time - Status:', trackingResponse.status);
-            console.error('[MINUTE_TRACKING] ❌ Error response:', errorText);
-          }
+          // Mark as successful immediately (fire-and-forget)
+          minuteTrackingSuccess = true;
+          console.log('[MINUTE_TRACKING] 🚀 Tracking request sent (non-blocking)');
         } catch (trackingError) {
           console.error('[MINUTE_TRACKING] ❌ EXCEPTION during tracking:', trackingError);
           console.error('[MINUTE_TRACKING] ❌ Error details:', {
@@ -1741,18 +1828,21 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
             console.log('[DNA] Calling DNA analysis service for language:', targetLanguage);
 
-            const dnaResult = await speakingDNAService.analyzeSession(
+            // 🔥 FIRE-AND-FORGET: Don't block UI (takes 14+ seconds)
+            speakingDNAService.analyzeSession(
               targetLanguage.toLowerCase(),
               sessionData
-            );
+            ).then((dnaResult) => {
+              console.log('[DNA] ✅ DNA analysis complete. Breakthroughs:', dnaResult.breakthroughs.length);
+              if (dnaResult.breakthroughs.length > 0) {
+                console.log('[DNA] 🎉 Setting breakthrough queue:', dnaResult.breakthroughs.length, 'breakthroughs');
+                setBreakthroughQueue(dnaResult.breakthroughs);
+              }
+            }).catch((error) => {
+              console.error('[DNA] ❌ DNA analysis error (non-fatal):', error);
+            });
 
-            console.log('[DNA] ✅ DNA analysis complete. Breakthroughs:', dnaResult.breakthroughs.length);
-
-            // Queue breakthroughs for display
-            if (dnaResult.breakthroughs.length > 0) {
-              console.log('[DNA] 🎉 Setting breakthrough queue:', dnaResult.breakthroughs.length, 'breakthroughs');
-              setBreakthroughQueue(dnaResult.breakthroughs);
-            }
+            console.log('[DNA] 🚀 DNA analysis request sent (non-blocking)');
 
             // 🎙️ Check if voice check is due (only for learning plan sessions)
             if (planId) {
@@ -1788,13 +1878,24 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         console.log('[AUTO_END] 🔍 Full result:', JSON.stringify(result, null, 2));
         console.log('[AUTO_END] 🔍 Background analyses:', result.background_analyses);
         console.log('[AUTO_END] 🔍 Analyses length:', result.background_analyses?.length);
+        console.log('[AUTO_END] 🔍 Analysis job ID:', result.analysis_job_id);
+        console.log('[AUTO_END] 🔍 Analysis status:', result.analysis_status);
 
-        if (result.background_analyses && result.background_analyses.length > 0) {
-          console.log('[AUTO_END] ✅ Received', result.background_analyses.length, 'analyses');
-          setBackgroundAnalyses(result.background_analyses);
-        } else {
-          console.log('[AUTO_END] ⚠️ No background analyses in response!');
-          console.log('[AUTO_END] 🔍 Collected sentences:', collectedSentences);
+        // Handle background analysis job
+        if (result.analysis_job_id) {
+          console.log('[AUTO_END] 🚀 Analysis job created:', result.analysis_job_id);
+          setAnalysisJobId(result.analysis_job_id);
+          setAnalysisStatus(result.analysis_status || 'processing');
+
+          // Start polling for analysis completion (non-blocking)
+          startPollingAnalysisStatus(result.analysis_job_id);
+        }
+
+        // background_analyses will be empty initially - fetched via polling
+        setBackgroundAnalyses(result.background_analyses || []);
+
+        if (!result.analysis_job_id && collectedSentences.length > 0) {
+          console.log('[AUTO_END] ⚠️ Expected analysis job but none created. Collected sentences:', collectedSentences.length);
         }
 
         // Store new progress tracking data
@@ -1908,6 +2009,19 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         duration: formatDuration(sessionDuration),
         messageCount: messages.filter(m => m.role === 'user').length,
       });
+    } else if (analysisStatus === 'processing') {
+      // Still processing - show toast
+      Alert.alert(
+        'Analysis In Progress',
+        "Your speech analysis is still processing. We'll notify you when it's ready!",
+        [{ text: 'OK' }]
+      );
+    } else if (analysisStatus === 'failed') {
+      Alert.alert(
+        'Analysis Failed',
+        "Sorry, we couldn't complete your speech analysis. Please try again later.",
+        [{ text: 'OK' }]
+      );
     } else {
       // If no analyses available, show alert and go to dashboard
       Alert.alert(
@@ -2752,6 +2866,20 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
       )}
 
       {/* Conversation Help is now rendered inline in the ScrollView above */}
+
+      {/* Taal Coach Notification for Analysis Completion */}
+      <TaalCoachNotification
+        visible={showAnalysisNotification}
+        title="Analysis Ready!"
+        message="Your speech analysis is complete. See how you did!"
+        buttonText="View Analysis"
+        onButtonPress={() => {
+          setShowAnalysisNotification(false);
+          handleViewAnalysis();
+        }}
+        onDismiss={() => setShowAnalysisNotification(false)}
+        duration={10000}
+      />
         </SafeAreaView>
       </LinearGradient>
     </View>

@@ -104,6 +104,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   // Taal Coach state
   const [showCoachModal, setShowCoachModal] = useState(false);
+  const [taalCoachBadgeSessionId, setTaalCoachBadgeSessionId] = useState<string | null>(null); // 🆕 Badge session ID
   const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
 
   // Create next plan modal state
@@ -333,6 +334,62 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
   };
 
+  // 🆕 Check notifications for analysis badge
+  const checkAnalysisBadgeFromNotifications = (notificationsData: any) => {
+    try {
+      const notifications = notificationsData.notifications || [];
+      console.log('[TAALCOACH_BADGE] 🔍 Checking', notifications.length, 'notifications');
+
+      // Debug: Log all notification types
+      notifications.forEach((n: any, idx: number) => {
+        console.log(`[TAALCOACH_BADGE] Notification ${idx}: type="${n.notification?.notification_type}", read=${n.is_read}`);
+      });
+
+      // Find unread session_analysis notifications
+      // Note: notification structure has nested 'notification' object from lookup
+      const analysisNotification = notifications.find(
+        (n: any) => n.notification?.notification_type === 'session_analysis' && !n.is_read
+      );
+
+      if (analysisNotification) {
+        console.log('[TAALCOACH_BADGE] 📋 Found analysis notification:', {
+          type: analysisNotification.notification?.notification_type,
+          session_id: analysisNotification.notification?.session_id,
+          has_session_id: !!analysisNotification.notification?.session_id
+        });
+
+        if (analysisNotification.notification?.session_id) {
+          console.log('[TAALCOACH_BADGE] 🔔 Badge should show for session:', analysisNotification.notification.session_id);
+          return {
+            has_badge: true,
+            session_id: analysisNotification.notification.session_id
+          };
+        } else {
+          console.log('[TAALCOACH_BADGE] ⚠️ Analysis notification found but missing session_id!');
+        }
+      }
+
+      console.log('[TAALCOACH_BADGE] ⭕ No unread analysis notifications found');
+      return { has_badge: false };
+    } catch (error) {
+      console.error('[TAALCOACH_BADGE] Error checking notifications:', error);
+      return { has_badge: false };
+    }
+  };
+
+  // 🆕 Clear TaalCoach badge by marking notification as read
+  const clearTaalCoachBadge = async () => {
+    try {
+      setTaalCoachBadgeSessionId(null);
+      console.log('[TAALCOACH_BADGE] ✅ Badge cleared locally');
+
+      // Notifications will be marked as read when user views the analysis
+      // This happens in CoachModal via checkForAnalysisNotifications()
+    } catch (error) {
+      console.error('[TAALCOACH_BADGE] Error clearing badge:', error);
+    }
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -397,6 +454,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       setProgressStats(statsResponse);
       setSubscriptionStatus(subscriptionResponse);
       console.log('📊 Subscription status loaded:', subscriptionResponse);
+
+      // 🆕 Check notifications for analysis badge
+      console.log('[BADGE_SET] About to check badge status from notifications');
+      const badgeStatus = checkAnalysisBadgeFromNotifications(notificationsResponse);
+      console.log('[BADGE_SET] Badge status result:', badgeStatus);
+
+      if (badgeStatus.has_badge && badgeStatus.session_id) {
+        setTaalCoachBadgeSessionId(badgeStatus.session_id);
+        console.log('🔔 TaalCoach badge active for session:', badgeStatus.session_id);
+        console.log('[BADGE_SET] ✅ Badge state SET - TaalCoach should show badge now!');
+      } else {
+        setTaalCoachBadgeSessionId(null);
+        console.log('⭕ No TaalCoach badge');
+        console.log('[BADGE_SET] ❌ Badge state CLEARED - no badge');
+      }
 
       // Check which languages have DNA profiles by calling the API
       // Get unique languages from learning plans
@@ -491,6 +563,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    // Clear cache to ensure fresh data
+    await smartCache.invalidateMultiple([
+      'learning_plans',
+      'progress_stats',
+      'notifications',
+      'subscription_status'
+    ]);
     await loadDashboardData();
     setRefreshing(false);
   };
@@ -749,6 +828,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <TaalCoach
           onPress={() => setShowCoachModal(true)}
           visible={true}
+          hasBadge={!!taalCoachBadgeSessionId}
         />
 
         {/* Coach Modal */}
@@ -756,16 +836,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showCoachModal}
           onClose={() => setShowCoachModal(false)}
           language={userLanguage}
+          badgeSessionId={taalCoachBadgeSessionId || undefined}
+          onClearBadge={clearTaalCoachBadge}
         />
 
       </SafeAreaView>
     );
   }
 
-  // Empty State
-  if (learningPlans.length === 0) {
+  // Empty State - Only show onboarding for TRUE new users (no plans AND no sessions)
+  if (learningPlans.length === 0 && practiceSessions.length === 0) {
     // True new user: no plans AND no practice sessions
-    const isNewUser = practiceSessions.length === 0;
+    const isNewUser = true;
 
     return (
       <SafeAreaView style={styles.container}>
@@ -871,9 +953,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          {isNewUser ? (
-            <>
-              {/* ========== NEW USER GUIDED ACTIVATION ========== */}
+          {/* ========== NEW USER GUIDED ACTIVATION ========== */}
 
               {/* Section 1: Primary CTA - Speaking Assessment */}
               <View style={styles.newUserLottieGlow}>
@@ -1083,212 +1163,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   </TouchableOpacity>
                 );
               })()}
-            </>
-          ) : (
-            <>
-              {/* ========== RETURNING USER EMPTY STATE (has sessions but no plans) ========== */}
-              {(() => {
-                const isSubscribed = subscriptionStatus &&
-                  !['try_learn', 'free'].includes(subscriptionStatus.plan);
-                const sessionLimit = subscriptionStatus?.limits?.sessions_remaining || 0;
-                const minutesRemaining = subscriptionStatus?.limits?.minutes_remaining || 0;
-
-                return (
-                  <>
-                    {/* Premium User - Clear Status Badge */}
-                    {isSubscribed && (
-                      <View style={styles.premiumStatusBadgeContainer}>
-                        <LinearGradient
-                          colors={['rgba(255, 214, 58, 0.15)', 'rgba(255, 214, 58, 0.08)']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={styles.premiumStatusBadge}
-                        >
-                          <View style={styles.premiumStatusIconCircle}>
-                            <Text style={styles.crownEmoji}>👑</Text>
-                          </View>
-                          <View style={styles.premiumStatusTextContainer}>
-                            <Text style={styles.premiumStatusTitle}>{t('dashboard.header.premium_badge')}</Text>
-                            <Text style={styles.premiumStatusSubtitle}>
-                              {t('dashboard.header.minutes_remaining', { minutes: minutesRemaining })}
-                            </Text>
-                          </View>
-                        </LinearGradient>
-                      </View>
-                    )}
-
-                    {/* Free User - Action Cards Only (No Header) */}
-                    {!isSubscribed && (
-                      <View style={styles.freeUserContainer}>
-                        {/* SECONDARY - Freestyle Chat (Turquoise) */}
-                        <TouchableOpacity
-                          style={styles.secondaryCardNew}
-                          onPress={handleSelectQuickPractice}
-                          activeOpacity={0.9}
-                        >
-                          <View style={styles.secondaryCardIcon}>
-                            <Ionicons name="mic-circle" size={36} color="#FFFFFF" />
-                          </View>
-                          <View style={styles.secondaryCardText}>
-                            <Text style={styles.secondaryCardTitleNew}>{t('dashboard.quick_start.button_freestyle')}</Text>
-                            <Text style={styles.secondaryCardSubtitle}>{t('practice.conversation.subtitle')}</Text>
-                          </View>
-                          <Ionicons name="chevron-forward" size={22} color="rgba(255, 255, 255, 0.8)" />
-                        </TouchableOpacity>
-
-                        {/* PRIMARY - Speaking Assessment (Coral Hero Card) */}
-                        <TouchableOpacity
-                          style={styles.primaryCardNew}
-                          onPress={handleCreatePlan}
-                          activeOpacity={0.9}
-                        >
-                          <View style={styles.primaryCardGradientNew}>
-                            <View style={styles.primaryCardHeaderNew}>
-                              <View style={styles.primaryIconContainerNew}>
-                                <Ionicons name="pulse" size={32} color="#FFFFFF" />
-                              </View>
-                            </View>
-
-                            <Text style={styles.primaryCardTitleNew}>{t('assessment.speaking.title')}</Text>
-                            <Text style={styles.primaryCardDescriptionNew}>
-                              {t('assessment.speaking.subtitle')}
-                            </Text>
-
-                            <View style={styles.primaryFeaturesNew}>
-                              <View style={styles.featurePill}>
-                                <Ionicons name="person-outline" size={13} color="#FFFFFF" />
-                                <Text style={styles.featurePillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
-                              </View>
-                              <View style={styles.featurePill}>
-                                <Ionicons name="list-outline" size={13} color="#FFFFFF" />
-                                <Text style={styles.featurePillText}>{t('profile.dna.button_track_progress')}</Text>
-                              </View>
-                              <View style={styles.featurePill}>
-                                <Ionicons name="trophy-outline" size={13} color="#FFFFFF" />
-                                <Text style={styles.featurePillText}>{t('profile.progress.title')}</Text>
-                              </View>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-
-                        {/* Usage Limits - Amber Banner with Minutes */}
-                        <View style={styles.usageLimitsBanner}>
-                          <Ionicons name="time-outline" size={20} color="#F59E0B" />
-                          <Text style={styles.usageLimitsText}>
-                            {Math.round(minutesRemaining || 0)} minutes remaining
-                          </Text>
-                        </View>
-
-                        {/* Upgrade Link - Premium Gold Gradient */}
-                        <LinearGradient
-                          colors={['#F59E0B', '#FBBF24', '#FCD34D']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={styles.upgradeLinkContainer}
-                        >
-                          <TouchableOpacity
-                            style={styles.upgradeLinkInner}
-                            onPress={handleUpgradePress}
-                            activeOpacity={0.8}
-                          >
-                            <View style={styles.upgradeIconCircle}>
-                              <Ionicons name="sparkles" size={20} color="#F59E0B" />
-                            </View>
-                            <Text style={styles.upgradeLinkText}>{t('subscription.title')}</Text>
-                            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-                          </TouchableOpacity>
-                        </LinearGradient>
-                      </View>
-                    )}
-
-                    {/* Premium User - Focused Activation Flow */}
-                    {isSubscribed && (
-                      <View style={styles.premiumUserContainer}>
-                        {/* PRIMARY CTA - Speaking Assessment (Dominant, Full Focus) */}
-                        <TouchableOpacity
-                          style={styles.premiumPrimaryCard}
-                          onPress={handleCreatePlan}
-                          activeOpacity={0.9}
-                        >
-                          <LinearGradient
-                            colors={['rgba(20, 184, 166, 0.15)', 'rgba(20, 184, 166, 0.08)']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.premiumPrimaryGradient}
-                          >
-                            <View style={styles.premiumPrimaryIconContainer}>
-                              <Ionicons name="analytics" size={40} color="#FFFFFF" />
-                            </View>
-
-                            <Text style={styles.premiumPrimaryTitle}>{t('assessment.speaking.title')}</Text>
-                            <Text style={styles.premiumPrimarySubtitle}>
-                              {t('assessment.speaking.subtitle')}
-                            </Text>
-
-                            <View style={styles.premiumFeaturePills}>
-                              <View style={styles.premiumPill}>
-                                <Ionicons name="person-outline" size={13} color="rgba(255,255,255,0.95)" />
-                                <Text style={styles.premiumPillText}>{t('onboarding.benefits.pill_unlimited_practice')}</Text>
-                              </View>
-                              <View style={styles.premiumPill}>
-                                <Ionicons name="list-outline" size={13} color="rgba(255,255,255,0.95)" />
-                                <Text style={styles.premiumPillText}>{t('profile.dna.button_track_progress')}</Text>
-                              </View>
-                              <View style={styles.premiumPill}>
-                                <Ionicons name="trophy-outline" size={13} color="rgba(255,255,255,0.95)" />
-                                <Text style={styles.premiumPillText}>{t('profile.progress.title')}</Text>
-                              </View>
-                              <View style={styles.premiumPill}>
-                                <Ionicons name="fitness-outline" size={13} color="rgba(255,255,255,0.95)" />
-                                <Text style={styles.premiumPillText}>{t('profile.dna.title')}</Text>
-                              </View>
-                            </View>
-                          </LinearGradient>
-                        </TouchableOpacity>
-
-                        {/* Reassurance Section */}
-                        <View style={styles.reassuranceSection}>
-                          <View style={styles.reassuranceItem}>
-                            <Ionicons name="time-outline" size={16} color="#6B7280" />
-                            <Text style={styles.reassuranceText}>{t('units.minutes', { count: 5 })}</Text>
-                          </View>
-                          <View style={styles.reassuranceItem}>
-                            <Ionicons name="chatbubble-ellipses-outline" size={16} color="#6B7280" />
-                            <Text style={styles.reassuranceText}>{t('practice.conversation.title')}</Text>
-                          </View>
-                          <View style={styles.reassuranceItem}>
-                            <Ionicons name="shield-checkmark-outline" size={16} color="#6B7280" />
-                            <Text style={styles.reassuranceText}>{t('common.please_wait')}</Text>
-                          </View>
-                        </View>
-
-                        {/* SECONDARY CTA - Quick Practice (Optional, Clearly Secondary) */}
-                        <TouchableOpacity
-                          style={styles.premiumSecondaryCard}
-                          onPress={handleSelectQuickPractice}
-                          activeOpacity={0.8}
-                        >
-                          <Ionicons name="mic-circle-outline" size={24} color="#4ECFBF" />
-                          <Text style={styles.premiumSecondaryText}>{t('dashboard.quick_start.button_freestyle')}</Text>
-                          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-
-                    {/* Tip for Premium Users */}
-                    {isSubscribed && (
-                      <View style={styles.tipContainer}>
-                        <Ionicons name="bulb-outline" size={16} color="#F59E0B" />
-                        <Text style={styles.tipText}>
-                          {t('toasts.info_coming_soon')}
-                        </Text>
-                      </View>
-                    )}
-                  </>
-                );
-              })()}
-            </>
-          )}
         </ScrollView>
 
         {/* Pricing Modal */}
@@ -1322,6 +1196,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <TaalCoach
           onPress={() => setShowCoachModal(true)}
           visible={true}
+          hasBadge={!!taalCoachBadgeSessionId}
         />
 
         {/* Coach Modal */}
@@ -1329,6 +1204,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           visible={showCoachModal}
           onClose={() => setShowCoachModal(false)}
           language={userLanguage}
+          badgeSessionId={taalCoachBadgeSessionId || undefined}
+          onClearBadge={clearTaalCoachBadge}
         />
 
       </SafeAreaView>
@@ -1439,10 +1316,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           const { plansByLanguage, mostRecentPlan } = getFilteredAndGroupedPlans();
           const isPremium = subscriptionStatus && !['try_learn', 'free'].includes(subscriptionStatus.plan);
 
-          // Get all available languages from learning plans
-          const availableLanguages = [...new Set(learningPlans.map(plan =>
+          // Get all available languages from BOTH learning plans AND practice sessions
+          const planLanguages = learningPlans.map(plan =>
             (plan.language || 'english').toLowerCase()
-          ))].sort();
+          );
+          const sessionLanguages = practiceSessions.map(session =>
+            (session.language || session.target_language || 'english').toLowerCase()
+          );
+          const availableLanguages = [...new Set([...planLanguages, ...sessionLanguages])].sort();
 
           // Get all filtered plans (not grouped)
           const allFilteredPlans = Object.values(plansByLanguage).flat();
@@ -1469,6 +1350,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           });
 
           // Filter practice sessions by language AND status filter
+          // Practice sessions ONLY appear in "Completed" filter
           const filteredSessions = practiceSessions.filter(session => {
             // Language filter
             if (selectedLanguageFilter) {
@@ -1478,17 +1360,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               }
             }
 
-            // Status filter - ONLY show practice sessions in "completed" filter
-            // This keeps Learn tab clean and focused on active learning plans
-            if (selectedFilter === 'all' || selectedFilter === 'new' || selectedFilter === 'in_progress') {
-              return false; // Exclude practice sessions from these filters
-            }
-
-            // For "completed" filter, show all practice sessions (they're all completed by definition)
+            // Status filter: Practice sessions ONLY show in "Completed" filter
             if (selectedFilter === 'completed') {
-              return true;
+              return true; // Show all practice sessions in Completed filter
             }
 
+            // Hide practice sessions in All, New, and In Progress filters
             return false;
           });
 
@@ -2353,6 +2230,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       <TaalCoach
         onPress={() => setShowCoachModal(true)}
         visible={true}
+        hasBadge={!!taalCoachBadgeSessionId}
       />
 
       {/* Coach Modal */}
@@ -2360,6 +2238,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         visible={showCoachModal}
         onClose={() => setShowCoachModal(false)}
         language={userLanguage}
+        onClearBadge={clearTaalCoachBadge}
       />
     </SafeAreaView>
     );

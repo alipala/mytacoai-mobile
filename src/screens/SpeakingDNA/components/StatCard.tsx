@@ -17,14 +17,16 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { COLORS, SHADOWS, SPRING_CONFIGS } from '../constants';
+import { COLORS, SHADOWS, SPRING_CONFIGS, GRADIENTS } from '../constants';
 
 interface StatCardProps {
   icon: string;
   label: string;
   value: string | number;
   iconColor: string;
+  gradient?: string[]; // Optional gradient colors
   delay?: number;
   animateNumber?: boolean;
 }
@@ -59,6 +61,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   label,
   value,
   iconColor,
+  gradient,
   delay = 0,
   animateNumber = true,
 }) => {
@@ -111,6 +114,26 @@ export const StatCard: React.FC<StatCardProps> = ({
     transform: [{ translateY: translateY.value }, { scale: scale.value }],
   }));
 
+  // Render with gradient or solid background
+  if (gradient) {
+    return (
+      <Animated.View style={[styles.cardWrapper, animatedStyle]}>
+        <LinearGradient
+          colors={gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.gradientCard, SHADOWS.md]}
+        >
+          <View style={styles.iconContainerGradient}>
+            <Ionicons name={icon as any} size={28} color="rgba(255, 255, 255, 0.9)" />
+          </View>
+          <Text style={styles.labelGradient}>{label}</Text>
+          <Text style={styles.valueGradient}>{displayValue}</Text>
+        </LinearGradient>
+      </Animated.View>
+    );
+  }
+
   return (
     <Animated.View style={[styles.card, SHADOWS.sm, animatedStyle]}>
       <View style={[styles.iconContainer, { backgroundColor: `${iconColor}15` }]}>
@@ -123,22 +146,42 @@ export const StatCard: React.FC<StatCardProps> = ({
 };
 
 const styles = StyleSheet.create({
+  cardWrapper: {
+    flex: 1,
+    minWidth: 100,
+  },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 100,
     flex: 1,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  gradientCard: {
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    minHeight: 140,
+  },
+  iconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  iconContainerGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   label: {
     fontSize: 12,
@@ -147,10 +190,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 4,
   },
+  labelGradient: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   value: {
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.gray[900],
+    textAlign: 'center',
+  },
+  valueGradient: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
 });

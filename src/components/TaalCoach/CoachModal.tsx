@@ -26,6 +26,8 @@ import {
   ActivityIndicator,
   Animated,
   Keyboard,
+  Dimensions,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,6 +35,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import LottieView from 'lottie-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../../config/api';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
 
 // Import service and types
 import coachService, { ChatMessage, RichMessage, QuickReply } from '../../services/CoachService';
@@ -45,11 +53,14 @@ const LoadingCat = require('../../assets/lottie/loading_cat.json');
 import { EmojiText } from '../EmojiText';
 import { ProgressCard } from './ProgressCard';
 import { DNACard } from './DNACard';
+import { SentenceAnalysisModal } from './SentenceAnalysisModal';
 
 interface CoachModalProps {
   visible: boolean;
   onClose: () => void;
   language: string; // Target learning language (for context)
+  badgeSessionId?: string; // 🆕 Session ID for sentence analysis badge
+  onClearBadge?: () => void; // 🆕 Callback to clear badge when analysis viewed
 }
 
 // Animated Typing Indicator Component
@@ -155,6 +166,7 @@ interface AnimatedMessageBubbleProps {
   richMessages: RichMessage[];
   timestamp: Date;
   index: number;
+  onViewAnalysis?: (sessionId: string, notificationId?: string) => void;
 }
 
 const AnimatedMessageBubble: React.FC<AnimatedMessageBubbleProps> = ({
@@ -162,6 +174,7 @@ const AnimatedMessageBubble: React.FC<AnimatedMessageBubbleProps> = ({
   richMessages,
   timestamp,
   index,
+  onViewAnalysis,
 }) => {
   // Create animated values for fade, slide, and glow effects
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -252,6 +265,38 @@ const AnimatedMessageBubble: React.FC<AnimatedMessageBubbleProps> = ({
               </View>
             );
 
+          case 'analysis_button':
+            return (
+              <TouchableOpacity
+                key={idx}
+                style={styles.analysisButtonInline}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  }
+                  const sessionId = richMsg.data?.session_id;
+                  const notificationId = richMsg.data?.notification_id;
+                  if (sessionId && onViewAnalysis) {
+                    onViewAnalysis(sessionId, notificationId);
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <LinearGradient
+                  colors={['#14B8A6', '#0D9488']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.analysisButtonGradient}
+                >
+                  <Ionicons name="analytics-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.analysisButtonText}>
+                    View Analysis
+                  </Text>
+                  <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                </LinearGradient>
+              </TouchableOpacity>
+            );
+
           default:
             return null;
         }
@@ -272,6 +317,8 @@ export const CoachModal: React.FC<CoachModalProps> = ({
   visible,
   onClose,
   language,
+  badgeSessionId,
+  onClearBadge,
 }) => {
   const { i18n } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -300,10 +347,22 @@ export const CoachModal: React.FC<CoachModalProps> = ({
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
   const [contentHeight, setContentHeight] = useState(0);
 
+  // Clear conversation confirmation modal
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+
+  // 🆕 Sentence analysis modal state
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [analysisData, setAnalysisData] = useState<any[]>([]);
+  const [currentNotificationId, setCurrentNotificationId] = useState<string | null>(null);
+
+  // Track which notification IDs have been shown to avoid duplicates
+  const shownNotificationIds = useRef<Set<string>>(new Set());
+
   // Load conversation from cache when modal opens
   useEffect(() => {
     if (visible) {
       loadConversationFromCache();
+      checkForAnalysisNotifications(); // Check for new analysis notifications
     }
   }, [visible]);
 
@@ -335,6 +394,111 @@ export const CoachModal: React.FC<CoachModalProps> = ({
         loadInitialGreeting();
       }
     }
+  };
+
+  // Check for analysis-ready notifications
+  const checkForAnalysisNotifications = async () => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/notifications/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const notifications = data.notifications || [];
+
+      // Filter for unread session_analysis notifications
+      // Note: notification structure has nested 'notification' object from lookup
+      const analysisNotifications = notifications.filter(
+        (n: any) => n.notification?.notification_type === 'session_analysis' && !n.is_read
+      );
+
+      if (analysisNotifications.length > 0) {
+        console.log(`[TaalCoach] Found ${analysisNotifications.length} analysis notifications`);
+
+        // Filter out notifications that have already been shown
+        const newNotifications = analysisNotifications.filter((userNotification: any) => {
+          const userNotificationId = userNotification.id || userNotification._id;
+          return !shownNotificationIds.current.has(userNotificationId);
+        });
+
+        if (newNotifications.length === 0) {
+          console.log('[TaalCoach] All notifications already shown in chat');
+          return;
+        }
+
+        console.log(`[TaalCoach] Adding ${newNotifications.length} new notifications to chat`);
+
+        // Add each NEW notification as a coach message
+        newNotifications.forEach((userNotification: any) => {
+          const notif = userNotification.notification;  // Extract nested notification
+          const userNotificationId = userNotification.id || userNotification._id;
+
+          // Mark as shown
+          shownNotificationIds.current.add(userNotificationId);
+
+          addAssistantMessage([
+            {
+              type: 'text',
+              content: `${notif.title}\n\n${notif.content}`,
+              timestamp: new Date().toISOString()
+            },
+            {
+              type: 'analysis_button',
+              data: {
+                session_id: notif.session_id,
+                job_id: notif.job_id,
+                sentence_count: notif.sentence_count,
+                notification_id: notif._id || notif.id,  // Notification ID for marking as read
+                user_notification_id: userNotificationId  // User notification ID
+              },
+              timestamp: new Date().toISOString()
+            }
+          ]);
+
+          console.log('[TaalCoach] ✅ New notification added to chat, badge will clear when analysis viewed');
+        });
+      }
+    } catch (error) {
+      console.error('[TaalCoach] Failed to check notifications:', error);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      if (!token) return;
+
+      await fetch(`${API_BASE_URL}/api/notifications/mark-read`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notification_id: notificationId })  // Single notification_id, not array
+      });
+
+      console.log('[TaalCoach] ✅ Marked notification as read:', notificationId);
+    } catch (error) {
+      console.error('[TaalCoach] Failed to mark notification as read:', error);
+    }
+  };
+
+  // Helper function to add assistant messages
+  const addAssistantMessage = (richMessages: RichMessage[]) => {
+    const assistantMessage = {
+      role: 'assistant' as const,
+      richMessages,
+      timestamp: new Date(),
+      animated: true
+    };
+    setMessages(prev => [...prev, assistantMessage]);
   };
 
   // Save conversation to cache whenever messages change
@@ -512,6 +676,105 @@ export const CoachModal: React.FC<CoachModalProps> = ({
     onClose();
   };
 
+  // Clear conversation function
+  const handleClearConversation = async () => {
+    try {
+      // Haptic feedback for successful action
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Clear from AsyncStorage
+      await coachService.clearConversation(language);
+
+      // Clear from UI
+      setMessages([]);
+      setQuickReplies([]);
+      setShowClearConfirmation(false);
+
+      // Reset shown notification tracking so notifications can reappear
+      shownNotificationIds.current.clear();
+
+      // Load initial greeting after clearing
+      setTimeout(() => {
+        loadInitialGreeting();
+      }, 300);
+
+      console.log('[CoachModal] Conversation cleared successfully');
+    } catch (error) {
+      console.error('[CoachModal] Failed to clear conversation:', error);
+      // Error haptic feedback
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  // 🆕 Fetch sentence analysis for a session and show modal
+  const handleViewAnalysis = async (sessionId: string, notificationId?: string) => {
+    try {
+      console.log('[CoachModal] Fetching sentence analysis for session:', sessionId);
+
+      const authToken = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(
+        `${API_BASE_URL}/api/progress/conversation/${sessionId}/sentence-analysis`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch analysis: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('[CoachModal] Analysis response:', data.status);
+
+      if (data.status === 'ready' && data.analyses) {
+        setAnalysisData(data.analyses);
+        setShowAnalysisModal(true);
+
+        // Clear badge if callback provided
+        if (onClearBadge) {
+          onClearBadge();
+        }
+
+        // Mark notification as read if notification ID provided
+        if (notificationId) {
+          markNotificationAsRead(notificationId);
+        }
+      } else if (data.status === 'processing') {
+        // Analysis still in progress
+        Alert.alert(
+          'Analysis in Progress',
+          'Your sentence analysis is still being processed. Please wait a moment and try again.',
+          [{ text: 'OK' }]
+        );
+      } else if (data.status === 'not_found') {
+        // No analysis found
+        Alert.alert(
+          'No Analysis Available',
+          'No sentence analysis found for this session.',
+          [{ text: 'OK' }]
+        );
+      } else if (data.status === 'failed') {
+        // Analysis failed
+        Alert.alert(
+          'Analysis Failed',
+          'The sentence analysis failed. Please try practicing again.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('[CoachModal] Error fetching analysis:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load sentence analysis. Please try again later.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   // Handle scroll event to show/hide scroll buttons
   const handleScroll = (event: any) => {
     const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
@@ -558,6 +821,7 @@ export const CoachModal: React.FC<CoachModalProps> = ({
         richMessages={message.richMessages}
         timestamp={message.timestamp}
         index={index}
+        onViewAnalysis={handleViewAnalysis}
       />
     );
   };
@@ -601,12 +865,26 @@ export const CoachModal: React.FC<CoachModalProps> = ({
                 <Text style={styles.headerSubtitle}>Your AI learning guide</Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={handleClose}
-              style={styles.closeButton}
-            >
-              <Ionicons name="close" size={28} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              {/* Clear conversation button - only show if there are messages */}
+              {messages.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    setShowClearConfirmation(true);
+                  }}
+                  style={styles.clearButton}
+                >
+                  <Ionicons name="trash-outline" size={22} color="#FFFFFF" opacity={0.8} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={handleClose}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={28} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Messages */}
@@ -727,6 +1005,63 @@ export const CoachModal: React.FC<CoachModalProps> = ({
           </View>
         </KeyboardAvoidingView>
       </LinearGradient>
+
+      {/* Clear Conversation Confirmation Modal */}
+      <Modal
+        visible={showClearConfirmation}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowClearConfirmation(false)}
+      >
+        <View style={styles.confirmationOverlay}>
+          <View style={styles.confirmationModal}>
+            {/* Icon */}
+            <View style={styles.confirmationIconContainer}>
+              <Ionicons name="warning-outline" size={48} color="#F59E0B" />
+            </View>
+
+            {/* Title */}
+            <Text style={styles.confirmationTitle}>Clear Conversation?</Text>
+
+            {/* Message */}
+            <Text style={styles.confirmationMessage}>
+              This will permanently delete your entire chat history with Taal Coach. This action cannot be undone.
+            </Text>
+
+            {/* Buttons */}
+            <View style={styles.confirmationButtons}>
+              <TouchableOpacity
+                style={[styles.confirmationButton, styles.confirmationCancelButton]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowClearConfirmation(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.confirmationCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.confirmationButton, styles.confirmationDeleteButton]}
+                onPress={handleClearConversation}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trash-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text style={styles.confirmationDeleteText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 🆕 Sentence Analysis Modal */}
+      {analysisData.length > 0 && (
+        <SentenceAnalysisModal
+          visible={showAnalysisModal}
+          analyses={analysisData}
+          onClose={() => setShowAnalysisModal(false)}
+        />
+      )}
     </Modal>
   );
 };
@@ -791,6 +1126,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#B4E4DD',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  clearButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
   },
   closeButton: {
     width: 44,
@@ -1022,6 +1372,111 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  analysisButtonInline: {
+    marginTop: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#14B8A6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  analysisButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  analysisButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+  // Confirmation modal styles
+  confirmationOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  confirmationModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    width: '100%',
+    maxWidth: 360,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  confirmationIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  confirmationTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  confirmationMessage: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  confirmationButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  confirmationButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  confirmationCancelButton: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+  },
+  confirmationDeleteButton: {
+    backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  confirmationCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  confirmationDeleteText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 

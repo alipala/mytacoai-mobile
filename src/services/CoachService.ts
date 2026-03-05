@@ -27,7 +27,7 @@ export interface ChatMessage {
 }
 
 export interface RichMessage {
-  type: 'text' | 'progress_card' | 'dna_card' | 'celebration';
+  type: 'text' | 'progress_card' | 'dna_card' | 'celebration' | 'analysis_button';
   content?: string;
   data?: any;
   timestamp: string;
@@ -86,7 +86,7 @@ const CACHE_KEYS = {
 // Cache durations (in milliseconds)
 const CACHE_DURATIONS = {
   context: 15 * 60 * 1000, // 15 minutes (increased from 5)
-  conversation: 24 * 60 * 60 * 1000, // 24 hours
+  conversation: Infinity, // Never expire - user must manually clear
 } as const;
 
 // ============================================================================
@@ -283,7 +283,7 @@ class CoachService {
 
   /**
    * Save conversation messages to cache
-   * Persists for 24 hours across app restarts
+   * Persists forever until user manually clears (via Clear button)
    */
   async saveConversation(language: string, messages: any[]): Promise<void> {
     try {
@@ -298,7 +298,7 @@ class CoachService {
 
   /**
    * Load conversation messages from cache
-   * Returns null if cache expired or not found
+   * Returns null if not found (conversations never expire)
    */
   async loadConversation(language: string): Promise<any[] | null> {
     try {

@@ -180,7 +180,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
         {...props}
         disappearsOnIndex={-1}
         appearsOnIndex={0}
-        opacity={0.5}
+        opacity={0.3} // Lighter backdrop
       />
     ),
     []
@@ -232,6 +232,16 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
           <Text style={styles.subtitle}>{config.subtitle}</Text>
         </LinearGradient>
 
+        {/* TaalCoach Analysis Notification */}
+        {sentenceCount > 0 && stage === 'success' && (
+          <View style={styles.taalCoachNotificationText}>
+            <Ionicons name="analytics-outline" size={20} color={COLORS.primary[300]} />
+            <Text style={styles.analysisInfoText}>
+              Your analysis is in progress. You can find it in TaalCoach once ready.
+            </Text>
+          </View>
+        )}
+
         {/* Processing: Show conversation highlights */}
         {stage !== 'success' && conversationHighlights.length > 0 && (
           <View style={styles.highlightsSection}>
@@ -266,6 +276,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
                   label="Duration"
                   value={duration}
                   iconColor={COLORS.primary[500]}
+                  gradient={GRADIENTS.primary}
                   delay={0}
                 />
                 <StatCard
@@ -273,6 +284,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
                   label="Words"
                   value={sessionStats?.words_spoken || messageCount}
                   iconColor={COLORS.strand.vocabulary}
+                  gradient={GRADIENTS.categoryVocabulary}
                   delay={100}
                 />
                 <StatCard
@@ -280,6 +292,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
                   label="Speed"
                   value={sessionStats?.speaking_speed_wpm ? `${Math.round(sessionStats.speaking_speed_wpm)} wpm` : '-'}
                   iconColor={COLORS.strand.rhythm}
+                  gradient={GRADIENTS.categoryRhythm}
                   delay={200}
                 />
                 <StatCard
@@ -287,6 +300,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
                   label="Vocabulary"
                   value={sessionStats?.unique_vocabulary ? `${sessionStats.unique_vocabulary}` : '-'}
                   iconColor={COLORS.strand.learning}
+                  gradient={GRADIENTS.categoryLearning}
                   delay={300}
                 />
               </View>
@@ -299,6 +313,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
                     label="Turns"
                     value={sessionStats.conversation_turns}
                     iconColor={COLORS.strand.confidence}
+                    gradient={GRADIENTS.categoryConfidence}
                     delay={400}
                   />
                   {sessionStats.grammar_score != null && (
@@ -307,6 +322,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
                       label="Grammar"
                       value={`${Math.round(sessionStats.grammar_score)}%`}
                       iconColor={COLORS.strand.accuracy}
+                      gradient={GRADIENTS.categoryAccuracy}
                       delay={500}
                     />
                   )}
@@ -316,6 +332,7 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
                       label="Fluency"
                       value={`${Math.round(sessionStats.fluency_score)}%`}
                       iconColor={COLORS.strand.emotional}
+                      gradient={GRADIENTS.categoryEmotional}
                       delay={600}
                     />
                   )}
@@ -399,32 +416,17 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
               </View>
             )}
 
-            {/* Action Buttons */}
+            {/* Action Button */}
             <View style={styles.buttonsContainer}>
-              {hasAnalyses && (
-                <TouchableOpacity
-                  style={[styles.button, styles.primaryButton]}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    onViewAnalysis();
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="clipboard-outline" size={20} color={COLORS.white} />
-                  <Text style={styles.primaryButtonText}>View Analysis</Text>
-                </TouchableOpacity>
-              )}
               <TouchableOpacity
-                style={[styles.button, hasAnalyses ? styles.secondaryButton : styles.primaryButton]}
+                style={[styles.button, styles.primaryButton]}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   onGoDashboard();
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={hasAnalyses ? styles.secondaryButtonText : styles.primaryButtonText}>
-                  Go to Dashboard
-                </Text>
+                <Text style={styles.primaryButtonText}>Go to Dashboard</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -436,12 +438,12 @@ export const SessionSummaryBottomSheet: React.FC<SessionSummaryBottomSheetProps>
 
 const styles = StyleSheet.create({
   sheetBackground: {
-    backgroundColor: COLORS.background.primary,
+    backgroundColor: '#0A2F2F', // Dark teal like DNA screen
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   handleIndicator: {
-    backgroundColor: COLORS.gray[300],
+    backgroundColor: 'rgba(255, 255, 255, 0.3)', // White with opacity on dark bg
     width: 40,
     height: 4,
   },
@@ -450,7 +452,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 40, // Increased padding
     paddingHorizontal: 24,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -473,19 +475,22 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   highlightCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Semi-transparent on dark
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    ...SHADOWS.md,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary[400],
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   highlightText: {
     flex: 1,
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.gray[700],
+    color: 'rgba(255, 255, 255, 0.9)', // White text for dark bg
     lineHeight: 22,
     fontStyle: 'italic',
   },
@@ -495,7 +500,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: `${COLORS.primary[500]}10`,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Light overlay on dark bg
     borderRadius: 12,
     marginHorizontal: 16,
     marginTop: 16,
@@ -504,7 +509,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.primary[600],
+    color: COLORS.primary[300], // Lighter teal for dark bg
   },
   section: {
     paddingHorizontal: 16,
@@ -513,7 +518,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.gray[500],
+    color: 'rgba(255, 255, 255, 0.6)', // Light white for dark background
     letterSpacing: 1,
     marginBottom: 12,
   },
@@ -528,29 +533,30 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     flex: 1,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Semi-transparent white on dark
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
-    ...SHADOWS.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   progressLabel: {
     fontSize: 11,
-    fontWeight: '500',
-    color: COLORS.gray[600],
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)', // Light text for dark bg
     marginTop: 8,
     textAlign: 'center',
   },
   progressValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray[900],
+    color: '#FFFFFF', // White text
     marginTop: 4,
   },
   progressSubValue: {
     fontSize: 11,
     fontWeight: '500',
-    color: COLORS.gray[500],
+    color: 'rgba(255, 255, 255, 0.6)', // Light text
     marginTop: 2,
   },
   buttonsContainer: {
@@ -563,17 +569,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
-    borderRadius: 12,
-    ...SHADOWS.sm,
+    paddingVertical: 18,
+    borderRadius: 16,
+    ...SHADOWS.lg, // Stronger shadow for dark bg
   },
   primaryButton: {
     backgroundColor: COLORS.primary[500],
   },
   secondaryButton: {
-    backgroundColor: COLORS.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderWidth: 2,
-    borderColor: COLORS.primary[500],
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   primaryButtonText: {
     fontSize: 16,
@@ -583,7 +589,27 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.primary[500],
+    color: COLORS.white,
+  },
+  taalCoachNotificationText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: 'rgba(20, 184, 166, 0.15)', // Teal with low opacity
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary[400],
+  },
+  analysisInfoText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.9)', // White text for dark bg
+    lineHeight: 20,
   },
 });
 
