@@ -86,7 +86,16 @@ const BreakthroughCard: React.FC<BreakthroughCardProps> = ({
 }) => {
   const colors = getCategoryColors(breakthrough.category);
   const icon = getCategoryIcon(breakthrough.category);
-  const date = new Date(breakthrough.detected_at);
+
+  // 🔧 FIX: Use created_at (not detected_at) and add defensive parsing
+  const dateValue = breakthrough.created_at || new Date().toISOString();
+  const date = new Date(dateValue);
+
+  // Validate date - if invalid, use current date as fallback
+  if (isNaN(date.getTime())) {
+    console.warn('[BreakthroughCard] Invalid date:', dateValue);
+    date.setTime(Date.now());
+  }
 
   return (
     <TouchableOpacity
