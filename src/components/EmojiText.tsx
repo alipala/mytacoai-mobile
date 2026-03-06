@@ -24,13 +24,19 @@ export const EmojiText: React.FC<EmojiTextProps> = ({
 }) => {
   // Parse text and split by emoji markers
   const parseTextWithEmojis = () => {
-    // Normalize all emoji formats to {{emoji:name}}
-    // Handle: {{emoji:name}}, {{{emoji:name}}}, {{{{emoji:name}}}}, {emoji:name}
-    // Also strip out any unicode emojis that appear before "emoji:"
-    let normalizedText = text
-      .replace(/\{\{\s*\{\{\s*emoji:(\w+)\s*\}\}\s*\}\}/g, '{{emoji:$1}}') // {{{{emoji:name}}}} -> {{emoji:name}}
-      .replace(/\{\{\s*\{\s*emoji:(\w+)\s*\}\s*\}\}/g, '{{emoji:$1}}')     // {{{emoji:name}}} -> {{emoji:name}}
-      .replace(/\{[^\}]*emoji:(\w+)\}/g, '{{emoji:$1}}');                   // {🛤️emoji:name} or {emoji:name} -> {{emoji:name}}
+    // 🔧 FIX: Aggressive normalization to handle ALL curly brace variations
+    // The AI sometimes generates {{emoji:name}}, {{{{{emoji:name}}}}}, etc.
+    // We need to normalize ALL variations to exactly {{emoji:name}}
+    let normalizedText = text;
+
+    // Step 1: Remove ALL extra curly braces around emoji markers
+    // This regex finds any number of { followed by emoji:word followed by any number of }
+    // and replaces with exactly {{emoji:word}}
+    normalizedText = normalizedText.replace(/\{+\s*(emoji:\w+)\s*\}+/g, '{{$1}}');
+
+    // Step 2: Clean up any unicode emojis that appear BEFORE emoji: markers
+    // Sometimes AI generates: "text 👨‍👩‍👧{emoji:family}" -> we want just "text {{emoji:family}}"
+    normalizedText = normalizedText.replace(/[\u{1F300}-\u{1F9FF}][\u{FE00}-\u{FE0F}]?[\u{200D}\u{FE0F}]?(\{+emoji:\w+\}+)/gu, '$1');
 
     const parts = normalizedText.split(/({{emoji:\w+}})/g);
 

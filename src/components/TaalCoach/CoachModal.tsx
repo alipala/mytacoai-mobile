@@ -358,13 +358,28 @@ export const CoachModal: React.FC<CoachModalProps> = ({
   // Track which notification IDs have been shown to avoid duplicates
   const shownNotificationIds = useRef<Set<string>>(new Set());
 
-  // Load conversation from cache when modal opens
+  // 🔧 FIX: Keep a ref to the latest messages to avoid stale closure in save effect
+  const messagesRef = useRef(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Load conversation from cache when modal opens, save when it closes
   useEffect(() => {
     if (visible) {
       loadConversationFromCache();
       checkForAnalysisNotifications(); // Check for new analysis notifications
+    } else {
+      // 🔧 FIX: Save conversation immediately when modal closes (use ref for latest messages)
+      if (messagesRef.current.length > 0) {
+        coachService.saveConversation(language, messagesRef.current);
+        console.log('[CoachModal] Saved conversation on modal close');
+      }
     }
-  }, [visible]);
+    // Only re-run when visible or language changes, NOT when messages change
+    // This prevents reloading from cache every time user sends a message
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, language]);
 
   const loadConversationFromCache = async () => {
     try {

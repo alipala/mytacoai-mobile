@@ -1845,13 +1845,17 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
             console.log('[DNA] 🚀 DNA analysis request sent (non-blocking)');
 
             // 🎙️ Check if voice check is due (only for learning plan sessions)
+            // 🔥 FIX: Make this NON-BLOCKING - don't wait for voice check before showing modal
             if (planId) {
-              console.log('[VOICE_CHECK] Refreshing voice check status after session...');
-              await refreshVoiceCheckStatus(); // Refresh status after session completion
-
-              // Note: The refreshed status will be available in the next render
-              // The useEffect will handle showing the modal when voiceCheckPrompt is set
-              console.log('[VOICE_CHECK] Status refresh complete');
+              console.log('[VOICE_CHECK] Refreshing voice check status (non-blocking)...');
+              refreshVoiceCheckStatus()
+                .then(() => {
+                  console.log('[VOICE_CHECK] ✅ Status refresh complete');
+                })
+                .catch((error) => {
+                  console.error('[VOICE_CHECK] ❌ Status refresh failed:', error);
+                });
+              console.log('[VOICE_CHECK] 🚀 Voice check request sent (non-blocking)');
             }
           } else {
             console.log('[DNA] ⏭️ Skipping DNA analysis - no user turns recorded');
@@ -1931,19 +1935,26 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
         }
 
         // The new endpoint doesn't return a summary, so we generate it client-side for the modal
+        console.log('[AUTO_END] 🎬 About to set session summary...');
         if (planId) {
           const summaryText = `Session completed: ${Math.round(sessionDuration / 60 * 10) / 10} minutes, ${messages.length} messages exchanged.`;
           setSessionSummary(summaryText);
+          console.log('[AUTO_END] ✅ Session summary set for learning plan:', summaryText);
         } else if (result.summary) {
           setSessionSummary(result.summary);
+          console.log('[AUTO_END] ✅ Session summary set for practice:', result.summary);
         }
+
+        console.log('[AUTO_END] 🎭 About to transition modal stages...');
 
         // Transition to finalizing stage
         await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('[AUTO_END] 📊 Setting stage: finalizing');
         setSavingStage('finalizing');
 
         // Transition to success stage
         await new Promise(resolve => setTimeout(resolve, 800));
+        console.log('[AUTO_END] ✅ Setting stage: success');
         setSavingStage('success');
       } else {
         // No messages, just navigate back
