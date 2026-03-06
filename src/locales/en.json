@@ -174,7 +174,7 @@
       "step3_title": "Improve",
       "step3_desc": "Follow your personal learning plan",
       "quick_practice_link": "Or jump straight into a free conversation",
-      "upgrade_banner": "Start your free 7-day trial",
+      "upgrade_banner": "Start your free 3-day trial",
       "minutes_gauge": "{{minutes}} min left this month",
       "minutes_low": "{{minutes}} min left — running out soon",
       "minutes_empty": "You've used all your free minutes"
@@ -835,7 +835,7 @@
         "privacy_description": "Learn how we protect and use your personal information",
         "link_view_in_app": "View in app",
         "section_subscription_info": "Subscription Information",
-        "subscription_info_trial": "7-day free trial available for new subscribers",
+        "subscription_info_trial": "3-day free trial available for new subscribers",
         "subscription_info_cancel": "Cancel anytime before trial ends to avoid charges",
         "subscription_info_auto_renew": "Subscription auto-renews unless canceled 24h before period ends",
         "subscription_info_payment": "Payment charged to your account after trial",
@@ -1314,7 +1314,7 @@
     "button_subscribe": "Subscribe Now",
     "button_restore": "Restore Purchases",
     "button_cancel": "Maybe Later",
-    "trial": "7-day free trial",
+    "trial": "3-day free trial",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "auto_renew": "Auto-renews unless canceled 24 hours before period ends",
@@ -1334,11 +1334,11 @@
     "success": {
       "title": "Welcome to Premium!",
       "subtitle": "Your subscription has been activated successfully",
-      "trial_started": "7-day free trial started",
+      "trial_started": "3-day free trial started",
       "unlimited_sessions": "Unlimited practice sessions",
       "advanced_tracking": "Advanced progress tracking",
       "button_start_learning": "Start Learning",
-      "trial_info": "You won't be charged until after your 7-day free trial ends"
+      "trial_info": "You won't be charged until after your 3-day free trial ends"
     }
   },
   "notifications": {

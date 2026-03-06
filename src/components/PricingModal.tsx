@@ -77,7 +77,7 @@ const PRICING_PLANS: PricingPlan[] = [
     annualPrice: '€119.00',
     annualSavings: 'Save €120.88',
     shortDescription: 'Perfect for consistent learners',
-    highlight: '🎉 7-day free trial',
+    highlight: '🎉 3-day free trial',
     isPopular: true,
     monthlyFeatures: [
       { icon: 'chatbubbles', text: '150 min speaking/month' },
@@ -103,7 +103,7 @@ const PRICING_PLANS: PricingPlan[] = [
     annualPrice: '€239.00',
     annualSavings: 'Save €240.88',
     shortDescription: 'Ultimate learning experience',
-    highlight: '🎉 7-day free trial',
+    highlight: '🎉 3-day free trial',
     monthlyFeatures: [
       { icon: 'infinite', text: 'UNLIMITED speaking' },
       { icon: 'analytics', text: 'UNLIMITED assessments' },
@@ -948,7 +948,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   plan.isPopular && styles.planCardPopular,
                 ]}
               >
-                {/* Badge: Current Plan / Save 17% / Most Popular */}
+                {/* Badge: Current Plan / Save 50% / Most Popular */}
                 {isCurrentPlan ? (
                   <View style={[styles.popularBadge, { backgroundColor: '#6B7280' }]}>
                     <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
@@ -957,7 +957,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 ) : currentPlan === 'fluency_builder' && plan.id === 'fluency_builder' && isAnnual ? (
                   <View style={[styles.popularBadge, { backgroundColor: '#F59E0B' }]}>
                     <Ionicons name="trending-up" size={14} color="#FFFFFF" />
-                    <Text style={styles.popularBadgeText}>SAVE 17%</Text>
+                    <Text style={styles.popularBadgeText}>SAVE 50%</Text>
                   </View>
                 ) : plan.isPopular && (
                   <View style={styles.popularBadge}>

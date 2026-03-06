@@ -20,7 +20,7 @@ interface CheckoutSuccessScreenProps {
 }
 
 const BENEFITS = [
-  { icon: 'flash',            label: '7-day free trial started',       sub: 'No charge until your trial ends' },
+  { icon: 'flash',            label: '3-day free trial started',       sub: 'No charge until your trial ends' },
   { icon: 'chatbubbles',      label: 'Speaking sessions unlocked',      sub: 'Practice with AI tutors anytime' },
   { icon: 'heart',            label: 'Premium hearts activated',        sub: 'More energy for daily challenges' },
   { icon: 'trending-up',      label: 'Advanced tracking enabled',       sub: 'See your improvement over time' },
@@ -136,14 +136,14 @@ const CheckoutSuccessScreen: React.FC<CheckoutSuccessScreenProps> = ({ navigatio
         <Animated.View style={{ opacity: titleOpacity, transform: [{ translateY: titleY }] }}>
           <Text style={styles.title}>You're all set! 🎉</Text>
           <Text style={styles.subtitle}>
-            Your 7-day free trial has started.{'\n'}Enjoy full premium access — on us.
+            Your 3-day free trial has started.{'\n'}Enjoy full premium access — on us.
           </Text>
         </Animated.View>
 
         {/* Trial countdown pill */}
         <Animated.View style={[styles.trialPill, { opacity: titleOpacity }]}>
           <Ionicons name="time-outline" size={15} color="#4ECFBF" />
-          <Text style={styles.trialPillText}>7 days free · then billed monthly · cancel anytime</Text>
+          <Text style={styles.trialPillText}>3 days free · then billed monthly · cancel anytime</Text>
         </Animated.View>
 
         {/* Benefit cards */}
