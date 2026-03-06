@@ -237,26 +237,49 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
             {config.subtitle !== '' && <Text style={styles.subtitle}>{config.subtitle}</Text>}
           </View>
 
-          {/* Progress Bar */}
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBackground}>
-              <Animated.View
-                style={[
-                  styles.progressBar,
-                  {
-                    width: progressAnim.interpolate({
-                      inputRange: [0, 100],
-                      outputRange: ['0%', '100%'],
-                    }),
-                    backgroundColor: config.color,
-                  },
-                ]}
-              />
+          {/* Progress Bar - only show during processing, hide on success */}
+          {stage !== 'success' && (
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBackground}>
+                <Animated.View
+                  style={[
+                    styles.progressBar,
+                    {
+                      width: progressAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ['0%', '100%'],
+                      }),
+                      backgroundColor: config.color,
+                    },
+                  ]}
+                />
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Content */}
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Analysis Info Banner - show during processing */}
+            {stage !== 'success' && (
+              <View style={styles.infoContainer}>
+                <View style={styles.infoCard}>
+                  <View style={styles.infoHeader}>
+                    <Ionicons name="information-circle" size={20} color="#FFFFFF" />
+                    <Text style={styles.infoTitle}>Your Analysis is in Progress</Text>
+                  </View>
+                  <Text style={styles.infoText}>
+                    You will be notified by your language coach when your detailed sentence analysis is ready.
+                  </Text>
+                  <View style={styles.infoFooter}>
+                    <Ionicons name="chatbubble-ellipses" size={14} color="rgba(255, 255, 255, 0.9)" />
+                    <Text style={styles.infoFooterText}>
+                      You can also find it in your Language Coach chat
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
             {/* Conversation Highlights - show during processing */}
             {stage !== 'success' && conversationHighlights.length > 0 && (
               <View style={styles.highlightsContainer}>
@@ -287,25 +310,25 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                       <Text style={styles.sectionTitle}>SESSION STATS</Text>
                     </View>
                     <View style={styles.statsGrid}>
-                      <StatCard icon="timer-outline" label="Duration" value={duration} iconColor="#4ECFBF" />
-                      <StatCard icon="chatbox-ellipses-outline" label="Words Spoken" value={sessionStats.words_spoken.toString()} iconColor="#8B5CF6" />
-                      <StatCard icon="speedometer-outline" label="Speaking Speed" value={`${Math.round(sessionStats.speaking_speed_wpm)} wpm`} iconColor="#F59E0B" />
-                      <StatCard icon="book-outline" label="Vocabulary" value={`${sessionStats.unique_vocabulary} unique`} iconColor="#10B981" />
-                      <StatCard icon="swap-horizontal-outline" label="Turns" value={sessionStats.conversation_turns.toString()} iconColor="#3B82F6" />
+                      <StatCard icon="timer-outline" label="Duration" value={duration} backgroundColor="#14B8A6" />
+                      <StatCard icon="chatbox-ellipses-outline" label="Words Spoken" value={sessionStats.words_spoken.toString()} backgroundColor="#8B5CF6" />
+                      <StatCard icon="speedometer-outline" label="Speaking Speed" value={`${Math.round(sessionStats.speaking_speed_wpm)} wpm`} backgroundColor="#F59E0B" />
+                      <StatCard icon="book-outline" label="Vocabulary" value={`${sessionStats.unique_vocabulary} unique`} backgroundColor="#10B981" />
+                      <StatCard icon="swap-horizontal-outline" label="Turns" value={sessionStats.conversation_turns.toString()} backgroundColor="#3B82F6" />
                       {sessionStats.grammar_score !== null && sessionStats.grammar_score !== undefined && (
-                        <StatCard icon="create-outline" label="Grammar" value={`${Math.round(sessionStats.grammar_score)}%`} iconColor="#EC4899" />
+                        <StatCard icon="create-outline" label="Grammar" value={`${Math.round(sessionStats.grammar_score)}%`} backgroundColor="#EC4899" />
                       )}
                       {sessionStats.fluency_score !== null && sessionStats.fluency_score !== undefined && (
-                        <StatCard icon="flash-outline" label="Fluency" value={`${Math.round(sessionStats.fluency_score)}%`} iconColor="#EF4444" />
+                        <StatCard icon="flash-outline" label="Fluency" value={`${Math.round(sessionStats.fluency_score)}%`} backgroundColor="#EF4444" />
                       )}
-                      <StatCard icon="analytics-outline" label="Analyzed" value={sentenceCount.toString()} iconColor="#6366F1" />
+                      <StatCard icon="analytics-outline" label="Analyzed" value={sentenceCount.toString()} backgroundColor="#6366F1" />
                     </View>
                   </>
                 ) : (
                   <View style={styles.statsContainer}>
-                    <StatCard icon="📊" label="Duration" value={duration} />
-                    <StatCard icon="💬" label="Messages" value={messageCount.toString()} />
-                    <StatCard icon="🎯" label="Analyzed" value={sentenceCount.toString()} />
+                    <StatCard icon="📊" label="Duration" value={duration} backgroundColor="#14B8A6" />
+                    <StatCard icon="💬" label="Messages" value={messageCount.toString()} backgroundColor="#8B5CF6" />
+                    <StatCard icon="🎯" label="Analyzed" value={sentenceCount.toString()} backgroundColor="#6366F1" />
                   </View>
                 )}
 
@@ -353,7 +376,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                     <View style={styles.progressStatsGrid}>
                       <ProgressStatItemCompact
                         icon="checkmark-circle"
-                        iconColor="#4ECFBF"
+                        iconColor="#FFFFFF"
                         label="Sessions"
                         value={overallProgress.plan_total_sessions
                           ? `${overallProgress.plan_completed_sessions}/${overallProgress.plan_total_sessions}`
@@ -361,43 +384,35 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
                         subValue={overallProgress.plan_progress_percentage
                           ? `${overallProgress.plan_progress_percentage.toFixed(0)}%`
                           : undefined}
+                        backgroundColor="#14B8A6"
                       />
                       <ProgressStatItemCompact
                         icon="time"
-                        iconColor="#F59E0B"
+                        iconColor="#FFFFFF"
                         label={overallProgress.plan_total_minutes ? "Plan Time" : "Practice Time"}
                         value={`${Math.round(overallProgress.plan_total_minutes || overallProgress.total_minutes)}`}
                         subValue="min"
+                        backgroundColor="#F59E0B"
                       />
                       <ProgressStatItemCompact
                         icon="trophy"
-                        iconColor="#EF4444"
+                        iconColor="#FFFFFF"
                         label="Best Streak"
                         value={`${overallProgress.longest_streak}`}
                         subValue={`day${overallProgress.longest_streak !== 1 ? 's' : ''}`}
+                        backgroundColor="#EF4444"
                       />
                     </View>
                   </>
                 )}
 
                 <View style={styles.buttonsContainer}>
-                  {hasAnalyses && (
-                    <TouchableOpacity
-                      style={styles.primaryButton}
-                      onPress={onViewAnalysis}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="clipboard-outline" size={20} color="#FFFFFF" />
-                      <Text style={styles.primaryButtonText}>View Analysis</Text>
-                    </TouchableOpacity>
-                  )}
-
                   <TouchableOpacity
-                    style={hasAnalyses ? styles.secondaryButton : styles.primaryButton}
+                    style={styles.primaryButton}
                     onPress={onGoDashboard}
                     activeOpacity={0.8}
                   >
-                    <Text style={hasAnalyses ? styles.secondaryButtonText : styles.primaryButtonText}>
+                    <Text style={styles.primaryButtonText}>
                       Go Dashboard
                     </Text>
                   </TouchableOpacity>
@@ -411,25 +426,27 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({
   );
 };
 
-// Stat Card Component
+// Stat Card Component with colorful background
 const StatCard: React.FC<{
   icon: string;
   label: string;
   value: string;
   iconColor?: string;
+  backgroundColor?: string;
 }> = ({
   icon,
   label,
   value,
-  iconColor = '#4ECFBF',
+  iconColor = '#FFFFFF', // White icons on colored backgrounds
+  backgroundColor = '#14B8A6', // Default teal background
 }) => {
   // Check if icon is an Ionicon name or emoji
   const isIonicon = icon.includes('-');
 
   return (
-    <View style={styles.statCard}>
+    <View style={[styles.statCard, { backgroundColor }]}>
       {isIonicon ? (
-        <Ionicons name={icon as any} size={28} color={iconColor} style={styles.statIcon} />
+        <Ionicons name={icon as any} size={22} color={iconColor} style={styles.statIcon} />
       ) : (
         <Text style={styles.statIcon}>{icon}</Text>
       )}
@@ -439,16 +456,27 @@ const StatCard: React.FC<{
   );
 };
 
-// Comparison Card Component
+// Comparison Card Component with colorful background
 const ComparisonCard: React.FC<{
   icon: string;
   label: string;
   value: string;
   isPositive: boolean;
 }> = ({ icon, label, value, isPositive }) => {
+  // Green for positive improvements, Red for negative
+  const backgroundColor = isPositive ? '#10B981' : '#EF4444';
+
+  // Map emoji icons to Ionicons
+  const getIconName = () => {
+    if (icon === '📈' || icon === '📉') return 'trending-up';
+    if (icon === '🚀' || icon === '🐌') return 'speedometer';
+    if (icon === '📚' || icon === '📖') return 'book';
+    return 'trending-up'; // fallback
+  };
+
   return (
-    <View style={styles.comparisonCard}>
-      <Text style={styles.comparisonIcon}>{icon}</Text>
+    <View style={[styles.comparisonCard, { backgroundColor }]}>
+      <Ionicons name={getIconName() as any} size={24} color="#FFFFFF" style={styles.comparisonIconComponent} />
       <Text style={styles.comparisonLabel}>{label}</Text>
       <Text style={[styles.comparisonValue, isPositive ? styles.positiveValue : styles.negativeValue]}>
         {value}
@@ -457,17 +485,18 @@ const ComparisonCard: React.FC<{
   );
 };
 
-// Compact Progress Stat Item Component (3-column layout)
+// Compact Progress Stat Item Component (3-column layout) with colorful background
 const ProgressStatItemCompact: React.FC<{
   icon: string;
   iconColor: string;
   label: string;
   value: string;
   subValue?: string;
-}> = ({ icon, iconColor, label, value, subValue }) => {
+  backgroundColor?: string;
+}> = ({ icon, iconColor, label, value, subValue, backgroundColor = '#14B8A6' }) => {
   return (
-    <View style={styles.progressStatItemCompact}>
-      <Ionicons name={icon as any} size={32} color={iconColor} />
+    <View style={[styles.progressStatItemCompact, { backgroundColor }]}>
+      <Ionicons name={icon as any} size={24} color="#FFFFFF" />
       <Text style={styles.progressStatLabel}>{label}</Text>
       <Text style={styles.progressStatValueCompact}>{value}</Text>
       {subValue && <Text style={styles.progressStatSubValueCompact}>{subValue}</Text>}

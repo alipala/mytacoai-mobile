@@ -2521,7 +2521,7 @@ const ConversationScreen: React.FC<ConversationScreenProps> = ({
           .filter(m => m.role === 'user')
           .slice(-3)
           .map(m => m.content.substring(0, 100))}
-        duration={formatDuration(sessionDuration)}
+        duration={`${Math.round(sessionDuration / 60)} min`}
         messageCount={messages.filter(m => m.role === 'user').length}
         onComplete={() => setShowSavingModal(false)}
         onViewAnalysis={() => {

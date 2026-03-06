@@ -104,7 +104,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
       {sessionSummary && (
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
-            <Ionicons name="document-text-outline" size={20} color="#14B8A6" />
+            <Ionicons name="document-text-outline" size={22} color="#FFFFFF" />
             <Text style={styles.summaryTitle}>{t('practice.analysis.section_summary')}</Text>
           </View>
           <Text style={styles.summaryText}>{sessionSummary}</Text>
@@ -112,13 +112,13 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
             <View style={styles.summaryStats}>
               {duration && (
                 <View style={styles.summaryStatItem}>
-                  <Ionicons name="time-outline" size={16} color="#6B7280" />
+                  <Ionicons name="time-outline" size={16} color="rgba(255, 255, 255, 0.9)" />
                   <Text style={styles.summaryStatText}>{duration}</Text>
                 </View>
               )}
               {messageCount && (
                 <View style={styles.summaryStatItem}>
-                  <Ionicons name="chatbubbles-outline" size={16} color="#6B7280" />
+                  <Ionicons name="chatbubbles-outline" size={16} color="rgba(255, 255, 255, 0.9)" />
                   <Text style={styles.summaryStatText}>{t('practice.analysis.stat_messages', { count: messageCount })}</Text>
                 </View>
               )}
@@ -153,21 +153,25 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
                   label={t('practice.analysis.label_grammar')}
                   score={currentAnalysis.grammatical_score}
                   color={getScoreColor(currentAnalysis.grammatical_score)}
+                  backgroundColor="#10B981"
                 />
                 <ScoreCard
                   label={t('practice.analysis.label_vocabulary')}
                   score={currentAnalysis.vocabulary_score}
                   color={getScoreColor(currentAnalysis.vocabulary_score)}
+                  backgroundColor="#8B5CF6"
                 />
                 <ScoreCard
                   label={t('practice.analysis.label_complexity')}
                   score={currentAnalysis.complexity_score}
                   color={getScoreColor(currentAnalysis.complexity_score)}
+                  backgroundColor="#3B82F6"
                 />
                 <ScoreCard
                   label={t('practice.analysis.label_overall')}
                   score={currentAnalysis.overall_score}
                   color={getScoreColor(currentAnalysis.overall_score)}
+                  backgroundColor="#EC4899"
                 />
               </View>
             </View>
@@ -179,7 +183,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
                 {currentAnalysis.grammar_issues.map((issue: any, index: number) => (
                   <View key={index} style={styles.issueCard}>
                     <View style={styles.issueHeader}>
-                      <Ionicons name="alert-circle" size={20} color="#EF4444" />
+                      <Ionicons name="alert-circle" size={22} color="#FFFFFF" />
                       <Text style={styles.issueTitle}>{issue.issue}</Text>
                     </View>
                     {issue.correction && (
@@ -202,7 +206,7 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
                 <Text style={styles.sectionTitle}>{t('practice.analysis.section_improvement_tips')}</Text>
                 {currentAnalysis.improvement_suggestions.map((suggestion, index) => (
                   <View key={index} style={styles.suggestionCard}>
-                    <Ionicons name="bulb-outline" size={20} color="#FFD63A" />
+                    <Ionicons name="bulb-outline" size={22} color="#FFFFFF" />
                     <Text style={styles.suggestionText}>{suggestion}</Text>
                   </View>
                 ))}
@@ -263,16 +267,17 @@ const SentenceAnalysisScreen: React.FC<SentenceAnalysisScreenProps> = ({
   );
 };
 
-// Score Card Component
-const ScoreCard: React.FC<{ label: string; score: number; color: string }> = ({
+// Score Card Component with colorful background
+const ScoreCard: React.FC<{ label: string; score: number; color: string; backgroundColor: string }> = ({
   label,
   score,
   color,
+  backgroundColor,
 }) => {
   return (
-    <View style={styles.scoreCard}>
+    <View style={[styles.scoreCard, { backgroundColor }]}>
       <Text style={styles.scoreLabel}>{label}</Text>
-      <Text style={[styles.scoreValue, { color }]}>{Math.round(score)}</Text>
+      <Text style={styles.scoreValue}>{Math.round(score)}</Text>
     </View>
   );
 };
@@ -313,13 +318,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   summaryCard: {
-    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal tinted dark
+    backgroundColor: '#14B8A6', // Vibrant teal
     borderRadius: 16,
     padding: 16,
     margin: 16,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -329,13 +337,14 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF', // White text
   },
   summaryText: {
     fontSize: 14,
-    color: '#B4E4DD', // Light teal
+    color: 'rgba(255, 255, 255, 0.95)', // White
     lineHeight: 20,
+    fontWeight: '500',
   },
   summaryStats: {
     flexDirection: 'row',
@@ -349,7 +358,8 @@ const styles = StyleSheet.create({
   },
   summaryStatText: {
     fontSize: 12,
-    color: '#9CA3AF', // Light gray
+    color: 'rgba(255, 255, 255, 0.9)', // White
+    fontWeight: '600',
   },
   content: {
     flex: 1,
@@ -362,21 +372,26 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#14B8A6', // Teal for section titles
+    fontWeight: '700',
+    color: '#FFFFFF', // White for section titles
     marginBottom: 12,
+    letterSpacing: 0.5,
   },
   sentenceCard: {
-    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card
+    backgroundColor: '#6366F1', // Vibrant indigo
     borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    padding: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   sentenceText: {
     fontSize: 16,
     color: '#FFFFFF', // White text
     lineHeight: 24,
+    fontWeight: '500',
   },
   scoresGrid: {
     flexDirection: 'row',
@@ -384,31 +399,39 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   scoreCard: {
-    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card
     borderRadius: 16,
-    padding: 16,
+    padding: 18,
     flex: 1,
     minWidth: (SCREEN_WIDTH - 56) / 2, // Account for padding and gap
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
   },
   scoreLabel: {
-    fontSize: 14,
-    color: '#9CA3AF', // Light gray
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.95)', // White on colored background
     marginBottom: 8,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   scoreValue: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#FFFFFF', // White
   },
   issueCard: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red tinted dark
+    backgroundColor: '#EF4444', // Vibrant red
     borderRadius: 16,
     padding: 16,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   issueHeader: {
     flexDirection: 'row',
@@ -418,53 +441,61 @@ const styles = StyleSheet.create({
   },
   issueTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#FCA5A5', // Light red
+    fontWeight: '700',
+    color: '#FFFFFF', // White on red background
     flex: 1,
   },
   issueCorrection: {
     fontSize: 14,
-    color: '#D1D5DB', // Light gray
+    color: 'rgba(255, 255, 255, 0.95)', // White
     marginBottom: 4,
   },
   issueLabel: {
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF', // White
   },
   issueExplanation: {
     fontSize: 13,
-    color: '#9CA3AF', // Light gray
+    color: 'rgba(255, 255, 255, 0.85)', // Light white
     fontStyle: 'italic',
   },
   suggestionCard: {
-    backgroundColor: 'rgba(31, 41, 55, 0.8)', // Dark card
+    backgroundColor: '#F59E0B', // Vibrant orange
     borderRadius: 16,
     padding: 16,
     marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   suggestionText: {
     fontSize: 14,
-    color: '#D1D5DB', // Light gray
+    color: '#FFFFFF', // White on orange background
     flex: 1,
     lineHeight: 20,
+    fontWeight: '500',
   },
   alternativeCard: {
-    backgroundColor: 'rgba(20, 184, 166, 0.1)', // Teal tinted dark
+    backgroundColor: '#10B981', // Vibrant green
     borderRadius: 16,
     padding: 16,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 184, 166, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   alternativeText: {
     fontSize: 14,
-    color: '#B4E4DD', // Light teal
+    color: '#FFFFFF', // White on green background
     lineHeight: 20,
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',
