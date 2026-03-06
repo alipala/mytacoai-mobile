@@ -49,6 +49,14 @@ import coachService, { ChatMessage, RichMessage, QuickReply } from '../../servic
 const CompanionIdle = require('../../assets/lottie/companion_idle2.json');
 const LoadingCat = require('../../assets/lottie/loading_cat.json');
 
+// Import language flag icons
+import EnglishFlag from '../../assets/flags/english.svg';
+import SpanishFlag from '../../assets/flags/spanish.svg';
+import FrenchFlag from '../../assets/flags/french.svg';
+import GermanFlag from '../../assets/flags/german.svg';
+import PortugueseFlag from '../../assets/flags/portuguese.svg';
+import DutchFlag from '../../assets/flags/dutch.svg';
+
 // Import message components
 import { EmojiText } from '../EmojiText';
 import { ProgressCard } from './ProgressCard';
@@ -229,6 +237,16 @@ const AnimatedMessageBubble: React.FC<AnimatedMessageBubbleProps> = ({
       {richMessages.map((richMsg, idx) => {
         switch (richMsg.type) {
           case 'text':
+            // Check if this text is part of an old-style analysis notification
+            const nextMsg = richMessages[idx + 1];
+            const isOldAnalysisText = richMsg.content?.includes('analysis is ready') &&
+              nextMsg?.type === 'analysis_button';
+
+            // Skip rendering old-style analysis text (will be rendered as unified card with button)
+            if (isOldAnalysisText) {
+              return null;
+            }
+
             return (
               <Animated.View
                 key={idx}
@@ -265,7 +283,213 @@ const AnimatedMessageBubble: React.FC<AnimatedMessageBubbleProps> = ({
               </View>
             );
 
+          case 'analysis_notification':
+            // Helper function to get flag component based on language
+            const getFlagComponent = (lang: string) => {
+              const langLower = lang.toLowerCase();
+              switch (langLower) {
+                case 'english': return EnglishFlag;
+                case 'spanish': return SpanishFlag;
+                case 'french': return FrenchFlag;
+                case 'german': return GermanFlag;
+                case 'portuguese': return PortugueseFlag;
+                case 'dutch': return DutchFlag;
+                default: return EnglishFlag;
+              }
+            };
+
+            // Unified notification card with embedded button
+            const sessionType = richMsg.data?.session_type || 'practice';
+            const sentenceCount = richMsg.data?.sentence_count || 0;
+            const language = richMsg.data?.language || 'english';
+            const timestamp = richMsg.timestamp || new Date().toISOString();
+
+            // Get flag component for the language
+            const FlagComponent = getFlagComponent(language);
+            const sessionTypeLabel = sessionType === 'learning_plan' ? 'Learning Plan' : 'Practice';
+
+            // Format timestamp as time ago or absolute time
+            const getTimeDisplay = (isoTimestamp: string) => {
+              const now = new Date();
+              const notifDate = new Date(isoTimestamp);
+              const diffMs = now.getTime() - notifDate.getTime();
+              const diffMins = Math.floor(diffMs / 60000);
+              const diffHours = Math.floor(diffMs / 3600000);
+              const diffDays = Math.floor(diffMs / 86400000);
+
+              if (diffMins < 1) return 'Just now';
+              if (diffMins < 60) return `${diffMins}m ago`;
+              if (diffHours < 24) return `${diffHours}h ago`;
+              if (diffDays === 1) return 'Yesterday';
+              if (diffDays < 7) return `${diffDays}d ago`;
+
+              // Show date for older notifications
+              return notifDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            };
+
+            const timeDisplay = getTimeDisplay(timestamp);
+
+            return (
+              <TouchableOpacity
+                key={idx}
+                style={styles.analysisNotificationCard}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  }
+                  const sessionId = richMsg.data?.session_id;
+                  const notificationId = richMsg.data?.notification_id;
+                  if (sessionId && onViewAnalysis) {
+                    onViewAnalysis(sessionId, notificationId);
+                  }
+                }}
+                activeOpacity={0.85}
+              >
+                {/* Header with icon and badge */}
+                <View style={styles.notificationHeader}>
+                  <View style={styles.notificationIconContainer}>
+                    <FlagComponent width={28} height={28} />
+                  </View>
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>{sessionTypeLabel.toUpperCase()}</Text>
+                  </View>
+                </View>
+
+                {/* Title with timestamp */}
+                <View style={styles.notificationTitleRow}>
+                  <Text style={styles.notificationTitle}>
+                    {language.charAt(0).toUpperCase() + language.slice(1)} Analysis Ready!
+                  </Text>
+                  <View style={styles.notificationTimestamp}>
+                    <Ionicons name="time-outline" size={12} color="rgba(255, 255, 255, 0.7)" />
+                    <Text style={styles.notificationTimestampText}>{timeDisplay}</Text>
+                  </View>
+                </View>
+
+                {/* Content */}
+                <Text style={styles.notificationContent}>
+                  I've analyzed {sentenceCount} sentence{sentenceCount !== 1 ? 's' : ''} from your {sessionType === 'learning_plan' ? 'learning plan' : 'practice'} session.
+                </Text>
+
+                {/* CTA Button */}
+                <View style={styles.notificationCTA}>
+                  <Ionicons name="analytics" size={18} color="#FFFFFF" />
+                  <Text style={styles.notificationButtonText}>
+                    View Detailed Analysis
+                  </Text>
+                  <Ionicons name="arrow-forward-circle" size={18} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+            );
+
           case 'analysis_button':
+            // Convert old-style notifications to new unified card format
+            const prevTextMsg = richMessages[idx - 1];
+            const isPartOfOldNotification = prevTextMsg?.type === 'text' &&
+              prevTextMsg?.content?.includes('analysis is ready');
+
+            if (isPartOfOldNotification) {
+              // Helper function to get flag component based on language
+              const getFlagComponent = (lang: string) => {
+                const langLower = lang.toLowerCase();
+                switch (langLower) {
+                  case 'english': return EnglishFlag;
+                  case 'spanish': return SpanishFlag;
+                  case 'french': return FrenchFlag;
+                  case 'german': return GermanFlag;
+                  case 'portuguese': return PortugueseFlag;
+                  case 'dutch': return DutchFlag;
+                  default: return EnglishFlag;
+                }
+              };
+
+              // Extract info from old-style notification
+              const oldContent = prevTextMsg.content || '';
+              const titleMatch = oldContent.match(/Your (\w+) (practice|learning plan) analysis is ready/i);
+              const sentencesMatch = oldContent.match(/analyzed (\d+) sentence/i);
+
+              const language = titleMatch?.[1] || 'english';
+              const sessionType = titleMatch?.[2] === 'learning plan' ? 'learning_plan' : 'practice';
+              const sentenceCount = sentencesMatch ? parseInt(sentencesMatch[1]) : 0;
+              const FlagComponent = getFlagComponent(language);
+              const sessionTypeLabel = sessionType === 'learning_plan' ? 'Learning Plan' : 'Practice';
+              const timestamp = richMsg.timestamp || new Date().toISOString();
+
+              // Format timestamp
+              const getTimeDisplay = (isoTimestamp: string) => {
+                const now = new Date();
+                const notifDate = new Date(isoTimestamp);
+                const diffMs = now.getTime() - notifDate.getTime();
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                if (diffDays === 1) return 'Yesterday';
+                if (diffDays < 7) return `${diffDays}d ago`;
+
+                return notifDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+              };
+
+              const timeDisplay = getTimeDisplay(timestamp);
+
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  style={styles.analysisNotificationCard}
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }
+                    const sessionId = richMsg.data?.session_id;
+                    const notificationId = richMsg.data?.notification_id;
+                    if (sessionId && onViewAnalysis) {
+                      onViewAnalysis(sessionId, notificationId);
+                    }
+                  }}
+                  activeOpacity={0.85}
+                >
+                  {/* Header with icon and badge */}
+                  <View style={styles.notificationHeader}>
+                    <View style={styles.notificationIconContainer}>
+                      <FlagComponent width={28} height={28} />
+                    </View>
+                    <View style={styles.notificationBadge}>
+                      <Text style={styles.notificationBadgeText}>{sessionTypeLabel.toUpperCase()}</Text>
+                    </View>
+                  </View>
+
+                  {/* Title with timestamp */}
+                  <View style={styles.notificationTitleRow}>
+                    <Text style={styles.notificationTitle}>
+                      {language.charAt(0).toUpperCase() + language.slice(1)} Analysis Ready!
+                    </Text>
+                    <View style={styles.notificationTimestamp}>
+                      <Ionicons name="time-outline" size={12} color="rgba(255, 255, 255, 0.7)" />
+                      <Text style={styles.notificationTimestampText}>{timeDisplay}</Text>
+                    </View>
+                  </View>
+
+                  {/* Content */}
+                  <Text style={styles.notificationContent}>
+                    I've analyzed {sentenceCount} sentence{sentenceCount !== 1 ? 's' : ''} from your {sessionType === 'learning_plan' ? 'learning plan' : 'practice'} session.
+                  </Text>
+
+                  {/* CTA Button */}
+                  <View style={styles.notificationCTA}>
+                    <Ionicons name="analytics" size={18} color="#FFFFFF" />
+                    <Text style={styles.notificationButtonText}>
+                      View Detailed Analysis
+                    </Text>
+                    <Ionicons name="arrow-forward-circle" size={18} color="#FFFFFF" />
+                  </View>
+                </TouchableOpacity>
+              );
+            }
+
+            // Fallback: render old-style button (shouldn't happen but just in case)
             return (
               <TouchableOpacity
                 key={idx}
@@ -450,7 +674,7 @@ export const CoachModal: React.FC<CoachModalProps> = ({
 
         console.log(`[TaalCoach] Adding ${newNotifications.length} new notifications to chat`);
 
-        // Add each NEW notification as a coach message
+        // Add each NEW notification as a coach message (unified notification card)
         newNotifications.forEach((userNotification: any) => {
           const notif = userNotification.notification;  // Extract nested notification
           const userNotificationId = userNotification.id || userNotification._id;
@@ -458,18 +682,18 @@ export const CoachModal: React.FC<CoachModalProps> = ({
           // Mark as shown
           shownNotificationIds.current.add(userNotificationId);
 
+          // Create unified notification card (single message with all info + button)
           addAssistantMessage([
             {
-              type: 'text',
-              content: `${notif.title}\n\n${notif.content}`,
-              timestamp: new Date().toISOString()
-            },
-            {
-              type: 'analysis_button',
+              type: 'analysis_notification',
               data: {
+                title: notif.title,
+                content: notif.content,
                 session_id: notif.session_id,
                 job_id: notif.job_id,
                 sentence_count: notif.sentence_count,
+                session_type: notif.session_type || 'practice',  // Default to practice for old notifications
+                language: notif.language,
                 notification_id: notif._id || notif.id,  // Notification ID for marking as read
                 user_notification_id: userNotificationId  // User notification ID
               },
@@ -477,7 +701,7 @@ export const CoachModal: React.FC<CoachModalProps> = ({
             }
           ]);
 
-          console.log('[TaalCoach] ✅ New notification added to chat, badge will clear when analysis viewed');
+          console.log('[TaalCoach] ✅ New unified notification added to chat, badge will clear when analysis viewed');
         });
       }
     } catch (error) {
@@ -1410,6 +1634,98 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+  // Unified Analysis Notification Card Styles
+  analysisNotificationCard: {
+    backgroundColor: '#6366F1', // Vibrant indigo
+    borderRadius: 18,
+    padding: 18,
+    marginTop: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  notificationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  notificationIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  notificationTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  notificationTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  notificationTimestamp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  notificationTimestampText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  notificationContent: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.95)',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  notificationCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  notificationButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
     flex: 1,
     textAlign: 'center',
   },
