@@ -47,6 +47,7 @@ import DutchFlag from '../../assets/flags/dutch.svg';
 import { InteractiveRadarChartEnhanced } from './components/InteractiveRadarChartEnhanced';
 import { StrandDetailModal } from './components/StrandDetailModal';
 import { DNAShareModal } from '../../components/SpeakingDNA/DNAShareModal';
+import { VictoriesShareModal } from '../../components/SpeakingDNA/VictoriesShareModal';
 import { VoiceSignatureCarousel } from './components/VoiceSignatureCarousel';
 import { AchievementsPage } from './components/AchievementsPage';
 
@@ -426,6 +427,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
 
   // Share modal state
   const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [victoriesShareModalVisible, setVictoriesShareModalVisible] = useState(false);
 
   // Refs
   const pagerRef = useRef<PagerView>(null);
@@ -449,17 +451,28 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
   }, []);
 
   /**
-   * Handle share button
+   * Handle share button - CONTEXT AWARE
+   * Page 0: Share DNA radar chart
+   * Page 1: Share Victories card
+   * Page 2+: Share DNA radar chart (default)
    */
   const handleShare = useCallback(() => {
-    console.log('[DNA_SHARE_HORIZONTAL] Share button pressed, profile:', !!profile);
+    console.log('[DNA_SHARE_HORIZONTAL] Share button pressed, currentPage:', currentPage, 'profile:', !!profile);
     if (!profile) {
       console.log('[DNA_SHARE_HORIZONTAL] No profile available');
       return;
     }
-    console.log('[DNA_SHARE_HORIZONTAL] Opening share modal...');
-    setShareModalVisible(true);
-  }, [profile]);
+
+    if (currentPage === 1) {
+      // Page 2: Victories - Share victories card
+      console.log('[DNA_SHARE_HORIZONTAL] Opening victories share modal...');
+      setVictoriesShareModalVisible(true);
+    } else {
+      // Page 1 (Radar) or other pages - Share DNA radar chart
+      console.log('[DNA_SHARE_HORIZONTAL] Opening DNA share modal...');
+      setShareModalVisible(true);
+    }
+  }, [profile, currentPage]);
 
   /**
    * Load DNA profile and breakthroughs
@@ -537,10 +550,7 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
     // Page 2: Achievements (Breakthroughs, Milestones)
     pagesArray.push(
       <View key="achievements" style={styles.pageWrapper}>
-        <AchievementsPage language={language} onShare={(breakthrough) => {
-          console.log('[DNA_HORIZONTAL] Share breakthrough:', breakthrough.title);
-          // Could open share modal with breakthrough-specific content
-        }} />
+        <AchievementsPage language={language} />
       </View>
     );
 
@@ -713,16 +723,55 @@ export const SpeakingDNAScreenHorizontal: React.FC<SpeakingDNAScreenHorizontalPr
         onClose={handleCloseModal}
       />
 
-      {/* Share Modal */}
+      {/* DNA Share Modal - Radar Chart */}
       <DNAShareModal
         visible={shareModalVisible}
         onClose={() => {
-          console.log('[DNA_SHARE_HORIZONTAL] Closing share modal');
+          console.log('[DNA_SHARE_HORIZONTAL] Closing DNA share modal');
           setShareModalVisible(false);
         }}
         profile={profile}
         language={language}
         evolution={evolution}
+      />
+
+      {/* Victories Share Modal - Page 2 */}
+      <VictoriesShareModal
+        visible={victoriesShareModalVisible}
+        onClose={() => {
+          console.log('[DNA_SHARE_HORIZONTAL] Closing victories share modal');
+          setVictoriesShareModalVisible(false);
+        }}
+        cardData={{
+          language,
+          totalBreakthroughs: breakthroughs.length,
+          achievedMilestones: (() => {
+            const confidenceCount = breakthroughs.filter(b => b.category === 'confidence').length;
+            const vocabularyCount = breakthroughs.filter(b => b.category === 'vocabulary').length;
+            return Math.min(
+              (breakthroughs.length >= 1 ? 1 : 0) + // First Win
+              (breakthroughs.length >= 5 ? 1 : 0) + // On Fire
+              (breakthroughs.length >= 10 ? 1 : 0) + // Champion
+              (confidenceCount >= 3 ? 1 : 0) + // Confidence Master
+              (vocabularyCount >= 3 ? 1 : 0), // Word Wizard
+              5
+            );
+          })(),
+          totalMilestones: 5,
+          latestBreakthrough: breakthroughs[0],
+          unlockedMilestones: (() => {
+            const confidenceCount = breakthroughs.filter(b => b.category === 'confidence').length;
+            const vocabularyCount = breakthroughs.filter(b => b.category === 'vocabulary').length;
+            const milestones = [
+              breakthroughs.length >= 1 ? { icon: 'trophy', title: 'First Win', color: '#10B981' } : null,
+              breakthroughs.length >= 5 ? { icon: 'flame', title: 'On Fire', color: '#EF4444' } : null,
+              breakthroughs.length >= 10 ? { icon: 'star', title: 'Champion', color: '#F59E0B' } : null,
+              confidenceCount >= 3 ? { icon: 'shield-checkmark', title: 'Confidence Master', color: '#6366F1' } : null,
+              vocabularyCount >= 3 ? { icon: 'book', title: 'Word Wizard', color: '#8B5CF6' } : null,
+            ];
+            return milestones.filter((m): m is { icon: string; title: string; color: string } => m !== null);
+          })(),
+        }}
       />
     </SafeAreaView>
   );

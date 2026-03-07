@@ -32,7 +32,6 @@ import { SpeakingBreakthrough } from '../../../types/speakingDNA';
 
 interface AchievementsPageProps {
   language: string;
-  onShare?: (breakthrough: SpeakingBreakthrough) => void;
 }
 
 // ============================================================================
@@ -40,30 +39,30 @@ interface AchievementsPageProps {
 // ============================================================================
 
 /**
- * Get gradient colors for breakthrough category
+ * Get SOLID color for breakthrough category (DNA palette)
  */
-const getCategoryColors = (category: string): string[] => {
-  const colors: Record<string, string[]> = {
-    confidence: ['#9B59B6', '#8E44AD'],
-    vocabulary: ['#2ECC71', '#27AE60'],
-    learning: ['#3498DB', '#2980B9'],
-    rhythm: ['#4ECDC4', '#45B7B0'],
-    accuracy: ['#E67E22', '#D35400'],
-    emotional: ['#E91E63', '#C2185B'],
+const getCategoryColor = (category: string): string => {
+  const colors: Record<string, string> = {
+    confidence: '#6366F1', // Indigo
+    vocabulary: '#8B5CF6', // Purple
+    accuracy: '#EC4899',   // Pink
+    rhythm: '#F59E0B',     // Amber
+    learning: '#10B981',   // Green
+    emotional: '#EF4444',  // Red
   };
-  return colors[category] || ['#14B8A6', '#0D9488'];
+  return colors[category] || '#14B8A6';
 };
 
 /**
- * Get icon for breakthrough category
+ * Get icon for breakthrough category (flat white icons)
  */
 const getCategoryIcon = (category: string): string => {
   const icons: Record<string, string> = {
-    confidence: 'rocket',
+    confidence: 'shield-checkmark',
     vocabulary: 'book',
-    learning: 'bulb',
+    learning: 'school',
     rhythm: 'pulse',
-    accuracy: 'checkmark-done',
+    accuracy: 'checkmark-circle',
     emotional: 'heart',
   };
   return icons[category] || 'trophy';
@@ -76,15 +75,13 @@ const getCategoryIcon = (category: string): string => {
 interface BreakthroughCardProps {
   breakthrough: SpeakingBreakthrough;
   onPress: () => void;
-  onShare?: () => void;
 }
 
 const BreakthroughCard: React.FC<BreakthroughCardProps> = ({
   breakthrough,
   onPress,
-  onShare,
 }) => {
-  const colors = getCategoryColors(breakthrough.category);
+  const color = getCategoryColor(breakthrough.category);
   const icon = getCategoryIcon(breakthrough.category);
 
   // 🔧 FIX: Use created_at (not detected_at) and add defensive parsing
@@ -103,60 +100,20 @@ const BreakthroughCard: React.FC<BreakthroughCardProps> = ({
       onPress={onPress}
       style={styles.breakthroughCard}
     >
-      <LinearGradient
-        colors={colors}
-        style={styles.breakthroughGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        {/* Header */}
-        <View style={styles.breakthroughHeader}>
-          <View style={styles.breakthroughHeaderLeft}>
-            <View style={styles.breakthroughIconContainer}>
-              <Ionicons name={icon as any} size={20} color="#FFFFFF" />
-            </View>
-            <View>
-              <Text style={styles.breakthroughCategory}>
-                {breakthrough.category.charAt(0).toUpperCase() + breakthrough.category.slice(1)}
-              </Text>
-              <Text style={styles.breakthroughDate}>
-                {format(date, 'MMM d, yyyy')}
-              </Text>
-            </View>
-          </View>
-          {onShare && (
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                onShare();
-              }}
-              style={styles.shareButton}
-            >
-              <Ionicons name="share-social" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-          )}
+      {/* SOLID COLOR - Same size as milestone cards */}
+      <View style={[styles.breakthroughContainer, { backgroundColor: color }]}>
+        {/* FLAT WHITE ICON - Centered like milestones */}
+        <View style={styles.breakthroughIcon}>
+          <Ionicons name={icon as any} size={32} color="#FFFFFF" />
         </View>
 
-        {/* Emoji & Title */}
-        <Text style={styles.breakthroughEmoji}>{breakthrough.emoji}</Text>
-        <Text style={styles.breakthroughTitle}>{breakthrough.title}</Text>
+        <Text style={styles.breakthroughTitle} numberOfLines={2}>
+          {breakthrough.title}
+        </Text>
         <Text style={styles.breakthroughDescription} numberOfLines={2}>
           {breakthrough.description}
         </Text>
-
-        {/* Impact indicator */}
-        {breakthrough.significance && (
-          <View style={styles.impactContainer}>
-            {[...Array(Math.min(breakthrough.significance, 3))].map((_, i) => (
-              <Ionicons key={i} name="star" size={14} color="#FCD34D" />
-            ))}
-            <Text style={styles.impactText}>
-              {breakthrough.significance === 3 ? 'Major Win!' : breakthrough.significance === 2 ? 'Great Progress!' : 'Nice Work!'}
-            </Text>
-          </View>
-        )}
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -170,6 +127,7 @@ interface MilestoneBadgeProps {
   title: string;
   description: string;
   achieved: boolean;
+  color: string;
 }
 
 const MilestoneBadge: React.FC<MilestoneBadgeProps> = ({
@@ -177,13 +135,14 @@ const MilestoneBadge: React.FC<MilestoneBadgeProps> = ({
   title,
   description,
   achieved,
+  color,
 }) => {
+  const backgroundColor = achieved ? color : '#374151';
+
   return (
     <View style={[styles.milestoneBadge, !achieved && styles.milestoneBadgeLocked]}>
-      <LinearGradient
-        colors={achieved ? ['#14B8A6', '#0D9488'] : ['#374151', '#1F2937']}
-        style={styles.milestoneGradient}
-      >
+      {/* SOLID COLOR - No gradient */}
+      <View style={[styles.milestoneContainer, { backgroundColor }]}>
         <View style={[styles.milestoneIcon, !achieved && styles.milestoneIconLocked]}>
           <Ionicons name={icon as any} size={32} color={achieved ? '#FFFFFF' : '#6B7280'} />
         </View>
@@ -198,7 +157,7 @@ const MilestoneBadge: React.FC<MilestoneBadgeProps> = ({
             <Ionicons name="lock-closed" size={12} color="#6B7280" />
           </View>
         )}
-      </LinearGradient>
+      </View>
     </View>
   );
 };
@@ -207,7 +166,7 @@ const MilestoneBadge: React.FC<MilestoneBadgeProps> = ({
 // ACHIEVEMENTS PAGE COMPONENT
 // ============================================================================
 
-export const AchievementsPage: React.FC<AchievementsPageProps> = ({ language, onShare }) => {
+export const AchievementsPage: React.FC<AchievementsPageProps> = ({ language }) => {
   const [breakthroughs, setBreakthroughs] = useState<SpeakingBreakthrough[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBreakthrough, setSelectedBreakthrough] = useState<SpeakingBreakthrough | null>(null);
@@ -244,13 +203,6 @@ export const AchievementsPage: React.FC<AchievementsPageProps> = ({ language, on
   };
 
   /**
-   * Handle breakthrough share
-   */
-  const handleBreakthroughShare = (breakthrough: SpeakingBreakthrough) => {
-    onShare?.(breakthrough);
-  };
-
-  /**
    * Calculate milestones
    */
   const totalBreakthroughs = breakthroughs.length;
@@ -263,32 +215,44 @@ export const AchievementsPage: React.FC<AchievementsPageProps> = ({ language, on
       title: 'First Win',
       description: 'Achieved your first breakthrough',
       achieved: totalBreakthroughs >= 1,
+      color: '#10B981',
     },
     {
       icon: 'flame',
       title: 'On Fire',
       description: 'Reached 5 breakthroughs',
       achieved: totalBreakthroughs >= 5,
+      color: '#EF4444',
     },
     {
       icon: 'star',
       title: 'Champion',
       description: 'Achieved 10 breakthroughs',
       achieved: totalBreakthroughs >= 10,
+      color: '#F59E0B',
     },
     {
-      icon: 'chatbubble',
+      icon: 'shield-checkmark',
       title: 'Confidence Master',
       description: '3+ confidence breakthroughs',
       achieved: confidenceBreakthroughs >= 3,
+      color: '#6366F1',
     },
     {
       icon: 'book',
       title: 'Word Wizard',
       description: '3+ vocabulary breakthroughs',
       achieved: vocabularyBreakthroughs >= 3,
+      color: '#8B5CF6',
     },
   ];
+
+  // Sort: Unlocked first, then locked
+  const sortedMilestones = [...milestones].sort((a, b) => {
+    if (a.achieved && !b.achieved) return -1;
+    if (!a.achieved && b.achieved) return 1;
+    return 0;
+  });
 
   const achievedMilestones = milestones.filter(m => m.achieved).length;
 
@@ -345,19 +309,30 @@ export const AchievementsPage: React.FC<AchievementsPageProps> = ({ language, on
           <Text style={styles.headerTitle}>Your Victories</Text>
         </View>
 
-        {/* Stats Banner */}
+        {/* Enhanced Stats Banner */}
         <View style={styles.statsBanner}>
           <LinearGradient
-            colors={['rgba(251, 191, 36, 0.15)', 'rgba(251, 191, 36, 0.05)']}
+            colors={['rgba(251, 191, 36, 0.2)', 'rgba(251, 191, 36, 0.08)']}
             style={styles.statsBannerGradient}
           >
+            {/* Trophy Icon Background */}
+            <View style={styles.statsBannerIconBg}>
+              <Ionicons name="trophy" size={80} color="rgba(251, 191, 36, 0.1)" />
+            </View>
+
             <View style={styles.statsBannerContent}>
               <View style={styles.statsBannerItem}>
+                <View style={styles.statsBannerIconContainer}>
+                  <Ionicons name="star" size={24} color="#FCD34D" />
+                </View>
                 <Text style={styles.statsBannerValue}>{totalBreakthroughs}</Text>
                 <Text style={styles.statsBannerLabel}>Breakthroughs</Text>
               </View>
               <View style={styles.statsBannerDivider} />
               <View style={styles.statsBannerItem}>
+                <View style={styles.statsBannerIconContainer}>
+                  <Ionicons name="ribbon" size={24} color="#FCD34D" />
+                </View>
                 <Text style={styles.statsBannerValue}>{achievedMilestones}/{milestones.length}</Text>
                 <Text style={styles.statsBannerLabel}>Milestones</Text>
               </View>
@@ -376,26 +351,31 @@ export const AchievementsPage: React.FC<AchievementsPageProps> = ({ language, on
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.milestonesScroll}
           >
-            {milestones.map((milestone, index) => (
+            {sortedMilestones.map((milestone, index) => (
               <MilestoneBadge key={index} {...milestone} />
             ))}
           </ScrollView>
         </View>
 
-        {/* Breakthroughs */}
+        {/* Breakthroughs - Horizontal Swipeable */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="star" size={20} color="#14B8A6" />
             <Text style={styles.sectionTitle}>Recent Breakthroughs</Text>
           </View>
-          {breakthroughs.map((breakthrough) => (
-            <BreakthroughCard
-              key={breakthrough._id}
-              breakthrough={breakthrough}
-              onPress={() => handleBreakthroughPress(breakthrough)}
-              onShare={() => handleBreakthroughShare(breakthrough)}
-            />
-          ))}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.breakthroughsScroll}
+          >
+            {breakthroughs.map((breakthrough) => (
+              <BreakthroughCard
+                key={breakthrough._id}
+                breakthrough={breakthrough}
+                onPress={() => handleBreakthroughPress(breakthrough)}
+              />
+            ))}
+          </ScrollView>
         </View>
 
         {/* Bottom spacing */}
@@ -477,13 +457,25 @@ const styles = StyleSheet.create({
   },
   statsBanner: {
     marginBottom: 24,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   statsBannerGradient: {
-    padding: 20,
+    padding: 24,
+    position: 'relative',
+  },
+  statsBannerIconBg: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    opacity: 0.5,
   },
   statsBannerContent: {
     flexDirection: 'row',
@@ -493,20 +485,28 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
+  statsBannerIconContainer: {
+    marginBottom: 8,
+  },
   statsBannerValue: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 36,
+    fontWeight: '800',
     color: '#FCD34D',
+    textShadowColor: 'rgba(251, 191, 36, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   statsBannerLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
     marginTop: 4,
+    opacity: 0.9,
   },
   statsBannerDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 2,
+    height: 60,
+    backgroundColor: 'rgba(251, 191, 36, 0.3)',
   },
   section: {
     marginBottom: 24,
@@ -526,47 +526,58 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     gap: 12,
   },
+  breakthroughsScroll: {
+    paddingRight: 16,
+    gap: 12,
+  },
   milestoneBadge: {
     width: 140,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   milestoneBadgeLocked: {
     opacity: 0.6,
   },
-  milestoneGradient: {
-    padding: 16,
+  milestoneContainer: {
+    padding: 14,
     alignItems: 'center',
-    minHeight: 160,
+    height: 160,
+    justifyContent: 'space-between',
   },
   milestoneIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   milestoneIconLocked: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   milestoneTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 4,
+    lineHeight: 16,
   },
   milestoneTitleLocked: {
     color: '#9CA3AF',
   },
   milestoneDescription: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#FFFFFF',
     opacity: 0.8,
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 13,
   },
   milestoneDescriptionLocked: {
     color: '#6B7280',
@@ -577,81 +588,44 @@ const styles = StyleSheet.create({
     right: 8,
   },
   breakthroughCard: {
-    marginBottom: 12,
+    width: 140,
     borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  breakthroughGradient: {
-    padding: 16,
-  },
-  breakthroughHeader: {
-    flexDirection: 'row',
+  breakthroughContainer: {
+    padding: 14,
+    alignItems: 'center',
+    height: 160,
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
   },
-  breakthroughHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  breakthroughIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  breakthroughIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  breakthroughCategory: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  breakthroughDate: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    opacity: 0.7,
-  },
-  shareButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  breakthroughEmoji: {
-    fontSize: 40,
     marginBottom: 8,
-    textAlign: 'center',
   },
   breakthroughTitle: {
-    fontSize: 18,
+    fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 6,
     textAlign: 'center',
+    marginBottom: 4,
+    lineHeight: 16,
   },
   breakthroughDescription: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#FFFFFF',
-    opacity: 0.9,
-    lineHeight: 20,
+    opacity: 0.8,
     textAlign: 'center',
-  },
-  impactContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    gap: 4,
-  },
-  impactText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FCD34D',
-    marginLeft: 4,
+    lineHeight: 13,
   },
 });
 
