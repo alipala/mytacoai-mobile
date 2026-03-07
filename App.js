@@ -62,6 +62,7 @@ import { cacheEvents } from './src/services/smartCache';
 
 // Context Providers
 import { ChallengeSessionProvider } from './src/contexts/ChallengeSessionContext';
+import { RateLimitProvider } from './src/providers/RateLimitProvider';
 
 // Challenge Screens
 import ChallengeSessionScreen from './src/screens/Explore/ChallengeSessionScreen';
@@ -436,18 +437,19 @@ export default function App() {
   };
 
   return (
-    <ChallengeSessionProvider>
-      <NavigationContainer
-        ref={navigationRef}
-        linking={linking}
-        fallback={<View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />}
-      >
-        <Stack.Navigator
-          initialRouteName={getInitialRouteName()}
-          screenOptions={{
-            headerShown: false,
-          }}
+    <RateLimitProvider>
+      <ChallengeSessionProvider>
+        <NavigationContainer
+          ref={navigationRef}
+          linking={linking}
+          fallback={<View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />}
         >
+          <Stack.Navigator
+            initialRouteName={getInitialRouteName()}
+            screenOptions={{
+              headerShown: false,
+            }}
+          >
           {/* Onboarding Flow */}
           <Stack.Screen name="Onboarding" component={OnboardingSlider} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -504,6 +506,7 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </ChallengeSessionProvider>
+    </RateLimitProvider>
   );
 }
 

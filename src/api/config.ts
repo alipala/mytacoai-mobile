@@ -2,6 +2,7 @@ import { OpenAPI } from './generated/core/OpenAPI';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isTokenExpired } from '../utils/jwtUtils';
 import { setFeatureFlag } from '../config/features';
+import { setupApiInterceptor } from './apiInterceptor';
 
 // Set your backend URL
 // For physical device testing, use your laptop's local IP address
@@ -37,5 +38,8 @@ if (__DEV__) {
   setFeatureFlag('USE_CHALLENGE_API', true);
   setFeatureFlag('SHOW_API_STATUS_INDICATOR', true);
 }
+
+// Setup global API interceptor for rate limit handling
+setupApiInterceptor();
 
 export default OpenAPI;
